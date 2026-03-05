@@ -1,0 +1,148 @@
+// src/navigation/AppNavigator.js
+
+import React, { useEffect, useState } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ActivityIndicator, View } from 'react-native';
+
+// Screens
+import Splash from '../screens/Splash';
+import ProfileScreen from '../screens/ProfileScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
+import Address from '../screens/Address';
+import FinanceHome from '../screens/FinanceHome';
+import test from '../screens/test';
+import Login from '../screens/Login';
+import Otp from '../screens/Otp';
+import PaymentsScreen from '../screens/PaymentsScreen';
+import StorePlans from '../screens/StorePlans';
+import FlexiPlan from '../screens/FlexiPlan';
+import InvoiceScreen from '../screens/InvoiceScreen';
+import OrderHistoryScreen from '../screens/OrderHistoryScreen';
+import FinanceIntro from '../screens/FinanceIntro';
+import TopUpScreen from '../screens/TopUpScreen';
+import RechargeScreen from '../screens/RechargeScreen';
+import PaymentDetails from '../screens/PaymentDetails';
+import Transaction from '../screens/Transaction';
+import BBPSServices from '../screens/BBPSServices';
+import ElectricityScreen from '../screens/ElectricityScreen';
+import Electricity from '../screens/Electricity';
+
+import Home from '../screens/HomeScreen/Home';
+
+
+import BalanceEnquiry from "../screens/AEPS_Services/BalanceEnquiry";
+import CashWithdraw from "../screens/AEPS_Services/CashWithdraw";
+import MiniStatement from "../screens/AEPS_Services/MiniStatements";
+import DmtLogin from "../screens/DMT/DmtLogin"
+import AddBeneficial from "../screens/DMT/AddBeneficial";
+import DmtHome from "../screens/DMT/DmtHome"
+import ReceiptScreen from "../screens/AEPS_Services/PaymentReceipt"
+import AEPSServiceCard from "../screens/AEPS/AEPSServiceCard"
+import LoginActivity from "../screens/Account/LoginActivity"
+import ChangePassword from "../screens/Account/ChangePassword"
+import ChangePin from "../screens/Account/ChangePin"
+import ForgotPassword from "../screens/Account/ForgotPassword"
+import ForgotPin from "../screens/Account/ForgotPin"
+import MoneyTransfer from "../screens/DMT/MoneyTransfer"
+// import BBPSServices from "../screens/BBPS_Services/BBPSServiceScreen"
+import SupportScreen from "../screens/Account/SupportScreen"
+
+const Stack = createStackNavigator();
+
+const AppNavigator = () => {
+  const [initialRoute, setInitialRoute] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkToken = async () => {
+      try {
+        const token = await AsyncStorage.getItem('header_token');
+
+        if (token) {
+          console.log("🔐 Token Found → Go to Home");
+          setInitialRoute('FinanceHome');   // ✅ HOME
+        } else {
+          console.log("❌ No Token → Go to Login");
+          setInitialRoute('FinanceIntro');         // ✅ LOGIN
+        }
+
+      } catch (error) {
+        console.error("Token Check Error:", error);
+        setInitialRoute('FinanceIntro');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkToken();
+  }, []);
+
+  // Loading screen
+  if (loading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: '#fff',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+        <ActivityIndicator size="large" color="#7756c4ff" />
+      </View>
+    );
+  }
+
+  return (
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName={initialRoute}
+        screenOptions={{ headerShown: false }}
+      >
+        <Stack.Screen name="Splash" component={Splash} />
+        <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+        <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
+        <Stack.Screen name="Address" component={Address} />
+        <Stack.Screen name="FinanceHome" component={FinanceHome} />
+        <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="Otp" component={Otp} />
+        <Stack.Screen name="test" component={test} />
+        <Stack.Screen name="PaymentsScreen" component={PaymentsScreen} />
+        <Stack.Screen name="StorePlans" component={StorePlans} />
+        <Stack.Screen name="FlexiPlan" component={FlexiPlan} />
+        <Stack.Screen name="InvoiceScreen" component={InvoiceScreen} />
+        <Stack.Screen name="OrderHistoryScreen" component={OrderHistoryScreen} />
+        <Stack.Screen name="FinanceIntro" component={FinanceIntro} />
+        <Stack.Screen name="TopUpScreen" component={TopUpScreen} />
+        <Stack.Screen name="RechargeScreen" component={RechargeScreen} />
+        <Stack.Screen name="PaymentDetails" component={PaymentDetails} />
+        <Stack.Screen name="Transaction" component={Transaction} />
+        <Stack.Screen name="BBPSServices" component={BBPSServices} />
+        <Stack.Screen name="ElectricityScreen" component={ElectricityScreen} />
+        <Stack.Screen name="Electricity" component={Electricity} />
+        <Stack.Screen name="Home" component={Home} />
+
+        <Stack.Screen name="LoginActivity" component={LoginActivity} />
+        <Stack.Screen name="AEPSServiceCard" component={AEPSServiceCard} />
+        <Stack.Screen name="DmtLogin" component={DmtLogin} />
+        <Stack.Screen name="BalanceEnquiry" component={BalanceEnquiry} />
+        <Stack.Screen name="CashWithdraw" component={CashWithdraw} />
+        <Stack.Screen name="MiniStatement" component={MiniStatement} />
+        <Stack.Screen name="PaymentReceipt" component={ReceiptScreen} />
+        <Stack.Screen name="AddBenificial" component={AddBeneficial} />
+        <Stack.Screen name="DmtHome" component={DmtHome} />
+        <Stack.Screen name="MoneyTransfer" component={MoneyTransfer} />
+        <Stack.Screen name="ChangePassword" component={ChangePassword} />
+        <Stack.Screen name="ChangePin" component={ChangePin} />
+        <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
+        <Stack.Screen name="ForgotPin" component={ForgotPin} />
+        <Stack.Screen name="SupportScreen" component={SupportScreen} />
+
+
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+};
+
+export default AppNavigator;

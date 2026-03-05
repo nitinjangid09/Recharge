@@ -1,0 +1,960 @@
+// ─────────────────────────────────────────────────────────────────────────────
+//  BbpsDynamicServiceScreen.jsx
+//
+//  NEW: DOB / Date field support
+//   • Auto-detects DOB/date fields by name or type
+//   • Opens a custom calendar modal (no native dependency needed)
+//   • Formats as DD/MM/YYYY and validates age (min 1, max 120 years)
+//   • All other fields unchanged
+// ─────────────────────────────────────────────────────────────────────────────
+
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  FlatList,
+  TextInput,
+  StatusBar,
+  ScrollView,
+  ActivityIndicator,
+  Modal,
+  Image,
+  Alert,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
+import Colors from "../../utils/Color";
+import {
+  getServices,
+  getBillersByCategory,
+  getBillerDetails,
+  normaliseFields,
+} from "../../api/bbpsApi";
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+const DAYS_SHORT = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+
+/** Returns true if the field should show a date/calendar picker */
+const isDobField = (field) => {
+  const n = (field.name || "").toLowerCase();
+  const l = (field.label || "").toLowerCase();
+  const t = (field.type || "").toLowerCase();
+  return (
+    t === "date" ||
+    n.includes("dob") || n.includes("date") || n.includes("birth") ||
+    l.includes("dob") || l.includes("date") || l.includes("birth")
+  );
+};
+
+/** Format a Date object → "DD/MM/YYYY" */
+const formatDate = (d) => {
+  if (!d) return "";
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+};
+
+/** Validate a DD/MM/YYYY string — returns error string or null */
+const validateDob = (str) => {
+  if (!str) return "Date of Birth is required";
+  const parts = str.split("/");
+  if (parts.length !== 3) return "Enter date as DD/MM/YYYY";
+  const [dd, mm, yyyy] = parts.map(Number);
+  if (isNaN(dd) || isNaN(mm) || isNaN(yyyy)) return "Invalid date";
+  if (mm < 1 || mm > 12) return "Month must be 01–12";
+  if (dd < 1 || dd > 31) return "Day must be 01–31";
+  const date = new Date(yyyy, mm - 1, dd);
+  if (
+    date.getFullYear() !== yyyy ||
+    date.getMonth() !== mm - 1 ||
+    date.getDate() !== dd
+  ) return "Invalid date";
+  const now = new Date();
+  const age = now.getFullYear() - yyyy;
+  if (yyyy < 1900 || age > 120) return "Enter a valid birth year";
+  if (date > now) return "Date cannot be in the future";
+  return null;
+};
+
+/** Days in a given month/year */
+const daysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Calendar Picker Modal
+// ─────────────────────────────────────────────────────────────────────────────
+
+const CalendarPicker = ({ visible, onClose, onSelect, initialDate }) => {
+  const today = new Date();
+  const init = initialDate || today;
+
+  const [viewYear, setViewYear] = useState(init.getFullYear());
+  const [viewMonth, setViewMonth] = useState(init.getMonth());
+  const [selected, setSelected] = useState(initialDate || null);
+
+  // Year picker mode
+  const [yearMode, setYearMode] = useState(false);
+
+  const firstDay = new Date(viewYear, viewMonth, 1).getDay(); // 0=Sun
+  const totalDays = daysInMonth(viewYear, viewMonth);
+
+  // Build grid cells: nulls for padding + day numbers
+  const cells = [
+    ...Array(firstDay).fill(null),
+    ...Array.from({ length: totalDays }, (_, i) => i + 1),
+  ];
+
+  const prevMonth = () => {
+    if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); }
+    else setViewMonth(m => m - 1);
+  };
+  const nextMonth = () => {
+    if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); }
+    else setViewMonth(m => m + 1);
+  };
+
+  const handleDay = (day) => {
+    if (!day) return;
+    const d = new Date(viewYear, viewMonth, day);
+    if (d > today) return; // future dates disabled
+    setSelected(d);
+    onSelect(d);
+    onClose();
+  };
+
+  const isSelected = (day) =>
+    selected &&
+    selected.getDate() === day &&
+    selected.getMonth() === viewMonth &&
+    selected.getFullYear() === viewYear;
+
+  const isToday = (day) =>
+    today.getDate() === day &&
+    today.getMonth() === viewMonth &&
+    today.getFullYear() === viewYear;
+
+  const isFuture = (day) =>
+    new Date(viewYear, viewMonth, day) > today;
+
+  // Year range: 1920 to current
+  const yearList = Array.from(
+    { length: today.getFullYear() - 1919 },
+    (_, i) => today.getFullYear() - i
+  );
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={calStyles.overlay}>
+        <TouchableOpacity style={StyleSheet.absoluteFill} onPress={onClose} activeOpacity={1} />
+
+        <View style={calStyles.card}>
+          {/* Header */}
+          <View style={calStyles.header}>
+            <TouchableOpacity onPress={prevMonth} style={calStyles.navBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Text style={calStyles.navTxt}>‹</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => setYearMode(v => !v)} style={calStyles.monthYearBtn}>
+              <Text style={calStyles.monthYearTxt}>
+                {MONTHS[viewMonth]} {viewYear}
+              </Text>
+              <Text style={calStyles.dropArrow}>{yearMode ? " ▲" : " ▼"}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={nextMonth} style={calStyles.navBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Text style={calStyles.navTxt}>›</Text>
+            </TouchableOpacity>
+          </View>
+
+          {yearMode ? (
+            /* Year Picker */
+            <FlatList
+              data={yearList}
+              keyExtractor={(y) => String(y)}
+              style={calStyles.yearList}
+              showsVerticalScrollIndicator={false}
+              initialScrollIndex={0}
+              getItemLayout={(_, i) => ({ length: 44, offset: 44 * i, index: i })}
+              renderItem={({ item: yr }) => (
+                <TouchableOpacity
+                  style={[calStyles.yearItem, yr === viewYear && calStyles.yearItemSelected]}
+                  onPress={() => { setViewYear(yr); setYearMode(false); }}
+                >
+                  <Text style={[calStyles.yearItemTxt, yr === viewYear && calStyles.yearItemTxtSelected]}>
+                    {yr}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          ) : (
+            <>
+              {/* Day headers */}
+              <View style={calStyles.dayRow}>
+                {DAYS_SHORT.map((d) => (
+                  <Text key={d} style={calStyles.dayHeader}>{d}</Text>
+                ))}
+              </View>
+
+              {/* Calendar grid */}
+              <View style={calStyles.grid}>
+                {cells.map((day, idx) => (
+                  <TouchableOpacity
+                    key={idx}
+                    style={[
+                      calStyles.cell,
+                      isSelected(day) && calStyles.cellSelected,
+                      isToday(day) && !isSelected(day) && calStyles.cellToday,
+                      (!day || isFuture(day)) && calStyles.cellDisabled,
+                    ]}
+                    onPress={() => handleDay(day)}
+                    disabled={!day || isFuture(day)}
+                    activeOpacity={day ? 0.7 : 1}
+                  >
+                    {day ? (
+                      <Text style={[
+                        calStyles.cellTxt,
+                        isSelected(day) && calStyles.cellTxtSelected,
+                        isToday(day) && !isSelected(day) && calStyles.cellTxtToday,
+                        isFuture(day) && calStyles.cellTxtDisabled,
+                      ]}>
+                        {day}
+                      </Text>
+                    ) : null}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </>
+          )}
+
+          {/* Footer */}
+          <View style={calStyles.footer}>
+            <TouchableOpacity onPress={onClose} style={calStyles.cancelBtn}>
+              <Text style={calStyles.cancelTxt}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => { handleDay(today.getDate()); setViewMonth(today.getMonth()); setViewYear(today.getFullYear()); }}
+              style={calStyles.todayBtn}
+            >
+              <Text style={calStyles.todayTxt}>Today</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  SelectBox — outside parent for stable reference
+// ─────────────────────────────────────────────────────────────────────────────
+
+const SelectBox = ({ label, value, placeholder, onPress, loading, disabled }) => (
+  <View style={styles.block}>
+    <Text style={styles.blockLabel}>{label}</Text>
+    <TouchableOpacity
+      style={[styles.selectBox, disabled && styles.selectDisabled]}
+      onPress={onPress}
+      disabled={disabled || loading}
+      activeOpacity={0.75}
+    >
+      {loading ? (
+        <View style={styles.row}>
+          <ActivityIndicator size="small" color={Colors.primary} />
+          <Text style={styles.loadingTxt}>  Loading...</Text>
+        </View>
+      ) : (
+        <View style={styles.row}>
+          <Text style={[styles.selectTxt, !value && styles.placeholder]} numberOfLines={1}>
+            {value || placeholder}
+          </Text>
+          <Text style={styles.arrow}>▼</Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  </View>
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  DynamicField — outside parent, handles both text and DOB fields
+// ─────────────────────────────────────────────────────────────────────────────
+
+const DynamicField = ({
+  field, value, onChangeText, totalFields, index,
+  onOpenCalendar, dobError,
+}) => {
+  const isDate = isDobField(field);
+
+  return (
+    <View style={styles.inputBlock}>
+      <Text style={styles.inputLabel}>
+        {field.label}
+        {field.mandatory && <Text style={styles.req}> *</Text>}
+      </Text>
+
+      {isDate ? (
+        /* DOB field → tappable display + calendar icon */
+        <>
+          <TouchableOpacity
+            style={[styles.textInput, styles.dobInput, dobError && styles.inputError]}
+            onPress={onOpenCalendar}
+            activeOpacity={0.75}
+          >
+            <Text style={[styles.dobTxt, !value && styles.placeholder]}>
+              {value || "DD/MM/YYYY"}
+            </Text>
+            <Text style={styles.calIcon}>📅</Text>
+          </TouchableOpacity>
+          {dobError && <Text style={styles.errorInline}>⚠ {dobError}</Text>}
+          <Text style={styles.hint}>Format: DD/MM/YYYY</Text>
+        </>
+      ) : (
+        /* Normal text input */
+        <>
+          <TextInput
+            style={styles.textInput}
+            placeholder={`Enter ${field.label}`}
+            placeholderTextColor="#B0B8CC"
+            keyboardType={
+              field.type === "NUMERIC" || field.type === "NUM"
+                ? "numeric"
+                : field.type === "EMAIL"
+                  ? "email-address"
+                  : "default"
+            }
+            maxLength={field.maxLength > 0 ? field.maxLength : undefined}
+            value={value}
+            onChangeText={onChangeText}
+            returnKeyType={index < totalFields - 1 ? "next" : "done"}
+            autoCorrect={false}
+            autoCapitalize="none"
+            blurOnSubmit={index === totalFields - 1}
+          />
+          {(field.minLength > 1 || field.maxLength > 0) && (
+            <Text style={styles.hint}>
+              {field.minLength > 1 ? `Min ${field.minLength}` : ""}
+              {field.minLength > 1 && field.maxLength > 0 ? " · " : ""}
+              {field.maxLength > 0 ? `Max ${field.maxLength} chars` : ""}
+            </Text>
+          )}
+        </>
+      )}
+    </View>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Main Screen
+// ─────────────────────────────────────────────────────────────────────────────
+
+const BbpsDynamicServiceScreen = () => {
+  const navigation = useNavigation();
+
+  const [services, setServices] = useState([]);
+  const [billers, setBillers] = useState([]);
+  const [dynamicFields, setDynamicFields] = useState([]);
+  const [billerDetail, setBillerDetail] = useState(null);
+
+  const [selectedService, setSelectedService] = useState(null);
+  const [selectedBiller, setSelectedBiller] = useState(null);
+
+  const [serviceModal, setServiceModal] = useState(false);
+  const [billerModal, setBillerModal] = useState(false);
+
+  const [formData, setFormData] = useState({});
+  const [dobErrors, setDobErrors] = useState({}); // fieldName → error string
+  const [serviceSearch, setServiceSearch] = useState("");
+  const [billerSearch, setBillerSearch] = useState("");
+
+  // Calendar state
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [activeCalField, setActiveCalField] = useState(null); // field object
+
+  const [servicesLoading, setServicesLoading] = useState(false);
+  const [billersLoading, setBillersLoading] = useState(false);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [detailsError, setDetailsError] = useState(null);
+
+  useEffect(() => { loadServices(); }, []);
+
+  // ─── loaders ───────────────────────────────────────────────────────────────
+
+  const loadServices = async () => {
+    setServicesLoading(true);
+    const data = await getServices();
+    setServices(Array.isArray(data) ? data : []);
+    setServicesLoading(false);
+  };
+
+  const loadBillers = async (cat_key) => {
+    setBillersLoading(true);
+    setBillers([]);
+    setSelectedBiller(null);
+    setDynamicFields([]);
+    setBillerDetail(null);
+    setDetailsError(null);
+    setFormData({});
+    setDobErrors({});
+    const data = await getBillersByCategory(cat_key);
+    const list = Array.isArray(data) ? data : [];
+    setBillers(list);
+    setBillersLoading(false);
+    if (list.length > 0) setBillerModal(true);
+  };
+
+  const loadBillerDetails = async (biller) => {
+    setDetailsLoading(true);
+    setDetailsError(null);
+    setDynamicFields([]);
+    setBillerDetail(null);
+    setFormData({});
+    setDobErrors({});
+    try {
+      const detail = await getBillerDetails(biller);
+      if (!detail) {
+        setDetailsError("Could not load biller fields. Please try again or choose another biller.");
+        return;
+      }
+      setBillerDetail(detail);
+      const fields = normaliseFields(detail);
+      setDynamicFields(Array.isArray(fields) ? fields : []);
+    } catch (err) {
+      console.error("[loadBillerDetails] error:", err);
+      setDetailsError("An unexpected error occurred. Please retry.");
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+
+  // ─── handlers ──────────────────────────────────────────────────────────────
+
+  const handleFieldChange = useCallback((name, text) => {
+    setFormData((prev) => ({ ...prev, [name]: text }));
+  }, []);
+
+  const handleOpenCalendar = useCallback((field) => {
+    setActiveCalField(field);
+    setCalendarOpen(true);
+  }, []);
+
+  const handleDateSelect = useCallback((date) => {
+    if (!activeCalField) return;
+    const formatted = formatDate(date);
+    setFormData((prev) => ({ ...prev, [activeCalField.name]: formatted }));
+    // Clear any previous error
+    setDobErrors((prev) => ({ ...prev, [activeCalField.name]: null }));
+  }, [activeCalField]);
+
+  const handleSelectService = (item) => {
+    setSelectedService(item);
+    setServiceModal(false);
+    setServiceSearch("");
+    loadBillers(item.cat_key);
+  };
+
+  const handleSelectBiller = (biller) => {
+    setSelectedBiller(biller);
+    setBillerModal(false);
+    setBillerSearch("");
+    loadBillerDetails(biller);
+  };
+
+  const handleSubmit = () => {
+    if (!selectedService || !selectedBiller) return;
+
+    const newDobErrors = {};
+    for (const field of dynamicFields) {
+      const val = (formData[field.name] || "").trim();
+
+      if (isDobField(field)) {
+        // DOB validation
+        if (field.mandatory && !val) {
+          newDobErrors[field.name] = "Date of Birth is required";
+          continue;
+        }
+        if (val) {
+          const err = validateDob(val);
+          if (err) { newDobErrors[field.name] = err; continue; }
+        }
+      } else {
+        // Regular field validation
+        if (field.mandatory && !val) {
+          Alert.alert("Required", `Please enter ${field.label}`);
+          return;
+        }
+        if (val && field.minLength > 0 && val.length < field.minLength) {
+          Alert.alert("Invalid", `${field.label} must be at least ${field.minLength} characters`);
+          return;
+        }
+        if (val && field.regex) {
+          try {
+            if (!new RegExp(field.regex).test(val)) {
+              Alert.alert("Invalid Format", `${field.label} format is incorrect`);
+              return;
+            }
+          } catch (_) { }
+        }
+      }
+    }
+
+    // If any DOB errors, show them and stop
+    if (Object.values(newDobErrors).some(Boolean)) {
+      setDobErrors(newDobErrors);
+      return;
+    }
+    setDobErrors({});
+
+    navigation.navigate("BBPSReceipt", {
+      serviceName: selectedService.name,
+      billerName: selectedBiller.biller_name || selectedBiller.billerName || selectedBiller.name,
+      billerId: selectedBiller.biller_id || selectedBiller.billerId || selectedBiller.id,
+      billerDetail,
+      formData,
+      transactionId: "TXN" + Date.now(),
+    });
+  };
+
+  // ─── computed ───────────────────────────────────────────────────────────────
+
+  const filteredServices = useMemo(
+    () => services.filter((s) =>
+      (s.name || "").toLowerCase().includes(serviceSearch.toLowerCase())
+    ),
+    [serviceSearch, services]
+  );
+
+  const filteredBillers = useMemo(
+    () => billers.filter((b) =>
+      (b.biller_name || b.billerName || b.name || "")
+        .toLowerCase().includes(billerSearch.toLowerCase())
+    ),
+    [billerSearch, billers]
+  );
+
+  const { buttonLabel, buttonSub } = useMemo(() => {
+    const svc = selectedService?.name || "";
+    if (dynamicFields.length > 0 && dynamicFields.every((f) => f.mandatory)) {
+      return { buttonLabel: "Fetch Bill", buttonSub: svc ? `Fetch bill for ${svc}` : "" };
+    }
+    return { buttonLabel: "Continue", buttonSub: svc };
+  }, [dynamicFields, selectedService]);
+
+  const billerDisplayName =
+    selectedBiller?.biller_name ||
+    selectedBiller?.billerName ||
+    selectedBiller?.name || "";
+
+  // Active calendar field's current date value (for initial calendar position)
+  const activeCalInitialDate = useMemo(() => {
+    if (!activeCalField) return null;
+    const str = formData[activeCalField.name];
+    if (!str) return null;
+    const [dd, mm, yyyy] = str.split("/").map(Number);
+    if (!dd || !mm || !yyyy) return null;
+    return new Date(yyyy, mm - 1, dd);
+  }, [activeCalField, formData]);
+
+  // ─── render ─────────────────────────────────────────────────────────────────
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+
+      {/* Calendar Modal */}
+      <CalendarPicker
+        visible={calendarOpen}
+        onClose={() => setCalendarOpen(false)}
+        onSelect={handleDateSelect}
+        initialDate={activeCalInitialDate}
+      />
+
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>BBPS Services</Text>
+        <Text style={styles.headerSub}>Bharat Bill Payment System</Text>
+      </View>
+
+      {/* Body */}
+      <View style={styles.body}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: 50 }}
+        >
+          {/* Step 1: Service */}
+          <SelectBox
+            label="SELECT SERVICE"
+            value={selectedService?.name}
+            placeholder="Choose a service category"
+            onPress={() => setServiceModal(true)}
+            loading={servicesLoading}
+          />
+
+          {/* Step 2: Biller */}
+          {selectedService && (
+            <SelectBox
+              label="SELECT BILLER"
+              value={billerDisplayName}
+              placeholder="Choose a biller"
+              onPress={() => setBillerModal(true)}
+              loading={billersLoading}
+              disabled={billersLoading}
+            />
+          )}
+
+          {selectedService && !billersLoading && billers.length === 0 && (
+            <Text style={styles.infoTxt}>No billers found for "{selectedService.name}".</Text>
+          )}
+
+          {/* Loading */}
+          {detailsLoading && (
+            <View style={styles.loaderRow}>
+              <ActivityIndicator color={Colors.primary} />
+              <Text style={styles.loaderTxt}>Loading fields for {billerDisplayName}...</Text>
+            </View>
+          )}
+
+          {/* Error */}
+          {!detailsLoading && detailsError && (
+            <View style={styles.errorBox}>
+              <Text style={styles.errorTxt}>⚠  {detailsError}</Text>
+              <TouchableOpacity
+                style={styles.retryBtn}
+                onPress={() => selectedBiller && loadBillerDetails(selectedBiller)}
+              >
+                <Text style={styles.retryTxt}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Dynamic Fields */}
+          {!detailsLoading && !detailsError && dynamicFields.length > 0 && (
+            <View style={styles.fieldsWrap}>
+              <Text style={styles.sectionTitle}>ENTER DETAILS</Text>
+
+              {dynamicFields.map((field, idx) => (
+                <DynamicField
+                  key={`${field.name}_${idx}`}
+                  field={field}
+                  value={formData[field.name] || ""}
+                  onChangeText={(text) => handleFieldChange(field.name, text)}
+                  index={idx}
+                  totalFields={dynamicFields.length}
+                  onOpenCalendar={() => handleOpenCalendar(field)}
+                  dobError={dobErrors[field.name] || null}
+                />
+              ))}
+            </View>
+          )}
+
+          {!detailsLoading && !detailsError && selectedBiller && dynamicFields.length === 0 && (
+            <Text style={styles.infoTxt}>No input fields required for this biller.</Text>
+          )}
+
+          {/* Submit */}
+          {selectedBiller && !detailsLoading && !detailsError && (
+            <TouchableOpacity style={styles.payBtn} onPress={handleSubmit} activeOpacity={0.85}>
+              <Text style={styles.payBtnTxt}>{buttonLabel}</Text>
+              {!!buttonSub && <Text style={styles.payBtnSub}>{buttonSub}</Text>}
+            </TouchableOpacity>
+          )}
+
+        </ScrollView>
+      </View>
+
+      {/* ══════════ Modal: Service ══════════ */}
+      <Modal visible={serviceModal} transparent animationType="slide" onRequestClose={() => setServiceModal(false)}>
+        <View style={styles.modalWrap}>
+          <TouchableOpacity style={StyleSheet.absoluteFill} onPress={() => setServiceModal(false)} activeOpacity={1} />
+          <View style={styles.sheet}>
+            <View style={styles.handle} />
+            <View style={styles.sheetHead}>
+              <Text style={styles.sheetTitle}>Select Service</Text>
+              <TouchableOpacity onPress={() => setServiceModal(false)} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                <Text style={styles.closeX}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <TextInput
+              style={styles.searchBox}
+              placeholder="Search services..."
+              placeholderTextColor="#B0B8CC"
+              value={serviceSearch}
+              onChangeText={setServiceSearch}
+              autoFocus
+            />
+            <FlatList
+              data={filteredServices}
+              keyExtractor={(item) => String(item.id || item.cat_key)}
+              keyboardShouldPersistTaps="handled"
+              renderItem={({ item }) => (
+                <TouchableOpacity style={styles.listRow} onPress={() => handleSelectService(item)} activeOpacity={0.65}>
+                  {item.icon
+                    ? <Image source={{ uri: item.icon }} style={styles.listIcon} resizeMode="contain" />
+                    : <View style={styles.listIconPH} />
+                  }
+                  <Text style={styles.listTxt}>{item.name}</Text>
+                </TouchableOpacity>
+              )}
+              ListEmptyComponent={<Text style={styles.emptyMsg}>No services found</Text>}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      {/* ══════════ Modal: Biller ══════════ */}
+      <Modal visible={billerModal} transparent animationType="slide" onRequestClose={() => setBillerModal(false)}>
+        <View style={styles.modalWrap}>
+          <TouchableOpacity style={StyleSheet.absoluteFill} onPress={() => setBillerModal(false)} activeOpacity={1} />
+          <View style={styles.sheet}>
+            <View style={styles.handle} />
+            <View style={styles.sheetHead}>
+              <View>
+                <Text style={styles.sheetTitle}>Select Biller</Text>
+                {selectedService && <Text style={styles.sheetSub}>{selectedService.name}</Text>}
+              </View>
+              <TouchableOpacity onPress={() => setBillerModal(false)} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                <Text style={styles.closeX}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <TextInput
+              style={styles.searchBox}
+              placeholder="Search billers..."
+              placeholderTextColor="#B0B8CC"
+              value={billerSearch}
+              onChangeText={setBillerSearch}
+              autoFocus
+            />
+            <FlatList
+              data={filteredBillers}
+              keyExtractor={(item, i) => String(item.biller_id || item.billerId || item.id || i)}
+              keyboardShouldPersistTaps="handled"
+              renderItem={({ item }) => (
+                <TouchableOpacity style={styles.listRow} onPress={() => handleSelectBiller(item)} activeOpacity={0.65}>
+                  <Text style={styles.listTxt}>
+                    {item.biller_name || item.billerName || item.name || "Unknown Biller"}
+                  </Text>
+                </TouchableOpacity>
+              )}
+              ListEmptyComponent={<Text style={styles.emptyMsg}>No billers found</Text>}
+            />
+          </View>
+        </View>
+      </Modal>
+
+    </SafeAreaView>
+  );
+};
+
+export default BbpsDynamicServiceScreen;
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Calendar Styles
+// ─────────────────────────────────────────────────────────────────────────────
+
+const calStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  card: {
+    width: "100%",
+    backgroundColor: "#FFF",
+    borderRadius: 22,
+    overflow: "hidden",
+    elevation: 20,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: Colors.primary,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+  },
+  navBtn: { padding: 4 },
+  navTxt: { fontSize: 26, color: "#FFF", fontWeight: "300", lineHeight: 30 },
+  monthYearBtn: { flexDirection: "row", alignItems: "center" },
+  monthYearTxt: { fontSize: 17, fontWeight: "700", color: "#FFF" },
+  dropArrow: { fontSize: 12, color: "rgba(255,255,255,0.8)" },
+
+  dayRow: {
+    flexDirection: "row",
+    paddingHorizontal: 12,
+    paddingTop: 14,
+    paddingBottom: 6,
+  },
+  dayHeader: {
+    flex: 1,
+    textAlign: "center",
+    fontSize: 12,
+    fontWeight: "700",
+    color: Colors.primary,
+    letterSpacing: 0.3,
+  },
+
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    paddingHorizontal: 12,
+    paddingBottom: 10,
+  },
+  cell: {
+    width: "14.28%",
+    aspectRatio: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 100,
+  },
+  cellSelected: { backgroundColor: Colors.primary },
+  cellToday: { borderWidth: 1.5, borderColor: Colors.primary },
+  cellDisabled: { opacity: 0.25 },
+  cellTxt: { fontSize: 14, color: "#1A1A2E" },
+  cellTxtSelected: { color: "#FFF", fontWeight: "700" },
+  cellTxtToday: { color: Colors.primary, fontWeight: "700" },
+  cellTxtDisabled: { color: "#9CA3AF" },
+
+  yearList: { maxHeight: 250 },
+  yearItem: {
+    height: 44,
+    justifyContent: "center",
+    alignItems: "center",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#E5E7EB",
+  },
+  yearItemSelected: { backgroundColor: Colors.primary + "15" },
+  yearItemTxt: { fontSize: 16, color: "#1A1A2E" },
+  yearItemTxtSelected: { color: Colors.primary, fontWeight: "700" },
+
+  footer: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "#E5E7EB",
+    gap: 12,
+  },
+  cancelBtn: { paddingHorizontal: 16, paddingVertical: 8 },
+  cancelTxt: { fontSize: 14, color: "#6B7280", fontWeight: "600" },
+  todayBtn: { paddingHorizontal: 16, paddingVertical: 8, backgroundColor: Colors.primary + "15", borderRadius: 8 },
+  todayTxt: { fontSize: 14, color: Colors.primary, fontWeight: "700" },
+});
+
+
+const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: Colors.primary },
+  header: { paddingVertical: 22, alignItems: "center" },
+  headerTitle: { fontSize: 22, fontWeight: "700", color: Colors.white, letterSpacing: 0.3 },
+  headerSub: { fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 3 },
+
+  body: {
+    flex: 1,
+    backgroundColor: Colors.bg || "#F4F6FB",
+    paddingHorizontal: 20,
+    paddingTop: 22,
+    borderTopLeftRadius: 26,
+    borderTopRightRadius: 26,
+  },
+
+  block: { marginBottom: 18 },
+  blockLabel: { fontSize: 11, fontWeight: "700", color: Colors.primary, letterSpacing: 0.8, marginBottom: 8 },
+  selectBox: {
+    borderWidth: 1, borderColor: Colors.lightGray || "#DDE1EC",
+    borderRadius: 14, paddingHorizontal: 16, paddingVertical: 15,
+    backgroundColor: Colors.white || "#FFF", elevation: 2,
+    minHeight: 54, justifyContent: "center",
+  },
+  selectDisabled: { opacity: 0.4 },
+  row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  selectTxt: { fontSize: 15, color: Colors.black || "#1A1A2E", flex: 1 },
+  placeholder: { color: "#B0B8CC" },
+  arrow: { fontSize: 11, color: "#9CA3AF", marginLeft: 10 },
+  loadingTxt: { fontSize: 14, color: "#9CA3AF" },
+
+  fieldsWrap: { marginTop: 6 },
+  sectionTitle: {
+    fontSize: 11, fontWeight: "700", color: Colors.primary, letterSpacing: 0.8,
+    marginBottom: 14, borderBottomWidth: 1, borderBottomColor: Colors.lightGray || "#E5E7EB", paddingBottom: 8,
+  },
+  inputBlock: { marginBottom: 18 },
+  inputLabel: { fontSize: 13, fontWeight: "600", color: Colors.black || "#1A1A2E", marginBottom: 7 },
+  req: { color: "#E53935" },
+  textInput: {
+    borderWidth: 1, borderColor: Colors.lightGray || "#DDE1EC",
+    borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14,
+    backgroundColor: Colors.white || "#FFF", fontSize: 15,
+    color: Colors.black || "#1A1A2E", elevation: 2,
+  },
+
+  // DOB specific
+  dobInput: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 14,
+  },
+  dobTxt: { fontSize: 15, color: Colors.black || "#1A1A2E", flex: 1 },
+  calIcon: { fontSize: 20 },
+  inputError: { borderColor: "#DC2626", backgroundColor: "#FEF2F2" },
+  errorInline: { fontSize: 12, color: "#DC2626", marginTop: 4, marginLeft: 2 },
+
+  hint: { fontSize: 11, color: "#9CA3AF", marginTop: 4, marginLeft: 2 },
+
+  loaderRow: { flexDirection: "row", alignItems: "center", marginVertical: 22 },
+  loaderTxt: { fontSize: 14, color: Colors.primary, marginLeft: 10 },
+  infoTxt: { textAlign: "center", color: "#9CA3AF", fontSize: 13, marginVertical: 18 },
+
+  errorBox: {
+    marginVertical: 18, padding: 16, backgroundColor: "#FFF3F3",
+    borderRadius: 12, borderWidth: 1, borderColor: "#FFCDD2", alignItems: "center",
+  },
+  errorTxt: { fontSize: 13, color: "#C62828", textAlign: "center", lineHeight: 20 },
+  retryBtn: { marginTop: 12, paddingHorizontal: 24, paddingVertical: 8, backgroundColor: Colors.primary, borderRadius: 8 },
+  retryTxt: { color: "#FFF", fontSize: 13, fontWeight: "600" },
+
+  payBtn: {
+    marginTop: 8, backgroundColor: Colors.accent || Colors.primary,
+    paddingVertical: 17, borderRadius: 16, alignItems: "center", elevation: 5,
+  },
+  payBtnTxt: { color: Colors.white || "#FFF", fontSize: 16, fontWeight: "700", letterSpacing: 0.3 },
+  payBtnSub: { color: "rgba(255,255,255,0.7)", fontSize: 11, marginTop: 3 },
+
+  modalWrap: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "flex-end" },
+  sheet: {
+    backgroundColor: Colors.white || "#FFF", borderTopLeftRadius: 26,
+    borderTopRightRadius: 26, maxHeight: "80%", paddingBottom: 28, elevation: 16,
+  },
+  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: "#DDE1EC", alignSelf: "center", marginTop: 10 },
+  sheetHead: {
+    flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start",
+    paddingHorizontal: 22, paddingTop: 14, paddingBottom: 6,
+  },
+  sheetTitle: { fontSize: 18, fontWeight: "700", color: Colors.black || "#1A1A2E" },
+  sheetSub: { fontSize: 12, color: "#9CA3AF", marginTop: 2 },
+  closeX: { fontSize: 18, color: "#9CA3AF" },
+  searchBox: {
+    marginHorizontal: 18, marginTop: 6, marginBottom: 10,
+    borderWidth: 1, borderColor: Colors.lightGray || "#DDE1EC",
+    borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11,
+    fontSize: 14, color: Colors.black || "#1A1A2E", backgroundColor: "#F9FAFB",
+  },
+  listRow: {
+    flexDirection: "row", alignItems: "center", paddingHorizontal: 22, paddingVertical: 15,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.lightGray || "#E5E7EB",
+  },
+  listTxt: { fontSize: 15, color: Colors.black || "#1A1A2E", flex: 1 },
+  listIcon: { width: 30, height: 30, marginRight: 14, borderRadius: 8 },
+  listIconPH: { width: 30, height: 30, marginRight: 14, borderRadius: 8, backgroundColor: "#F0F2F8" },
+  emptyMsg: { textAlign: "center", paddingVertical: 34, color: "#B0B8CC", fontSize: 14 },
+});
