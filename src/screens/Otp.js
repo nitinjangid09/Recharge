@@ -303,6 +303,13 @@ export default function OTP({ navigation, route }) {
               <Text style={styles.resendLink}>Resend Code</Text>
             </TouchableOpacity>
           </View>
+
+          <TouchableOpacity
+            style={styles.forgotPinBtn}
+            onPress={() => navigation.navigate("ForgotPin")}
+          >
+            <Text style={styles.forgotPinText}>Forgot PIN?</Text>
+          </TouchableOpacity>
         </ScrollView>
       </Animated.View>
 
@@ -421,6 +428,17 @@ const styles = StyleSheet.create({
     color: Colors.accent,
     fontFamily: Fonts.Bold,
     fontSize: 14,
+  },
+  forgotPinBtn: {
+    alignItems: "center",
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  forgotPinText: {
+    color: Colors.text_primary,
+    fontFamily: Fonts.Bold,
+    fontSize: 14,
+    textDecorationLine: "underline",
   },
   loaderOverlay: {
     position: "absolute",

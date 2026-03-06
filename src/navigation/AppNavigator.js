@@ -30,7 +30,7 @@ import Electricity from '../screens/Electricity';
 
 import Home from '../screens/HomeScreen/Home';
 
-
+import WalletTransactionScreen from '../screens/WalletTranscation'
 import BalanceEnquiry from "../screens/AEPS_Services/BalanceEnquiry";
 import CashWithdraw from "../screens/AEPS_Services/CashWithdraw";
 import MiniStatement from "../screens/AEPS_Services/MiniStatements";
@@ -94,49 +94,49 @@ const AppNavigator = () => {
   }
 
   return (
-      <Stack.Navigator
-        initialRouteName={initialRoute}
-        screenOptions={{ headerShown: false }}
-      >
-        <Stack.Screen name="Splash" component={Splash} />
-        <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
-        <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
-        <Stack.Screen name="Address" component={Address} />
-        <Stack.Screen name="FinanceHome" component={FinanceHome} />
-        <Stack.Screen name="Login" component={Login} />
-        <Stack.Screen name="Otp" component={Otp} />
-        <Stack.Screen name="test" component={test} />
-        <Stack.Screen name="PaymentsScreen" component={PaymentsScreen} />
-        <Stack.Screen name="StorePlans" component={StorePlans} />
-        <Stack.Screen name="FlexiPlan" component={FlexiPlan} />
-        <Stack.Screen name="InvoiceScreen" component={InvoiceScreen} />
-        <Stack.Screen name="OrderHistoryScreen" component={OrderHistoryScreen} />
-        <Stack.Screen name="FinanceIntro" component={FinanceIntro} />
-        <Stack.Screen name="TopUpScreen" component={TopUpScreen} />
-        <Stack.Screen name="RechargeScreen" component={RechargeScreen} />
-        <Stack.Screen name="PaymentDetails" component={PaymentDetails} />
-        <Stack.Screen name="Transaction" component={Transaction} />
-        <Stack.Screen name="BBPSServices" component={BBPSServices} />
-        <Stack.Screen name="ElectricityScreen" component={ElectricityScreen} />
-        <Stack.Screen name="Electricity" component={Electricity} />
-        <Stack.Screen name="Home" component={Home} />
-
-        <Stack.Screen name="LoginActivity" component={LoginActivity} />
-        <Stack.Screen name="AEPSServiceCard" component={AEPSServiceCard} />
-        <Stack.Screen name="DmtLogin" component={DmtLogin} />
-        <Stack.Screen name="BalanceEnquiry" component={BalanceEnquiry} />
-        <Stack.Screen name="CashWithdraw" component={CashWithdraw} />
-        <Stack.Screen name="MiniStatement" component={MiniStatement} />
-        <Stack.Screen name="PaymentReceipt" component={ReceiptScreen} />
-        <Stack.Screen name="AddBenificial" component={AddBeneficial} />
-        <Stack.Screen name="DmtHome" component={DmtHome} />
-        <Stack.Screen name="MoneyTransfer" component={MoneyTransfer} />
-        <Stack.Screen name="ChangePassword" component={ChangePassword} />
-        <Stack.Screen name="ChangePin" component={ChangePin} />
-        <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
-        <Stack.Screen name="ForgotPin" component={ForgotPin} />
-        <Stack.Screen name="SupportScreen" component={SupportScreen} />
-      </Stack.Navigator>
+    <Stack.Navigator
+      initialRouteName={initialRoute}
+      screenOptions={{ headerShown: false }}
+    >
+      <Stack.Screen name="Splash" component={Splash} />
+      <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+      <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
+      <Stack.Screen name="Address" component={Address} />
+      <Stack.Screen name="FinanceHome" component={FinanceHome} />
+      <Stack.Screen name="Login" component={Login} />
+      <Stack.Screen name="Otp" component={Otp} />
+      <Stack.Screen name="test" component={test} />
+      <Stack.Screen name="PaymentsScreen" component={PaymentsScreen} />
+      <Stack.Screen name="StorePlans" component={StorePlans} />
+      <Stack.Screen name="FlexiPlan" component={FlexiPlan} />
+      <Stack.Screen name="InvoiceScreen" component={InvoiceScreen} />
+      <Stack.Screen name="OrderHistoryScreen" component={OrderHistoryScreen} />
+      <Stack.Screen name="FinanceIntro" component={FinanceIntro} />
+      <Stack.Screen name="TopUpScreen" component={TopUpScreen} />
+      <Stack.Screen name="RechargeScreen" component={RechargeScreen} />
+      <Stack.Screen name="PaymentDetails" component={PaymentDetails} />
+      <Stack.Screen name="Transaction" component={Transaction} />
+      <Stack.Screen name="BBPSServices" component={BBPSServices} />
+      <Stack.Screen name="ElectricityScreen" component={ElectricityScreen} />
+      <Stack.Screen name="Electricity" component={Electricity} />
+      <Stack.Screen name="Home" component={Home} />
+      <Stack.Screen name="WalletTransactionScreen" component={WalletTransactionScreen} />
+      <Stack.Screen name="LoginActivity" component={LoginActivity} />
+      <Stack.Screen name="AEPSServiceCard" component={AEPSServiceCard} />
+      <Stack.Screen name="DmtLogin" component={DmtLogin} />
+      <Stack.Screen name="BalanceEnquiry" component={BalanceEnquiry} />
+      <Stack.Screen name="CashWithdraw" component={CashWithdraw} />
+      <Stack.Screen name="MiniStatement" component={MiniStatement} />
+      <Stack.Screen name="PaymentReceipt" component={ReceiptScreen} />
+      <Stack.Screen name="AddBenificial" component={AddBeneficial} />
+      <Stack.Screen name="DmtHome" component={DmtHome} />
+      <Stack.Screen name="MoneyTransfer" component={MoneyTransfer} />
+      <Stack.Screen name="ChangePassword" component={ChangePassword} />
+      <Stack.Screen name="ChangePin" component={ChangePin} />
+      <Stack.Screen name="ForgotPasswordScreen" component={ForgotPassword} />
+      <Stack.Screen name="ForgotPin" component={ForgotPin} />
+      <Stack.Screen name="SupportScreen" component={SupportScreen} />
+    </Stack.Navigator>
   );
 };
 

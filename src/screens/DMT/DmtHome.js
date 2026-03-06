@@ -10,16 +10,16 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import Colors from "../../Utils/Color";
-import { fadeIn, slideUp } from "../../Utils/ScreenAnimations";
+import Colors from "../../utils/Color";
+import { fadeIn, slideUp } from "../../utils/ScreenAnimations";
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get("window");
 const BASE_W = 390;
 const BASE_H = 844;
 const scale = (s) => Math.round((SW / BASE_W) * s);
-const vs    = (s) => Math.round((SH / BASE_H) * s);
-const rs    = (s) => Math.round(Math.sqrt((SW * SH) / (BASE_W * BASE_H)) * s);
+const vs = (s) => Math.round((SH / BASE_H) * s);
+const rs = (s) => Math.round(Math.sqrt((SW * SH) / (BASE_W * BASE_H)) * s);
 
 // ─── Avatar color palette ─────────────────────────────────────────────────────
 const AVATAR_COLORS = [
@@ -42,15 +42,15 @@ const getInitials = (name) =>
 // ─── Data ─────────────────────────────────────────────────────────────────────
 const accounts = [
   { id: "1", name: "Rahul Sharma", bank: "State Bank of India", accountNumber: "XXXXXX4589", ifsc: "SBIN0004589" },
-  { id: "2", name: "Amit Verma",   bank: "HDFC Bank",           accountNumber: "XXXXXX7832", ifsc: "HDFC0007832" },
-  { id: "3", name: "Neha Singh",   bank: "ICICI Bank",          accountNumber: "XXXXXX1122", ifsc: "ICIC0001122" },
+  { id: "2", name: "Amit Verma", bank: "HDFC Bank", accountNumber: "XXXXXX7832", ifsc: "HDFC0007832" },
+  { id: "3", name: "Neha Singh", bank: "ICICI Bank", accountNumber: "XXXXXX1122", ifsc: "ICIC0001122" },
   { id: "4", name: "Rahul Sharma", bank: "State Bank of India", accountNumber: "XXXXXX4589", ifsc: "SBIN0004589" },
-  { id: "5", name: "Priya Patel",  bank: "Axis Bank",           accountNumber: "XXXXXX3310", ifsc: "UTIB0003310" },
+  { id: "5", name: "Priya Patel", bank: "Axis Bank", accountNumber: "XXXXXX3310", ifsc: "UTIB0003310" },
 ];
 
-const TOTAL_BUDGET  = 50000;
-const REMAINING     = 32450;
-const SPENT         = TOTAL_BUDGET - REMAINING;
+const TOTAL_BUDGET = 50000;
+const REMAINING = 32450;
+const SPENT = TOTAL_BUDGET - REMAINING;
 const SPENT_PERCENT = Math.round((SPENT / TOTAL_BUDGET) * 100);
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -114,8 +114,8 @@ const DmtHome = () => {
 
   const headerOp = useRef(new Animated.Value(0)).current;
   const headerTY = useRef(new Animated.Value(vs(20))).current;
-  const bodyOp   = useRef(new Animated.Value(0)).current;
-  const bodyTY   = useRef(new Animated.Value(vs(16))).current;
+  const bodyOp = useRef(new Animated.Value(0)).current;
+  const bodyTY = useRef(new Animated.Value(vs(16))).current;
 
   useEffect(() => {
     Animated.parallel([fadeIn(headerOp, 500), slideUp(headerTY, 500)]).start();
@@ -233,8 +233,8 @@ export default DmtHome;
 //  STYLES
 // ══════════════════════════════════════════════════════════════════════════════
 const styles = StyleSheet.create({
-  safe:        { flex: 1, backgroundColor: Colors.primary },
-  body:        { flex: 1, backgroundColor: Colors.bg },
+  safe: { flex: 1, backgroundColor: Colors.primary },
+  body: { flex: 1, backgroundColor: Colors.bg },
   listContent: { paddingHorizontal: scale(16), paddingBottom: vs(30) },
 
   // ── Header ──
@@ -266,9 +266,9 @@ const styles = StyleSheet.create({
     borderRadius: scale(20), paddingHorizontal: scale(10), paddingVertical: vs(4),
     gap: scale(5),
   },
-  remainingDot:   { width: scale(7), height: scale(7), borderRadius: scale(4), backgroundColor: Colors.accent },
+  remainingDot: { width: scale(7), height: scale(7), borderRadius: scale(4), backgroundColor: Colors.accent },
   remainingLabel: { color: "#fff", fontSize: rs(9), fontWeight: "800", letterSpacing: 0.8 },
-  remainingAmt:   { color: Colors.accent, fontSize: rs(20), fontWeight: "900" },
+  remainingAmt: { color: Colors.accent, fontSize: rs(20), fontWeight: "900" },
 
   progressTrack: {
     height: vs(5), backgroundColor: "rgba(255,255,255,0.15)",
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: "rgba(255,255,255,0.12)",
   },
   actionBtnIcon: { color: "#fff", fontSize: rs(15), fontWeight: "900" },
-  actionBtnTxt:  { color: "#fff", fontSize: rs(12), fontWeight: "800" },
+  actionBtnTxt: { color: "#fff", fontSize: rs(12), fontWeight: "800" },
 
   // ── Section header ──
   sectionRow: {

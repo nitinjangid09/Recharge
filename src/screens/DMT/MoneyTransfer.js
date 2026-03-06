@@ -14,17 +14,17 @@ import {
   Animated,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Colors from "../../Utils/Color";
-import CustomAlert from "../../components/CustomAlert";
-import { fadeIn, slideUp, buttonPress } from "../../Utils/ScreenAnimations";
+import Colors from "../../utils/Color";
+import CustomAlert from "../../componets/CustomAlert";
+import { fadeIn, slideUp, buttonPress } from "../../utils/ScreenAnimations";
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get("window");
 const BASE_W = 390;
 const BASE_H = 844;
 const scale = (s) => Math.round((SW / BASE_W) * s);
-const vs    = (s) => Math.round((SH / BASE_H) * s);
-const rs    = (s) => Math.round(Math.sqrt((SW * SH) / (BASE_W * BASE_H)) * s);
+const vs = (s) => Math.round((SH / BASE_H) * s);
+const rs = (s) => Math.round(Math.sqrt((SW * SH) / (BASE_W * BASE_H)) * s);
 
 // Quick amount chips
 const QUICK_AMOUNTS = ["500", "1000", "2000", "5000", "10000"];
@@ -37,31 +37,31 @@ const MoneyTransferScreen = ({ route }) => {
     ifsc: "SBIN0004589",
   };
 
-  const [amount,        setAmount]        = useState("");
-  const [otp,           setOtp]           = useState("");
-  const [confirmModal,  setConfirmModal]  = useState(false);
-  const [otpModal,      setOtpModal]      = useState(false);
+  const [amount, setAmount] = useState("");
+  const [otp, setOtp] = useState("");
+  const [confirmModal, setConfirmModal] = useState(false);
+  const [otpModal, setOtpModal] = useState(false);
 
   // Alert
   const [alertVisible, setAlertVisible] = useState(false);
-  const [alertData,    setAlertData]    = useState({ type: "", title: "", message: "" });
+  const [alertData, setAlertData] = useState({ type: "", title: "", message: "" });
   const showAlert = (type, title, message) => {
     setAlertData({ type, title, message });
     setAlertVisible(true);
   };
 
   // Animations
-  const headerOp  = useRef(new Animated.Value(0)).current;
-  const headerTY  = useRef(new Animated.Value(vs(30))).current;
-  const formOp    = useRef(new Animated.Value(0)).current;
-  const formTY    = useRef(new Animated.Value(vs(24))).current;
-  const btnScale  = useRef(new Animated.Value(1)).current;
+  const headerOp = useRef(new Animated.Value(0)).current;
+  const headerTY = useRef(new Animated.Value(vs(30))).current;
+  const formOp = useRef(new Animated.Value(0)).current;
+  const formTY = useRef(new Animated.Value(vs(24))).current;
+  const btnScale = useRef(new Animated.Value(1)).current;
 
   // Modal animations
   const confirmScale = useRef(new Animated.Value(0.88)).current;
-  const confirmOp    = useRef(new Animated.Value(0)).current;
-  const otpScale     = useRef(new Animated.Value(0.88)).current;
-  const otpOp        = useRef(new Animated.Value(0)).current;
+  const confirmOp = useRef(new Animated.Value(0)).current;
+  const otpScale = useRef(new Animated.Value(0.88)).current;
+  const otpOp = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.parallel([fadeIn(headerOp, 500), slideUp(headerTY, 500)]).start();
@@ -80,18 +80,18 @@ const MoneyTransferScreen = ({ route }) => {
   };
 
   useEffect(() => { if (confirmModal) animateModal(confirmScale, confirmOp); }, [confirmModal]);
-  useEffect(() => { if (otpModal)     animateModal(otpScale, otpOp); },        [otpModal]);
+  useEffect(() => { if (otpModal) animateModal(otpScale, otpOp); }, [otpModal]);
 
   // Validation
   const validateAmount = () => {
     const n = parseFloat(amount);
-    if (!amount)          { showAlert("error", "Invalid Amount", "Please enter an amount"); return false; }
-    if (isNaN(n) || n<=0) { showAlert("error", "Invalid Amount", "Enter a valid transfer amount"); return false; }
+    if (!amount) { showAlert("error", "Invalid Amount", "Please enter an amount"); return false; }
+    if (isNaN(n) || n <= 0) { showAlert("error", "Invalid Amount", "Enter a valid transfer amount"); return false; }
     return true;
   };
 
   const validateOtp = () => {
-    if (!otp)                  { showAlert("error", "Invalid OTP", "Please enter the OTP"); return false; }
+    if (!otp) { showAlert("error", "Invalid OTP", "Please enter the OTP"); return false; }
     if (!/^\d{6}$/.test(otp)) { showAlert("error", "Invalid OTP", "OTP must be 6 digits"); return false; }
     return true;
   };
@@ -145,7 +145,7 @@ const MoneyTransferScreen = ({ route }) => {
           <View style={styles.recipientChip}>
             <View style={styles.recipientAvatar}>
               <Text style={styles.recipientAvatarTxt}>
-                {account.name.split(" ").map(n=>n[0]).join("").slice(0,2).toUpperCase()}
+                {account.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
               </Text>
             </View>
             <View style={{ flex: 1 }}>
@@ -234,8 +234,8 @@ const MoneyTransferScreen = ({ route }) => {
                 </View>
                 <View style={styles.summaryDivider} />
                 <View style={styles.summaryRow}>
-                  <Text style={[styles.summaryLbl, { color: Colors.primary, fontWeight:"800" }]}>Total Debit</Text>
-                  <Text style={[styles.summaryVal, { color: Colors.accent, fontWeight:"900", fontSize: rs(14) }]}>
+                  <Text style={[styles.summaryLbl, { color: Colors.primary, fontWeight: "800" }]}>Total Debit</Text>
+                  <Text style={[styles.summaryVal, { color: Colors.accent, fontWeight: "900", fontSize: rs(14) }]}>
                     ₹{Number(amount).toLocaleString("en-IN")}
                   </Text>
                 </View>
@@ -250,7 +250,7 @@ const MoneyTransferScreen = ({ route }) => {
                 activeOpacity={0.88}
               >
                 <Text style={styles.buttonText}>Proceed Transfer</Text>
-                  <Text style={styles.btnArrowTxt}>→</Text>
+                <Text style={styles.btnArrowTxt}>→</Text>
               </TouchableOpacity>
             </Animated.View>
           </View>
@@ -382,7 +382,7 @@ export default MoneyTransferScreen;
 //  STYLES
 // ══════════════════════════════════════════════════════════════════════════════
 const styles = StyleSheet.create({
-  safe:   { flex: 1, backgroundColor: Colors.primary },
+  safe: { flex: 1, backgroundColor: Colors.primary },
   scroll: { flex: 1, backgroundColor: Colors.bg },
   scrollContent: { padding: scale(16), paddingBottom: vs(50) },
 
@@ -406,12 +406,12 @@ const styles = StyleSheet.create({
     marginBottom: vs(14), gap: scale(5),
   },
   secureBadgeIcon: { fontSize: rs(10) },
-  secureBadgeTxt:  { color: "#fff", fontSize: rs(9), fontWeight: "800", letterSpacing: 1.1 },
+  secureBadgeTxt: { color: "#fff", fontSize: rs(9), fontWeight: "800", letterSpacing: 1.1 },
 
-  titleRow:    { flexDirection: "row", alignItems: "baseline", marginBottom: vs(6) },
+  titleRow: { flexDirection: "row", alignItems: "baseline", marginBottom: vs(6) },
   titleAccent: { color: Colors.accent, fontSize: rs(32), fontWeight: "900", letterSpacing: 0.5 },
-  titleWhite:  { color: "#fff",        fontSize: rs(32), fontWeight: "900", letterSpacing: 0.5 },
-  headerSub:   { color: "rgba(255,255,255,0.6)", fontSize: rs(13), fontWeight: "500", marginBottom: vs(18) },
+  titleWhite: { color: "#fff", fontSize: rs(32), fontWeight: "900", letterSpacing: 0.5 },
+  headerSub: { color: "rgba(255,255,255,0.6)", fontSize: rs(13), fontWeight: "500", marginBottom: vs(18) },
 
   // Recipient chip in header
   recipientChip: {
@@ -425,8 +425,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.accent, alignItems: "center", justifyContent: "center",
   },
   recipientAvatarTxt: { color: "#fff", fontSize: rs(13), fontWeight: "900" },
-  recipientName:      { color: "#fff", fontSize: rs(13), fontWeight: "800" },
-  recipientBank:      { color: "rgba(255,255,255,0.55)", fontSize: rs(10), marginTop: vs(2) },
+  recipientName: { color: "#fff", fontSize: rs(13), fontWeight: "800" },
+  recipientBank: { color: "rgba(255,255,255,0.55)", fontSize: rs(10), marginTop: vs(2) },
   verifiedBadge: {
     width: scale(24), height: scale(24), borderRadius: scale(12),
     backgroundColor: "#16A34A", alignItems: "center", justifyContent: "center",
@@ -454,9 +454,9 @@ const styles = StyleSheet.create({
     marginBottom: vs(8),
   },
   currencySymbol: { color: Colors.primary, fontSize: rs(20), fontWeight: "900", marginRight: scale(4) },
-  inputDivider:   { width: 1, height: vs(20), backgroundColor: "#E0E0E0", marginRight: scale(10) },
-  input:          { flex: 1, fontSize: rs(15), color: "#212121", padding: 0, fontWeight: "700" },
-  clearIcon:      { color: "#BDBDBD", fontSize: rs(14), fontWeight: "700", marginLeft: scale(6) },
+  inputDivider: { width: 1, height: vs(20), backgroundColor: "#E0E0E0", marginRight: scale(10) },
+  input: { flex: 1, fontSize: rs(15), color: "#212121", padding: 0, fontWeight: "700" },
+  clearIcon: { color: "#BDBDBD", fontSize: rs(14), fontWeight: "700", marginLeft: scale(6) },
 
   // Hint
   hintRow: { flexDirection: "row", alignItems: "flex-start", gap: scale(5), marginBottom: vs(2) },
@@ -470,8 +470,8 @@ const styles = StyleSheet.create({
     borderRadius: scale(20), backgroundColor: "#F0F0F0",
     borderWidth: 1, borderColor: "#E0E0E0",
   },
-  quickChipActive:    { backgroundColor: Colors.accent + "18", borderColor: Colors.accent },
-  quickChipTxt:       { fontSize: rs(11), color: "#757575", fontWeight: "600" },
+  quickChipActive: { backgroundColor: Colors.accent + "18", borderColor: Colors.accent },
+  quickChipTxt: { fontSize: rs(11), color: "#757575", fontWeight: "600" },
   quickChipTxtActive: { color: Colors.accent, fontWeight: "800" },
 
   // Summary
@@ -480,10 +480,10 @@ const styles = StyleSheet.create({
     borderRadius: scale(12), padding: scale(12),
     borderWidth: 1, borderColor: "#EBEBEB",
   },
-  summaryRow:    { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: vs(5) },
-  summaryDivider:{ height: 1, backgroundColor: "#EBEBEB" },
-  summaryLbl:    { fontSize: rs(11), color: "#9E9E9E", fontWeight: "600" },
-  summaryVal:    { fontSize: rs(12), color: Colors.primary, fontWeight: "700" },
+  summaryRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: vs(5) },
+  summaryDivider: { height: 1, backgroundColor: "#EBEBEB" },
+  summaryLbl: { fontSize: rs(11), color: "#9E9E9E", fontWeight: "600" },
+  summaryVal: { fontSize: rs(12), color: Colors.primary, fontWeight: "700" },
 
   // Button
   button: {
@@ -509,7 +509,7 @@ const styles = StyleSheet.create({
     padding: scale(12), borderWidth: 1, borderColor: "#EBEBEB",
   },
   secureNoteIcon: { fontSize: rs(14), marginTop: vs(1) },
-  secureNoteTxt:  { flex: 1, color: "#9E9E9E", fontSize: rs(10), lineHeight: rs(16) },
+  secureNoteTxt: { flex: 1, color: "#9E9E9E", fontSize: rs(10), lineHeight: rs(16) },
 
   // ── Modals ──
   modalOverlay: {
@@ -530,11 +530,11 @@ const styles = StyleSheet.create({
     width: scale(56), height: scale(56), borderRadius: scale(16),
     alignItems: "center", justifyContent: "center", marginBottom: vs(12),
   },
-  modalIcon:      { fontSize: rs(26) },
-  modalTitle:     { fontSize: rs(18), fontWeight: "900", color: Colors.primary, marginBottom: vs(4) },
-  modalSub:       { fontSize: rs(12), color: "#9E9E9E", marginBottom: vs(12), textAlign: "center" },
+  modalIcon: { fontSize: rs(26) },
+  modalTitle: { fontSize: rs(18), fontWeight: "900", color: Colors.primary, marginBottom: vs(4) },
+  modalSub: { fontSize: rs(12), color: "#9E9E9E", marginBottom: vs(12), textAlign: "center" },
   modalRecipient: { fontSize: rs(13), color: "#9E9E9E", textAlign: "center", marginBottom: vs(4) },
-  modalBankInfo:  { fontSize: rs(11), color: "#BDBDBD", marginBottom: vs(20), textAlign: "center" },
+  modalBankInfo: { fontSize: rs(11), color: "#BDBDBD", marginBottom: vs(20), textAlign: "center" },
 
   amountHighlight: {
     backgroundColor: Colors.accent + "12",
@@ -560,7 +560,7 @@ const styles = StyleSheet.create({
 
   // OTP footer
   otpFooter: { flexDirection: "row", alignItems: "center", gap: scale(12), marginTop: vs(14) },
-  resendTxt:   { color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
-  otpDivider:  { color: "#E0E0E0", fontSize: rs(14) },
-  cancelTxt:   { color: "#9E9E9E", fontSize: rs(12), fontWeight: "600" },
+  resendTxt: { color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
+  otpDivider: { color: "#E0E0E0", fontSize: rs(14) },
+  cancelTxt: { color: "#9E9E9E", fontSize: rs(12), fontWeight: "600" },
 });

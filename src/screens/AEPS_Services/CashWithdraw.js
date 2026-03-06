@@ -16,33 +16,33 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import Colors from "../../Utils/Color";
-import { fadeIn, slideUp, buttonPress } from "../../Utils/ScreenAnimations";
+import Colors from "../../utils/Color";
+import { fadeIn, slideUp, buttonPress } from "../../utils/ScreenAnimations";
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get("window");
 const BASE_W = 390;
 const BASE_H = 844;
 const scale = (s) => Math.round((SW / BASE_W) * s);
-const vs    = (s) => Math.round((SH / BASE_H) * s);
-const rs    = (s) => Math.round(Math.sqrt((SW * SH) / (BASE_W * BASE_H)) * s);
+const vs = (s) => Math.round((SH / BASE_H) * s);
+const rs = (s) => Math.round(Math.sqrt((SW * SH) / (BASE_W * BASE_H)) * s);
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 const BANK_LIST = [
-  { label: "State Bank of India",  value: "SBI",    icon: "🏦" },
-  { label: "HDFC Bank",            value: "HDFC",   icon: "🏦" },
-  { label: "ICICI Bank",           value: "ICICI",  icon: "🏦" },
-  { label: "Axis Bank",            value: "AXIS",   icon: "🏦" },
-  { label: "Punjab National Bank", value: "PNB",    icon: "🏦" },
-  { label: "Bank of Baroda",       value: "BOB",    icon: "🏦" },
-  { label: "Canara Bank",          value: "CANARA", icon: "🏦" },
-  { label: "Union Bank of India",  value: "UNION",  icon: "🏦" },
+  { label: "State Bank of India", value: "SBI", icon: "🏦" },
+  { label: "HDFC Bank", value: "HDFC", icon: "🏦" },
+  { label: "ICICI Bank", value: "ICICI", icon: "🏦" },
+  { label: "Axis Bank", value: "AXIS", icon: "🏦" },
+  { label: "Punjab National Bank", value: "PNB", icon: "🏦" },
+  { label: "Bank of Baroda", value: "BOB", icon: "🏦" },
+  { label: "Canara Bank", value: "CANARA", icon: "🏦" },
+  { label: "Union Bank of India", value: "UNION", icon: "🏦" },
 ];
 
 const DEVICE_LIST = [
-  { label: "Mantra MFS100",   value: "MANTRA",  icon: "🖐" },
-  { label: "Morpho MSO 1300", value: "MORPHO",  icon: "🖐" },
-  { label: "Startek FM220",   value: "STARTEK", icon: "🖐" },
+  { label: "Mantra MFS100", value: "MANTRA", icon: "🖐" },
+  { label: "Morpho MSO 1300", value: "MORPHO", icon: "🖐" },
+  { label: "Startek FM220", value: "STARTEK", icon: "🖐" },
   { label: "SecuGen Hamster", value: "SECUGEN", icon: "🖐" },
 ];
 
@@ -56,7 +56,7 @@ const SelectPicker = ({
   label, required, placeholder, items, value, onChange,
   error, searchable = false,
 }) => {
-  const [open,   setOpen]   = useState(false);
+  const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
   const selected = items.find((i) => i.value === value);
@@ -64,8 +64,8 @@ const SelectPicker = ({
     ? items.filter((i) => i.label.toLowerCase().includes(search.toLowerCase()))
     : items;
 
-  const handleOpen   = () => { setSearch(""); setOpen(true); };
-  const handleClose  = () => setOpen(false);
+  const handleOpen = () => { setSearch(""); setOpen(true); };
+  const handleClose = () => setOpen(false);
   const handleSelect = (item) => { onChange(item.value); handleClose(); };
 
   return (
@@ -185,16 +185,16 @@ const SelectPicker = ({
 const CashWithdraw = () => {
   const navigation = useNavigation();
 
-  const [mobileNumber,  setMobileNumber]  = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
   const [aadhaarNumber, setAadhaarNumber] = useState("");
-  const [amount,        setAmount]        = useState("");
-  const [bank,   setBank]   = useState(null);
+  const [amount, setAmount] = useState("");
+  const [bank, setBank] = useState(null);
   const [device, setDevice] = useState(null);
   const [errors, setErrors] = useState({});
 
-  const fadeAnim  = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(vs(30))).current;
-  const btnScale  = useRef(new Animated.Value(1)).current;
+  const btnScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     Animated.parallel([fadeIn(fadeAnim, 500), slideUp(slideAnim, 500)]).start();
@@ -202,13 +202,13 @@ const CashWithdraw = () => {
 
   const validate = () => {
     const e = {};
-    if (!mobileNumber)                            e.mobile  = "Mobile number is required";
-    else if (!/^[6-9]\d{9}$/.test(mobileNumber)) e.mobile  = "Enter valid 10-digit number starting 6–9";
-    if (!aadhaarNumber)                           e.aadhaar = "Aadhaar number is required";
-    else if (!/^\d{12}$/.test(aadhaarNumber))     e.aadhaar = "Aadhaar must be 12 digits";
-    if (!amount || Number(amount) <= 0)           e.amount  = "Enter a valid withdrawal amount";
-    if (!bank)                                    e.bank    = "Please select a bank";
-    if (!device)                                  e.device  = "Please select a device";
+    if (!mobileNumber) e.mobile = "Mobile number is required";
+    else if (!/^[6-9]\d{9}$/.test(mobileNumber)) e.mobile = "Enter valid 10-digit number starting 6–9";
+    if (!aadhaarNumber) e.aadhaar = "Aadhaar number is required";
+    else if (!/^\d{12}$/.test(aadhaarNumber)) e.aadhaar = "Aadhaar must be 12 digits";
+    if (!amount || Number(amount) <= 0) e.amount = "Enter a valid withdrawal amount";
+    if (!bank) e.bank = "Please select a bank";
+    if (!device) e.device = "Please select a device";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -444,8 +444,8 @@ export default CashWithdraw;
 //  MAIN STYLES
 // ══════════════════════════════════════════════════════════════════════════════
 const styles = StyleSheet.create({
-  safe:          { flex: 1, backgroundColor: Colors.primary },
-  scroll:        { flex: 1, backgroundColor: Colors.bg },
+  safe: { flex: 1, backgroundColor: Colors.primary },
+  scroll: { flex: 1, backgroundColor: Colors.bg },
   scrollContent: { padding: scale(16), paddingBottom: vs(40) },
 
   // ── Header ──
@@ -455,8 +455,8 @@ const styles = StyleSheet.create({
     paddingTop: vs(14),
     paddingBottom: vs(22),
   },
-  titleBlock:  { flexDirection: "row", alignItems: "baseline", gap: scale(6), marginBottom: vs(6) },
-  titleWhite:  { color: "#fff",        fontSize: rs(30), fontWeight: "900", letterSpacing: 0.4 },
+  titleBlock: { flexDirection: "row", alignItems: "baseline", gap: scale(6), marginBottom: vs(6) },
+  titleWhite: { color: "#fff", fontSize: rs(30), fontWeight: "900", letterSpacing: 0.4 },
   titleAccent: { color: Colors.accent, fontSize: rs(30), fontWeight: "900", letterSpacing: 0.4 },
   headerSub: {
     color: "rgba(255,255,255,0.65)", fontSize: rs(12),
@@ -471,7 +471,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: scale(10), paddingVertical: vs(5),
   },
   trustIcon: { fontSize: rs(10) },
-  trustTxt:  { color: "rgba(255,255,255,0.8)", fontSize: rs(9), fontWeight: "700", letterSpacing: 0.8 },
+  trustTxt: { color: "rgba(255,255,255,0.8)", fontSize: rs(9), fontWeight: "700", letterSpacing: 0.8 },
 
   // ── Cards ──
   card: {
@@ -487,10 +487,10 @@ const styles = StyleSheet.create({
     width: scale(40), height: scale(40), borderRadius: scale(12),
     alignItems: "center", justifyContent: "center",
   },
-  cardIcon:  { fontSize: rs(18) },
+  cardIcon: { fontSize: rs(18) },
   cardTitle: { fontSize: rs(14), fontWeight: "800", color: Colors.primary },
-  cardSub:   { fontSize: rs(11), color: "#9E9E9E", marginTop: 1 },
-  divider:   { height: 1, backgroundColor: "#F0F0F0", marginBottom: vs(14) },
+  cardSub: { fontSize: rs(11), color: "#9E9E9E", marginTop: 1 },
+  divider: { height: 1, backgroundColor: "#F0F0F0", marginBottom: vs(14) },
 
   // ── Inputs ──
   fieldWrap: { marginBottom: vs(14) },
@@ -508,12 +508,12 @@ const styles = StyleSheet.create({
     minHeight: vs(50),
   },
   inputRowError: { borderColor: "#E53935", borderWidth: 1.5 },
-  prefix:       { color: Colors.primary, fontSize: rs(14), fontWeight: "800", marginRight: scale(4) },
+  prefix: { color: Colors.primary, fontSize: rs(14), fontWeight: "800", marginRight: scale(4) },
   inputDivider: { width: 1, height: vs(18), backgroundColor: "#E0E0E0", marginRight: scale(10) },
-  input:        { flex: 1, fontSize: rs(13), color: "#212121", padding: 0 },
-  inputSuffix:  { fontSize: rs(16), marginLeft: scale(6) },
-  clearIcon:    { color: "#BDBDBD", fontSize: rs(14), fontWeight: "700", marginLeft: scale(6) },
-  errorTxt:     { color: "#E53935", fontSize: rs(10), marginTop: vs(3), fontWeight: "500" },
+  input: { flex: 1, fontSize: rs(13), color: "#212121", padding: 0 },
+  inputSuffix: { fontSize: rs(16), marginLeft: scale(6) },
+  clearIcon: { color: "#BDBDBD", fontSize: rs(14), fontWeight: "700", marginLeft: scale(6) },
+  errorTxt: { color: "#E53935", fontSize: rs(10), marginTop: vs(3), fontWeight: "500" },
 
   // Quick amount chips
   quickRow: { marginTop: vs(10) },
@@ -523,9 +523,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#F0F0F0",
     borderWidth: 1, borderColor: "#E0E0E0",
   },
-  quickChipActive:   { backgroundColor: Colors.accent + "18", borderColor: Colors.accent },
-  quickChipTxt:      { fontSize: rs(11), color: "#757575", fontWeight: "600" },
-  quickChipTxtActive:{ color: Colors.accent, fontWeight: "800" },
+  quickChipActive: { backgroundColor: Colors.accent + "18", borderColor: Colors.accent },
+  quickChipTxt: { fontSize: rs(11), color: "#757575", fontWeight: "600" },
+  quickChipTxtActive: { color: Colors.accent, fontWeight: "800" },
 
   // Device info
   deviceInfo: {
@@ -546,8 +546,8 @@ const styles = StyleSheet.create({
     alignItems: "center", paddingVertical: vs(6),
   },
   summaryDivider: { height: 1, backgroundColor: "#F5F5F5" },
-  summaryLbl:     { fontSize: rs(12), color: "#9E9E9E", fontWeight: "600" },
-  summaryVal:     { fontSize: rs(13), color: Colors.primary, fontWeight: "700" },
+  summaryLbl: { fontSize: rs(12), color: "#9E9E9E", fontWeight: "600" },
+  summaryVal: { fontSize: rs(13), color: Colors.primary, fontWeight: "700" },
 
   // Button
   button: {
@@ -582,10 +582,10 @@ const sp = StyleSheet.create({
     borderWidth: 1, borderColor: "#EBEBEB",
     paddingHorizontal: scale(12), minHeight: vs(50),
   },
-  triggerError:       { borderColor: "#E53935", borderWidth: 1.5 },
-  triggerLeft:        { flexDirection: "row", alignItems: "center", flex: 1 },
-  triggerIcon:        { fontSize: rs(16), marginRight: scale(8) },
-  triggerValue:       { fontSize: rs(13), color: "#212121", fontWeight: "600" },
+  triggerError: { borderColor: "#E53935", borderWidth: 1.5 },
+  triggerLeft: { flexDirection: "row", alignItems: "center", flex: 1 },
+  triggerIcon: { fontSize: rs(16), marginRight: scale(8) },
+  triggerValue: { fontSize: rs(13), color: "#212121", fontWeight: "600" },
   triggerPlaceholder: { fontSize: rs(13), color: "#BDBDBD" },
 
   chevronBox: {
@@ -593,8 +593,8 @@ const sp = StyleSheet.create({
     backgroundColor: "#F0F0F0", alignItems: "center", justifyContent: "center",
   },
   chevronBoxActive: { backgroundColor: Colors.accent + "18" },
-  chevron:          { color: "#9E9E9E", fontSize: rs(20), fontWeight: "500", marginTop: vs(-2) },
-  chevronActive:    { color: Colors.accent, transform: [{ rotate: "90deg" }] },
+  chevron: { color: "#9E9E9E", fontSize: rs(20), fontWeight: "500", marginTop: vs(-2) },
+  chevronActive: { color: Colors.accent, transform: [{ rotate: "90deg" }] },
 
   chip: {
     flexDirection: "row", alignItems: "center",
@@ -605,9 +605,9 @@ const sp = StyleSheet.create({
     alignSelf: "flex-start", gap: scale(5),
     borderWidth: 1, borderColor: Colors.accent + "30",
   },
-  chipDot:  { width: scale(6), height: scale(6), borderRadius: scale(3), backgroundColor: Colors.accent },
-  chipTxt:  { color: Colors.accent, fontSize: rs(11), fontWeight: "700" },
-  chipClear:{ color: Colors.accent, fontSize: rs(12), fontWeight: "800", marginLeft: scale(2) },
+  chipDot: { width: scale(6), height: scale(6), borderRadius: scale(3), backgroundColor: Colors.accent },
+  chipTxt: { color: Colors.accent, fontSize: rs(11), fontWeight: "700" },
+  chipClear: { color: Colors.accent, fontSize: rs(12), fontWeight: "800", marginLeft: scale(2) },
 
   errorTxt: { color: "#E53935", fontSize: rs(10), marginTop: vs(4), fontWeight: "500" },
 
@@ -651,7 +651,7 @@ const sp = StyleSheet.create({
     paddingHorizontal: scale(10), marginBottom: vs(4),
     minHeight: vs(42),
   },
-  searchIcon:  { fontSize: rs(14), marginRight: scale(6) },
+  searchIcon: { fontSize: rs(14), marginRight: scale(6) },
   searchInput: { flex: 1, fontSize: rs(13), color: "#212121", padding: 0 },
   searchClear: { color: "#BDBDBD", fontSize: rs(13), fontWeight: "700" },
 
@@ -667,9 +667,9 @@ const sp = StyleSheet.create({
     backgroundColor: "#F5F5F5", alignItems: "center", justifyContent: "center",
   },
   listIconBoxSel: { backgroundColor: Colors.accent + "18" },
-  listIcon:       { fontSize: rs(16) },
-  listTxt:        { flex: 1, fontSize: rs(13), color: "#212121", fontWeight: "500" },
-  listTxtSel:     { color: Colors.accent, fontWeight: "700" },
+  listIcon: { fontSize: rs(16) },
+  listTxt: { flex: 1, fontSize: rs(13), color: "#212121", fontWeight: "500" },
+  listTxtSel: { color: Colors.accent, fontWeight: "700" },
 
   checkCircle: {
     width: scale(22), height: scale(22), borderRadius: scale(11),
@@ -678,5 +678,5 @@ const sp = StyleSheet.create({
   checkMark: { color: "#fff", fontSize: rs(11), fontWeight: "900" },
 
   emptyWrap: { alignItems: "center", paddingVertical: vs(30) },
-  emptyTxt:  { color: "#BDBDBD", fontSize: rs(13) },
+  emptyTxt: { color: "#BDBDBD", fontSize: rs(13) },
 });

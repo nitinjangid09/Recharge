@@ -87,7 +87,7 @@ export default function LoginActivity() {
 
       {renderCard("Change Password", "ChangePassword", scale1, card1)}
       {renderCard("Change Pin", "ChangePin", scale2, card2)}
-      {renderCard("Forgot Password", "ForgotPassword", scale3, card3)}
+      {renderCard("Forgot Password", "ForgotPasswordScreen", scale3, card3)}
       {renderCard("Forgot Pin", "ForgotPin", scale4, card4)}
       {renderCard("Support Screen", "SupportScreen", scale5, card5)}
     </View>

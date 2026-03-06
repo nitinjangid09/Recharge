@@ -14,42 +14,42 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import Colors from "../../Utils/Color";
-import CustomAlert from "../../components/CustomAlert";
-import { fadeIn, slideUp, buttonPress } from "../../Utils/ScreenAnimations";
+import Colors from "../../utils/Color";
+import CustomAlert from "../../componets/CustomAlert";
+import { fadeIn, slideUp, buttonPress } from "../../utils/ScreenAnimations";
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get("window");
 const BASE_W = 390;
 const BASE_H = 844;
 const scale = (s) => Math.round((SW / BASE_W) * s);
-const vs    = (s) => Math.round((SH / BASE_H) * s);
-const rs    = (s) => Math.round(Math.sqrt((SW * SH) / (BASE_W * BASE_H)) * s);
+const vs = (s) => Math.round((SH / BASE_H) * s);
+const rs = (s) => Math.round(Math.sqrt((SW * SH) / (BASE_W * BASE_H)) * s);
 
 const DmtLogin = () => {
   const navigation = useNavigation();
 
-  const [mobileNumber,  setMobileNumber]  = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
   const [aadhaarNumber, setAadhaarNumber] = useState("");
-  const [otp,           setOtp]           = useState("");
-  const [step,          setStep]          = useState(1);
-  const [otpVisible,    setOtpVisible]    = useState(false);
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState(1);
+  const [otpVisible, setOtpVisible] = useState(false);
 
   // Alert
   const [alertVisible, setAlertVisible] = useState(false);
-  const [alertData,    setAlertData]    = useState({ type: "", title: "", message: "" });
+  const [alertData, setAlertData] = useState({ type: "", title: "", message: "" });
   const showAlert = (type, title, message) => {
     setAlertData({ type, title, message });
     setAlertVisible(true);
   };
 
   // Animations
-  const headerOp   = useRef(new Animated.Value(0)).current;
-  const headerTY   = useRef(new Animated.Value(vs(30))).current;
-  const formOp     = useRef(new Animated.Value(0)).current;
-  const formTY     = useRef(new Animated.Value(vs(24))).current;
-  const btnScale   = useRef(new Animated.Value(1)).current;
-  const otpScale   = useRef(new Animated.Value(0.85)).current;
+  const headerOp = useRef(new Animated.Value(0)).current;
+  const headerTY = useRef(new Animated.Value(vs(30))).current;
+  const formOp = useRef(new Animated.Value(0)).current;
+  const formTY = useRef(new Animated.Value(vs(24))).current;
+  const btnScale = useRef(new Animated.Value(1)).current;
+  const otpScale = useRef(new Animated.Value(0.85)).current;
   const otpOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -176,7 +176,7 @@ const DmtLogin = () => {
                   activeOpacity={0.88}
                 >
                   <Text style={styles.buttonText}>Continue</Text>
-                    <Text style={styles.btnArrowTxt}>→</Text>
+                  <Text style={styles.btnArrowTxt}>→</Text>
                 </TouchableOpacity>
               </Animated.View>
             </View>
@@ -190,7 +190,7 @@ const DmtLogin = () => {
                 <View style={[styles.stepDot, styles.stepDotDone]}>
                   <Text style={styles.stepDotTxt}>✓</Text>
                 </View>
-                <View style={styles.stepConnector}/>
+                <View style={styles.stepConnector} />
                 <View style={[styles.stepDot, styles.stepDotActive]}>
                   <Text style={styles.stepDotTxt}>2</Text>
                 </View>
@@ -237,7 +237,7 @@ const DmtLogin = () => {
                   activeOpacity={0.88}
                 >
                   <Text style={styles.buttonText}>Verify Aadhaar</Text>
-                    <Text style={styles.btnArrowTxt}>→</Text>
+                  <Text style={styles.btnArrowTxt}>→</Text>
                 </TouchableOpacity>
               </Animated.View>
 
@@ -329,7 +329,7 @@ export default DmtLogin;
 //  STYLES
 // ══════════════════════════════════════════════════════════════════════════════
 const styles = StyleSheet.create({
-  safe:   { flex: 1, backgroundColor: Colors.primary },
+  safe: { flex: 1, backgroundColor: Colors.primary },
   scroll: { flex: 1, backgroundColor: Colors.bg },
   scrollContent: { padding: scale(16), paddingBottom: vs(50) },
 
@@ -354,11 +354,11 @@ const styles = StyleSheet.create({
     marginBottom: vs(14), gap: scale(5),
   },
   secureBadgeIcon: { fontSize: rs(10) },
-  secureBadgeTxt:  { color: "#fff", fontSize: rs(9), fontWeight: "800", letterSpacing: 1.1 },
+  secureBadgeTxt: { color: "#fff", fontSize: rs(9), fontWeight: "800", letterSpacing: 1.1 },
 
-  titleRow:    { flexDirection: "row", alignItems: "baseline", marginBottom: vs(6) },
+  titleRow: { flexDirection: "row", alignItems: "baseline", marginBottom: vs(6) },
   titleAccent: { color: Colors.accent, fontSize: rs(32), fontWeight: "900", letterSpacing: 0.5 },
-  titleWhite:  { color: "#fff",        fontSize: rs(32), fontWeight: "900", letterSpacing: 0.5 },
+  titleWhite: { color: "#fff", fontSize: rs(32), fontWeight: "900", letterSpacing: 0.5 },
 
   headerSub: { color: "rgba(255,255,255,0.6)", fontSize: rs(13), fontWeight: "500" },
 
@@ -416,9 +416,9 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
     backgroundColor: "#E0E0E0",
   },
-  stepDotDone:   { backgroundColor: "#16A34A" },
+  stepDotDone: { backgroundColor: "#16A34A" },
   stepDotActive: { backgroundColor: Colors.accent },
-  stepDotTxt:    { color: "#fff", fontSize: rs(10), fontWeight: "900" },
+  stepDotTxt: { color: "#fff", fontSize: rs(10), fontWeight: "900" },
   stepConnector: {
     flex: 1, height: 2,
     backgroundColor: Colors.accent,
@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: Colors.accent + "25",
   },
   mobileChipIcon: { fontSize: rs(14) },
-  mobileChipTxt:  { flex: 1, fontSize: rs(13), fontWeight: "700", color: Colors.primary },
+  mobileChipTxt: { flex: 1, fontSize: rs(13), fontWeight: "700", color: Colors.primary },
   mobileChipEdit: { color: Colors.accent, fontSize: rs(11), fontWeight: "800" },
 
   // ── Button ──
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
 
   // Link
   linkBtn: { alignItems: "center", marginTop: vs(16) },
-  linkTxt:  { color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
+  linkTxt: { color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
 
   // Security note
   secureNote: {
@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: "#EBEBEB",
   },
   secureNoteIcon: { fontSize: rs(14), marginTop: vs(1) },
-  secureNoteTxt:  { flex: 1, color: "#9E9E9E", fontSize: rs(10), lineHeight: rs(16) },
+  secureNoteTxt: { flex: 1, color: "#9E9E9E", fontSize: rs(10), lineHeight: rs(16) },
 
   // ── OTP Modal ──
   modalOverlay: {
@@ -493,10 +493,10 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
     marginBottom: vs(12),
   },
-  otpIcon:  { fontSize: rs(26) },
+  otpIcon: { fontSize: rs(26) },
   otpTitle: { fontSize: rs(18), fontWeight: "900", color: Colors.primary, marginBottom: vs(4) },
-  otpSub:   { fontSize: rs(12), color: "#9E9E9E", marginBottom: vs(20), textAlign: "center" },
-  otpMobile:{ color: Colors.primary, fontWeight: "800" },
+  otpSub: { fontSize: rs(12), color: "#9E9E9E", marginBottom: vs(20), textAlign: "center" },
+  otpMobile: { color: Colors.primary, fontWeight: "800" },
 
   otpInputRow: { width: "100%", marginBottom: vs(20) },
   otpInput: {
@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
   otpFooter: {
     flexDirection: "row", alignItems: "center", gap: scale(12),
   },
-  resendTxt:  { color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
+  resendTxt: { color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
   otpDivider: { color: "#E0E0E0", fontSize: rs(14) },
-  cancelTxt:  { color: "#9E9E9E", fontSize: rs(12), fontWeight: "600" },
+  cancelTxt: { color: "#9E9E9E", fontSize: rs(12), fontWeight: "600" },
 });

@@ -551,9 +551,13 @@ export default function FinanceHome({ navigation }) {
                   key={index}
                   style={styles.categoryBox}
                   onPress={() => {
-                    // navigation based on type if needed
-                    // example:
-                    // if (item.type === "cw") navigation.navigate("CashWithdraw");
+                    if (item.type === "cw") {
+                      navigation.navigate("CashWithdraw");
+                    } else if (item.type === "be") {
+                      navigation.navigate("BalanceEnquiry");
+                    } else if (item.type === "ms") {
+                      navigation.navigate("MiniStatement");
+                    }
                   }}
                 >
                   <Icon
@@ -587,7 +591,7 @@ export default function FinanceHome({ navigation }) {
                   style={styles.categoryBox}
                   onPress={() => {
                     if (item.type === "dmt") {
-                      navigation.navigate("MoneyTransfer");
+                      navigation.navigate("DmtLogin");
                     }
                   }}
                 >
@@ -864,7 +868,7 @@ export default function FinanceHome({ navigation }) {
           {/* Report */}
           <TouchableOpacity
             style={styles.tabItem}
-            onPress={() => navigation.navigate("OrderHistoryScreen")}
+            onPress={() => navigation.navigate("WalletTransactionScreen")}
           >
             <View style={{ alignItems: 'center' }}>
               <Icon name="file-document-outline" size={24} color={"#888"} />
