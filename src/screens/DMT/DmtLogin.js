@@ -23,33 +23,135 @@ const { width: SW, height: SH } = Dimensions.get("window");
 const BASE_W = 390;
 const BASE_H = 844;
 const scale = (s) => Math.round((SW / BASE_W) * s);
-const vs    = (s) => Math.round((SH / BASE_H) * s);
-const rs    = (s) => Math.round(Math.sqrt((SW * SH) / (BASE_W * BASE_H)) * s);
+const vs = (s) => Math.round((SH / BASE_H) * s);
+const rs = (s) => Math.round(Math.sqrt((SW * SH) / (BASE_W * BASE_H)) * s);
 
+// ─── Format Aadhaar: "XXXXXXXXXXXX" → "XXXX XXXX XXXX" ───────────────────────
+const formatAadhaar = (raw) => {
+  // raw is digits only, max 12
+  const d = raw.replace(/\D/g, "").slice(0, 12);
+  return d.replace(/(\d{4})(?=\d)/g, "$1 ").trim();
+};
+
+// ─── OTP boxes component — fills left to right ───────────────────────────────
+const OtpBoxes = ({ value, onChange }) => {
+  const inputRef = useRef(null);
+  const digits = value.split(""); // array of entered digits
+
+  return (
+    <TouchableOpacity
+      activeOpacity={1}
+      onPress={() => inputRef.current?.focus()}
+      style={otpStyles.row}
+    >
+      {/* Hidden real input — always focused */}
+      <TextInput
+        ref={inputRef}
+        value={value}
+        onChangeText={(t) => onChange(t.replace(/\D/g, "").slice(0, 6))}
+        keyboardType="number-pad"
+        maxLength={6}
+        caretHidden
+        style={otpStyles.hiddenInput}
+        autoFocus
+      />
+
+      {/* 6 visible boxes */}
+      {Array.from({ length: 6 }).map((_, i) => {
+        const filled = i < digits.length;
+        const isCaret = i === digits.length;
+        return (
+          <View
+            key={i}
+            style={[
+              otpStyles.box,
+              filled && otpStyles.boxFilled,
+              isCaret && otpStyles.boxCaret,
+            ]}
+          >
+            <Text style={otpStyles.boxTxt}>{filled ? digits[i] : ""}</Text>
+            {isCaret && <View style={otpStyles.cursor} />}
+          </View>
+        );
+      })}
+    </TouchableOpacity>
+  );
+};
+
+const otpStyles = StyleSheet.create({
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: scale(8),
+    marginVertical: vs(16),
+    position: "relative",
+  },
+  hiddenInput: {
+    position: "absolute",
+    width: 1,
+    height: 1,
+    opacity: 0,
+  },
+  box: {
+    flex: 1,
+    height: vs(52),
+    borderRadius: scale(12),
+    backgroundColor: "#F7F7F7",
+    borderWidth: 1.5,
+    borderColor: "#E0E0E0",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  boxFilled: {
+    backgroundColor: Colors.accent + "10",
+    borderColor: Colors.accent,
+  },
+  boxCaret: {
+    borderColor: Colors.primary,
+    backgroundColor: "#F0F4FF",
+  },
+  boxTxt: {
+    fontSize: rs(20),
+    fontWeight: "900",
+    color: Colors.primary,
+  },
+  cursor: {
+    position: "absolute",
+    bottom: vs(10),
+    width: scale(2),
+    height: vs(18),
+    backgroundColor: Colors.primary,
+    borderRadius: 1,
+  },
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  MAIN SCREEN
+// ══════════════════════════════════════════════════════════════════════════════
 const DmtLogin = () => {
   const navigation = useNavigation();
 
-  const [mobileNumber,  setMobileNumber]  = useState("");
-  const [aadhaarNumber, setAadhaarNumber] = useState("");
-  const [otp,           setOtp]           = useState("");
-  const [step,          setStep]          = useState(1);
-  const [otpVisible,    setOtpVisible]    = useState(false);
+  const [mobileNumber, setMobileNumber] = useState("");
+  const [aadhaarRaw, setAadhaarRaw] = useState(""); // digits only
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState(1);
+  const [otpVisible, setOtpVisible] = useState(false);
 
   // Alert
   const [alertVisible, setAlertVisible] = useState(false);
-  const [alertData,    setAlertData]    = useState({ type: "", title: "", message: "" });
+  const [alertData, setAlertData] = useState({ type: "", title: "", message: "" });
   const showAlert = (type, title, message) => {
     setAlertData({ type, title, message });
     setAlertVisible(true);
   };
 
   // Animations
-  const headerOp   = useRef(new Animated.Value(0)).current;
-  const headerTY   = useRef(new Animated.Value(vs(30))).current;
-  const formOp     = useRef(new Animated.Value(0)).current;
-  const formTY     = useRef(new Animated.Value(vs(24))).current;
-  const btnScale   = useRef(new Animated.Value(1)).current;
-  const otpScale   = useRef(new Animated.Value(0.85)).current;
+  const headerOp = useRef(new Animated.Value(0)).current;
+  const headerTY = useRef(new Animated.Value(vs(30))).current;
+  const formOp = useRef(new Animated.Value(0)).current;
+  const formTY = useRef(new Animated.Value(vs(24))).current;
+  const btnScale = useRef(new Animated.Value(1)).current;
+  const otpScale = useRef(new Animated.Value(0.85)).current;
   const otpOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -59,14 +161,12 @@ const DmtLogin = () => {
     }, 180);
   }, []);
 
-  // Re-animate form on step change
   useEffect(() => {
     formOp.setValue(0);
     formTY.setValue(vs(20));
     Animated.parallel([fadeIn(formOp, 350), slideUp(formTY, 350)]).start();
   }, [step]);
 
-  // Animate OTP modal
   useEffect(() => {
     if (otpVisible) {
       otpScale.setValue(0.85);
@@ -87,7 +187,7 @@ const DmtLogin = () => {
   };
 
   const handleAadhaarSubmit = () => {
-    if (aadhaarNumber.length !== 12) {
+    if (aadhaarRaw.length !== 12) {
       return showAlert("error", "Invalid Aadhaar", "Enter valid 12-digit Aadhaar number");
     }
     buttonPress(btnScale).start(() => { setOtp(""); setOtpVisible(true); });
@@ -107,19 +207,15 @@ const DmtLogin = () => {
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        {/* ══════════════════════════════════════════════
-            HEADER — dark rich header matching image
-        ══════════════════════════════════════════════ */}
+        {/* ══ HEADER ══ */}
         <Animated.View
           style={[styles.header, { opacity: headerOp, transform: [{ translateY: headerTY }] }]}
         >
-          {/* Secured badge */}
           <View style={styles.secureBadge}>
             <Text style={styles.secureBadgeIcon}>🔒</Text>
             <Text style={styles.secureBadgeTxt}>SECURED BY DMT</Text>
           </View>
 
-          {/* Two-tone title */}
           <View style={styles.titleRow}>
             <Text style={styles.titleAccent}>DMT </Text>
             <Text style={styles.titleWhite}>Login</Text>
@@ -128,47 +224,42 @@ const DmtLogin = () => {
           <Text style={styles.headerSub}>Secure Domestic Money Transfer</Text>
         </Animated.View>
 
-        {/* ══════════════════════════════════════════════
-            FORM BODY
-        ══════════════════════════════════════════════ */}
+        {/* ══ FORM BODY ══ */}
         <Animated.ScrollView
           style={[styles.scroll, { opacity: formOp, transform: [{ translateY: formTY }] }]}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* ─── STEP 1: Mobile Number ─── */}
+
+          {/* ─── STEP 1: Mobile ─── */}
           {step === 1 && (
             <View style={styles.formCard}>
               <Text style={styles.fieldHeading}>ENTER MOBILE NUMBER</Text>
 
-              {/* Input row */}
+              {/* +91 prefix ON LEFT, no flag */}
               <View style={styles.inputRow}>
-                <Text style={styles.inputIcon}>📱</Text>
+                <View style={styles.prefixBox}>
+                  <Text style={styles.prefixTxt}>+91</Text>
+                </View>
+                <View style={styles.prefixDivider} />
                 <TextInput
                   style={styles.input}
-                  placeholder="Mobile Number"
+                  placeholder="Enter mobile number"
                   placeholderTextColor="#BDBDBD"
                   keyboardType="number-pad"
                   maxLength={10}
                   value={mobileNumber}
-                  onChangeText={(t) => setMobileNumber(t.replace(/[^0-9]/g, ""))}
+                  onChangeText={(t) => setMobileNumber(t.replace(/\D/g, ""))}
                 />
-                <View style={styles.countryBadge}>
-                  <Text style={styles.countryFlag}>🇮🇳</Text>
-                  <Text style={styles.countryCode}>+91</Text>
-                </View>
               </View>
 
-              {/* Hint */}
               <View style={styles.hintRow}>
-                <Text style={styles.hintDot}>•</Text>
                 <Text style={styles.hintTxt}>
                   Enter your 10-digit registered mobile number
                 </Text>
               </View>
 
-              {/* Continue button */}
               <Animated.View style={{ transform: [{ scale: btnScale }], marginTop: vs(20) }}>
                 <TouchableOpacity
                   style={styles.button}
@@ -176,13 +267,13 @@ const DmtLogin = () => {
                   activeOpacity={0.88}
                 >
                   <Text style={styles.buttonText}>Continue</Text>
-                    <Text style={styles.btnArrowTxt}>→</Text>
+                  <Text style={styles.btnArrowTxt}>→</Text>
                 </TouchableOpacity>
               </Animated.View>
             </View>
           )}
 
-          {/* ─── STEP 2: Aadhaar Number ─── */}
+          {/* ─── STEP 2: Aadhaar ─── */}
           {step === 2 && (
             <View style={styles.formCard}>
               {/* Step indicator */}
@@ -190,15 +281,15 @@ const DmtLogin = () => {
                 <View style={[styles.stepDot, styles.stepDotDone]}>
                   <Text style={styles.stepDotTxt}>✓</Text>
                 </View>
-                <View style={styles.stepConnector}/>
+                <View style={styles.stepConnector} />
                 <View style={[styles.stepDot, styles.stepDotActive]}>
                   <Text style={styles.stepDotTxt}>2</Text>
                 </View>
               </View>
 
-              {/* Mobile display */}
+              {/* Mobile chip */}
               <View style={styles.mobileChip}>
-                <Text style={styles.mobileChipIcon}>📱</Text>
+                <Text style={styles.mobileChipCode}>+91</Text>
                 <Text style={styles.mobileChipTxt}>{mobileNumber}</Text>
                 <TouchableOpacity
                   onPress={() => setStep(1)}
@@ -210,23 +301,37 @@ const DmtLogin = () => {
 
               <Text style={styles.fieldHeading}>ENTER AADHAAR NUMBER</Text>
 
+              {/* Aadhaar input — formatted XXXX XXXX XXXX */}
               <View style={styles.inputRow}>
-                <Text style={styles.inputIcon}>🪪</Text>
+                <Text style={styles.aadhaarIcon}>🪪</Text>
+                <View style={styles.prefixDivider} />
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { letterSpacing: scale(2) }]}
                   placeholder="XXXX XXXX XXXX"
                   placeholderTextColor="#BDBDBD"
                   keyboardType="number-pad"
-                  maxLength={12}
-                  value={aadhaarNumber}
-                  onChangeText={(t) => setAadhaarNumber(t.replace(/[^0-9]/g, ""))}
+                  maxLength={14} // 12 digits + 2 spaces
+                  value={formatAadhaar(aadhaarRaw)}
+                  onChangeText={(t) => {
+                    // strip spaces → store raw digits
+                    const raw = t.replace(/\D/g, "").slice(0, 12);
+                    setAadhaarRaw(raw);
+                  }}
                 />
+                {aadhaarRaw.length > 0 && (
+                  <TouchableOpacity
+                    onPress={() => setAadhaarRaw("")}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Text style={styles.clearIcon}>✕</Text>
+                  </TouchableOpacity>
+                )}
               </View>
 
+
               <View style={styles.hintRow}>
-                <Text style={styles.hintDot}>•</Text>
                 <Text style={styles.hintTxt}>
-                  Enter your 12-digit Aadhaar number for verification
+                  Enter your 12-digit Aadhaar number ({aadhaarRaw.length}/12)
                 </Text>
               </View>
 
@@ -237,7 +342,7 @@ const DmtLogin = () => {
                   activeOpacity={0.88}
                 >
                   <Text style={styles.buttonText}>Verify Aadhaar</Text>
-                    <Text style={styles.btnArrowTxt}>→</Text>
+                  <Text style={styles.btnArrowTxt}>→</Text>
                 </TouchableOpacity>
               </Animated.View>
 
@@ -256,9 +361,7 @@ const DmtLogin = () => {
           </View>
         </Animated.ScrollView>
 
-        {/* ══════════════════════════════════════════════
-            OTP MODAL
-        ══════════════════════════════════════════════ */}
+        {/* ══ OTP MODAL ══ */}
         <Modal visible={otpVisible} transparent animationType="none" onRequestClose={() => setOtpVisible(false)}>
           <View style={styles.modalOverlay}>
             <Animated.View
@@ -267,7 +370,6 @@ const DmtLogin = () => {
                 { opacity: otpOpacity, transform: [{ scale: otpScale }] },
               ]}
             >
-              {/* OTP header */}
               <View style={styles.otpIconWrap}>
                 <Text style={styles.otpIcon}>💬</Text>
               </View>
@@ -277,7 +379,7 @@ const DmtLogin = () => {
                 <Text style={styles.otpMobile}>+91 {mobileNumber}</Text>
               </Text>
 
-              {/* OTP boxes */}
+              {/* OTP boxes — fills left to right */}
               <View style={styles.otpInputRow}>
                 <TextInput
                   style={styles.otpInput}
@@ -289,7 +391,6 @@ const DmtLogin = () => {
                   placeholderTextColor="#BDBDBD"
                 />
               </View>
-
               <TouchableOpacity
                 style={styles.otpBtn}
                 onPress={handleOtpVerify}
@@ -329,7 +430,7 @@ export default DmtLogin;
 //  STYLES
 // ══════════════════════════════════════════════════════════════════════════════
 const styles = StyleSheet.create({
-  safe:   { flex: 1, backgroundColor: Colors.primary },
+  safe: { flex: 1, backgroundColor: Colors.primary },
   scroll: { flex: 1, backgroundColor: Colors.bg },
   scrollContent: { padding: scale(16), paddingBottom: vs(50) },
 
@@ -339,7 +440,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: scale(20),
     paddingTop: vs(16),
     paddingBottom: vs(30),
-    // subtle bottom curve
     borderBottomLeftRadius: scale(28),
     borderBottomRightRadius: scale(28),
   },
@@ -354,24 +454,20 @@ const styles = StyleSheet.create({
     marginBottom: vs(14), gap: scale(5),
   },
   secureBadgeIcon: { fontSize: rs(10) },
-  secureBadgeTxt:  { color: "#fff", fontSize: rs(9), fontWeight: "800", letterSpacing: 1.1 },
+  secureBadgeTxt: { color: "#fff", fontSize: rs(9), fontWeight: "800", letterSpacing: 1.1 },
 
-  titleRow:    { flexDirection: "row", alignItems: "baseline", marginBottom: vs(6) },
+  titleRow: { flexDirection: "row", alignItems: "baseline", marginBottom: vs(6) },
   titleAccent: { color: Colors.accent, fontSize: rs(32), fontWeight: "900", letterSpacing: 0.5 },
-  titleWhite:  { color: "#fff",        fontSize: rs(32), fontWeight: "900", letterSpacing: 0.5 },
-
+  titleWhite: { color: "#fff", fontSize: rs(32), fontWeight: "900", letterSpacing: 0.5 },
   headerSub: { color: "rgba(255,255,255,0.6)", fontSize: rs(13), fontWeight: "500" },
 
   // ── Form card ──
   formCard: {
     backgroundColor: "#fff",
-    borderRadius: scale(20),
-    padding: scale(18),
-    elevation: 3,
-    shadowColor: "#000",
+    borderRadius: scale(20), padding: scale(18),
+    elevation: 3, shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8,
   },
-
   fieldHeading: {
     fontSize: rs(9), fontWeight: "800", color: Colors.primary,
     letterSpacing: 1.1, marginBottom: vs(10),
@@ -380,33 +476,44 @@ const styles = StyleSheet.create({
   // ── Input row ──
   inputRow: {
     flexDirection: "row", alignItems: "center",
-    backgroundColor: "#F7F7F7",
-    borderRadius: scale(14),
+    backgroundColor: "#F7F7F7", borderRadius: scale(14),
     borderWidth: 1, borderColor: "#EBEBEB",
-    paddingHorizontal: scale(14),
-    minHeight: vs(54),
+    paddingHorizontal: scale(14), minHeight: vs(54),
     marginBottom: vs(8),
   },
-  inputIcon: { fontSize: rs(16), marginRight: scale(10) },
+
+  // +91 prefix — left side, no flag
+  prefixBox: {
+    paddingRight: scale(8),
+  },
+  prefixTxt: {
+    color: Colors.primary, fontSize: rs(14), fontWeight: "900",
+  },
+  prefixDivider: {
+    width: 1, height: vs(20), backgroundColor: "#E0E0E0",
+    marginRight: scale(12),
+  },
+
+  aadhaarIcon: { fontSize: rs(16), marginRight: scale(8) },
+  clearIcon: { color: "#BDBDBD", fontSize: rs(14), fontWeight: "700", marginLeft: scale(6) },
+
   input: {
-    flex: 1, fontSize: rs(14), color: "#212121", padding: 0,
+    flex: 1, fontSize: rs(14), color: "#212121", padding: 0, fontWeight: "600",
   },
 
-  // Country badge — right side of input
-  countryBadge: {
-    flexDirection: "row", alignItems: "center", gap: scale(4),
-    backgroundColor: "#EFEFEF", borderRadius: scale(8),
-    paddingHorizontal: scale(8), paddingVertical: vs(4),
+  // Aadhaar progress dots
+  aadhaarProgress: {
+    flexDirection: "row", alignItems: "center",
+    marginBottom: vs(8), gap: scale(3),
   },
-  countryFlag: { fontSize: rs(13) },
-  countryCode: { color: Colors.primary, fontSize: rs(11), fontWeight: "800" },
+  aadhaarDot: {
+    width: scale(7), height: scale(7), borderRadius: scale(4),
+    backgroundColor: "#E0E0E0",
+  },
+  aadhaarDotFilled: { backgroundColor: Colors.accent },
 
-  // Hint
-  hintRow: { flexDirection: "row", alignItems: "flex-start", gap: scale(5) },
-  hintDot: { color: Colors.accent, fontSize: rs(12), lineHeight: rs(16), marginTop: vs(1) },
-  hintTxt: { color: "#9E9E9E", fontSize: rs(10), lineHeight: rs(16), flex: 1 },
 
-  // ── Step indicator (step 2) ──
+  // Step indicator
   stepIndicator: {
     flexDirection: "row", alignItems: "center",
     marginBottom: vs(14),
@@ -416,12 +523,11 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
     backgroundColor: "#E0E0E0",
   },
-  stepDotDone:   { backgroundColor: "#16A34A" },
+  stepDotDone: { backgroundColor: "#16A34A" },
   stepDotActive: { backgroundColor: Colors.accent },
-  stepDotTxt:    { color: "#fff", fontSize: rs(10), fontWeight: "900" },
+  stepDotTxt: { color: "#fff", fontSize: rs(10), fontWeight: "900" },
   stepConnector: {
-    flex: 1, height: 2,
-    backgroundColor: Colors.accent,
+    flex: 1, height: 2, backgroundColor: Colors.accent,
     marginHorizontal: scale(6),
   },
 
@@ -433,21 +539,16 @@ const styles = StyleSheet.create({
     marginBottom: vs(16), gap: scale(8),
     borderWidth: 1, borderColor: Colors.accent + "25",
   },
-  mobileChipIcon: { fontSize: rs(14) },
-  mobileChipTxt:  { flex: 1, fontSize: rs(13), fontWeight: "700", color: Colors.primary },
+  mobileChipCode: { color: Colors.primary, fontSize: rs(13), fontWeight: "900" },
+  mobileChipTxt: { flex: 1, fontSize: rs(13), fontWeight: "700", color: Colors.primary },
   mobileChipEdit: { color: Colors.accent, fontSize: rs(11), fontWeight: "800" },
 
-  // ── Button ──
+  // Button
   button: {
-    backgroundColor: Colors.accent,
-    borderRadius: scale(14),
-    paddingVertical: vs(15),
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: scale(10),
-    elevation: 3,
-    shadowColor: Colors.accent,
+    backgroundColor: Colors.accent, borderRadius: scale(14),
+    paddingVertical: vs(15), flexDirection: "row",
+    alignItems: "center", justifyContent: "center", gap: scale(10),
+    elevation: 3, shadowColor: Colors.accent,
     shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8,
   },
   buttonText: { color: "#fff", fontSize: rs(15), fontWeight: "900", letterSpacing: 0.4 },
@@ -456,48 +557,41 @@ const styles = StyleSheet.create({
 
   // Link
   linkBtn: { alignItems: "center", marginTop: vs(16) },
-  linkTxt:  { color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
+  linkTxt: { color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
 
   // Security note
   secureNote: {
     flexDirection: "row", alignItems: "flex-start",
     gap: scale(8), marginTop: vs(16),
-    backgroundColor: "#F8F9FC",
-    borderRadius: scale(12), padding: scale(12),
-    borderWidth: 1, borderColor: "#EBEBEB",
+    backgroundColor: "#F8F9FC", borderRadius: scale(12),
+    padding: scale(12), borderWidth: 1, borderColor: "#EBEBEB",
   },
   secureNoteIcon: { fontSize: rs(14), marginTop: vs(1) },
-  secureNoteTxt:  { flex: 1, color: "#9E9E9E", fontSize: rs(10), lineHeight: rs(16) },
+  secureNoteTxt: { flex: 1, color: "#9E9E9E", fontSize: rs(10), lineHeight: rs(16) },
 
   // ── OTP Modal ──
   modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    flex: 1, backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center", alignItems: "center",
     paddingHorizontal: scale(24),
   },
   otpCard: {
-    width: "100%",
-    backgroundColor: "#fff",
+    width: "100%", backgroundColor: "#fff",
     borderRadius: scale(24),
     paddingVertical: vs(28), paddingHorizontal: scale(22),
     alignItems: "center",
-    elevation: 10,
-    shadowColor: "#000",
+    elevation: 10, shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.18, shadowRadius: 16,
   },
-
   otpIconWrap: {
     width: scale(56), height: scale(56), borderRadius: scale(16),
     backgroundColor: Colors.accent + "15",
-    alignItems: "center", justifyContent: "center",
-    marginBottom: vs(12),
+    alignItems: "center", justifyContent: "center", marginBottom: vs(12),
   },
-  otpIcon:  { fontSize: rs(26) },
+  otpIcon: { fontSize: rs(26) },
   otpTitle: { fontSize: rs(18), fontWeight: "900", color: Colors.primary, marginBottom: vs(4) },
-  otpSub:   { fontSize: rs(12), color: "#9E9E9E", marginBottom: vs(20), textAlign: "center" },
-  otpMobile:{ color: Colors.primary, fontWeight: "800" },
-
+  otpSub: { fontSize: rs(12), color: "#9E9E9E", textAlign: "center" },
+  otpMobile: { color: Colors.primary, fontWeight: "800" },
   otpInputRow: { width: "100%", marginBottom: vs(20) },
   otpInput: {
     width: "100%",
@@ -506,27 +600,21 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: "#EBEBEB",
     paddingVertical: vs(14),
     fontSize: rs(22), textAlign: "center",
-    letterSpacing: scale(10),
+    letterSpacing: scale(8),
     color: Colors.primary, fontWeight: "800",
   },
-
   otpBtn: {
-    width: "100%",
-    backgroundColor: Colors.accent,
-    borderRadius: scale(14),
-    paddingVertical: vs(14),
-    alignItems: "center",
-    elevation: 2,
+    width: "100%", backgroundColor: Colors.accent,
+    borderRadius: scale(14), paddingVertical: vs(14),
+    alignItems: "center", elevation: 2,
     shadowColor: Colors.accent,
     shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 6,
     marginBottom: vs(14),
   },
   otpBtnTxt: { color: "#fff", fontSize: rs(14), fontWeight: "900", letterSpacing: 0.3 },
 
-  otpFooter: {
-    flexDirection: "row", alignItems: "center", gap: scale(12),
-  },
-  resendTxt:  { color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
+  otpFooter: { flexDirection: "row", alignItems: "center", gap: scale(12) },
+  resendTxt: { color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
   otpDivider: { color: "#E0E0E0", fontSize: rs(14) },
-  cancelTxt:  { color: "#9E9E9E", fontSize: rs(12), fontWeight: "600" },
+  cancelTxt: { color: "#9E9E9E", fontSize: rs(12), fontWeight: "600" },
 });
