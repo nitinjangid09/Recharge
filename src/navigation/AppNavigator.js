@@ -1,7 +1,6 @@
 // src/navigation/AppNavigator.js
 
 import React, { useEffect, useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator, View } from 'react-native';
@@ -95,7 +94,6 @@ const AppNavigator = () => {
   }
 
   return (
-    <NavigationContainer>
       <Stack.Navigator
         initialRouteName={initialRoute}
         screenOptions={{ headerShown: false }}
@@ -138,10 +136,7 @@ const AppNavigator = () => {
         <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
         <Stack.Screen name="ForgotPin" component={ForgotPin} />
         <Stack.Screen name="SupportScreen" component={SupportScreen} />
-
-
       </Stack.Navigator>
-    </NavigationContainer>
   );
 };
 
