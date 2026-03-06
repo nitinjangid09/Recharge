@@ -1,158 +1,226 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   FlatList,
+  Animated,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import Colors from "../../utils/Color";
+import Colors from "../../Utils/Color";
+import { fadeIn, slideUp } from "../../Utils/ScreenAnimations";
 
+// ─── Responsive Scaling ───────────────────────────────────────────────────────
+const { width: SW, height: SH } = Dimensions.get("window");
+const BASE_W = 390;
+const BASE_H = 844;
+const scale = (s) => Math.round((SW / BASE_W) * s);
+const vs    = (s) => Math.round((SH / BASE_H) * s);
+const rs    = (s) => Math.round(Math.sqrt((SW * SH) / (BASE_W * BASE_H)) * s);
+
+// ─── Avatar color palette ─────────────────────────────────────────────────────
+const AVATAR_COLORS = [
+  "#5C6BC0", // indigo
+  "#9C27B0", // purple
+  "#00897B", // teal
+  "#F4511E", // deep orange
+  "#0288D1", // blue
+  "#558B2F", // green
+];
+
+const getAvatarColor = (name) => {
+  const idx = (name.charCodeAt(0) + (name.charCodeAt(1) || 0)) % AVATAR_COLORS.length;
+  return AVATAR_COLORS[idx];
+};
+
+const getInitials = (name) =>
+  name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+
+// ─── Data ─────────────────────────────────────────────────────────────────────
+const accounts = [
+  { id: "1", name: "Rahul Sharma", bank: "State Bank of India", accountNumber: "XXXXXX4589", ifsc: "SBIN0004589" },
+  { id: "2", name: "Amit Verma",   bank: "HDFC Bank",           accountNumber: "XXXXXX7832", ifsc: "HDFC0007832" },
+  { id: "3", name: "Neha Singh",   bank: "ICICI Bank",          accountNumber: "XXXXXX1122", ifsc: "ICIC0001122" },
+  { id: "4", name: "Rahul Sharma", bank: "State Bank of India", accountNumber: "XXXXXX4589", ifsc: "SBIN0004589" },
+  { id: "5", name: "Priya Patel",  bank: "Axis Bank",           accountNumber: "XXXXXX3310", ifsc: "UTIB0003310" },
+];
+
+const TOTAL_BUDGET  = 50000;
+const REMAINING     = 32450;
+const SPENT         = TOTAL_BUDGET - REMAINING;
+const SPENT_PERCENT = Math.round((SPENT / TOTAL_BUDGET) * 100);
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  ACCOUNT CARD
+// ══════════════════════════════════════════════════════════════════════════════
+const AccountCard = ({ item, index, onTransfer }) => {
+  const cardOp = useRef(new Animated.Value(0)).current;
+  const cardTY = useRef(new Animated.Value(vs(16))).current;
+
+  useEffect(() => {
+    setTimeout(() => {
+      Animated.parallel([fadeIn(cardOp, 300), slideUp(cardTY, 300)]).start();
+    }, index * 80);
+  }, []);
+
+  const avatarColor = getAvatarColor(item.name);
+
+  return (
+    <Animated.View style={[styles.card, { opacity: cardOp, transform: [{ translateY: cardTY }] }]}>
+      <View style={styles.cardLeft}>
+
+        {/* Avatar */}
+        <View style={[styles.avatar, { backgroundColor: avatarColor }]}>
+          <Text style={styles.avatarTxt}>{getInitials(item.name)}</Text>
+        </View>
+
+        {/* Info */}
+        <View style={styles.cardInfo}>
+          <Text style={styles.cardName}>{item.name}</Text>
+          <Text style={styles.cardBank}>{item.bank}</Text>
+
+          {/* ── Acc no + IFSC on ONE line ── */}
+          <View style={styles.tagRow}>
+            <View style={styles.tag}>
+              <Text style={styles.tagTxt}>{item.accountNumber}</Text>
+            </View>
+            <View style={[styles.tag, styles.tagIfsc]}>
+              <Text style={[styles.tagTxt, styles.tagIfscTxt]}>{item.ifsc}</Text>
+            </View>
+          </View>
+        </View>
+      </View>
+
+      {/* Send button — text only, no icon */}
+      <TouchableOpacity
+        style={styles.sendBtn}
+        onPress={() => onTransfer(item)}
+        activeOpacity={0.85}
+      >
+        <Text style={styles.sendTxt}>Transfer</Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  MAIN SCREEN
+// ══════════════════════════════════════════════════════════════════════════════
 const DmtHome = () => {
   const navigation = useNavigation();
 
-  const accounts = [
-    {
-      id: "1",
-      name: "Rahul Sharma",
-      bank: "State Bank of India",
-      accountNumber: "XXXXXX4589",
-      ifsc: "SBIN0004589",
-    },
-    {
-      id: "2",
-      name: "Amit Verma",
-      bank: "HDFC Bank",
-      accountNumber: "XXXXXX7832",
-      ifsc: "HDFC0007832",
-    },
-    {
-      id: "3",
-      name: "Neha Singh",
-      bank: "ICICI Bank",
-      accountNumber: "XXXXXX1122",
-      ifsc: "ICIC0001122",
-    },
-    {
-      id: "4",
-      name: "Rahul Sharma",
-      bank: "State Bank of India",
-      accountNumber: "XXXXXX4589",
-      ifsc: "SBIN0004589",
-    },
-  ];
+  const headerOp = useRef(new Animated.Value(0)).current;
+  const headerTY = useRef(new Animated.Value(vs(20))).current;
+  const bodyOp   = useRef(new Animated.Value(0)).current;
+  const bodyTY   = useRef(new Animated.Value(vs(16))).current;
 
-  const getInitials = (name) =>
-    name
-      .split(" ")
-      .map((n) => n[0])
-      .join("");
+  useEffect(() => {
+    Animated.parallel([fadeIn(headerOp, 500), slideUp(headerTY, 500)]).start();
+    setTimeout(() => {
+      Animated.parallel([fadeIn(bodyOp, 400), slideUp(bodyTY, 400)]).start();
+    }, 200);
+  }, []);
 
   const handleTransfer = (account) => {
     navigation.navigate("MoneyTransfer", { account });
   };
 
-  const renderItem = ({ item }) => (
-    <View style={styles.card}>
-      <View style={styles.leftSection}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {getInitials(item.name)}
-          </Text>
-        </View>
+  const ListHeader = () => (
+    <Animated.View style={{ opacity: bodyOp, transform: [{ translateY: bodyTY }] }}>
 
-        <View style={{ marginLeft: 12 }}>
-          <Text style={styles.name}>{item.name}</Text>
-          <Text style={styles.bank}>{item.bank}</Text>
+      {/* ── Action Buttons ── */}
+      <View style={styles.actionRow}>
+        {/* Add Beneficiary — accent / orange */}
+        <TouchableOpacity
+          style={[styles.actionBtn, styles.actionBtnAdd]}
+          onPress={() => navigation.navigate("AddBenificial")}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.actionBtnIcon}>↑</Text>
+          <Text style={styles.actionBtnTxt}>Add Beneficiary</Text>
+        </TouchableOpacity>
 
-          <View style={styles.tagRow}>
-            <Text style={styles.tag}>{item.accountNumber}</Text>
-            <Text style={styles.tag}>{item.ifsc}</Text>
-          </View>
-        </View>
+        {/* Fetch Beneficiary — different color (primary / dark) */}
+        <TouchableOpacity
+          style={[styles.actionBtn, styles.actionBtnFetch]}
+          onPress={() => navigation.navigate("FetchBeneficiary")}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.actionBtnIcon}>↓</Text>
+          <Text style={styles.actionBtnTxt}>Fetch Beneficiary</Text>
+        </TouchableOpacity>
       </View>
 
-      <TouchableOpacity
-        style={styles.sendBtn}
-        onPress={() => handleTransfer(item)}
-      >
-        <Text style={styles.sendText}>Transfer</Text>
-      </TouchableOpacity>
-    </View>
+      {/* ── Section Header ── */}
+      <View style={styles.sectionRow}>
+        <Text style={styles.sectionTitle}>Account History</Text>
+        <View style={styles.countBadge}>
+          <Text style={styles.countTxt}>{accounts.length} contacts</Text>
+        </View>
+      </View>
+    </Animated.View>
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safe}>
 
-      {/*  TOP DARK HEADER */}
-      <View style={styles.headerWrapper}>
-        <View style={styles.headerTop}>
+      {/* ══ DARK HEADER ══ */}
+      <Animated.View
+        style={[styles.header, { opacity: headerOp, transform: [{ translateY: headerTY }] }]}
+      >
+        {/* Budget + User ID row */}
+        <View style={styles.headerTopRow}>
           <View>
-            <Text style={styles.smallLabel}>TOTAL BUDGET</Text>
-            <Text style={styles.bigAmount}>₹50,000</Text>
+            <Text style={styles.budgetLabel}>TOTAL BUDGET</Text>
+            <Text style={styles.budgetAmount}>
+              ₹{TOTAL_BUDGET.toLocaleString("en-IN")}
+            </Text>
           </View>
-
           <View style={{ alignItems: "flex-end" }}>
-            <Text style={styles.smallLabel}>USER ID</Text>
+            <Text style={styles.budgetLabel}>USER ID</Text>
             <Text style={styles.userId}>465146144</Text>
           </View>
         </View>
 
+        {/* Remaining pill + amount */}
         <View style={styles.remainingRow}>
-          <View style={styles.dot} />
-          <Text style={styles.remainingText}>Remaining</Text>
-          <Text style={styles.remainingAmount}> ₹32,450</Text>
-        </View>
-
-        <View style={styles.progressBar}>
-          <View style={styles.progressFill} />
-        </View>
-
-        <View style={styles.progressInfo}>
-          <Text style={styles.spentText}>Spent ₹17,550</Text>
-          <Text style={styles.spentText}>35% used</Text>
-        </View>
-      </View>
-
-      {/* WHITE CONTENT SECTION */}
-      <View style={styles.contentContainer}>
-
-        {/* ACTION BUTTONS */}
-        <View style={styles.actionRow}>
-          <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={() => navigation.navigate("AddBenificial")}
-          >
-            <Text style={styles.actionBtnText}>Add Beneficiary</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={() => navigation.navigate("FetchBeneficiary")}
-          >
-            <Text style={styles.actionBtnText}>Fetch Beneficiary</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* ACCOUNT HISTORY HEADER */}
-        <View style={styles.historyHeader}>
-          <Text style={styles.sectionTitle}>Account History</Text>
-          <View style={styles.contactBadge}>
-            <Text style={styles.contactText}>
-              {accounts.length} contacts
-            </Text>
+          <View style={styles.remainingPill}>
+            <View style={styles.remainingDot} />
+            <Text style={styles.remainingLabel}>REMAINING</Text>
           </View>
+          <Text style={styles.remainingAmt}>
+            ₹{REMAINING.toLocaleString("en-IN")}
+          </Text>
         </View>
 
-        {/* SCROLLABLE LIST */}
+        {/* Progress bar */}
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${SPENT_PERCENT}%` }]} />
+        </View>
+
+        {/* Progress info */}
+        <View style={styles.progressInfoRow}>
+          <Text style={styles.progressInfoTxt}>
+            Spent ₹{SPENT.toLocaleString("en-IN")}
+          </Text>
+          <Text style={styles.progressInfoTxt}>{SPENT_PERCENT}% used</Text>
+        </View>
+      </Animated.View>
+
+      {/* ══ BODY ══ */}
+      <View style={styles.body}>
         <FlatList
           data={accounts}
           keyExtractor={(item) => item.id}
-          renderItem={renderItem}
+          renderItem={({ item, index }) => (
+            <AccountCard item={item} index={index} onTransfer={handleTransfer} />
+          )}
+          ListHeaderComponent={ListHeader}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 30 }}
+          contentContainerStyle={styles.listContent}
         />
       </View>
     </SafeAreaView>
@@ -160,215 +228,139 @@ const DmtHome = () => {
 };
 
 export default DmtHome;
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  STYLES
+// ══════════════════════════════════════════════════════════════════════════════
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: Colors.primary, // Top dark color
-  },
+  safe:        { flex: 1, backgroundColor: Colors.primary },
+  body:        { flex: 1, backgroundColor: Colors.bg },
+  listContent: { paddingHorizontal: scale(16), paddingBottom: vs(30) },
 
-  /* HEADER */
-
-  headerWrapper: {
+  // ── Header ──
+  header: {
     backgroundColor: Colors.primary,
-    padding: 20,
-    paddingBottom: 25,
+    paddingHorizontal: scale(20),
+    paddingTop: vs(12),
+    paddingBottom: vs(22),
   },
-
-  headerTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  headerTopRow: {
+    flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start",
+    marginBottom: vs(16),
   },
-
-  smallLabel: {
-    color: Colors.lightGray,
-    fontSize: 12,
+  budgetLabel: {
+    color: "rgba(255,255,255,0.5)", fontSize: rs(10), fontWeight: "700", letterSpacing: 0.8,
   },
-
-  bigAmount: {
-    color: Colors.white,
-    fontSize: 28,
-    fontWeight: "bold",
-    marginTop: 6,
+  budgetAmount: {
+    color: "#fff", fontSize: rs(36), fontWeight: "900", letterSpacing: -0.5, marginTop: vs(2),
   },
-
-  userId: {
-    color: Colors.white,
-    fontSize: 16,
-    fontWeight: "600",
-    marginTop: 6,
-  },
+  userId: { color: "#fff", fontSize: rs(16), fontWeight: "700", marginTop: vs(2) },
 
   remainingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 20,
+    flexDirection: "row", alignItems: "center", gap: scale(10), marginBottom: vs(10),
   },
-
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.accent,
-    marginRight: 8,
+  remainingPill: {
+    flexDirection: "row", alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.12)",
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.2)",
+    borderRadius: scale(20), paddingHorizontal: scale(10), paddingVertical: vs(4),
+    gap: scale(5),
   },
+  remainingDot:   { width: scale(7), height: scale(7), borderRadius: scale(4), backgroundColor: Colors.accent },
+  remainingLabel: { color: "#fff", fontSize: rs(9), fontWeight: "800", letterSpacing: 0.8 },
+  remainingAmt:   { color: Colors.accent, fontSize: rs(20), fontWeight: "900" },
 
-  remainingText: {
-    color: Colors.lightGray,
-    fontSize: 13,
+  progressTrack: {
+    height: vs(5), backgroundColor: "rgba(255,255,255,0.15)",
+    borderRadius: scale(4), overflow: "hidden", marginBottom: vs(6),
   },
+  progressFill: { height: "100%", backgroundColor: Colors.accent, borderRadius: scale(4) },
+  progressInfoRow: { flexDirection: "row", justifyContent: "space-between" },
+  progressInfoTxt: { color: "rgba(255,255,255,0.45)", fontSize: rs(10), fontWeight: "500" },
 
-  remainingAmount: {
-    color: Colors.accent,
-    fontWeight: "bold",
-    fontSize: 15,
-  },
-
-  progressBar: {
-    height: 6,
-    backgroundColor: Colors.gray,
-    borderRadius: 4,
-    marginTop: 12,
-    overflow: "hidden",
-  },
-
-  progressFill: {
-    width: "35%",
-    height: "100%",
-    backgroundColor: Colors.accent,
-  },
-
-  progressInfo: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 6,
-  },
-
-  spentText: {
-    color: Colors.lightGray,
-    fontSize: 12,
-  },
-
-  /* WHITE CONTENT SECTION */
-
-  contentContainer: {
-    flex: 1,
-    backgroundColor: Colors.bg,
-    paddingTop: 20,
-    paddingHorizontal: 20,
-  },
-
+  // ── Action buttons ──
   actionRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: "row", gap: scale(12),
+    marginTop: vs(20), marginBottom: vs(4),
   },
-
   actionBtn: {
-    backgroundColor: Colors.accent,
-    width: "48%",
-    paddingVertical: 14,
-    borderRadius: 16,
-    alignItems: "center",
-  },
-
-  actionBtnText: {
-    color: Colors.white,
-    fontWeight: "600",
-  },
-
-  historyHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 25,
-    marginBottom: 10,
-  },
-
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: Colors.black,
-  },
-
-  contactBadge: {
-    backgroundColor: Colors.lightAccent,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-  },
-
-  contactText: {
-    fontSize: 11,
-    color: Colors.accent,
-    fontWeight: "600",
-  },
-
-  card: {
-    backgroundColor: Colors.white,
-    padding: 16,
-    borderRadius: 18,
-    marginBottom: 15,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flex: 1, flexDirection: "row", alignItems: "center",
+    justifyContent: "center", gap: scale(6),
+    paddingVertical: vs(13), borderRadius: scale(14),
     elevation: 3,
   },
-
-  leftSection: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
+  // Add Beneficiary — accent orange
+  actionBtnAdd: {
+    backgroundColor: Colors.accent,
+    shadowColor: Colors.accent,
+    shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 6,
   },
+  // Fetch Beneficiary — primary dark color (distinct from orange)
+  actionBtnFetch: {
+    backgroundColor: Colors.primary,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.35, shadowRadius: 6,
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.12)",
+  },
+  actionBtnIcon: { color: "#fff", fontSize: rs(15), fontWeight: "900" },
+  actionBtnTxt:  { color: "#fff", fontSize: rs(12), fontWeight: "800" },
+
+  // ── Section header ──
+  sectionRow: {
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    marginTop: vs(20), marginBottom: vs(10),
+  },
+  sectionTitle: { fontSize: rs(16), fontWeight: "900", color: "#1A1A1A" },
+  countBadge: {
+    backgroundColor: Colors.accent + "18",
+    borderRadius: scale(20), paddingHorizontal: scale(10), paddingVertical: vs(4),
+    borderWidth: 1, borderColor: Colors.accent + "30",
+  },
+  countTxt: { color: Colors.accent, fontSize: rs(10), fontWeight: "800" },
+
+  // ── Account Card ──
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: scale(18), padding: scale(14),
+    flexDirection: "row", alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: vs(12),
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 6,
+  },
+  cardLeft: { flexDirection: "row", alignItems: "center", flex: 1 },
 
   avatar: {
-    width: 45,
-    height: 45,
-    borderRadius: 12,
-    backgroundColor: Colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
+    width: scale(46), height: scale(46), borderRadius: scale(13),
+    alignItems: "center", justifyContent: "center",
+    marginRight: scale(12),
+    flexShrink: 0,
   },
+  avatarTxt: { color: "#fff", fontSize: rs(14), fontWeight: "900" },
 
-  avatarText: {
-    color: Colors.white,
-    fontWeight: "bold",
-  },
+  cardInfo: { flex: 1 },
+  cardName: { fontSize: rs(13), fontWeight: "800", color: "#1A1A1A", marginBottom: vs(2) },
+  cardBank: { fontSize: rs(11), color: "#9E9E9E", marginBottom: vs(6) },
 
-  name: {
-    fontWeight: "700",
-    fontSize: 14,
-    color: Colors.black,
-  },
-
-  bank: {
-    fontSize: 12,
-    color: Colors.gray,
-    marginTop: 2,
-  },
-
-  tagRow: {
-    flexDirection: "row",
-    marginTop: 6,
-  },
-
+  // ── ONE LINE: acc no + ifsc ──
+  tagRow: { flexDirection: "row", alignItems: "center", gap: scale(6), flexWrap: "nowrap" },
   tag: {
-    backgroundColor: Colors.lightGray,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    fontSize: 10,
-    marginRight: 6,
-    color: Colors.black,
+    backgroundColor: "#F2F2F2", borderRadius: scale(6),
+    paddingHorizontal: scale(7), paddingVertical: vs(3),
   },
+  tagTxt: { fontSize: rs(9), color: "#555", fontWeight: "600" },
+  tagIfsc: { backgroundColor: "#EEF1FF" },
+  tagIfscTxt: { color: "#3F51B5" },
 
+  // ── Send button — text only ──
   sendBtn: {
     backgroundColor: Colors.accent,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+    borderRadius: scale(12),
+    paddingVertical: vs(9), paddingHorizontal: scale(16),
+    elevation: 2,
+    shadowColor: Colors.accent,
+    shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
   },
-
-  sendText: {
-    color: Colors.white,
-    fontWeight: "600",
-  },
+  sendTxt: { color: "#fff", fontSize: rs(12), fontWeight: "800" },
 });

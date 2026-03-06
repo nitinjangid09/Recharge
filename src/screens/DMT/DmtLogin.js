@@ -14,254 +14,299 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import Colors from "../../utils/Color";
-import CustomAlert from "../../componets/CustomAlert";
-import { fadeIn, slideUp, buttonPress } from "../../utils/ScreenAnimations";
+import Colors from "../../Utils/Color";
+import CustomAlert from "../../components/CustomAlert";
+import { fadeIn, slideUp, buttonPress } from "../../Utils/ScreenAnimations";
 
-const { width } = Dimensions.get("window");
-const isTablet = width >= 768;
+// ─── Responsive Scaling ───────────────────────────────────────────────────────
+const { width: SW, height: SH } = Dimensions.get("window");
+const BASE_W = 390;
+const BASE_H = 844;
+const scale = (s) => Math.round((SW / BASE_W) * s);
+const vs    = (s) => Math.round((SH / BASE_H) * s);
+const rs    = (s) => Math.round(Math.sqrt((SW * SH) / (BASE_W * BASE_H)) * s);
 
 const DmtLogin = () => {
   const navigation = useNavigation();
 
-  const [mobileNumber, setMobileNumber] = useState("");
+  const [mobileNumber,  setMobileNumber]  = useState("");
   const [aadhaarNumber, setAadhaarNumber] = useState("");
-  const [otp, setOtp] = useState("");
-  const [step, setStep] = useState(1);
-  const [otpVisible, setOtpVisible] = useState(false);
+  const [otp,           setOtp]           = useState("");
+  const [step,          setStep]          = useState(1);
+  const [otpVisible,    setOtpVisible]    = useState(false);
 
-  /* Alert */
+  // Alert
   const [alertVisible, setAlertVisible] = useState(false);
-  const [alertData, setAlertData] = useState({ type: "", title: "", message: "" });
-
+  const [alertData,    setAlertData]    = useState({ type: "", title: "", message: "" });
   const showAlert = (type, title, message) => {
     setAlertData({ type, title, message });
     setAlertVisible(true);
   };
 
-  /* ======================
-     ANIMATION VALUES
-  ======================= */
-
-  const headerOpacity = useRef(new Animated.Value(0)).current;
-  const headerTranslate = useRef(new Animated.Value(40)).current;
-
-  const formOpacity = useRef(new Animated.Value(0)).current;
-  const formTranslate = useRef(new Animated.Value(30)).current;
-
-  const buttonScale = useRef(new Animated.Value(1)).current;
-
-  const otpScale = useRef(new Animated.Value(0)).current;
-
-  /* ======================
-     INITIAL LOAD ANIMATION
-  ======================= */
+  // Animations
+  const headerOp   = useRef(new Animated.Value(0)).current;
+  const headerTY   = useRef(new Animated.Value(vs(30))).current;
+  const formOp     = useRef(new Animated.Value(0)).current;
+  const formTY     = useRef(new Animated.Value(vs(24))).current;
+  const btnScale   = useRef(new Animated.Value(1)).current;
+  const otpScale   = useRef(new Animated.Value(0.85)).current;
+  const otpOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.parallel([
-      fadeIn(headerOpacity, 600),
-      slideUp(headerTranslate, 600),
-    ]).start();
-
+    Animated.parallel([fadeIn(headerOp, 500), slideUp(headerTY, 500)]).start();
     setTimeout(() => {
-      Animated.parallel([
-        fadeIn(formOpacity, 600),
-        slideUp(formTranslate, 600),
-      ]).start();
-    }, 200);
+      Animated.parallel([fadeIn(formOp, 500), slideUp(formTY, 500)]).start();
+    }, 180);
   }, []);
 
-  /* Animate Step Change */
+  // Re-animate form on step change
   useEffect(() => {
-    formOpacity.setValue(0);
-    formTranslate.setValue(20);
-
-    Animated.parallel([
-      fadeIn(formOpacity, 400),
-      slideUp(formTranslate, 400),
-    ]).start();
+    formOp.setValue(0);
+    formTY.setValue(vs(20));
+    Animated.parallel([fadeIn(formOp, 350), slideUp(formTY, 350)]).start();
   }, [step]);
 
-  /* Animate OTP Modal */
+  // Animate OTP modal
   useEffect(() => {
     if (otpVisible) {
-      otpScale.setValue(0.7);
-      Animated.spring(otpScale, {
-        toValue: 1,
-        useNativeDriver: true,
-      }).start();
+      otpScale.setValue(0.85);
+      otpOpacity.setValue(0);
+      Animated.parallel([
+        Animated.spring(otpScale, { toValue: 1, friction: 7, tension: 90, useNativeDriver: true }),
+        Animated.timing(otpOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
+      ]).start();
     }
   }, [otpVisible]);
 
-  /* ======================
-     HANDLERS
-  ======================= */
-
+  // Handlers
   const handleMobileSubmit = () => {
     if (mobileNumber.length !== 10) {
       return showAlert("error", "Invalid Mobile", "Enter valid 10-digit mobile number");
     }
-
-    buttonPress(buttonScale).start(() => {
-      setStep(2);
-    });
+    buttonPress(btnScale).start(() => setStep(2));
   };
 
   const handleAadhaarSubmit = () => {
     if (aadhaarNumber.length !== 12) {
       return showAlert("error", "Invalid Aadhaar", "Enter valid 12-digit Aadhaar number");
     }
-
-    buttonPress(buttonScale).start(() => {
-      setOtp("");
-      setOtpVisible(true);
-    });
+    buttonPress(btnScale).start(() => { setOtp(""); setOtpVisible(true); });
   };
 
   const handleOtpVerify = () => {
     if (otp.length !== 6) {
       return showAlert("error", "Invalid OTP", "Enter valid 6-digit OTP");
     }
-
     setOtpVisible(false);
     navigation.navigate("DmtHome");
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <View style={styles.container}>
-          {/* HEADER */}
-          <Animated.View
-            style={[
-              styles.header,
-              {
-                opacity: headerOpacity,
-                transform: [{ translateY: headerTranslate }],
-              },
-            ]}
-          >
-            <Text style={styles.headerTitle}>DMT Login</Text>
-            <Text style={styles.headerSub}>Secure Domestic Money Transfer</Text>
-          </Animated.View>
+        {/* ══════════════════════════════════════════════
+            HEADER — dark rich header matching image
+        ══════════════════════════════════════════════ */}
+        <Animated.View
+          style={[styles.header, { opacity: headerOp, transform: [{ translateY: headerTY }] }]}
+        >
+          {/* Secured badge */}
+          <View style={styles.secureBadge}>
+            <Text style={styles.secureBadgeIcon}>🔒</Text>
+            <Text style={styles.secureBadgeTxt}>SECURED BY DMT</Text>
+          </View>
 
-          {/* FORM */}
-          <Animated.ScrollView
-            contentContainerStyle={styles.content}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-            style={{
-              opacity: formOpacity,
-              transform: [{ translateY: formTranslate }],
-            }}
-          >
-            <Text style={styles.title}>
-              {step === 1 ? "Enter Mobile Number" : "Enter Aadhaar Number"}
-            </Text>
+          {/* Two-tone title */}
+          <View style={styles.titleRow}>
+            <Text style={styles.titleAccent}>DMT </Text>
+            <Text style={styles.titleWhite}>Login</Text>
+          </View>
 
-            {step === 1 && (
-              <>
+          <Text style={styles.headerSub}>Secure Domestic Money Transfer</Text>
+        </Animated.View>
+
+        {/* ══════════════════════════════════════════════
+            FORM BODY
+        ══════════════════════════════════════════════ */}
+        <Animated.ScrollView
+          style={[styles.scroll, { opacity: formOp, transform: [{ translateY: formTY }] }]}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* ─── STEP 1: Mobile Number ─── */}
+          {step === 1 && (
+            <View style={styles.formCard}>
+              <Text style={styles.fieldHeading}>ENTER MOBILE NUMBER</Text>
+
+              {/* Input row */}
+              <View style={styles.inputRow}>
+                <Text style={styles.inputIcon}>📱</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Mobile Number"
+                  placeholderTextColor="#BDBDBD"
                   keyboardType="number-pad"
                   maxLength={10}
-                  placeholderTextColor={"#000000"}
-
                   value={mobileNumber}
-                  onChangeText={(text) =>
-                    setMobileNumber(text.replace(/[^0-9]/g, ""))
-                  }
+                  onChangeText={(t) => setMobileNumber(t.replace(/[^0-9]/g, ""))}
                 />
+                <View style={styles.countryBadge}>
+                  <Text style={styles.countryFlag}>🇮🇳</Text>
+                  <Text style={styles.countryCode}>+91</Text>
+                </View>
+              </View>
 
-                <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
-                  <TouchableOpacity
-                    style={styles.button}
-                    onPress={handleMobileSubmit}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.buttonText}>Continue</Text>
-                  </TouchableOpacity>
-                </Animated.View>
-              </>
-            )}
+              {/* Hint */}
+              <View style={styles.hintRow}>
+                <Text style={styles.hintDot}>•</Text>
+                <Text style={styles.hintTxt}>
+                  Enter your 10-digit registered mobile number
+                </Text>
+              </View>
 
-            {step === 2 && (
-              <>
+              {/* Continue button */}
+              <Animated.View style={{ transform: [{ scale: btnScale }], marginTop: vs(20) }}>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={handleMobileSubmit}
+                  activeOpacity={0.88}
+                >
+                  <Text style={styles.buttonText}>Continue</Text>
+                    <Text style={styles.btnArrowTxt}>→</Text>
+                </TouchableOpacity>
+              </Animated.View>
+            </View>
+          )}
+
+          {/* ─── STEP 2: Aadhaar Number ─── */}
+          {step === 2 && (
+            <View style={styles.formCard}>
+              {/* Step indicator */}
+              <View style={styles.stepIndicator}>
+                <View style={[styles.stepDot, styles.stepDotDone]}>
+                  <Text style={styles.stepDotTxt}>✓</Text>
+                </View>
+                <View style={styles.stepConnector}/>
+                <View style={[styles.stepDot, styles.stepDotActive]}>
+                  <Text style={styles.stepDotTxt}>2</Text>
+                </View>
+              </View>
+
+              {/* Mobile display */}
+              <View style={styles.mobileChip}>
+                <Text style={styles.mobileChipIcon}>📱</Text>
+                <Text style={styles.mobileChipTxt}>{mobileNumber}</Text>
+                <TouchableOpacity
+                  onPress={() => setStep(1)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Text style={styles.mobileChipEdit}>Edit</Text>
+                </TouchableOpacity>
+              </View>
+
+              <Text style={styles.fieldHeading}>ENTER AADHAAR NUMBER</Text>
+
+              <View style={styles.inputRow}>
+                <Text style={styles.inputIcon}>🪪</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="Aadhaar Number"
+                  placeholder="XXXX XXXX XXXX"
+                  placeholderTextColor="#BDBDBD"
                   keyboardType="number-pad"
                   maxLength={12}
-                  placeholderTextColor={"#000000"}
-
                   value={aadhaarNumber}
-                  onChangeText={(text) =>
-                    setAadhaarNumber(text.replace(/[^0-9]/g, ""))
-                  }
+                  onChangeText={(t) => setAadhaarNumber(t.replace(/[^0-9]/g, ""))}
                 />
+              </View>
 
-                <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
-                  <TouchableOpacity
-                    style={styles.button}
-                    onPress={handleAadhaarSubmit}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.buttonText}>Verify Aadhaar</Text>
-                  </TouchableOpacity>
-                </Animated.View>
+              <View style={styles.hintRow}>
+                <Text style={styles.hintDot}>•</Text>
+                <Text style={styles.hintTxt}>
+                  Enter your 12-digit Aadhaar number for verification
+                </Text>
+              </View>
 
+              <Animated.View style={{ transform: [{ scale: btnScale }], marginTop: vs(20) }}>
                 <TouchableOpacity
-                  style={styles.linkBtn}
-                  onPress={() => setStep(1)}
+                  style={styles.button}
+                  onPress={handleAadhaarSubmit}
+                  activeOpacity={0.88}
                 >
-                  <Text style={styles.linkText}>Change mobile number</Text>
+                  <Text style={styles.buttonText}>Verify Aadhaar</Text>
+                    <Text style={styles.btnArrowTxt}>→</Text>
                 </TouchableOpacity>
-              </>
-            )}
-          </Animated.ScrollView>
-        </View>
+              </Animated.View>
 
-        {/* OTP MODAL */}
-        <Modal visible={otpVisible} transparent animationType="fade">
+              <TouchableOpacity style={styles.linkBtn} onPress={() => setStep(1)}>
+                <Text style={styles.linkTxt}>← Change mobile number</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Security note */}
+          <View style={styles.secureNote}>
+            <Text style={styles.secureNoteIcon}>🔐</Text>
+            <Text style={styles.secureNoteTxt}>
+              Your data is encrypted end-to-end. We never store your Aadhaar details.
+            </Text>
+          </View>
+        </Animated.ScrollView>
+
+        {/* ══════════════════════════════════════════════
+            OTP MODAL
+        ══════════════════════════════════════════════ */}
+        <Modal visible={otpVisible} transparent animationType="none" onRequestClose={() => setOtpVisible(false)}>
           <View style={styles.modalOverlay}>
             <Animated.View
               style={[
                 styles.otpCard,
-                { transform: [{ scale: otpScale }] },
+                { opacity: otpOpacity, transform: [{ scale: otpScale }] },
               ]}
             >
-              <Text style={styles.otpTitle}>Enter OTP</Text>
-              <Text style={styles.otpSub}>OTP sent to {mobileNumber}</Text>
+              {/* OTP header */}
+              <View style={styles.otpIconWrap}>
+                <Text style={styles.otpIcon}>💬</Text>
+              </View>
+              <Text style={styles.otpTitle}>Verify OTP</Text>
+              <Text style={styles.otpSub}>
+                OTP sent to{" "}
+                <Text style={styles.otpMobile}>+91 {mobileNumber}</Text>
+              </Text>
 
-              <TextInput
-                style={styles.otpInput}
-                keyboardType="number-pad"
-                maxLength={6}
-                value={otp}
-                onChangeText={(text) =>
-                  setOtp(text.replace(/[^0-9]/g, ""))
-                }
-                placeholder="******"
-                placeholderTextColor={Colors.gray}
-              />
+              {/* OTP boxes */}
+              <View style={styles.otpInputRow}>
+                <TextInput
+                  style={styles.otpInput}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  value={otp}
+                  onChangeText={(t) => setOtp(t.replace(/[^0-9]/g, ""))}
+                  placeholder="• • • • • •"
+                  placeholderTextColor="#BDBDBD"
+                />
+              </View>
 
               <TouchableOpacity
-                style={styles.otpButton}
+                style={styles.otpBtn}
                 onPress={handleOtpVerify}
+                activeOpacity={0.88}
               >
-                <Text style={styles.otpButtonText}>Verify OTP</Text>
+                <Text style={styles.otpBtnTxt}>Verify OTP</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.closeBtn}
-                onPress={() => setOtpVisible(false)}
-              >
-                <Text style={styles.closeText}>Cancel</Text>
-              </TouchableOpacity>
+              <View style={styles.otpFooter}>
+                <TouchableOpacity>
+                  <Text style={styles.resendTxt}>Resend OTP</Text>
+                </TouchableOpacity>
+                <Text style={styles.otpDivider}>|</Text>
+                <TouchableOpacity onPress={() => setOtpVisible(false)}>
+                  <Text style={styles.cancelTxt}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
             </Animated.View>
           </View>
         </Modal>
@@ -279,166 +324,209 @@ const DmtLogin = () => {
 };
 
 export default DmtLogin;
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  STYLES
+// ══════════════════════════════════════════════════════════════════════════════
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: Colors.primary,
-  },
+  safe:   { flex: 1, backgroundColor: Colors.primary },
+  scroll: { flex: 1, backgroundColor: Colors.bg },
+  scrollContent: { padding: scale(16), paddingBottom: vs(50) },
 
-  container: {
-    flex: 1,
-    backgroundColor: Colors.bg,
-  },
-
-  /* ================= HEADER ================= */
-
+  // ── Header ──
   header: {
-    height: isTablet ? 220 : 120,
     backgroundColor: Colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: scale(20),
+    paddingTop: vs(16),
+    paddingBottom: vs(30),
+    // subtle bottom curve
+    borderBottomLeftRadius: scale(28),
+    borderBottomRightRadius: scale(28),
   },
 
-  headerTitle: {
-    color: Colors.white,
-    fontSize: isTablet ? 28 : 22,
-    fontWeight: "700",
-    letterSpacing: 0.5,
+  secureBadge: {
+    flexDirection: "row", alignItems: "center",
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(255,255,255,0.12)",
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.2)",
+    borderRadius: scale(20),
+    paddingHorizontal: scale(10), paddingVertical: vs(4),
+    marginBottom: vs(14), gap: scale(5),
+  },
+  secureBadgeIcon: { fontSize: rs(10) },
+  secureBadgeTxt:  { color: "#fff", fontSize: rs(9), fontWeight: "800", letterSpacing: 1.1 },
+
+  titleRow:    { flexDirection: "row", alignItems: "baseline", marginBottom: vs(6) },
+  titleAccent: { color: Colors.accent, fontSize: rs(32), fontWeight: "900", letterSpacing: 0.5 },
+  titleWhite:  { color: "#fff",        fontSize: rs(32), fontWeight: "900", letterSpacing: 0.5 },
+
+  headerSub: { color: "rgba(255,255,255,0.6)", fontSize: rs(13), fontWeight: "500" },
+
+  // ── Form card ──
+  formCard: {
+    backgroundColor: "#fff",
+    borderRadius: scale(20),
+    padding: scale(18),
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8,
   },
 
-  headerSub: {
-    marginTop: 6,
-    color: Colors.secondary,
-    fontSize: 13,
-    textAlign: "center",
+  fieldHeading: {
+    fontSize: rs(9), fontWeight: "800", color: Colors.primary,
+    letterSpacing: 1.1, marginBottom: vs(10),
   },
 
-  /* ================= CONTENT ================= */
-
-  content: {
-    padding: 20,
-    paddingTop: 28,
-    paddingBottom: 40,
+  // ── Input row ──
+  inputRow: {
+    flexDirection: "row", alignItems: "center",
+    backgroundColor: "#F7F7F7",
+    borderRadius: scale(14),
+    borderWidth: 1, borderColor: "#EBEBEB",
+    paddingHorizontal: scale(14),
+    minHeight: vs(54),
+    marginBottom: vs(8),
   },
-
-  title: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: Colors.primary,
-    marginBottom: 18,
-  },
-
-  /* ================= INPUT ================= */
-
+  inputIcon: { fontSize: rs(16), marginRight: scale(10) },
   input: {
-    borderWidth: 1,
-    borderColor: Colors.lightGray,
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: Platform.OS === "ios" ? 14 : 12,
-    fontSize: 14,
-    color: Colors.black,
-    marginBottom: 16,
-    backgroundColor: Colors.white,
+    flex: 1, fontSize: rs(14), color: "#212121", padding: 0,
   },
 
-  /* ================= BUTTON ================= */
+  // Country badge — right side of input
+  countryBadge: {
+    flexDirection: "row", alignItems: "center", gap: scale(4),
+    backgroundColor: "#EFEFEF", borderRadius: scale(8),
+    paddingHorizontal: scale(8), paddingVertical: vs(4),
+  },
+  countryFlag: { fontSize: rs(13) },
+  countryCode: { color: Colors.primary, fontSize: rs(11), fontWeight: "800" },
 
+  // Hint
+  hintRow: { flexDirection: "row", alignItems: "flex-start", gap: scale(5) },
+  hintDot: { color: Colors.accent, fontSize: rs(12), lineHeight: rs(16), marginTop: vs(1) },
+  hintTxt: { color: "#9E9E9E", fontSize: rs(10), lineHeight: rs(16), flex: 1 },
+
+  // ── Step indicator (step 2) ──
+  stepIndicator: {
+    flexDirection: "row", alignItems: "center",
+    marginBottom: vs(14),
+  },
+  stepDot: {
+    width: scale(26), height: scale(26), borderRadius: scale(13),
+    alignItems: "center", justifyContent: "center",
+    backgroundColor: "#E0E0E0",
+  },
+  stepDotDone:   { backgroundColor: "#16A34A" },
+  stepDotActive: { backgroundColor: Colors.accent },
+  stepDotTxt:    { color: "#fff", fontSize: rs(10), fontWeight: "900" },
+  stepConnector: {
+    flex: 1, height: 2,
+    backgroundColor: Colors.accent,
+    marginHorizontal: scale(6),
+  },
+
+  // Mobile chip
+  mobileChip: {
+    flexDirection: "row", alignItems: "center",
+    backgroundColor: Colors.accent + "10",
+    borderRadius: scale(10), paddingHorizontal: scale(12), paddingVertical: vs(8),
+    marginBottom: vs(16), gap: scale(8),
+    borderWidth: 1, borderColor: Colors.accent + "25",
+  },
+  mobileChipIcon: { fontSize: rs(14) },
+  mobileChipTxt:  { flex: 1, fontSize: rs(13), fontWeight: "700", color: Colors.primary },
+  mobileChipEdit: { color: Colors.accent, fontSize: rs(11), fontWeight: "800" },
+
+  // ── Button ──
   button: {
     backgroundColor: Colors.accent,
-    paddingVertical: isTablet ? 18 : 14,
-    borderRadius: 16,
+    borderRadius: scale(14),
+    paddingVertical: vs(15),
+    flexDirection: "row",
     alignItems: "center",
-    marginTop: 8,
-    elevation: 2,
+    justifyContent: "center",
+    gap: scale(10),
+    elevation: 3,
+    shadowColor: Colors.accent,
+    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8,
   },
+  buttonText: { color: "#fff", fontSize: rs(15), fontWeight: "900", letterSpacing: 0.4 },
 
-  buttonText: {
-    color: Colors.white,
-    fontSize: isTablet ? 18 : 16,
-    fontWeight: "600",
-    letterSpacing: 0.4,
+  btnArrowTxt: { color: "#fff", fontSize: rs(14), fontWeight: "900" },
+
+  // Link
+  linkBtn: { alignItems: "center", marginTop: vs(16) },
+  linkTxt:  { color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
+
+  // Security note
+  secureNote: {
+    flexDirection: "row", alignItems: "flex-start",
+    gap: scale(8), marginTop: vs(16),
+    backgroundColor: "#F8F9FC",
+    borderRadius: scale(12), padding: scale(12),
+    borderWidth: 1, borderColor: "#EBEBEB",
   },
+  secureNoteIcon: { fontSize: rs(14), marginTop: vs(1) },
+  secureNoteTxt:  { flex: 1, color: "#9E9E9E", fontSize: rs(10), lineHeight: rs(16) },
 
-  /* ================= LINK ================= */
-
-  linkBtn: {
-    marginTop: 14,
-    alignItems: "center",
-  },
-
-  linkText: {
-    color: Colors.lightPrimary,
-    fontSize: 13,
-    fontWeight: "500",
-  },
-
-  /* ================= OTP MODAL ================= */
-
+  // ── OTP Modal ──
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center", alignItems: "center",
+    paddingHorizontal: scale(24),
   },
-
   otpCard: {
-    width: "85%",
-    backgroundColor: Colors.white,
-    borderRadius: 20,
-    paddingVertical: 28,
-    paddingHorizontal: 22,
+    width: "100%",
+    backgroundColor: "#fff",
+    borderRadius: scale(24),
+    paddingVertical: vs(28), paddingHorizontal: scale(22),
     alignItems: "center",
-    elevation: 5,
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.18, shadowRadius: 16,
   },
 
-  otpTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: Colors.primary,
+  otpIconWrap: {
+    width: scale(56), height: scale(56), borderRadius: scale(16),
+    backgroundColor: Colors.accent + "15",
+    alignItems: "center", justifyContent: "center",
+    marginBottom: vs(12),
   },
+  otpIcon:  { fontSize: rs(26) },
+  otpTitle: { fontSize: rs(18), fontWeight: "900", color: Colors.primary, marginBottom: vs(4) },
+  otpSub:   { fontSize: rs(12), color: "#9E9E9E", marginBottom: vs(20), textAlign: "center" },
+  otpMobile:{ color: Colors.primary, fontWeight: "800" },
 
-  otpSub: {
-    fontSize: 13,
-    color: Colors.gray,
-    marginVertical: 10,
-    textAlign: "center",
-  },
-
+  otpInputRow: { width: "100%", marginBottom: vs(20) },
   otpInput: {
     width: "100%",
-    borderWidth: 1,
-    borderColor: Colors.lightGray,
-    borderRadius: 14,
-    paddingVertical: 14,
-    fontSize: 20,
-    textAlign: "center",
-    letterSpacing: 8,
-    color: Colors.black,
-    marginBottom: 16,
-    backgroundColor: Colors.white,
+    backgroundColor: "#F7F7F7",
+    borderRadius: scale(14),
+    borderWidth: 1, borderColor: "#EBEBEB",
+    paddingVertical: vs(14),
+    fontSize: rs(22), textAlign: "center",
+    letterSpacing: scale(10),
+    color: Colors.primary, fontWeight: "800",
   },
 
-  otpButton: {
+  otpBtn: {
+    width: "100%",
     backgroundColor: Colors.accent,
-    paddingVertical: 12,
-    paddingHorizontal: 40,
-    borderRadius: 14,
+    borderRadius: scale(14),
+    paddingVertical: vs(14),
+    alignItems: "center",
+    elevation: 2,
+    shadowColor: Colors.accent,
+    shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 6,
+    marginBottom: vs(14),
   },
+  otpBtnTxt: { color: "#fff", fontSize: rs(14), fontWeight: "900", letterSpacing: 0.3 },
 
-  otpButtonText: {
-    color: Colors.white,
-    fontSize: 16,
-    fontWeight: "600",
+  otpFooter: {
+    flexDirection: "row", alignItems: "center", gap: scale(12),
   },
-
-  closeBtn: {
-    marginTop: 12,
-  },
-
-  closeText: {
-    color: Colors.gray,
-    fontSize: 13,
-  },
+  resendTxt:  { color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
+  otpDivider: { color: "#E0E0E0", fontSize: rs(14) },
+  cancelTxt:  { color: "#9E9E9E", fontSize: rs(12), fontWeight: "600" },
 });
