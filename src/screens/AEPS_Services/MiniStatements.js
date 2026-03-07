@@ -23,7 +23,7 @@ const BASE_W = 390;
 const BASE_H = 844;
 const scale = (s) => Math.round((SW / BASE_W) * s);
 const vs = (s) => Math.round((SH / BASE_H) * s);
-const rs = (s) => Math.round(Math.sqrt((SW * SH) / (BASE_W * BASE_H)) * s);
+const rs = (s) => Math.round(Math.sqrt((SW * SH) / (BASE_W * BASE_H)) * s * 1.2);
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 const BANK_LIST = [
