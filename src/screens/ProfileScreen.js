@@ -215,6 +215,12 @@ export default function ProfileScreen({ navigation }) {
         />
 
         <Item
+          icon="ticket-outline"
+          text="Raise Ticket"
+          onPress={() => navigation.navigate("FaqSupportScreen")}
+        />
+
+        <Item
           icon="cog-outline"
           text="Settings"
         />

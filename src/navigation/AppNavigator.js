@@ -47,6 +47,7 @@ import ForgotPin from "../screens/Account/ForgotPin"
 import MoneyTransfer from "../screens/DMT/MoneyTransfer"
 // import BBPSServices from "../screens/BBPS_Services/BBPSServiceScreen"
 import SupportScreen from "../screens/Account/SupportScreen"
+import FaqSupportScreen from "../screens/HomeScreen/FaQSupport"
 
 const Stack = createStackNavigator();
 
@@ -136,6 +137,7 @@ const AppNavigator = () => {
       <Stack.Screen name="ForgotPasswordScreen" component={ForgotPassword} />
       <Stack.Screen name="ForgotPin" component={ForgotPin} />
       <Stack.Screen name="SupportScreen" component={SupportScreen} />
+      <Stack.Screen name="FaqSupportScreen" component={FaqSupportScreen} />
     </Stack.Navigator>
   );
 };
