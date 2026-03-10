@@ -9,8 +9,7 @@ import {
   Easing,
   ScrollView,
   Dimensions,
-  Platform,
-  Keyboard
+  Keyboard,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -26,7 +25,6 @@ const OTP_BOX_SIZE = width / 9;
 const INPUT_COUNT = 6;
 
 export default function OTP({ navigation, route }) {
-  const routeLogKey = route?.params?.log_key;
   const routeEmail = route?.params?.email;
 
   const inputRefs = useRef([]);
@@ -39,24 +37,16 @@ export default function OTP({ navigation, route }) {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertAction, setAlertAction] = useState(null);
 
-  /* ================= ANIMATIONS ================= */
-  // Entry animations
+  /* ── Animations ─────────────────────────────────────────────────────────── */
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
-
-  // Individual animations for each input box (scale & border)
   const inputAnims = useRef(
     [...Array(INPUT_COUNT)].map(() => new Animated.Value(0))
   ).current;
-
-  // Shake animation for error feedback
   const shakeAnim = useRef(new Animated.Value(0)).current;
-
-  // Button press animation scale
   const buttonScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    // Start entry animation on mount
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -68,37 +58,37 @@ export default function OTP({ navigation, route }) {
         toValue: 0,
         duration: 800,
         useNativeDriver: true,
-        easing: Easing.out(Easing.back(1.5)), // subtle overshoot
+        easing: Easing.out(Easing.back(1.5)),
       }),
     ]).start();
 
-    // Auto-focus first input after animation delay
     setTimeout(() => {
       inputRefs.current[0]?.focus();
     }, 600);
   }, []);
 
-  /* ================= AUTO VERIFY ================= */
+  /* ── Auto-verify when all 6 digits entered ─────────────────────────────── */
   useEffect(() => {
     if (otp.join("").length === INPUT_COUNT && !otp.includes("")) {
       handleVerifyOtp();
     }
   }, [otp]);
 
+  /* ── Helpers ────────────────────────────────────────────────────────────── */
   const triggerShake = () => {
     shakeAnim.setValue(0);
     Animated.sequence([
-      Animated.timing(shakeAnim, { toValue: 10, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 10,  duration: 50, useNativeDriver: true }),
       Animated.timing(shakeAnim, { toValue: -10, duration: 50, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: 10, duration: 50, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: 0, duration: 50, useNativeDriver: true })
+      Animated.timing(shakeAnim, { toValue: 8,   duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 0,   duration: 50, useNativeDriver: true }),
     ]).start();
   };
 
   const animateButtonPress = () => {
     Animated.sequence([
       Animated.timing(buttonScale, { toValue: 0.95, duration: 100, useNativeDriver: true }),
-      Animated.timing(buttonScale, { toValue: 1, duration: 100, useNativeDriver: true })
+      Animated.timing(buttonScale, { toValue: 1,    duration: 100, useNativeDriver: true }),
     ]).start();
   };
 
@@ -109,21 +99,75 @@ export default function OTP({ navigation, route }) {
     setAlertVisible(true);
   };
 
-  /* ================= VERIFY OTP ================= */
+  /* ── Save full API response to AsyncStorage ─────────────────────────────
+   *
+   *  Token changes on every login → always read from live API response.
+   *  Keys saved:
+   *    "header_token"    JWT token (used in all API headers)
+   *    "user_profile"    full user object (JSON string)
+   *    "user_id"         _id
+   *    "user_email"      email
+   *    "user_name"       "firstName lastName"
+   *    "user_username"   userName  (e.g. UCAM00006)
+   *    "user_phone"      phone
+   *    "kyc_status"      kycStatus ("pending" | "approved" | "rejected")
+   *    "user_level"      level as string
+   *    "role_id"         roleId
+   *    "is_kyc_online"   isKycOnline (JSON boolean string)
+   *
+   * ─────────────────────────────────────────────────────────────────────── */
+  const saveSessionToStorage = async ({ token, user, isKycOnline }) => {
+    const pairs = [
+      ["header_token",  token],
+      ["is_kyc_online", JSON.stringify(isKycOnline ?? false)],
+    ];
+
+    if (user) {
+      pairs.push(
+        ["user_profile",  JSON.stringify(user)],
+        ["user_id",       user._id         ?? ""],
+        ["user_email",    user.email        ?? ""],
+        ["user_name",     `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()],
+        ["user_username", user.userName     ?? ""],
+        ["user_phone",    user.phone        ?? ""],
+        ["kyc_status",    user.kycStatus    ?? ""],
+        ["user_level",    String(user.level ?? "")],
+        ["role_id",       user.roleId       ?? ""],
+      );
+    }
+
+    // multiSet saves all keys in one transaction — faster & atomic
+    await AsyncStorage.multiSet(pairs);
+    console.log("✅ Session saved | token:", token?.slice(0, 20) + "...");
+  };
+
+  /* ── Fade out → navigate ────────────────────────────────────────────────── */
+  const navigateToHome = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "FinanceHome" }],
+      });
+    });
+  };
+
+  /* ── Verify OTP ─────────────────────────────────────────────────────────── */
   const handleVerifyOtp = async () => {
     Keyboard.dismiss();
     animateButtonPress();
 
     const otpValue = otp.join("");
-
     if (otpValue.length < INPUT_COUNT) {
       triggerShake();
-      // showAlert("Error", "Please enter valid 6 digit PIN");
       return;
     }
 
-    let email = routeEmail || (await AsyncStorage.getItem("user_email"));
-
+    // Use email from route params first, fallback to AsyncStorage
+    const email = routeEmail ?? (await AsyncStorage.getItem("user_email"));
     if (!email) {
       showAlert("Session Expired", "Please login again", () => {
         navigation.replace("Login");
@@ -136,56 +180,56 @@ export default function OTP({ navigation, route }) {
       const result = await verifyUserOtp({ email, otp: otpValue });
       setLoading(false);
 
-      if (result?.success) {
-        // Save token and stringified user to storage as required
-        await AsyncStorage.setItem("header_token", result.token || "");
-        if (result.user) {
-          await AsyncStorage.setItem("user_profile", JSON.stringify(result.user));
-        }
-
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true
-        }).start(() => {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "FinanceHome" }]
-          });
-        });
-
+      /*
+       * API Response shape:
+       * {
+       *   success: true,
+       *   message: "User logged in successfully",
+       *   user: { _id, firstName, lastName, userName, email, phone,
+       *           roleId, kycStatus, level, pin, isActive, ... },
+       *   token: "eyJhbGci...",   ← fresh JWT every login
+       *   isKycOnline: true
+       * }
+       */
+      if (result?.success && result?.token) {
+        // ✅ Save fresh token + full user data from this login response
+        await saveSessionToStorage(result);
+        navigateToHome();
       } else {
         triggerShake();
-        showAlert("Invalid PIN", result?.message || "Verification failed");
+        showAlert(
+          "Invalid PIN",
+          result?.message || "Verification failed. Please try again."
+        );
       }
-    } catch {
+    } catch (err) {
       setLoading(false);
+      console.error("OTP verify error:", err);
       triggerShake();
-      showAlert("Error", "Network error");
+      showAlert(
+        "Network Error",
+        "Could not connect to server. Please check your internet connection."
+      );
     }
   };
 
-  /* ================= INPUT HANDLERS ================= */
+  /* ── Input handlers ─────────────────────────────────────────────────────── */
   const handleChange = (text, index) => {
     if (!/^\d*$/.test(text)) return;
-
     const newOtp = [...otp];
     newOtp[index] = text;
     setOtp(newOtp);
-
     if (text && index < INPUT_COUNT - 1) {
       inputRefs.current[index + 1]?.focus();
     }
   };
 
   const handleKeyPress = ({ nativeEvent }, index) => {
-    if (nativeEvent.key === "Backspace") {
-      if (!otp[index] && index > 0) {
-        inputRefs.current[index - 1]?.focus();
-        const newOtp = [...otp];
-        newOtp[index - 1] = ""; // Clear previous on backspace if current is empty
-        setOtp(newOtp);
-      }
+    if (nativeEvent.key === "Backspace" && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+      const newOtp = [...otp];
+      newOtp[index - 1] = "";
+      setOtp(newOtp);
     }
   };
 
@@ -195,35 +239,31 @@ export default function OTP({ navigation, route }) {
       toValue: 1,
       friction: 8,
       tension: 100,
-      useNativeDriver: false // animating color requires false
+      useNativeDriver: false,
     }).start();
   };
 
   const handleBlur = (index) => {
     if (index === focusedIndex) setFocusedIndex(-1);
     Animated.timing(inputAnims[index], {
-      toValue: otp[index] ? 1 : 0, // Keep highlighted if filled
+      toValue: otp[index] ? 1 : 0,
       duration: 200,
-      useNativeDriver: false
+      useNativeDriver: false,
     }).start();
   };
 
-  /* ================= UI ================= */
+  /* ── UI ─────────────────────────────────────────────────────────────────── */
   return (
     <LinearGradient colors={Colors.background_gradient} style={styles.container}>
       <Animated.View
         style={[
           styles.contentWrapper,
           {
-            opacity: fadeAnim,
-            transform: [
-              { translateY: slideAnim }
-            ],
-            opacity: loading ? 0.3 : fadeAnim, // Dim content when loading
-          }
+            opacity: loading ? 0.3 : fadeAnim,
+            transform: [{ translateY: slideAnim }],
+          },
         ]}
       >
-        {/* Decorative Background Elements */}
         <View style={styles.circle1} />
         <View style={styles.circle2} />
 
@@ -232,6 +272,7 @@ export default function OTP({ navigation, route }) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          {/* Header */}
           <View style={styles.headerContainer}>
             <View style={styles.iconCircle}>
               <Icon name="shield-check-outline" size={60} color={Colors.icon_primary} />
@@ -242,21 +283,22 @@ export default function OTP({ navigation, route }) {
             </Text>
           </View>
 
-          <Animated.View style={[styles.otpRow, { transform: [{ translateX: shakeAnim }] }]}>
+          {/* OTP Boxes */}
+          <Animated.View
+            style={[styles.otpRow, { transform: [{ translateX: shakeAnim }] }]}
+          >
             {otp.map((v, i) => {
               const borderColor = inputAnims[i].interpolate({
                 inputRange: [0, 1],
-                outputRange: [Colors.input_border, Colors.accent] // From secondary to accent
+                outputRange: [Colors.input_border, Colors.accent],
               });
-
               const scale = inputAnims[i].interpolate({
                 inputRange: [0, 1],
-                outputRange: [1, 1.05]
+                outputRange: [1, 1.05],
               });
-
               const elevation = inputAnims[i].interpolate({
                 inputRange: [0, 1],
-                outputRange: [2, 8]
+                outputRange: [2, 8],
               });
 
               return (
@@ -266,10 +308,13 @@ export default function OTP({ navigation, route }) {
                     styles.otpBoxWrapper,
                     {
                       transform: [{ scale }],
-                      borderColor: borderColor,
-                      elevation: elevation,
-                      shadowOpacity: inputAnims[i].interpolate({ inputRange: [0, 1], outputRange: [0.1, 0.3] }),
-                    }
+                      borderColor,
+                      elevation,
+                      shadowOpacity: inputAnims[i].interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0.1, 0.3],
+                      }),
+                    },
                   ]}
                 >
                   <TextInput
@@ -291,6 +336,7 @@ export default function OTP({ navigation, route }) {
             })}
           </Animated.View>
 
+          {/* Verify Button */}
           <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
             <TouchableOpacity
               style={styles.btn}
@@ -301,13 +347,15 @@ export default function OTP({ navigation, route }) {
             </TouchableOpacity>
           </Animated.View>
 
+          {/* Resend */}
           <View style={styles.resendContainer}>
-            <Text style={styles.resendText}>Didn’t receive code? </Text>
+            <Text style={styles.resendText}>Didn't receive code? </Text>
             <TouchableOpacity>
               <Text style={styles.resendLink}>Resend Code</Text>
             </TouchableOpacity>
           </View>
 
+          {/* Forgot PIN */}
           <TouchableOpacity
             style={styles.forgotPinBtn}
             onPress={() => navigation.navigate("ForgotPin")}
@@ -317,6 +365,7 @@ export default function OTP({ navigation, route }) {
         </ScrollView>
       </Animated.View>
 
+      {/* Loading Overlay */}
       {loading && (
         <View style={styles.loaderOverlay}>
           <View style={styles.loaderBox}>
@@ -339,11 +388,9 @@ export default function OTP({ navigation, route }) {
   );
 }
 
-/* ================= STYLES ================= */
+/* ── Styles ─────────────────────────────────────────────────────────────────── */
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   contentWrapper: {
     flex: 1,
     justifyContent: "center",
@@ -352,10 +399,10 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: "center",
-    paddingBottom: 40
+    paddingBottom: 40,
   },
   headerContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 40,
   },
   title: {
@@ -369,15 +416,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: Fonts.Medium,
     color: Colors.text_secondary,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 20,
-    maxWidth: '80%',
+    maxWidth: "80%",
   },
   otpRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 40,
-    paddingHorizontal: 5
+    paddingHorizontal: 5,
   },
   otpBoxWrapper: {
     width: OTP_BOX_SIZE,
@@ -387,22 +434,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 0.8,
-    // Shadow for iOS
-    shadowColor: "#474747ff",
+    shadowColor: "#474747",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
-    // Elevation for Android
     elevation: 3,
   },
   input: {
     fontSize: 20,
     fontFamily: Fonts.Bold,
     color: Colors.text_primary,
-    width: '100%',
-    height: '100%',
-    textAlign: 'center',
-    padding: 0, // fixes vertical alignment on android
+    width: "100%",
+    height: "100%",
+    textAlign: "center",
+    padding: 0,
   },
   btn: {
     marginTop: 40,
@@ -410,7 +455,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     paddingVertical: 14,
     alignItems: "center",
-    width: '100%',
+    width: "100%",
   },
   btnText: {
     color: Colors.button_text,
@@ -418,10 +463,10 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Bold,
   },
   resendContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     marginTop: 24,
-    marginBottom: 20
+    marginBottom: 20,
   },
   resendText: {
     color: Colors.text_secondary,
@@ -446,57 +491,47 @@ const styles = StyleSheet.create({
   },
   loaderOverlay: {
     position: "absolute",
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    right: 0,
-    backgroundColor: "rgba(0,0,0,0.7)", // Dark dimmed background for focus
+    top: 0, bottom: 0, left: 0, right: 0,
+    backgroundColor: "rgba(0,0,0,0.7)",
     justifyContent: "center",
     alignItems: "center",
     zIndex: 1000,
-    backdropFilter: 'blur(10px)', // For web support if needed, native ignores this
   },
   loaderBox: {
     padding: 24,
-    alignItems: 'center',
+    alignItems: "center",
   },
   loaderText: {
     marginTop: 12,
     color: Colors.white,
     fontFamily: Fonts.Medium,
-    fontSize: 16
+    fontSize: 16,
   },
-  // New Styles
   iconCircle: {
     width: 100,
     height: 100,
     borderRadius: 50,
     backgroundColor: Colors.circle_bg,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: Colors.border
+    borderColor: Colors.border,
   },
   circle1: {
-    position: 'absolute',
-    top: -60,
-    left: -60,
-    width: 200,
-    height: 200,
+    position: "absolute",
+    top: -60, left: -60,
+    width: 200, height: 200,
     borderRadius: 100,
     backgroundColor: Colors.circle_bg,
     zIndex: -1,
   },
   circle2: {
-    position: 'absolute',
-    bottom: 100,
-    right: -80,
-    width: 280,
-    height: 280,
+    position: "absolute",
+    bottom: 100, right: -80,
+    width: 280, height: 280,
     borderRadius: 140,
     backgroundColor: Colors.circle_bg,
     zIndex: -1,
-  }
+  },
 });
