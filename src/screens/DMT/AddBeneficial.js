@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Picker } from "@react-native-picker/picker";
-import Colors from "../../Utils/Color";
+import Colors from "../../utils/Color";
 
 const AddBeneficiary = () => {
   const [relation, setRelation] = useState("");
@@ -28,7 +28,7 @@ const AddBeneficiary = () => {
           </View>
 
           <Text style={styles.title}>
-             <Text style={styles.titleAccent}>Add</Text> Beneficiary
+            <Text style={styles.titleAccent}>Add</Text> Beneficiary
           </Text>
 
           <Text style={styles.subtitle}>

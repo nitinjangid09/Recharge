@@ -1,4 +1,3 @@
-import React from "react";
 import {
   View,
   Text,
@@ -7,8 +6,8 @@ import {
   ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Color } from "react-native/types_generated/Libraries/Animated/AnimatedExports";
-import Colors from "../../Utils/Color";
+import { Picker } from "@react-native-picker/picker";
+import Colors from "../../utils/Color";
 
 const ReceiptRow = ({ label, value }) => {
   return (
@@ -20,6 +19,8 @@ const ReceiptRow = ({ label, value }) => {
 };
 
 export default function PaymentReceiptScreen() {
+  const [downloadFormat, setDownloadFormat] = React.useState("pdf");
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -79,9 +80,21 @@ export default function PaymentReceiptScreen() {
 
         {/* Download */}
         <Text style={styles.download}>
-          Want a copy?{" "}
-          <Text style={styles.downloadLink}>Download PDF</Text>
+          Want a copy?
         </Text>
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={downloadFormat}
+            onValueChange={(itemValue, itemIndex) =>
+              setDownloadFormat(itemValue)
+            }
+            style={styles.picker}
+            dropdownIconColor="#FF6A00"
+          >
+            <Picker.Item label="Download PDF" value="pdf" color="#222" />
+            <Picker.Item label="Download Image" value="image" color="#222" />
+          </Picker>
+        </View>
 
       </ScrollView>
     </SafeAreaView>
@@ -247,12 +260,23 @@ const styles = StyleSheet.create({
   download: {
     textAlign: "center",
     marginTop: 20,
-    marginBottom: 30,
     color: "#777",
   },
 
-  downloadLink: {
-    color: "#FF6A00",
-    fontWeight: "600",
+  pickerContainer: {
+    marginHorizontal: 40,
+    marginTop: 5,
+    marginBottom: 30,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#eee',
+    overflow: 'hidden',
   },
+
+  picker: {
+    height: 50,
+    width: "100%",
+  },
+
 });

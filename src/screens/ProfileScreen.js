@@ -197,8 +197,27 @@ export default function ProfileScreen({ navigation }) {
         />
 
         <Item
+          icon="lock-reset"
+          text="Change Password"
+          onPress={() => navigation.navigate("ChangePassword")}
+        />
+
+        <Item
+          icon="dialpad"
+          text="Change PIN"
+          onPress={() => navigation.navigate("ChangePin")}
+        />
+
+        <Item
           icon="help-circle-outline"
           text="Help & Support"
+          onPress={() => navigation.navigate("SupportScreen")}
+        />
+
+        <Item
+          icon="ticket-outline"
+          text="Raise Ticket"
+          onPress={() => navigation.navigate("FaqSupportScreen")}
         />
 
         <Item
@@ -327,6 +346,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     marginTop: 25,
     marginHorizontal: 20,
+    marginBottom: 40,
     borderRadius: 20,
     borderWidth: 0.2,
     borderColor: Colors.primary,

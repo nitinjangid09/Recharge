@@ -14,9 +14,9 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import Colors from "../../Utils/Color";
-import CustomAlert from "../../components/CustomAlert";
-import { fadeIn, slideUp, buttonPress } from "../../Utils/ScreenAnimations";
+import Colors from "../../utils/Color";
+import CustomAlert from "../../componets/CustomAlert";
+import { fadeIn, slideUp, buttonPress } from "../../utils/ScreenAnimations";
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -131,11 +131,11 @@ const otpStyles = StyleSheet.create({
 const DmtLogin = () => {
   const navigation = useNavigation();
 
-  const [mobileNumber, setMobileNumber] = useState("");
-  const [aadhaarRaw, setAadhaarRaw] = useState(""); // digits only
-  const [otp, setOtp] = useState("");
-  const [step, setStep] = useState(1);
-  const [otpVisible, setOtpVisible] = useState(false);
+  const [mobileNumber,  setMobileNumber]  = useState("");
+  const [aadhaarNumber, setAadhaarNumber] = useState("");
+  const [otp,           setOtp]           = useState("");
+  const [step,          setStep]          = useState(1);
+  const [otpVisible,    setOtpVisible]    = useState(false);
 
   // Alert
   const [alertVisible, setAlertVisible] = useState(false);
@@ -458,7 +458,8 @@ const styles = StyleSheet.create({
 
   titleRow: { flexDirection: "row", alignItems: "baseline", marginBottom: vs(6) },
   titleAccent: { color: Colors.accent, fontSize: rs(32), fontWeight: "900", letterSpacing: 0.5 },
-  titleWhite: { color: "#fff", fontSize: rs(32), fontWeight: "900", letterSpacing: 0.5 },
+  titleWhite:  { color: "#fff",        fontSize: rs(32), fontWeight: "900", letterSpacing: 0.5 },
+
   headerSub: { color: "rgba(255,255,255,0.6)", fontSize: rs(13), fontWeight: "500" },
 
   // ── Form card ──
@@ -539,8 +540,8 @@ const styles = StyleSheet.create({
     marginBottom: vs(16), gap: scale(8),
     borderWidth: 1, borderColor: Colors.accent + "25",
   },
-  mobileChipCode: { color: Colors.primary, fontSize: rs(13), fontWeight: "900" },
-  mobileChipTxt: { flex: 1, fontSize: rs(13), fontWeight: "700", color: Colors.primary },
+  mobileChipIcon: { fontSize: rs(14) },
+  mobileChipTxt:  { flex: 1, fontSize: rs(13), fontWeight: "700", color: Colors.primary },
   mobileChipEdit: { color: Colors.accent, fontSize: rs(11), fontWeight: "800" },
 
   // Button
@@ -590,8 +591,9 @@ const styles = StyleSheet.create({
   },
   otpIcon: { fontSize: rs(26) },
   otpTitle: { fontSize: rs(18), fontWeight: "900", color: Colors.primary, marginBottom: vs(4) },
-  otpSub: { fontSize: rs(12), color: "#9E9E9E", textAlign: "center" },
-  otpMobile: { color: Colors.primary, fontWeight: "800" },
+  otpSub:   { fontSize: rs(12), color: "#9E9E9E", marginBottom: vs(20), textAlign: "center" },
+  otpMobile:{ color: Colors.primary, fontWeight: "800" },
+
   otpInputRow: { width: "100%", marginBottom: vs(20) },
   otpInput: {
     width: "100%",
@@ -613,8 +615,10 @@ const styles = StyleSheet.create({
   },
   otpBtnTxt: { color: "#fff", fontSize: rs(14), fontWeight: "900", letterSpacing: 0.3 },
 
-  otpFooter: { flexDirection: "row", alignItems: "center", gap: scale(12) },
-  resendTxt: { color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
+  otpFooter: {
+    flexDirection: "row", alignItems: "center", gap: scale(12),
+  },
+  resendTxt:  { color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
   otpDivider: { color: "#E0E0E0", fontSize: rs(14) },
   cancelTxt: { color: "#9E9E9E", fontSize: rs(12), fontWeight: "600" },
 });

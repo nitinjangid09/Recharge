@@ -418,86 +418,126 @@ export default function TopUpScreen({ navigation }) {
       </KeyboardAvoidingView>
 
       {/* OPERATOR MODAL */}
-      <Modal visible={showOperatorModal} transparent animationType="fade">
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalContent}>
-            <LinearGradient colors={[Colors.finance_accent, '#b8944d']} style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Provider</Text>
-              <TouchableOpacity onPress={() => setShowOperatorModal(false)}>
-                <Icon name="close" size={24} color={Colors.white} />
+      <Modal visible={showOperatorModal} transparent animationType="slide" onRequestClose={() => setShowOperatorModal(false)}>
+        <TouchableOpacity style={styles.sheetBackdrop} activeOpacity={1} onPress={() => setShowOperatorModal(false)} />
+        <View style={styles.bottomSheet}>
+          <View style={styles.sheetHeader}>
+            <View style={styles.handleBar} />
+            <View style={styles.sheetTitleRow}>
+              <Text style={styles.sheetTitle}>Select Provider</Text>
+              <TouchableOpacity onPress={() => setShowOperatorModal(false)} style={styles.closeBtn}>
+                <Icon name="close" size={18} color="#666" />
               </TouchableOpacity>
-            </LinearGradient>
-            <View style={styles.modalInner}>
-              <View style={styles.searchBar}>
-                <Icon name="magnify" size={20} color={Colors.finance_accent} />
-                <TextInput
-                  placeholder="Search Operator"
-                  placeholderTextColor={Colors.finance_accent}
-                  style={styles.searchField}
-                  value={searchText}
-                  onChangeText={setSearchText}
-                />
-              </View>
-              <ScrollView>
-                {operators
-                  .filter(op => op.name.toLowerCase().includes(searchText.toLowerCase()))
-                  .map((op, idx) => (
-                    <TouchableOpacity
-                      key={idx}
-                      style={styles.listItem}
-                      onPress={() => { setOperator(op.name); setShowOperatorModal(false); setSearchText(""); }}
-                    >
-                      <View style={styles.listIcon}>
-                        <Icon name="sim" size={18} color={Colors.finance_accent} />
-                      </View>
-                      <Text style={styles.listLabel}>{op.name}</Text>
-                    </TouchableOpacity>
-                  ))}
-              </ScrollView>
+            </View>
+            <View style={styles.sheetSearchRow}>
+              <Icon name="magnify" size={20} color="#666" style={{ marginRight: 8 }} />
+              <TextInput
+                style={styles.sheetSearchInput}
+                placeholder="Search Operator..."
+                placeholderTextColor="#BDBDBD"
+                value={searchText}
+                onChangeText={setSearchText}
+              />
+              {searchText.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchText("")}>
+                  <Icon name="close-circle" size={18} color="#BDBDBD" />
+                </TouchableOpacity>
+              )}
             </View>
           </View>
+
+          <ScrollView contentContainerStyle={{ paddingBottom: 20 }} keyboardShouldPersistTaps="handled">
+            {operators
+              .filter(op => op.name.toLowerCase().includes(searchText.toLowerCase()))
+              .map((op, idx) => {
+                const isSel = operator === op.name;
+                return (
+                  <TouchableOpacity
+                    key={idx}
+                    style={[styles.sheetListItem, isSel && styles.sheetListItemSel]}
+                    onPress={() => { setOperator(op.name); setShowOperatorModal(false); setSearchText(""); }}
+                    activeOpacity={0.75}
+                  >
+                    <View style={[styles.sheetListIconBox, isSel && styles.sheetListIconBoxSel]}>
+                      <Icon name="sim" size={20} color={isSel ? Colors.finance_accent : "#666"} />
+                    </View>
+                    <Text style={[styles.sheetListTxt, isSel && styles.sheetListTxtSel]}>{op.name}</Text>
+                    {isSel && (
+                      <View style={styles.checkCircle}>
+                        <Icon name="check" size={14} color="#fff" />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            {operators.filter(op => op.name.toLowerCase().includes(searchText.toLowerCase())).length === 0 && (
+              <View style={styles.emptyWrap}>
+                <Text style={styles.emptyTxt}>No results found</Text>
+              </View>
+            )}
+          </ScrollView>
         </View>
       </Modal>
 
       {/* CIRCLE MODAL */}
-      <Modal visible={showCircleModal} transparent animationType="fade">
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalContent}>
-            <LinearGradient colors={[Colors.finance_accent, '#b8944d']} style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Circle</Text>
-              <TouchableOpacity onPress={() => setShowCircleModal(false)}>
-                <Icon name="close" size={24} color={Colors.white} />
+      <Modal visible={showCircleModal} transparent animationType="slide" onRequestClose={() => setShowCircleModal(false)}>
+        <TouchableOpacity style={styles.sheetBackdrop} activeOpacity={1} onPress={() => setShowCircleModal(false)} />
+        <View style={styles.bottomSheet}>
+          <View style={styles.sheetHeader}>
+            <View style={styles.handleBar} />
+            <View style={styles.sheetTitleRow}>
+              <Text style={styles.sheetTitle}>Select Circle</Text>
+              <TouchableOpacity onPress={() => setShowCircleModal(false)} style={styles.closeBtn}>
+                <Icon name="close" size={18} color="#666" />
               </TouchableOpacity>
-            </LinearGradient>
-            <View style={styles.modalInner}>
-              <View style={styles.searchBar}>
-                <Icon name="magnify" size={20} color={Colors.finance_accent} />
-                <TextInput
-                  placeholder="Search Circle"
-                  placeholderTextColor={Colors.finance_accent}
-                  style={styles.searchField}
-                  value={searchText}
-                  onChangeText={setSearchText}
-                />
-              </View>
-              <ScrollView>
-                {circles
-                  .filter(c => c.circlename.toLowerCase().includes(searchText.toLowerCase()))
-                  .map((c, idx) => (
-                    <TouchableOpacity
-                      key={idx}
-                      style={styles.listItem}
-                      onPress={() => { setCircle(c.circlename); setShowCircleModal(false); setSearchText(""); }}
-                    >
-                      <View style={styles.listIcon}>
-                        <Icon name="map-marker-radius" size={18} color={Colors.finance_accent} />
-                      </View>
-                      <Text style={styles.listLabel}>{c.circlename}</Text>
-                    </TouchableOpacity>
-                  ))}
-              </ScrollView>
+            </View>
+            <View style={styles.sheetSearchRow}>
+              <Icon name="magnify" size={20} color="#666" style={{ marginRight: 8 }} />
+              <TextInput
+                style={styles.sheetSearchInput}
+                placeholder="Search Circle..."
+                placeholderTextColor="#BDBDBD"
+                value={searchText}
+                onChangeText={setSearchText}
+              />
+              {searchText.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchText("")}>
+                  <Icon name="close-circle" size={18} color="#BDBDBD" />
+                </TouchableOpacity>
+              )}
             </View>
           </View>
+
+          <ScrollView contentContainerStyle={{ paddingBottom: 20 }} keyboardShouldPersistTaps="handled">
+            {circles
+              .filter(c => c.circlename.toLowerCase().includes(searchText.toLowerCase()))
+              .map((c, idx) => {
+                const isSel = circle === c.circlename;
+                return (
+                  <TouchableOpacity
+                    key={idx}
+                    style={[styles.sheetListItem, isSel && styles.sheetListItemSel]}
+                    onPress={() => { setCircle(c.circlename); setShowCircleModal(false); setSearchText(""); }}
+                    activeOpacity={0.75}
+                  >
+                    <View style={[styles.sheetListIconBox, isSel && styles.sheetListIconBoxSel]}>
+                      <Icon name="map-marker-radius" size={20} color={isSel ? Colors.finance_accent : "#666"} />
+                    </View>
+                    <Text style={[styles.sheetListTxt, isSel && styles.sheetListTxtSel]}>{c.circlename}</Text>
+                    {isSel && (
+                      <View style={styles.checkCircle}>
+                        <Icon name="check" size={14} color="#fff" />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            {circles.filter(c => c.circlename.toLowerCase().includes(searchText.toLowerCase())).length === 0 && (
+              <View style={styles.emptyWrap}>
+                <Text style={styles.emptyTxt}>No results found</Text>
+              </View>
+            )}
+          </ScrollView>
         </View>
       </Modal>
 
@@ -807,71 +847,66 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
 
-  /* MODAL STYLES */
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  /* NEW BOTTOM SHEET MODAL STYLES */
+  sheetBackdrop: {
+    position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.45)",
   },
-  modalContent: {
-    width: '85%',
-    height: '60%',
-    backgroundColor: Colors.white,
-    borderRadius: 20,
-    overflow: 'hidden',
+  bottomSheet: {
+    position: "absolute", bottom: 0, left: 0, right: 0,
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    maxHeight: '75%',
+    elevation: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.15, shadowRadius: 12,
   },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
+  sheetHeader: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+    borderBottomWidth: 1, borderBottomColor: "#F0F0F0",
   },
-  modalTitle: {
-    color: Colors.white,
-    fontSize: 18,
-    fontFamily: Fonts.Bold,
+  handleBar: {
+    width: 40, height: 4, borderRadius: 2,
+    backgroundColor: "#E0E0E0", alignSelf: "center",
+    marginTop: 10, marginBottom: 10,
   },
-  modalInner: {
-    padding: 16,
-    flex: 1,
+  sheetTitleRow: {
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    marginBottom: 10,
   },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 48,
-    marginBottom: 16,
+  sheetTitle: { fontSize: 15, fontFamily: Fonts.Bold, color: '#333' },
+  closeBtn: {
+    width: 28, height: 28, borderRadius: 14,
+    backgroundColor: "#F4F4F4", alignItems: "center", justifyContent: "center",
   },
-  searchField: {
-    flex: 1,
-    marginLeft: 10,
-    fontFamily: Fonts.Medium,
-    color: Colors.finance_accent,
+  sheetSearchRow: {
+    flexDirection: "row", alignItems: "center",
+    backgroundColor: "#F5F5F5", borderRadius: 10,
+    paddingHorizontal: 10, marginBottom: 4,
+    height: 40,
   },
-  listItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEE',
+  sheetSearchInput: { flex: 1, fontSize: 13, fontFamily: Fonts.Medium, color: "#212121", padding: 0 },
+  sheetListItem: {
+    flexDirection: "row", alignItems: "center",
+    paddingHorizontal: 16, paddingVertical: 10,
+    borderBottomWidth: 1, borderBottomColor: "#F5F5F5",
   },
-  listIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.finance_bg_1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
+  sheetListItemSel: { backgroundColor: Colors.finance_accent + "15" },
+  sheetListIconBox: {
+    width: 32, height: 32, borderRadius: 10,
+    backgroundColor: "#F5F5F5", alignItems: "center", justifyContent: "center",
+    marginRight: 10,
   },
-  listLabel: {
-    fontSize: 15,
-    fontFamily: Fonts.Medium,
-    color: '#333',
+  sheetListIconBoxSel: { backgroundColor: Colors.finance_accent + "25" },
+  sheetListTxt: { flex: 1, fontSize: 13, fontFamily: Fonts.Medium, color: "#212121" },
+  sheetListTxtSel: { color: Colors.finance_accent, fontFamily: Fonts.Bold },
+  checkCircle: {
+    width: 20, height: 20, borderRadius: 10,
+    backgroundColor: Colors.finance_accent, alignItems: "center", justifyContent: "center",
   },
+  emptyWrap: { alignItems: "center", paddingVertical: 30 },
+  emptyTxt: { color: "#BDBDBD", fontSize: 13, fontFamily: Fonts.Medium },
   fullLoader: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(255,255,255,0.7)',
