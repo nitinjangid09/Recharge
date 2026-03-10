@@ -64,15 +64,15 @@ const AppNavigator = () => {
 
         if (token) {
           console.log("🔐 Token Found → Go to Home");
-          setInitialRoute('SupportScreen');   // ✅ HOME
+          setInitialRoute('FinanceHome');   // ✅ HOME
         } else {
           console.log("❌ No Token → Go to Login");
-          setInitialRoute('SupportScreen');         // ✅ LOGIN
+          setInitialRoute('FinanceIntro');         // ✅ LOGIN
         }
 
       } catch (error) {
         console.error("Token Check Error:", error);
-        setInitialRoute('SupportScreen');
+        setInitialRoute('FinanceIntro');
       } finally {
         setLoading(false);
       }
