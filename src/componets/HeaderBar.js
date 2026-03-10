@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
 
   container: {
     width: "100%",
-    backgroundColor: Colors.black, // Gold Background
+    backgroundColor: Colors.primary, // Gold Background
     borderBottomLeftRadius: 18,
     borderBottomRightRadius: 18,
     paddingVertical: 10,

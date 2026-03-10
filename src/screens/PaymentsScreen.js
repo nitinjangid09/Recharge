@@ -29,10 +29,10 @@ export default function PaymentsScreen({ navigation }) {
           </View>
 
           <View style={styles.qrCircle}>
-            <Icon name="qrcode-scan" size={18} color={Colors.secndory} />
+            <Icon name="qrcode-scan" size={18} color={Colors.secondary} />
           </View>
         </View>
-      
+
         <View style={styles.card}>
           <View>
             <Text style={styles.smallText}>PREPAID • 6350580877</Text>
@@ -43,25 +43,25 @@ export default function PaymentsScreen({ navigation }) {
             <Text style={styles.rechargeBtn}>Recharge</Text>
           </TouchableOpacity>
         </View>
-          <Animated.View style={{ transform: [{ translateY: slideAnim }] }}>
-        <View style={styles.banner}>
-          <View>
-            <Text style={styles.bannerText}>
-              pay your recharge,{"\n"}electricity, credit card &
-              {"\n"}other bills using
-            </Text>
-            <Text style={styles.postpe}>postpe...</Text>
+        <Animated.View style={{ transform: [{ translateY: slideAnim }] }}>
+          <View style={styles.banner}>
+            <View>
+              <Text style={styles.bannerText}>
+                pay your recharge,{"\n"}electricity, credit card &
+                {"\n"}other bills using
+              </Text>
+              <Text style={styles.postpe}>postpe...</Text>
+            </View>
+
+            <Image
+              source={require("../assets/bbps.png")}
+              style={styles.bannerImage}
+            />
           </View>
 
-          <Image
-            source={require("../assets/bbps.png")}
-            style={styles.bannerImage}
-          />
-        </View>
 
+          {/* -------- MAIN PAY CARD -------- */}
 
-        {/* -------- MAIN PAY CARD -------- */}
-       
           <View style={styles.bigCard}>
             <Text style={styles.sectionTitle}>Airtel UPI</Text>
 
@@ -82,19 +82,19 @@ export default function PaymentsScreen({ navigation }) {
               <Feature icon="flash" text="Electricity" />
               <Feature icon="car" text="Fastag" />
               <Feature icon="gas-cylinder" text="Cylinder" />
-               <Feature icon="cellphone" text="Recharge" />
+              <Feature icon="cellphone" text="Recharge" />
               <Feature icon="flash" text="Electricity" />
               <Feature icon="car" text="Fastag" />
               <Feature icon="gas-cylinder" text="Cylinder" />
-               <Feature icon="cellphone" text="Recharge" />
+              <Feature icon="cellphone" text="Recharge" />
               <Feature icon="flash" text="Electricity" />
               <Feature icon="car" text="Fastag" />
               <Feature icon="gas-cylinder" text="Cylinder" />
-               <Feature icon="cellphone" text="Recharge" />
+              <Feature icon="cellphone" text="Recharge" />
               <Feature icon="flash" text="Electricity" />
               <Feature icon="car" text="Fastag" />
               <Feature icon="gas-cylinder" text="Cylinder" />
-              
+
             </View>
           </View>
 
@@ -109,8 +109,8 @@ export default function PaymentsScreen({ navigation }) {
 
             </View>
           </View> */}
-          
-          </Animated.View>
+
+        </Animated.View>
       </ScrollView>
 
       {/* -------- FLOATING SCAN BUTTON -------- */}
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
 
   bigCard: {
     marginTop: 10,
-    marginBottom:80,
+    marginBottom: 80,
     backgroundColor: Colors.secndory,
     borderRadius: 18, borderColor: Colors.white,
     borderWidth: 1,

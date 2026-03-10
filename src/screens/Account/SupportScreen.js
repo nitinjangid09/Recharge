@@ -14,7 +14,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import Colors from "../../utils/Color";
-import CustomAlert from "../../componets/CustomAlert";
 
 const SupportScreen = () => {
   const navigation = useNavigation();

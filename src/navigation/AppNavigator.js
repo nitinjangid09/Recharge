@@ -13,11 +13,13 @@ import Address from '../screens/Address';
 import FinanceHome from '../screens/FinanceHome';
 import test from '../screens/test';
 import Login from '../screens/Login';
+import SignupScreen from '../screens/Account/CreateAccount';
 import Otp from '../screens/Otp';
 import PaymentsScreen from '../screens/PaymentsScreen';
 import StorePlans from '../screens/StorePlans';
 import FlexiPlan from '../screens/FlexiPlan';
 import InvoiceScreen from '../screens/InvoiceScreen';
+import Signup from '../screens/Signup';
 import OrderHistoryScreen from '../screens/OrderHistoryScreen';
 import FinanceIntro from '../screens/FinanceIntro';
 import TopUpScreen from '../screens/TopUpScreen';
@@ -62,15 +64,15 @@ const AppNavigator = () => {
 
         if (token) {
           console.log("🔐 Token Found → Go to Home");
-          setInitialRoute('FinanceHome');   // ✅ HOME
+          setInitialRoute('SupportScreen');   // ✅ HOME
         } else {
           console.log("❌ No Token → Go to Login");
-          setInitialRoute('FinanceIntro');         // ✅ LOGIN
+          setInitialRoute('SupportScreen');         // ✅ LOGIN
         }
 
       } catch (error) {
         console.error("Token Check Error:", error);
-        setInitialRoute('FinanceIntro');
+        setInitialRoute('SupportScreen');
       } finally {
         setLoading(false);
       }
@@ -138,6 +140,8 @@ const AppNavigator = () => {
       <Stack.Screen name="ForgotPin" component={ForgotPin} />
       <Stack.Screen name="SupportScreen" component={SupportScreen} />
       <Stack.Screen name="FaqSupportScreen" component={FaqSupportScreen} />
+      <Stack.Screen name="Signup" component={Signup} />
+      <Stack.Screen name="SignupScreen" component={SignupScreen} />
     </Stack.Navigator>
   );
 };

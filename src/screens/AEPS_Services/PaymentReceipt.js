@@ -7,7 +7,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Picker } from "@react-native-picker/picker";
-import Colors from "../../utils/Color";
+import Colors from "../../constants/Colors";
+import Fonts from "../../constants/Fonts";
 
 const ReceiptRow = ({ label, value }) => {
   return (
@@ -89,10 +90,10 @@ export default function PaymentReceiptScreen() {
               setDownloadFormat(itemValue)
             }
             style={styles.picker}
-            dropdownIconColor="#FF6A00"
+            dropdownIconColor={Colors.primary}
           >
-            <Picker.Item label="Download PDF" value="pdf" color="#222" />
-            <Picker.Item label="Download Image" value="image" color="#222" />
+            <Picker.Item label="Download PDF" value="pdf" color={Colors.gray_21} />
+            <Picker.Item label="Download Image" value="image" color={Colors.gray_21} />
           </Picker>
         </View>
 
@@ -104,7 +105,7 @@ export default function PaymentReceiptScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F3EBDD",
+    backgroundColor: Colors.bg,
   },
 
   header: {
@@ -113,9 +114,10 @@ const styles = StyleSheet.create({
   },
 
   title: {
+    fontFamily: Fonts.Medium,
     fontSize: 18,
     fontWeight: "600",
-    color: "#222",
+    color: Colors.gray_21,
   },
 
   successBanner: {
@@ -124,19 +126,21 @@ const styles = StyleSheet.create({
   },
 
   successText: {
+    fontFamily: Fonts.Bold,
     fontSize: 22,
     fontWeight: "700",
     color: "#2ECC71",
   },
 
   successSub: {
-    color: "#777",
+    fontFamily: Fonts.Regular,
+    color: Colors.gray_75,
     marginTop: 4,
     fontSize: 13,
   },
 
   amountCard: {
-    backgroundColor: "#1E1E1E",
+    backgroundColor: Colors.primary,
     marginHorizontal: 20,
     marginTop: 15,
     borderRadius: 18,
@@ -150,7 +154,8 @@ const styles = StyleSheet.create({
   },
 
   amountLabel: {
-    color: "#aaa",
+    fontFamily: Fonts.Medium,
+    color: Colors.gray_BD,
     fontSize: 12,
     letterSpacing: 1,
   },
@@ -163,26 +168,29 @@ const styles = StyleSheet.create({
   },
 
   successBadgeText: {
+    fontFamily: Fonts.Medium,
     color: Colors.white,
     fontSize: 11,
     fontWeight: "600",
   },
 
   amount: {
-    color: "#fff",
+    fontFamily: Fonts.Bold,
+    color: Colors.white,
     fontSize: 36,
     fontWeight: "bold",
     marginTop: 10,
   },
 
   txn: {
-    color: "#aaa",
+    fontFamily: Fonts.Regular,
+    color: Colors.gray_BD,
     marginTop: 8,
     fontSize: 12,
   },
 
   receiptCard: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.white,
     marginHorizontal: 20,
     marginTop: 20,
     borderRadius: 18,
@@ -196,13 +204,15 @@ const styles = StyleSheet.create({
   },
 
   receiptTitle: {
+    fontFamily: Fonts.Medium,
     fontSize: 16,
     fontWeight: "600",
-    color: "#222",
+    color: Colors.gray_21,
   },
 
   txnId: {
-    color: "#FF6A00",
+    fontFamily: Fonts.Medium,
+    color: Colors.primary,
     fontWeight: "600",
   },
 
@@ -211,17 +221,19 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 12,
     borderBottomWidth: 0.5,
-    borderColor: "#eee",
+    borderColor: Colors.gray_E0,
   },
 
   rowLabel: {
-    color: "#666",
+    fontFamily: Fonts.Regular,
+    color: Colors.gray_66,
     fontSize: 14,
   },
 
   rowValue: {
+    fontFamily: Fonts.Medium,
     fontWeight: "500",
-    color: "#222",
+    color: Colors.gray_21,
   },
 
   buttonRow: {
@@ -241,36 +253,39 @@ const styles = StyleSheet.create({
 
   doneBtn: {
     flex: 1,
-    backgroundColor: "#FF6A00",
+    backgroundColor: Colors.primary,
     padding: 16,
     borderRadius: 14,
     alignItems: "center",
   },
 
   shareText: {
+    fontFamily: Fonts.Medium,
     fontWeight: "600",
     color: Colors.white,
   },
 
   doneText: {
-    color: "#fff",
+    fontFamily: Fonts.Medium,
+    color: Colors.white,
     fontWeight: "600",
   },
 
   download: {
+    fontFamily: Fonts.Regular,
     textAlign: "center",
     marginTop: 20,
-    color: "#777",
+    color: Colors.gray_75,
   },
 
   pickerContainer: {
     marginHorizontal: 40,
     marginTop: 5,
     marginBottom: 30,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#eee',
+    borderColor: Colors.gray_E0,
     overflow: 'hidden',
   },
 

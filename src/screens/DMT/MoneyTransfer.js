@@ -14,8 +14,9 @@ import {
   Animated,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Colors from "../../utils/Color";
-import CustomAlert from "../../componets/CustomAlert";
+import Colors from "../../constants/Colors";
+import Fonts from "../../constants/Fonts";
+import CustomAlert from "../../components/CustomAlert";
 import { fadeIn, slideUp, buttonPress } from "../../utils/ScreenAnimations";
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
@@ -175,7 +176,7 @@ const MoneyTransferScreen = ({ route }) => {
               <TextInput
                 style={styles.input}
                 placeholder="Enter Amount"
-                placeholderTextColor="#BDBDBD"
+                placeholderTextColor={Colors.gray_BD}
                 keyboardType="numeric"
                 value={amount}
                 onChangeText={(t) => setAmount(t.replace(/[^0-9.]/g, ""))}
@@ -316,7 +317,7 @@ const MoneyTransferScreen = ({ route }) => {
         <View style={styles.modalOverlay}>
           <Animated.View style={[styles.modalCard, { opacity: otpOp, transform: [{ scale: otpScale }] }]}>
 
-            <View style={[styles.modalIconWrap, { backgroundColor: "#E8F5E9" }]}>
+            <View style={[styles.modalIconWrap, { backgroundColor: Colors.whiteOpacity_10 }]}>
               <Text style={styles.modalIcon}>💬</Text>
             </View>
 
@@ -330,7 +331,7 @@ const MoneyTransferScreen = ({ route }) => {
               <TextInput
                 style={[styles.input, { flex: 1, textAlign: "center", fontSize: rs(22), letterSpacing: scale(8), fontWeight: "800" }]}
                 placeholder="• • • • • •"
-                placeholderTextColor="#BDBDBD"
+                placeholderTextColor={Colors.gray_BD}
                 keyboardType="number-pad"
                 value={otp}
                 onChangeText={(t) => setOtp(t.replace(/[^0-9]/g, ""))}
@@ -399,91 +400,91 @@ const styles = StyleSheet.create({
   secureBadge: {
     flexDirection: "row", alignItems: "center",
     alignSelf: "flex-start",
-    backgroundColor: "rgba(255,255,255,0.12)",
-    borderWidth: 1, borderColor: "rgba(255,255,255,0.2)",
+    backgroundColor: Colors.whiteOpacity_10,
+    borderWidth: 1, borderColor: Colors.whiteOpacity_18,
     borderRadius: scale(20),
     paddingHorizontal: scale(10), paddingVertical: vs(4),
     marginBottom: vs(14), gap: scale(5),
   },
   secureBadgeIcon: { fontSize: rs(10) },
-  secureBadgeTxt: { color: "#fff", fontSize: rs(9), fontWeight: "800", letterSpacing: 1.1 },
+  secureBadgeTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(9), fontWeight: "800", letterSpacing: 1.1 },
 
   titleRow: { flexDirection: "row", alignItems: "baseline", marginBottom: vs(6) },
-  titleAccent: { color: Colors.accent, fontSize: rs(32), fontWeight: "900", letterSpacing: 0.5 },
-  titleWhite: { color: "#fff", fontSize: rs(32), fontWeight: "900", letterSpacing: 0.5 },
-  headerSub: { color: "rgba(255,255,255,0.6)", fontSize: rs(13), fontWeight: "500", marginBottom: vs(18) },
+  titleAccent: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(32), fontWeight: "900", letterSpacing: 0.5 },
+  titleWhite: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(32), fontWeight: "900", letterSpacing: 0.5 },
+  headerSub: { fontFamily: Fonts.Medium, color: Colors.whiteOpacity_65, fontSize: rs(13), fontWeight: "500", marginBottom: vs(18) },
 
   // Recipient chip in header
   recipientChip: {
     flexDirection: "row", alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.1)",
-    borderWidth: 1, borderColor: "rgba(255,255,255,0.18)",
+    backgroundColor: Colors.whiteOpacity_10,
+    borderWidth: 1, borderColor: Colors.whiteOpacity_18,
     borderRadius: scale(14), padding: scale(10), gap: scale(10),
   },
   recipientAvatar: {
     width: scale(38), height: scale(38), borderRadius: scale(10),
     backgroundColor: Colors.accent, alignItems: "center", justifyContent: "center",
   },
-  recipientAvatarTxt: { color: "#fff", fontSize: rs(13), fontWeight: "900" },
-  recipientName: { color: "#fff", fontSize: rs(13), fontWeight: "800" },
-  recipientBank: { color: "rgba(255,255,255,0.55)", fontSize: rs(10), marginTop: vs(2) },
+  recipientAvatarTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(13), fontWeight: "900" },
+  recipientName: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(13), fontWeight: "800" },
+  recipientBank: { fontFamily: Fonts.Regular, color: Colors.whiteOpacity_65, fontSize: rs(10), marginTop: vs(2) },
   verifiedBadge: {
     width: scale(24), height: scale(24), borderRadius: scale(12),
     backgroundColor: "#16A34A", alignItems: "center", justifyContent: "center",
   },
-  verifiedTxt: { color: "#fff", fontSize: rs(10), fontWeight: "900" },
+  verifiedTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(10), fontWeight: "900" },
 
   // ── Form card ──
   formCard: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.white,
     borderRadius: scale(20), padding: scale(18),
-    elevation: 3, shadowColor: "#000",
+    elevation: 3, shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8,
   },
   fieldHeading: {
-    fontSize: rs(9), fontWeight: "800", color: Colors.primary,
+    fontFamily: Fonts.Bold, fontSize: rs(9), fontWeight: "800", color: Colors.primary,
     letterSpacing: 1.1, marginBottom: vs(10),
   },
 
   // Input
   inputRow: {
     flexDirection: "row", alignItems: "center",
-    backgroundColor: "#F7F7F7", borderRadius: scale(14),
-    borderWidth: 1, borderColor: "#EBEBEB",
+    backgroundColor: Colors.gray_FA, borderRadius: scale(14),
+    borderWidth: 1, borderColor: Colors.gray_EB,
     paddingHorizontal: scale(14), minHeight: vs(54),
     marginBottom: vs(8),
   },
-  currencySymbol: { color: Colors.primary, fontSize: rs(20), fontWeight: "900", marginRight: scale(4) },
-  inputDivider: { width: 1, height: vs(20), backgroundColor: "#E0E0E0", marginRight: scale(10) },
-  input: { flex: 1, fontSize: rs(15), color: "#212121", padding: 0, fontWeight: "700" },
-  clearIcon: { color: "#BDBDBD", fontSize: rs(14), fontWeight: "700", marginLeft: scale(6) },
+  currencySymbol: { fontFamily: Fonts.Bold, color: Colors.primary, fontSize: rs(20), fontWeight: "900", marginRight: scale(4) },
+  inputDivider: { width: 1, height: vs(20), backgroundColor: Colors.gray_E0, marginRight: scale(10) },
+  input: { fontFamily: Fonts.Bold, flex: 1, fontSize: rs(15), color: Colors.gray_21, padding: 0, fontWeight: "700" },
+  clearIcon: { fontFamily: Fonts.Bold, color: Colors.gray_BD, fontSize: rs(14), fontWeight: "700", marginLeft: scale(6) },
 
   // Hint
   hintRow: { flexDirection: "row", alignItems: "flex-start", gap: scale(5), marginBottom: vs(2) },
   hintDot: { color: Colors.accent, fontSize: rs(12), lineHeight: rs(16), marginTop: vs(1) },
-  hintTxt: { color: "#9E9E9E", fontSize: rs(10), lineHeight: rs(16), flex: 1 },
+  hintTxt: { fontFamily: Fonts.Regular, color: Colors.gray_9E, fontSize: rs(10), lineHeight: rs(16), flex: 1 },
 
   // Quick chips
   quickRow: { marginTop: vs(12), marginBottom: vs(4) },
   quickChip: {
     paddingHorizontal: scale(12), paddingVertical: vs(7),
-    borderRadius: scale(20), backgroundColor: "#F0F0F0",
-    borderWidth: 1, borderColor: "#E0E0E0",
+    borderRadius: scale(20), backgroundColor: Colors.gray_F0,
+    borderWidth: 1, borderColor: Colors.gray_E0,
   },
   quickChipActive: { backgroundColor: Colors.accent + "18", borderColor: Colors.accent },
-  quickChipTxt: { fontSize: rs(11), color: "#757575", fontWeight: "600" },
-  quickChipTxtActive: { color: Colors.accent, fontWeight: "800" },
+  quickChipTxt: { fontFamily: Fonts.Medium, fontSize: rs(11), color: Colors.gray_75, fontWeight: "600" },
+  quickChipTxtActive: { fontFamily: Fonts.Bold, color: Colors.accent, fontWeight: "800" },
 
   // Summary
   summaryBox: {
-    marginTop: vs(16), backgroundColor: "#F8F9FC",
+    marginTop: vs(16), backgroundColor: Colors.bg_F8,
     borderRadius: scale(12), padding: scale(12),
-    borderWidth: 1, borderColor: "#EBEBEB",
+    borderWidth: 1, borderColor: Colors.gray_EB,
   },
   summaryRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: vs(5) },
-  summaryDivider: { height: 1, backgroundColor: "#EBEBEB" },
-  summaryLbl: { fontSize: rs(11), color: "#9E9E9E", fontWeight: "600" },
-  summaryVal: { fontSize: rs(12), color: Colors.primary, fontWeight: "700" },
+  summaryDivider: { height: 1, backgroundColor: Colors.gray_EB },
+  summaryLbl: { fontFamily: Fonts.Medium, fontSize: rs(11), color: Colors.gray_9E, fontWeight: "600" },
+  summaryVal: { fontFamily: Fonts.Bold, fontSize: rs(12), color: Colors.primary, fontWeight: "700" },
 
   // Button
   button: {
@@ -493,36 +494,36 @@ const styles = StyleSheet.create({
     elevation: 3, shadowColor: Colors.accent,
     shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8,
   },
-  buttonText: { color: "#fff", fontSize: rs(15), fontWeight: "900", letterSpacing: 0.4 },
+  buttonText: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(15), fontWeight: "900", letterSpacing: 0.4 },
   btnArrow: {
     width: scale(26), height: scale(26), borderRadius: scale(13),
-    backgroundColor: "rgba(255,255,255,0.25)",
+    backgroundColor: Colors.whiteOpacity_10,
     alignItems: "center", justifyContent: "center",
   },
-  btnArrowTxt: { color: "#fff", fontSize: rs(13), fontWeight: "900" },
+  btnArrowTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(13), fontWeight: "900" },
 
   // Security note
   secureNote: {
     flexDirection: "row", alignItems: "flex-start",
     gap: scale(8), marginTop: vs(16),
-    backgroundColor: "#F8F9FC", borderRadius: scale(12),
-    padding: scale(12), borderWidth: 1, borderColor: "#EBEBEB",
+    backgroundColor: Colors.bg_F8, borderRadius: scale(12),
+    padding: scale(12), borderWidth: 1, borderColor: Colors.gray_EB,
   },
   secureNoteIcon: { fontSize: rs(14), marginTop: vs(1) },
-  secureNoteTxt: { flex: 1, color: "#9E9E9E", fontSize: rs(10), lineHeight: rs(16) },
+  secureNoteTxt: { fontFamily: Fonts.Regular, flex: 1, color: Colors.gray_9E, fontSize: rs(10), lineHeight: rs(16) },
 
   // ── Modals ──
   modalOverlay: {
-    flex: 1, backgroundColor: "rgba(0,0,0,0.5)",
+    flex: 1, backgroundColor: Colors.blackOpacity_45,
     justifyContent: "center", alignItems: "center",
     paddingHorizontal: scale(24),
   },
   modalCard: {
-    width: "100%", backgroundColor: "#fff",
+    width: "100%", backgroundColor: Colors.white,
     borderRadius: scale(24),
     paddingVertical: vs(28), paddingHorizontal: scale(22),
     alignItems: "center",
-    elevation: 10, shadowColor: "#000",
+    elevation: 10, shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.18, shadowRadius: 16,
   },
 
@@ -531,10 +532,10 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center", marginBottom: vs(12),
   },
   modalIcon: { fontSize: rs(26) },
-  modalTitle: { fontSize: rs(18), fontWeight: "900", color: Colors.primary, marginBottom: vs(4) },
-  modalSub: { fontSize: rs(12), color: "#9E9E9E", marginBottom: vs(12), textAlign: "center" },
-  modalRecipient: { fontSize: rs(13), color: "#9E9E9E", textAlign: "center", marginBottom: vs(4) },
-  modalBankInfo: { fontSize: rs(11), color: "#BDBDBD", marginBottom: vs(20), textAlign: "center" },
+  modalTitle: { fontFamily: Fonts.Bold, fontSize: rs(18), fontWeight: "900", color: Colors.primary, marginBottom: vs(4) },
+  modalSub: { fontFamily: Fonts.Medium, fontSize: rs(12), color: Colors.gray_9E, marginBottom: vs(12), textAlign: "center" },
+  modalRecipient: { fontFamily: Fonts.Regular, fontSize: rs(13), color: Colors.gray_9E, textAlign: "center", marginBottom: vs(4) },
+  modalBankInfo: { fontFamily: Fonts.Regular, fontSize: rs(11), color: Colors.gray_BD, marginBottom: vs(20), textAlign: "center" },
 
   amountHighlight: {
     backgroundColor: Colors.accent + "12",
@@ -542,25 +543,25 @@ const styles = StyleSheet.create({
     marginBottom: vs(8),
     borderWidth: 1, borderColor: Colors.accent + "25",
   },
-  amountHighlightTxt: { color: Colors.accent, fontSize: rs(28), fontWeight: "900" },
+  amountHighlightTxt: { fontFamily: Fonts.Bold, color: Colors.accent, fontSize: rs(28), fontWeight: "900" },
 
   modalBtnRow: { flexDirection: "row", gap: scale(10), width: "100%", marginTop: vs(4) },
   modalCancelBtn: {
     flex: 1, paddingVertical: vs(13), borderRadius: scale(12),
-    backgroundColor: "#F4F4F4", alignItems: "center",
+    backgroundColor: Colors.gray_F4, alignItems: "center",
   },
-  modalCancelTxt: { color: "#757575", fontSize: rs(13), fontWeight: "700" },
+  modalCancelTxt: { fontFamily: Fonts.Bold, color: Colors.gray_75, fontSize: rs(13), fontWeight: "700" },
   modalConfirmBtn: {
     flex: 2, paddingVertical: vs(13), borderRadius: scale(12),
     backgroundColor: Colors.accent, alignItems: "center",
     elevation: 2, shadowColor: Colors.accent,
     shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4,
   },
-  modalConfirmTxt: { color: "#fff", fontSize: rs(13), fontWeight: "900" },
+  modalConfirmTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(13), fontWeight: "900" },
 
   // OTP footer
   otpFooter: { flexDirection: "row", alignItems: "center", gap: scale(12), marginTop: vs(14) },
-  resendTxt: { color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
-  otpDivider: { color: "#E0E0E0", fontSize: rs(14) },
-  cancelTxt: { color: "#9E9E9E", fontSize: rs(12), fontWeight: "600" },
+  resendTxt: { fontFamily: Fonts.Bold, color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
+  otpDivider: { color: Colors.gray_E0, fontSize: rs(14) },
+  cancelTxt: { fontFamily: Fonts.Medium, color: Colors.gray_9E, fontSize: rs(12), fontWeight: "600" },
 });

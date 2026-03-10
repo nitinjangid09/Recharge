@@ -2,33 +2,32 @@ import axios from "axios";
 import { ToastAndroid } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const BASE_URL = "https://paysoluation.in/api";
+const BASE_URL = "http://192.168.1.23:8000";
 
 
 // OrderHistoryScreen
 // RechargeScreen
 // Transaction
 export const loginUser = async ({
-  phone,
+  email,
   password,
-  imei,
-  device,
-  ltype
+  userName,
+  systemDetails
 }) => {
   try {
-    const formData = new FormData();
-    formData.append("phone", phone);
-    formData.append("password", password);
-    formData.append("imei", imei);
-    formData.append("device", device);
-    formData.append("ltype", ltype);
+    const payload = {
+      email,
+      password,
+      userName,
+      systemDetails
+    };
 
     const response = await axios.post(
       `${BASE_URL}/user-login`,
-      formData,
+      payload,
       {
         headers: {
-          "Content-Type": "multipart/form-data"
+          "Content-Type": "application/json"
         }
       }
     );
@@ -45,7 +44,7 @@ export const loginUser = async ({
 
     // ⚠️ Only for network / no-response errors
     return {
-      status: "ERROR",
+      success: false,
       message: "Network error. Please try again"
     };
   }
@@ -74,6 +73,40 @@ export const verifyOtp = async ({ log_key, otp }) => {
     return error?.response?.data || {
       status: "ERROR",
       message: "Network Error.  Please try again"
+    };
+  }
+};
+
+
+export const verifyUserOtp = async ({ email, otp }) => {
+  try {
+    const payload = {
+      email,
+      otp
+    };
+
+    const response = await axios.post(
+      `${BASE_URL}/verify-user-otp`,
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    return response.data;
+
+  } catch (error) {
+    console.log("Verify User OTP Error:", error?.response?.data || error);
+
+    if (error?.response?.data) {
+      return error.response.data;
+    }
+
+    return {
+      success: false,
+      message: "Network Error. Please try again"
     };
   }
 };
@@ -285,6 +318,32 @@ export const logoutUser = async ({ headerToken, headerKey }) => {
     return error?.response?.data || {
       status: "ERROR",
       message: "Logout failed",
+    };
+  }
+};
+
+export const getRoleList = async () => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/role/get-role-list`);
+    return response.data;
+  } catch (error) {
+    console.log("Get Role List API Error:", error?.response?.data || error);
+    return error?.response?.data || {
+      success: false,
+      message: "Unable to fetch roles",
+    };
+  }
+};
+
+export const registerUser = async (userData) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user-register`, userData);
+    return response.data;
+  } catch (error) {
+    console.log("Register API Error:", error?.response?.data || error);
+    return error?.response?.data || {
+      success: false,
+      message: "Registration failed. Please try again.",
     };
   }
 };

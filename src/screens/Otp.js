@@ -17,7 +17,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ActivityIndicator } from "react-native";
 import Colors from "../constants/Colors";
 import Fonts from "../constants/Fonts";
-import { verifyOtp } from "../api/AuthApi";
+import { verifyUserOtp } from "../api/AuthApi";
 import CustomAlert from "../screens/CustomAlert";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
@@ -27,6 +27,7 @@ const INPUT_COUNT = 6;
 
 export default function OTP({ navigation, route }) {
   const routeLogKey = route?.params?.log_key;
+  const routeEmail = route?.params?.email;
 
   const inputRefs = useRef([]);
   const [otp, setOtp] = useState(new Array(INPUT_COUNT).fill(""));
@@ -121,9 +122,9 @@ export default function OTP({ navigation, route }) {
       return;
     }
 
-    let log_key = routeLogKey || (await AsyncStorage.getItem("log_key"));
+    let email = routeEmail || (await AsyncStorage.getItem("user_email"));
 
-    if (!log_key) {
+    if (!email) {
       showAlert("Session Expired", "Please login again", () => {
         navigation.replace("Login");
       });
@@ -132,12 +133,15 @@ export default function OTP({ navigation, route }) {
 
     try {
       setLoading(true);
-      const result = await verifyOtp({ log_key, otp: otpValue });
+      const result = await verifyUserOtp({ email, otp: otpValue });
       setLoading(false);
 
-      if (result?.status === "SUCCESS") {
-        await AsyncStorage.setItem("header_token", result.header_token);
-        await AsyncStorage.setItem("header_key", result.header_key);
+      if (result?.success) {
+        // Save token and stringified user to storage as required
+        await AsyncStorage.setItem("header_token", result.token || "");
+        if (result.user) {
+          await AsyncStorage.setItem("user_profile", JSON.stringify(result.user));
+        }
 
         Animated.timing(fadeAnim, {
           toValue: 0,

@@ -14,7 +14,8 @@ import {
   FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Colors from "../../utils/Color";
+import Colors from "../../constants/Colors";
+import Fonts from "../../constants/Fonts";
 import { fadeIn, slideUp, buttonPress } from "../../utils/ScreenAnimations";
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
@@ -140,7 +141,7 @@ const SelectPicker = ({
                 <TextInput
                   style={sp.searchInput}
                   placeholder={`Search ${label.toLowerCase()}...`}
-                  placeholderTextColor="#BDBDBD"
+                  placeholderTextColor={Colors.gray_BD}
                   value={search}
                   onChangeText={setSearch}
                   autoFocus
@@ -301,7 +302,7 @@ const BalanceEnquiry = () => {
                 <TextInput
                   style={styles.input}
                   placeholder="Enter 10-digit mobile number"
-                  placeholderTextColor="#BDBDBD"
+                  placeholderTextColor={Colors.gray_BD}
                   keyboardType="number-pad"
                   maxLength={10}
                   value={mobileNumber}
@@ -321,7 +322,7 @@ const BalanceEnquiry = () => {
                 <TextInput
                   style={[styles.input, { flex: 1 }]}
                   placeholder="XXXX XXXX XXXX"
-                  placeholderTextColor="#BDBDBD"
+                  placeholderTextColor={Colors.gray_BD}
                   keyboardType="number-pad"
                   maxLength={12}
                   value={aadhaarNumber}
@@ -419,10 +420,11 @@ const styles = StyleSheet.create({
     gap: scale(6),
     marginBottom: vs(6),
   },
-  titleWhite: { color: "#fff", fontSize: rs(32), fontWeight: "900", letterSpacing: 0.4 },
-  titleAccent: { color: Colors.accent, fontSize: rs(32), fontWeight: "900", letterSpacing: 0.4 },
+  titleWhite: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(32), letterSpacing: 0.4 },
+  titleAccent: { fontFamily: Fonts.Bold, color: Colors.accent, fontSize: rs(32), letterSpacing: 0.4 },
   headerSub: {
-    color: "rgba(255,255,255,0.65)",
+    fontFamily: Fonts.Medium,
+    color: Colors.whiteOpacity_65,
     fontSize: rs(13),
     lineHeight: rs(20),
     marginBottom: vs(16),
@@ -431,21 +433,21 @@ const styles = StyleSheet.create({
   trustRow: { flexDirection: "row", gap: scale(8) },
   trustPill: {
     flexDirection: "row", alignItems: "center", gap: scale(5),
-    backgroundColor: "rgba(255,255,255,0.1)",
-    borderWidth: 1, borderColor: "rgba(255,255,255,0.18)",
+    backgroundColor: Colors.whiteOpacity_10,
+    borderWidth: 1, borderColor: Colors.whiteOpacity_18,
     borderRadius: scale(20),
     paddingHorizontal: scale(10), paddingVertical: vs(5),
   },
   trustIcon: { fontSize: rs(11) },
-  trustTxt: { color: "rgba(255,255,255,0.8)", fontSize: rs(10), fontWeight: "700", letterSpacing: 0.8 },
+  trustTxt: { fontFamily: Fonts.Bold, color: Colors.whiteOpacity_80, fontSize: rs(10), fontWeight: "700", letterSpacing: 0.8 },
 
   // ── Cards ──
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.white,
     borderRadius: scale(18),
     padding: scale(16),
     elevation: 3,
-    shadowColor: "#000",
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.07,
     shadowRadius: 8,
@@ -459,41 +461,41 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
   },
   cardIcon: { fontSize: rs(20) },
-  cardTitle: { fontSize: rs(15), fontWeight: "800", color: Colors.primary },
-  cardSub: { fontSize: rs(12), color: "#9E9E9E", marginTop: 1 },
-  divider: { height: 1, backgroundColor: "#F0F0F0", marginBottom: vs(14) },
+  cardTitle: { fontFamily: Fonts.Bold, fontSize: rs(15), color: Colors.primary },
+  cardSub: { fontFamily: Fonts.Medium, fontSize: rs(12), color: Colors.gray_9E, marginTop: 1 },
+  divider: { height: 1, backgroundColor: Colors.gray_F0, marginBottom: vs(14) },
 
   // ── Inputs ──
   fieldWrap: { marginBottom: vs(14) },
   label: {
-    fontSize: rs(10), fontWeight: "700", color: "#9E9E9E",
+    fontFamily: Fonts.Bold, fontSize: rs(10), fontWeight: "700", color: Colors.gray_9E,
     letterSpacing: 0.9, marginBottom: vs(6),
   },
   required: { color: Colors.accent },
   inputRow: {
     flexDirection: "row", alignItems: "center",
-    backgroundColor: "#FAFAFA",
+    backgroundColor: Colors.gray_FA,
     borderRadius: scale(12),
-    borderWidth: 1, borderColor: "#EBEBEB",
+    borderWidth: 1, borderColor: Colors.gray_EB,
     paddingHorizontal: scale(12),
     minHeight: vs(50),
   },
-  inputRowError: { borderColor: "#E53935", borderWidth: 1.5 },
-  prefix: { color: Colors.primary, fontSize: rs(14), fontWeight: "700", marginRight: scale(4) },
-  inputDivider: { width: 1, height: vs(18), backgroundColor: "#E0E0E0", marginRight: scale(10) },
-  input: { flex: 1, fontSize: rs(14), color: "#212121", padding: 0 },
+  inputRowError: { borderColor: Colors.red_E5, borderWidth: 1.5 },
+  prefix: { fontFamily: Fonts.Bold, color: Colors.primary, fontSize: rs(14), fontWeight: "700", marginRight: scale(4) },
+  inputDivider: { width: 1, height: vs(18), backgroundColor: Colors.gray_E0, marginRight: scale(10) },
+  input: { fontFamily: Fonts.Medium, flex: 1, fontSize: rs(14), color: Colors.gray_21, padding: 0 },
   inputSuffix: { fontSize: rs(18), marginLeft: scale(6) },
-  errorTxt: { color: "#E53935", fontSize: rs(11), marginTop: vs(3), fontWeight: "500" },
+  errorTxt: { fontFamily: Fonts.Medium, color: Colors.red_E5, fontSize: rs(11), marginTop: vs(3), fontWeight: "500" },
 
   // ── Device info ──
   deviceInfo: {
     marginTop: vs(12),
-    backgroundColor: "#F8F9FC",
+    backgroundColor: Colors.bg_F8,
     borderRadius: scale(10),
     padding: scale(10),
   },
   deviceInfoTxt: {
-    color: "#9E9E9E", fontSize: rs(11), fontWeight: "500", lineHeight: rs(17),
+    fontFamily: Fonts.Medium, color: Colors.gray_9E, fontSize: rs(11), fontWeight: "500", lineHeight: rs(17),
   },
 
   // ── Button ──
@@ -506,10 +508,10 @@ const styles = StyleSheet.create({
     shadowColor: Colors.accent,
     shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8,
   },
-  buttonText: { color: "#fff", fontSize: rs(15), fontWeight: "800", letterSpacing: 0.3 },
+  buttonText: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(15), letterSpacing: 0.3 },
 
   bottomNote: {
-    textAlign: "center", color: "#BDBDBD", fontSize: rs(11),
+    fontFamily: Fonts.Regular, textAlign: "center", color: Colors.gray_BD, fontSize: rs(11),
     marginTop: vs(14), lineHeight: rs(17), paddingHorizontal: scale(10),
   },
 });
@@ -521,7 +523,7 @@ const sp = StyleSheet.create({
   wrap: { marginBottom: vs(4) },
 
   label: {
-    fontSize: rs(10), fontWeight: "700", color: "#9E9E9E",
+    fontFamily: Fonts.Bold, fontSize: rs(10), fontWeight: "700", color: Colors.gray_9E,
     letterSpacing: 0.9, marginBottom: vs(6),
   },
   required: { color: Colors.accent },
@@ -529,24 +531,24 @@ const sp = StyleSheet.create({
   // Trigger
   trigger: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    backgroundColor: "#FAFAFA",
+    backgroundColor: Colors.gray_FA,
     borderRadius: scale(12),
-    borderWidth: 1, borderColor: "#EBEBEB",
+    borderWidth: 1, borderColor: Colors.gray_EB,
     paddingHorizontal: scale(12),
     minHeight: vs(50),
   },
-  triggerError: { borderColor: "#E53935", borderWidth: 1.5 },
+  triggerError: { borderColor: Colors.red_E5, borderWidth: 1.5 },
   triggerLeft: { flexDirection: "row", alignItems: "center", flex: 1 },
   triggerIcon: { fontSize: rs(18), marginRight: scale(8) },
-  triggerValue: { fontSize: rs(14), color: "#212121", fontWeight: "600" },
-  triggerPlaceholder: { fontSize: rs(14), color: "#BDBDBD" },
+  triggerValue: { fontFamily: Fonts.Bold, fontSize: rs(14), color: Colors.gray_21, fontWeight: "600" },
+  triggerPlaceholder: { fontFamily: Fonts.Medium, fontSize: rs(14), color: Colors.gray_BD },
 
   chevronBox: {
     width: scale(28), height: scale(28), borderRadius: scale(8),
-    backgroundColor: "#F0F0F0", alignItems: "center", justifyContent: "center",
+    backgroundColor: Colors.gray_F0, alignItems: "center", justifyContent: "center",
   },
   chevronBoxActive: { backgroundColor: Colors.accent + "18" },
-  chevron: { color: "#9E9E9E", fontSize: rs(22), fontWeight: "500", marginTop: vs(-2) },
+  chevron: { fontFamily: Fonts.Medium, color: Colors.gray_9E, fontSize: rs(22), fontWeight: "500", marginTop: vs(-2) },
   chevronActive: { color: Colors.accent, transform: [{ rotate: "90deg" }] },
 
   // Selected chip
@@ -560,85 +562,85 @@ const sp = StyleSheet.create({
     borderWidth: 1, borderColor: Colors.accent + "30",
   },
   chipDot: { width: scale(6), height: scale(6), borderRadius: scale(3), backgroundColor: Colors.accent },
-  chipTxt: { color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
-  chipClear: { color: Colors.accent, fontSize: rs(13), fontWeight: "800", marginLeft: scale(2) },
+  chipTxt: { fontFamily: Fonts.Bold, color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
+  chipClear: { fontFamily: Fonts.Bold, color: Colors.accent, fontSize: rs(13), fontWeight: "800", marginLeft: scale(2) },
 
-  errorTxt: { color: "#E53935", fontSize: rs(11), marginTop: vs(4), fontWeight: "500" },
+  errorTxt: { fontFamily: Fonts.Medium, color: Colors.red_E5, fontSize: rs(11), marginTop: vs(4), fontWeight: "500" },
 
   // Backdrop
   backdrop: {
     position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.45)",
+    backgroundColor: Colors.blackOpacity_45,
   },
 
   // Sheet
   sheet: {
     position: "absolute", bottom: 0, left: 0, right: 0,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.white,
     borderTopLeftRadius: scale(24), borderTopRightRadius: scale(24),
     maxHeight: SH * 0.68,
     elevation: 20,
-    shadowColor: "#000",
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.15, shadowRadius: 12,
   },
 
   sheetHeader: {
     paddingHorizontal: scale(16),
     paddingBottom: vs(10),
-    borderBottomWidth: 1, borderBottomColor: "#F0F0F0",
+    borderBottomWidth: 1, borderBottomColor: Colors.gray_F0,
   },
   handleBar: {
     width: scale(40), height: vs(4), borderRadius: scale(2),
-    backgroundColor: "#E0E0E0", alignSelf: "center",
+    backgroundColor: Colors.gray_E0, alignSelf: "center",
     marginTop: vs(10), marginBottom: vs(14),
   },
   sheetTitleRow: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
     marginBottom: vs(12),
   },
-  sheetTitle: { fontSize: rs(16), fontWeight: "800", color: Colors.primary },
+  sheetTitle: { fontFamily: Fonts.Bold, fontSize: rs(16), fontWeight: "800", color: Colors.primary },
   closeBtn: {
     width: scale(28), height: scale(28), borderRadius: scale(14),
-    backgroundColor: "#F4F4F4", alignItems: "center", justifyContent: "center",
+    backgroundColor: Colors.gray_F4, alignItems: "center", justifyContent: "center",
   },
-  closeBtnTxt: { color: "#666", fontSize: rs(12), fontWeight: "800" },
+  closeBtnTxt: { fontFamily: Fonts.Bold, color: Colors.gray_66, fontSize: rs(12), fontWeight: "800" },
 
   // Search
   searchRow: {
     flexDirection: "row", alignItems: "center",
-    backgroundColor: "#F5F5F5", borderRadius: scale(10),
+    backgroundColor: Colors.gray_F5, borderRadius: scale(10),
     paddingHorizontal: scale(10), marginBottom: vs(4),
     minHeight: vs(42),
   },
   searchIcon: { fontSize: rs(15), marginRight: scale(6) },
-  searchInput: { flex: 1, fontSize: rs(14), color: "#212121", padding: 0 },
-  searchClear: { color: "#BDBDBD", fontSize: rs(14), fontWeight: "700" },
+  searchInput: { fontFamily: Fonts.Medium, flex: 1, fontSize: rs(14), color: Colors.gray_21, padding: 0 },
+  searchClear: { fontFamily: Fonts.Bold, color: Colors.gray_BD, fontSize: rs(14), fontWeight: "700" },
 
   // List
   listItem: {
     flexDirection: "row", alignItems: "center",
     paddingHorizontal: scale(16), paddingVertical: vs(13),
-    borderBottomWidth: 1, borderBottomColor: "#F5F5F5",
+    borderBottomWidth: 1, borderBottomColor: Colors.gray_F5,
     gap: scale(12),
   },
   listItemSel: { backgroundColor: Colors.accent + "08" },
 
   listIconBox: {
     width: scale(36), height: scale(36), borderRadius: scale(10),
-    backgroundColor: "#F5F5F5", alignItems: "center", justifyContent: "center",
+    backgroundColor: Colors.gray_F5, alignItems: "center", justifyContent: "center",
   },
   listIconBoxSel: { backgroundColor: Colors.accent + "18" },
   listIcon: { fontSize: rs(18) },
 
-  listTxt: { flex: 1, fontSize: rs(14), color: "#212121", fontWeight: "500" },
-  listTxtSel: { color: Colors.accent, fontWeight: "700" },
+  listTxt: { fontFamily: Fonts.Medium, flex: 1, fontSize: rs(14), color: Colors.gray_21, fontWeight: "500" },
+  listTxtSel: { fontFamily: Fonts.Bold, color: Colors.accent, fontWeight: "700" },
 
   checkCircle: {
     width: scale(22), height: scale(22), borderRadius: scale(11),
     backgroundColor: Colors.accent, alignItems: "center", justifyContent: "center",
   },
-  checkMark: { color: "#fff", fontSize: rs(12), fontWeight: "900" },
+  checkMark: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(12), fontWeight: "900" },
 
   emptyWrap: { alignItems: "center", paddingVertical: vs(30) },
-  emptyTxt: { color: "#BDBDBD", fontSize: rs(14) },
+  emptyTxt: { fontFamily: Fonts.Regular, color: Colors.gray_BD, fontSize: rs(14) },
 });

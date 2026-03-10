@@ -11,11 +11,16 @@ import {
   Image,
   Keyboard,
   ActivityIndicator,
-  ScrollView
+  ScrollView,
+  PermissionsAndroid,
+  Platform
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import DeviceInfo from "react-native-device-info";
+import Geolocation from "@react-native-community/geolocation";
+import { NetworkInfo } from "react-native-network-info";
 
 import Colors from "../constants/Colors";
 import Fonts from "../constants/Fonts";
@@ -28,7 +33,8 @@ const scale = width / 375;
 
 export default function Login({ navigation }) {
   /* ---------- STATES ---------- */
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -47,7 +53,8 @@ export default function Login({ navigation }) {
   const btnScale = useRef(new Animated.Value(1)).current;
 
   // Input Focus Animations
-  const phoneFocusAnim = useRef(new Animated.Value(0)).current;
+  const emailFocusAnim = useRef(new Animated.Value(0)).current;
+  const userFocusAnim = useRef(new Animated.Value(0)).current;
   const passFocusAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -81,7 +88,7 @@ export default function Login({ navigation }) {
 
   const handleInputFocus = (type) => {
     setFocusedInput(type);
-    const anim = type === 'phone' ? phoneFocusAnim : passFocusAnim;
+    const anim = type === 'email' ? emailFocusAnim : type === 'userName' ? userFocusAnim : passFocusAnim;
     Animated.timing(anim, {
       toValue: 1,
       duration: 200,
@@ -91,7 +98,7 @@ export default function Login({ navigation }) {
 
   const handleInputBlur = (type) => {
     setFocusedInput(null);
-    const anim = type === 'phone' ? phoneFocusAnim : passFocusAnim;
+    const anim = type === 'email' ? emailFocusAnim : type === 'userName' ? userFocusAnim : passFocusAnim;
     Animated.timing(anim, {
       toValue: 0,
       duration: 200,
@@ -112,35 +119,117 @@ export default function Login({ navigation }) {
     animateButton();
     await AsyncStorage.setItem("remember_me", rememberMe ? "1" : "0");
 
-    if (!phone || phone.length < 10) {
+    if (!email) {
       triggerShake();
-      // showAlert("Error", "Please enter valid mobile number"); 
+      showAlert("Error", "Please enter email");
+      return;
+    }
+
+    if (!userName) {
+      triggerShake();
+      showAlert("Error", "Please enter user name");
       return;
     }
 
     if (!password) {
       triggerShake();
-      // showAlert("Error", "Please enter password");
+      showAlert("Error", "Please enter password");
       return;
     }
 
     setLoading(true);
 
+    let currentIp = "";
+    let currentLat = null;
+    let currentLng = null;
+
+    try {
+      currentIp = await NetworkInfo.getIPV4Address();
+      if (!currentIp || currentIp === "0.0.0.0") {
+        currentIp = await DeviceInfo.getIpAddress();
+      }
+    } catch (e) { /* ignore */ }
+
+    // Backup IP request API in case DeviceInfo fails or returns local IP
+    try {
+      const geoResponse = await fetch("https://ipapi.co/json/");
+      const geoData = await geoResponse.json();
+      if (geoData && geoData.ip) {
+        if (!currentIp || currentIp === "0.0.0.0" || currentIp.startsWith("10.") || currentIp.startsWith("192.168.")) {
+          currentIp = geoData.ip;
+        }
+        currentLat = geoData.latitude;
+        currentLng = geoData.longitude;
+      }
+    } catch (e) {
+      console.log("Failed to fetch Backup IP API:", e);
+    }
+
+    // Permission and Exact Hardware Geolocation Handling
+    const requestLocationPermission = async () => {
+      try {
+        if (Platform.OS === "android") {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+            {
+              title: "Location Permission",
+              message: "App needs access to your location to login securely.",
+              buttonNeutral: "Ask Me Later",
+              buttonNegative: "Cancel",
+              buttonPositive: "OK"
+            }
+          );
+          return granted === PermissionsAndroid.RESULTS.GRANTED;
+        }
+        return true;
+      } catch (err) {
+        console.warn(err);
+        return false;
+      }
+    };
+
+    const hasPermission = await requestLocationPermission();
+
+    if (hasPermission) {
+      await new Promise((resolve) => {
+        Geolocation.getCurrentPosition(
+          (position) => {
+            currentLat = position.coords.latitude;
+            currentLng = position.coords.longitude;
+            resolve();
+          },
+          (error) => {
+            console.log("Geolocation error:", error.code, error.message);
+            resolve(); // proceed even if error
+          },
+          { enableHighAccuracy: false, timeout: 10000, maximumAge: 10000 }
+        );
+      });
+    } else {
+      setLoading(false);
+      showAlert("Permission Denied", "Location permission is required to proceed.");
+      return;
+    }
+
     try {
       const result = await loginUser({
-        phone,
+        email,
         password,
-        imei: "ANDROID_IMEI_123456",
-        device: "Android",
-        ltype: "pin",
+        userName,
+        systemDetails: {
+          location: {
+            latitude: currentLat || 0,
+            longitude: currentLng || 0
+          },
+          ip: currentIp || "127.0.0.1"
+        }
       });
 
       setLoading(false);
 
-      if (result?.status === "SUCCESS") {
-        await AsyncStorage.setItem("log_key", String(result.log_key));
-        await AsyncStorage.setItem("login_mode", String(result.mode));
-        navigation.navigate("Otp", { log_key: result.log_key });
+      if (result?.success) {
+        // Assume log_key might be attached to success payload if Otp requires it
+        navigation.navigate("Otp", { email, userName, log_key: result?.log_key || "" });
       } else {
         triggerShake();
         showAlert("Login Failed", result?.message || "Invalid Credentials");
@@ -201,31 +290,60 @@ export default function Login({ navigation }) {
               Login to continue recharge & bill payments
             </Text>
 
-            {/* ---------- MOBILE ---------- */}
-            <Text style={styles.label}>Mobile Number</Text>
+            {/* ---------- EMAIL ---------- */}
+            <Text style={styles.label}>Email Address</Text>
             <Animated.View
               style={[
                 styles.inputBox,
                 {
-                  borderColor: getBorderColor(phoneFocusAnim),
-                  transform: [{ scale: getScale(phoneFocusAnim) }],
-                  backgroundColor: phoneFocusAnim.interpolate({
+                  borderColor: getBorderColor(emailFocusAnim),
+                  transform: [{ scale: getScale(emailFocusAnim) }],
+                  backgroundColor: emailFocusAnim.interpolate({
                     inputRange: [0, 1],
                     outputRange: [Colors.input_bg, Colors.white]
                   })
                 }
               ]}
             >
-              <MaterialCommunityIcons name="phone" size={20} color={focusedInput === 'phone' ? Colors.icon_primary : Colors.icon_secondary} style={styles.inputIcon} />
+              <MaterialCommunityIcons name="email" size={20} color={focusedInput === 'email' ? Colors.icon_primary : Colors.icon_secondary} style={styles.inputIcon} />
               <TextInput
-                placeholder="Enter Mobile Number"
-                placeholderTextColor={Colors.text_placeholder} // Darker grey hint
-                keyboardType="phone-pad"
-                maxLength={10}
-                value={phone}
-                onChangeText={setPhone}
-                onFocus={() => handleInputFocus('phone')}
-                onBlur={() => handleInputBlur('phone')}
+                placeholder="Enter Email Address"
+                placeholderTextColor={Colors.text_placeholder}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={email}
+                onChangeText={setEmail}
+                onFocus={() => handleInputFocus('email')}
+                onBlur={() => handleInputBlur('email')}
+                style={styles.input}
+                selectionColor={Colors.accent}
+              />
+            </Animated.View>
+
+            {/* ---------- USER NAME ---------- */}
+            <Text style={styles.label}>User Name</Text>
+            <Animated.View
+              style={[
+                styles.inputBox,
+                {
+                  borderColor: getBorderColor(userFocusAnim),
+                  transform: [{ scale: getScale(userFocusAnim) }],
+                  backgroundColor: userFocusAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [Colors.input_bg, Colors.white]
+                  })
+                }
+              ]}
+            >
+              <MaterialCommunityIcons name="account" size={20} color={focusedInput === 'userName' ? Colors.icon_primary : Colors.icon_secondary} style={styles.inputIcon} />
+              <TextInput
+                placeholder="Enter User Name"
+                placeholderTextColor={Colors.text_placeholder}
+                autoCapitalize="none"
+                value={userName}
+                onChangeText={setUserName}
+                onFocus={() => handleInputFocus('userName')}
+                onBlur={() => handleInputBlur('userName')}
                 style={styles.input}
                 selectionColor={Colors.accent}
               />

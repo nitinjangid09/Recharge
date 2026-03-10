@@ -36,7 +36,7 @@ const SignupScreen = ({ navigation }) => {
 
     try {
       const response = await axios.post(
-        'https://paysoluation.in/api/register',
+        'http://192.168.1.23:8000/register',
         payload,
         {
           headers: {

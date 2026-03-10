@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, Component } from "react";
 import {
   View,
   Text,
@@ -14,8 +14,9 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import Colors from "../../utils/Color";
-import CustomAlert from "../../componets/CustomAlert";
+import Colors from "../../constants/Colors";
+import Fonts from "../../constants/Fonts";
+import CustomAlert from "../../components/CustomAlert";
 import { fadeIn, slideUp, buttonPress } from "../../utils/ScreenAnimations";
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
@@ -96,9 +97,9 @@ const otpStyles = StyleSheet.create({
     flex: 1,
     height: vs(52),
     borderRadius: scale(12),
-    backgroundColor: "#F7F7F7",
+    backgroundColor: Colors.gray_F5, // F7F7F7 equivalent
     borderWidth: 1.5,
-    borderColor: "#E0E0E0",
+    borderColor: Colors.gray_E0,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -108,9 +109,10 @@ const otpStyles = StyleSheet.create({
   },
   boxCaret: {
     borderColor: Colors.primary,
-    backgroundColor: "#F0F4FF",
+    backgroundColor: Colors.primary + "0A", // #F0F4FF approx
   },
   boxTxt: {
+    fontFamily: Fonts.Bold,
     fontSize: rs(20),
     fontWeight: "900",
     color: Colors.primary,
@@ -131,11 +133,11 @@ const otpStyles = StyleSheet.create({
 const DmtLogin = () => {
   const navigation = useNavigation();
 
-  const [mobileNumber,  setMobileNumber]  = useState("");
-  const [aadhaarNumber, setAadhaarNumber] = useState("");
-  const [otp,           setOtp]           = useState("");
-  const [step,          setStep]          = useState(1);
-  const [otpVisible,    setOtpVisible]    = useState(false);
+  const [mobileNumber, setMobileNumber] = useState("");
+  const [aadhaarRaw, setAadhaarRaw] = useState(""); // digits only
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState(1);
+  const [otpVisible, setOtpVisible] = useState(false);
 
   // Alert
   const [alertVisible, setAlertVisible] = useState(false);
@@ -246,7 +248,7 @@ const DmtLogin = () => {
                 <TextInput
                   style={styles.input}
                   placeholder="Enter mobile number"
-                  placeholderTextColor="#BDBDBD"
+                  placeholderTextColor={Colors.gray_BD}
                   keyboardType="number-pad"
                   maxLength={10}
                   value={mobileNumber}
@@ -308,7 +310,7 @@ const DmtLogin = () => {
                 <TextInput
                   style={[styles.input, { letterSpacing: scale(2) }]}
                   placeholder="XXXX XXXX XXXX"
-                  placeholderTextColor="#BDBDBD"
+                  placeholderTextColor={Colors.gray_BD}
                   keyboardType="number-pad"
                   maxLength={14} // 12 digits + 2 spaces
                   value={formatAadhaar(aadhaarRaw)}
@@ -388,7 +390,7 @@ const DmtLogin = () => {
                   value={otp}
                   onChangeText={(t) => setOtp(t.replace(/[^0-9]/g, ""))}
                   placeholder="• • • • • •"
-                  placeholderTextColor="#BDBDBD"
+                  placeholderTextColor={Colors.gray_BD}
                 />
               </View>
               <TouchableOpacity
@@ -447,38 +449,37 @@ const styles = StyleSheet.create({
   secureBadge: {
     flexDirection: "row", alignItems: "center",
     alignSelf: "flex-start",
-    backgroundColor: "rgba(255,255,255,0.12)",
-    borderWidth: 1, borderColor: "rgba(255,255,255,0.2)",
+    backgroundColor: Colors.whiteOpacity_10,
+    borderWidth: 1, borderColor: Colors.whiteOpacity_18,
     borderRadius: scale(20),
     paddingHorizontal: scale(10), paddingVertical: vs(4),
     marginBottom: vs(14), gap: scale(5),
   },
   secureBadgeIcon: { fontSize: rs(10) },
-  secureBadgeTxt: { color: "#fff", fontSize: rs(9), fontWeight: "800", letterSpacing: 1.1 },
+  secureBadgeTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(9), fontWeight: "800", letterSpacing: 1.1 },
 
   titleRow: { flexDirection: "row", alignItems: "baseline", marginBottom: vs(6) },
-  titleAccent: { color: Colors.accent, fontSize: rs(32), fontWeight: "900", letterSpacing: 0.5 },
-  titleWhite:  { color: "#fff",        fontSize: rs(32), fontWeight: "900", letterSpacing: 0.5 },
-
-  headerSub: { color: "rgba(255,255,255,0.6)", fontSize: rs(13), fontWeight: "500" },
+  titleAccent: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(32), fontWeight: "900", letterSpacing: 0.5 },
+  titleWhite: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(32), fontWeight: "900", letterSpacing: 0.5 },
+  headerSub: { fontFamily: Fonts.Medium, color: Colors.whiteOpacity_65, fontSize: rs(13), fontWeight: "500" },
 
   // ── Form card ──
   formCard: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.white,
     borderRadius: scale(20), padding: scale(18),
-    elevation: 3, shadowColor: "#000",
+    elevation: 3, shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8,
   },
   fieldHeading: {
-    fontSize: rs(9), fontWeight: "800", color: Colors.primary,
+    fontFamily: Fonts.Bold, fontSize: rs(9), fontWeight: "800", color: Colors.primary,
     letterSpacing: 1.1, marginBottom: vs(10),
   },
 
   // ── Input row ──
   inputRow: {
     flexDirection: "row", alignItems: "center",
-    backgroundColor: "#F7F7F7", borderRadius: scale(14),
-    borderWidth: 1, borderColor: "#EBEBEB",
+    backgroundColor: Colors.gray_FA, borderRadius: scale(14),
+    borderWidth: 1, borderColor: Colors.gray_EB,
     paddingHorizontal: scale(14), minHeight: vs(54),
     marginBottom: vs(8),
   },
@@ -488,18 +489,18 @@ const styles = StyleSheet.create({
     paddingRight: scale(8),
   },
   prefixTxt: {
-    color: Colors.primary, fontSize: rs(14), fontWeight: "900",
+    fontFamily: Fonts.Bold, color: Colors.primary, fontSize: rs(14), fontWeight: "900",
   },
   prefixDivider: {
-    width: 1, height: vs(20), backgroundColor: "#E0E0E0",
+    width: 1, height: vs(20), backgroundColor: Colors.gray_E0,
     marginRight: scale(12),
   },
 
   aadhaarIcon: { fontSize: rs(16), marginRight: scale(8) },
-  clearIcon: { color: "#BDBDBD", fontSize: rs(14), fontWeight: "700", marginLeft: scale(6) },
+  clearIcon: { fontFamily: Fonts.Bold, color: Colors.gray_BD, fontSize: rs(14), fontWeight: "700", marginLeft: scale(6) },
 
   input: {
-    flex: 1, fontSize: rs(14), color: "#212121", padding: 0, fontWeight: "600",
+    fontFamily: Fonts.Bold, flex: 1, fontSize: rs(14), color: Colors.gray_21, padding: 0, fontWeight: "600",
   },
 
   // Aadhaar progress dots
@@ -509,7 +510,7 @@ const styles = StyleSheet.create({
   },
   aadhaarDot: {
     width: scale(7), height: scale(7), borderRadius: scale(4),
-    backgroundColor: "#E0E0E0",
+    backgroundColor: Colors.gray_E0,
   },
   aadhaarDotFilled: { backgroundColor: Colors.accent },
 
@@ -522,11 +523,11 @@ const styles = StyleSheet.create({
   stepDot: {
     width: scale(26), height: scale(26), borderRadius: scale(13),
     alignItems: "center", justifyContent: "center",
-    backgroundColor: "#E0E0E0",
+    backgroundColor: Colors.gray_E0,
   },
-  stepDotDone: { backgroundColor: "#16A34A" },
+  stepDotDone: { backgroundColor: "#16A34A" }, // Success color kept hardcoded as we don't have green
   stepDotActive: { backgroundColor: Colors.accent },
-  stepDotTxt: { color: "#fff", fontSize: rs(10), fontWeight: "900" },
+  stepDotTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(10), fontWeight: "900" },
   stepConnector: {
     flex: 1, height: 2, backgroundColor: Colors.accent,
     marginHorizontal: scale(6),
@@ -540,9 +541,9 @@ const styles = StyleSheet.create({
     marginBottom: vs(16), gap: scale(8),
     borderWidth: 1, borderColor: Colors.accent + "25",
   },
-  mobileChipIcon: { fontSize: rs(14) },
-  mobileChipTxt:  { flex: 1, fontSize: rs(13), fontWeight: "700", color: Colors.primary },
-  mobileChipEdit: { color: Colors.accent, fontSize: rs(11), fontWeight: "800" },
+  mobileChipCode: { fontFamily: Fonts.Bold, color: Colors.primary, fontSize: rs(13), fontWeight: "900" },
+  mobileChipTxt: { fontFamily: Fonts.Bold, flex: 1, fontSize: rs(13), fontWeight: "700", color: Colors.primary },
+  mobileChipEdit: { fontFamily: Fonts.Bold, color: Colors.accent, fontSize: rs(11), fontWeight: "800" },
 
   // Button
   button: {
@@ -552,36 +553,36 @@ const styles = StyleSheet.create({
     elevation: 3, shadowColor: Colors.accent,
     shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8,
   },
-  buttonText: { color: "#fff", fontSize: rs(15), fontWeight: "900", letterSpacing: 0.4 },
+  buttonText: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(15), fontWeight: "900", letterSpacing: 0.4 },
 
-  btnArrowTxt: { color: "#fff", fontSize: rs(14), fontWeight: "900" },
+  btnArrowTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(14), fontWeight: "900" },
 
   // Link
   linkBtn: { alignItems: "center", marginTop: vs(16) },
-  linkTxt: { color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
+  linkTxt: { fontFamily: Fonts.Bold, color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
 
   // Security note
   secureNote: {
     flexDirection: "row", alignItems: "flex-start",
     gap: scale(8), marginTop: vs(16),
-    backgroundColor: "#F8F9FC", borderRadius: scale(12),
-    padding: scale(12), borderWidth: 1, borderColor: "#EBEBEB",
+    backgroundColor: Colors.bg_F8, borderRadius: scale(12),
+    padding: scale(12), borderWidth: 1, borderColor: Colors.gray_EB,
   },
   secureNoteIcon: { fontSize: rs(14), marginTop: vs(1) },
-  secureNoteTxt: { flex: 1, color: "#9E9E9E", fontSize: rs(10), lineHeight: rs(16) },
+  secureNoteTxt: { fontFamily: Fonts.Regular, flex: 1, color: Colors.gray_9E, fontSize: rs(10), lineHeight: rs(16) },
 
   // ── OTP Modal ──
   modalOverlay: {
-    flex: 1, backgroundColor: "rgba(0,0,0,0.5)",
+    flex: 1, backgroundColor: Colors.blackOpacity_45,
     justifyContent: "center", alignItems: "center",
     paddingHorizontal: scale(24),
   },
   otpCard: {
-    width: "100%", backgroundColor: "#fff",
+    width: "100%", backgroundColor: Colors.white,
     borderRadius: scale(24),
     paddingVertical: vs(28), paddingHorizontal: scale(22),
     alignItems: "center",
-    elevation: 10, shadowColor: "#000",
+    elevation: 10, shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.18, shadowRadius: 16,
   },
   otpIconWrap: {
@@ -590,16 +591,16 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center", marginBottom: vs(12),
   },
   otpIcon: { fontSize: rs(26) },
-  otpTitle: { fontSize: rs(18), fontWeight: "900", color: Colors.primary, marginBottom: vs(4) },
-  otpSub:   { fontSize: rs(12), color: "#9E9E9E", marginBottom: vs(20), textAlign: "center" },
-  otpMobile:{ color: Colors.primary, fontWeight: "800" },
-
+  otpTitle: { fontFamily: Fonts.Bold, fontSize: rs(18), fontWeight: "900", color: Colors.primary, marginBottom: vs(4) },
+  otpSub: { fontFamily: Fonts.Medium, fontSize: rs(12), color: Colors.gray_9E, textAlign: "center" },
+  otpMobile: { fontFamily: Fonts.Bold, color: Colors.primary, fontWeight: "800" },
   otpInputRow: { width: "100%", marginBottom: vs(20) },
   otpInput: {
+    fontFamily: Fonts.Bold,
     width: "100%",
-    backgroundColor: "#F7F7F7",
+    backgroundColor: Colors.gray_FA,
     borderRadius: scale(14),
-    borderWidth: 1, borderColor: "#EBEBEB",
+    borderWidth: 1, borderColor: Colors.gray_EB,
     paddingVertical: vs(14),
     fontSize: rs(22), textAlign: "center",
     letterSpacing: scale(8),
@@ -613,12 +614,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 6,
     marginBottom: vs(14),
   },
-  otpBtnTxt: { color: "#fff", fontSize: rs(14), fontWeight: "900", letterSpacing: 0.3 },
+  otpBtnTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(14), fontWeight: "900", letterSpacing: 0.3 },
 
-  otpFooter: {
-    flexDirection: "row", alignItems: "center", gap: scale(12),
-  },
-  resendTxt:  { color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
-  otpDivider: { color: "#E0E0E0", fontSize: rs(14) },
-  cancelTxt: { color: "#9E9E9E", fontSize: rs(12), fontWeight: "600" },
+  otpFooter: { flexDirection: "row", alignItems: "center", gap: scale(12) },
+  resendTxt: { fontFamily: Fonts.Bold, color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
+  otpDivider: { color: Colors.gray_E0, fontSize: rs(14) },
+  cancelTxt: { fontFamily: Fonts.Medium, color: Colors.gray_9E, fontSize: rs(12), fontWeight: "600" },
 });

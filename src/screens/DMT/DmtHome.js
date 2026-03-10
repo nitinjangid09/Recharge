@@ -10,7 +10,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import Colors from "../../utils/Color";
+import Colors from "../../constants/Colors";
+import Fonts from "../../constants/Fonts";
 import { fadeIn, slideUp } from "../../utils/ScreenAnimations";
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
@@ -249,34 +250,34 @@ const styles = StyleSheet.create({
     marginBottom: vs(16),
   },
   budgetLabel: {
-    color: "rgba(255,255,255,0.5)", fontSize: rs(10), fontWeight: "700", letterSpacing: 0.8,
+    fontFamily: Fonts.Bold, color: Colors.whiteOpacity_65, fontSize: rs(10), fontWeight: "700", letterSpacing: 0.8,
   },
   budgetAmount: {
-    color: "#fff", fontSize: rs(36), fontWeight: "900", letterSpacing: -0.5, marginTop: vs(2),
+    fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(36), fontWeight: "900", letterSpacing: -0.5, marginTop: vs(2),
   },
-  userId: { color: "#fff", fontSize: rs(16), fontWeight: "700", marginTop: vs(2) },
+  userId: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(16), fontWeight: "700", marginTop: vs(2) },
 
   remainingRow: {
     flexDirection: "row", alignItems: "center", gap: scale(10), marginBottom: vs(10),
   },
   remainingPill: {
     flexDirection: "row", alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.12)",
-    borderWidth: 1, borderColor: "rgba(255,255,255,0.2)",
+    backgroundColor: Colors.whiteOpacity_10,
+    borderWidth: 1, borderColor: Colors.whiteOpacity_18,
     borderRadius: scale(20), paddingHorizontal: scale(10), paddingVertical: vs(4),
     gap: scale(5),
   },
   remainingDot: { width: scale(7), height: scale(7), borderRadius: scale(4), backgroundColor: Colors.accent },
-  remainingLabel: { color: "#fff", fontSize: rs(9), fontWeight: "800", letterSpacing: 0.8 },
-  remainingAmt: { color: Colors.accent, fontSize: rs(20), fontWeight: "900" },
+  remainingLabel: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(9), fontWeight: "800", letterSpacing: 0.8 },
+  remainingAmt: { fontFamily: Fonts.Bold, color: Colors.accent, fontSize: rs(20), fontWeight: "900" },
 
   progressTrack: {
-    height: vs(5), backgroundColor: "rgba(255,255,255,0.15)",
+    height: vs(5), backgroundColor: Colors.whiteOpacity_18,
     borderRadius: scale(4), overflow: "hidden", marginBottom: vs(6),
   },
   progressFill: { height: "100%", backgroundColor: Colors.accent, borderRadius: scale(4) },
   progressInfoRow: { flexDirection: "row", justifyContent: "space-between" },
-  progressInfoTxt: { color: "rgba(255,255,255,0.45)", fontSize: rs(10), fontWeight: "500" },
+  progressInfoTxt: { fontFamily: Fonts.Medium, color: Colors.whiteOpacity_65, fontSize: rs(10), fontWeight: "500" },
 
   // ── Action buttons ──
   actionRow: {
@@ -300,33 +301,33 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.35, shadowRadius: 6,
-    borderWidth: 1, borderColor: "rgba(255,255,255,0.12)",
+    borderWidth: 1, borderColor: Colors.whiteOpacity_10,
   },
-  actionBtnIcon: { color: "#fff", fontSize: rs(15), fontWeight: "900" },
-  actionBtnTxt: { color: "#fff", fontSize: rs(12), fontWeight: "800" },
+  actionBtnIcon: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(15), fontWeight: "900" },
+  actionBtnTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(12), fontWeight: "800" },
 
   // ── Section header ──
   sectionRow: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
     marginTop: vs(20), marginBottom: vs(10),
   },
-  sectionTitle: { fontSize: rs(16), fontWeight: "900", color: "#1A1A1A" },
+  sectionTitle: { fontFamily: Fonts.Bold, fontSize: rs(16), fontWeight: "900", color: Colors.primary },
   countBadge: {
     backgroundColor: Colors.accent + "18",
     borderRadius: scale(20), paddingHorizontal: scale(10), paddingVertical: vs(4),
     borderWidth: 1, borderColor: Colors.accent + "30",
   },
-  countTxt: { color: Colors.accent, fontSize: rs(10), fontWeight: "800" },
+  countTxt: { fontFamily: Fonts.Bold, color: Colors.accent, fontSize: rs(10), fontWeight: "800" },
 
   // ── Account Card ──
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.white,
     borderRadius: scale(18), padding: scale(14),
     flexDirection: "row", alignItems: "center",
     justifyContent: "space-between",
     marginBottom: vs(12),
     elevation: 2,
-    shadowColor: "#000",
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 6,
   },
   cardLeft: { flexDirection: "row", alignItems: "center", flex: 1 },
@@ -337,21 +338,21 @@ const styles = StyleSheet.create({
     marginRight: scale(12),
     flexShrink: 0,
   },
-  avatarTxt: { color: "#fff", fontSize: rs(14), fontWeight: "900" },
+  avatarTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(14), fontWeight: "900" },
 
   cardInfo: { flex: 1 },
-  cardName: { fontSize: rs(13), fontWeight: "800", color: "#1A1A1A", marginBottom: vs(2) },
-  cardBank: { fontSize: rs(11), color: "#9E9E9E", marginBottom: vs(6) },
+  cardName: { fontFamily: Fonts.Bold, fontSize: rs(13), fontWeight: "800", color: Colors.gray_21, marginBottom: vs(2) },
+  cardBank: { fontFamily: Fonts.Regular, fontSize: rs(11), color: Colors.gray_9E, marginBottom: vs(6) },
 
   // ── ONE LINE: acc no + ifsc ──
   tagRow: { flexDirection: "row", alignItems: "center", gap: scale(6), flexWrap: "nowrap" },
   tag: {
-    backgroundColor: "#F2F2F2", borderRadius: scale(6),
+    backgroundColor: Colors.gray_F0, borderRadius: scale(6),
     paddingHorizontal: scale(7), paddingVertical: vs(3),
   },
-  tagTxt: { fontSize: rs(9), color: "#555", fontWeight: "600" },
-  tagIfsc: { backgroundColor: "#EEF1FF" },
-  tagIfscTxt: { color: "#3F51B5" },
+  tagTxt: { fontFamily: Fonts.Medium, fontSize: rs(9), color: Colors.gray_75, fontWeight: "600" },
+  tagIfsc: { backgroundColor: "#EEF1FF" }, // Left this brand color as is
+  tagIfscTxt: { fontFamily: Fonts.Medium, color: "#3F51B5" }, // Left this brand color as is
 
   // ── Send button — text only ──
   sendBtn: {
@@ -362,5 +363,5 @@ const styles = StyleSheet.create({
     shadowColor: Colors.accent,
     shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
   },
-  sendTxt: { color: "#fff", fontSize: rs(12), fontWeight: "800" },
+  sendTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(12), fontWeight: "800" },
 });

@@ -1,0 +1,337 @@
+import React, { useEffect, useRef, useState } from "react";
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    TextInput,
+    Animated,
+    Easing,
+    Dimensions,
+    Keyboard,
+    ActivityIndicator,
+    ScrollView,
+} from "react-native";
+import LinearGradient from "react-native-linear-gradient";
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import DropDownPicker from "react-native-dropdown-picker";
+
+import Colors from "../constants/Colors";
+import Fonts from "../constants/Fonts";
+import CustomAlert from "../screens/CustomAlert";
+import { getRoleList, registerUser } from "../api/AuthApi";
+
+/* ---------- RESPONSIVE SCALE ---------- */
+const { width } = Dimensions.get("window");
+const scale = width / 375;
+
+export default function Signup({ navigation }) {
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [phone, setPhone] = useState("");
+    const [email, setEmail] = useState("");
+    const [role, setRole] = useState("");
+    const [rolesList, setRolesList] = useState([]);
+    const [roleOpen, setRoleOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const [focusedInput, setFocusedInput] = useState(null);
+
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertTitle, setAlertTitle] = useState("");
+    const [alertMessage, setAlertMessage] = useState("");
+
+    const pageAnim = useRef(new Animated.Value(0)).current;
+    const shakeAnim = useRef(new Animated.Value(0)).current;
+    const btnScale = useRef(new Animated.Value(1)).current;
+
+    // Simplified Focus Animations
+    const getBorderColor = (isFocused) => isFocused ? Colors.input_border_focus : Colors.input_border;
+    const getScale = (isFocused) => isFocused ? 1.02 : 1;
+    const getBgColor = (isFocused) => isFocused ? Colors.white : Colors.input_bg;
+
+    useEffect(() => {
+        Animated.parallel([
+            Animated.timing(pageAnim, {
+                toValue: 1,
+                duration: 800,
+                easing: Easing.out(Easing.exp),
+                useNativeDriver: true,
+            })
+        ]).start();
+
+        fetchRoles();
+    }, [pageAnim]);
+
+    const fetchRoles = async () => {
+        const result = await getRoleList();
+        if (result?.success && result?.data) {
+            setRolesList([
+                { label: "Role: 698ef03714f23da91959cf41", value: "698ef03714f23da91959cf41" },
+                ...result.data.map((r) => ({ label: r.name, value: r._id }))
+            ]);
+        }
+    };
+
+    const triggerShake = () => {
+        shakeAnim.setValue(0);
+        Animated.sequence([
+            Animated.timing(shakeAnim, { toValue: 10, duration: 50, useNativeDriver: true }),
+            Animated.timing(shakeAnim, { toValue: -10, duration: 50, useNativeDriver: true }),
+            Animated.timing(shakeAnim, { toValue: 10, duration: 50, useNativeDriver: true }),
+            Animated.timing(shakeAnim, { toValue: 0, duration: 50, useNativeDriver: true })
+        ]).start();
+    };
+
+    const animateButton = () => {
+        Animated.sequence([
+            Animated.timing(btnScale, { toValue: 0.95, duration: 100, useNativeDriver: true }),
+            Animated.timing(btnScale, { toValue: 1, duration: 100, useNativeDriver: true })
+        ]).start();
+    };
+
+    const showAlert = (title, message) => {
+        setAlertTitle(title);
+        setAlertMessage(message);
+        setAlertVisible(true);
+    };
+
+    const handleSignup = async () => {
+        Keyboard.dismiss();
+        animateButton();
+
+        if (!firstName || !lastName || !phone || !email || !role) {
+            triggerShake();
+            showAlert("Error", "Please fill all fields");
+            return;
+        }
+
+        const payload = {
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
+            phone: phone.trim(),
+            email: email.trim().toLowerCase(),
+            role: role
+        };
+
+        setLoading(true);
+        try {
+            const result = await registerUser(payload);
+            setLoading(false);
+
+            if (result?.success) {
+                showAlert("Success", result?.message || "User registered successfully");
+                // Clear fields on success
+                setFirstName("");
+                setLastName("");
+                setPhone("");
+                setEmail("");
+                setRole("");
+                // Auto navigate to login after a brief delay
+                setTimeout(() => {
+                    setAlertVisible(false);
+                    navigation.navigate("Login");
+                }, 1500);
+            } else {
+                triggerShake();
+                showAlert("Signup Failed", result?.message || "User already exists");
+            }
+        } catch (error) {
+            setLoading(false);
+            triggerShake();
+            showAlert("Error", "An unexpected error occurred");
+        }
+    };
+
+    const pageTranslateY = pageAnim.interpolate({ inputRange: [0, 1], outputRange: [50, 0] });
+    const pageOpacity = pageAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
+
+    const renderInput = (label, icon, value, setValue, keyName, keyboardType = 'default') => {
+        const isFocused = focusedInput === keyName;
+        return (
+            <View style={styles.inputContainer}>
+                <Text style={styles.label}>{label}</Text>
+                <Animated.View
+                    style={[
+                        styles.inputBox,
+                        {
+                            borderColor: getBorderColor(isFocused),
+                            transform: [{ scale: getScale(isFocused) }],
+                            backgroundColor: getBgColor(isFocused)
+                        }
+                    ]}
+                >
+                    <MaterialCommunityIcons name={icon} size={20} color={isFocused ? Colors.icon_primary : Colors.icon_secondary} style={styles.inputIcon} />
+                    <TextInput
+                        placeholder={`Enter ${label}`}
+                        placeholderTextColor={Colors.text_placeholder}
+                        keyboardType={keyboardType}
+                        value={value}
+                        onChangeText={setValue}
+                        onFocus={() => setFocusedInput(keyName)}
+                        onBlur={() => setFocusedInput(null)}
+                        style={styles.input}
+                        selectionColor={Colors.accent}
+                    />
+                </Animated.View>
+            </View>
+        );
+    };
+
+    return (
+        <LinearGradient colors={Colors.background_gradient} style={styles.container}>
+            <View style={styles.circle1} />
+            <View style={styles.circle2} />
+
+            <Animated.View
+                style={[
+                    styles.pageWrapper,
+                    {
+                        opacity: pageOpacity,
+                        transform: [{ translateY: pageTranslateY }]
+                    }
+                ]}
+            >
+                <ScrollView
+                    nestedScrollEnabled={true}
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    <View style={styles.header}>
+                        <View style={styles.logoContainer}>
+                            <Text style={styles.logoText}>C</Text>
+                        </View>
+                        <Text style={styles.appName}>Create Account</Text>
+                    </View>
+
+                    <Animated.View style={[styles.card, { transform: [{ translateX: shakeAnim }] }]}>
+                        <Text style={styles.welcome}>Sign Up</Text>
+                        <Text style={styles.subTitle}>Join us today!</Text>
+
+                        {renderInput("First Name", "account", firstName, setFirstName, "firstName")}
+                        {renderInput("Last Name", "account-outline", lastName, setLastName, "lastName")}
+                        {renderInput("Mobile Number", "phone", phone, setPhone, "phone", "phone-pad")}
+                        {renderInput("Email Address", "email", email, setEmail, "email", "email-address")}
+
+                        <View style={[styles.inputContainer, { zIndex: 1000 }]}>
+                            <Text style={styles.label}>Select Role</Text>
+                            <DropDownPicker
+                                open={roleOpen}
+                                value={role}
+                                items={rolesList}
+                                setOpen={setRoleOpen}
+                                setValue={setRole}
+                                setItems={setRolesList}
+                                theme="DARK"
+                                placeholder="Select Role..."
+                                style={{
+                                    backgroundColor: Colors.button_bg, // dark bg
+                                    borderRadius: 30 * scale,
+                                    borderColor: Colors.button_bg,
+                                    borderWidth: 0,
+                                    height: 50 * scale,
+                                    paddingHorizontal: 20 * scale,
+                                    elevation: 2,
+                                }}
+                                textStyle={{
+                                    color: Colors.white, // white text
+                                    fontFamily: Fonts.Bold,
+                                    fontSize: 14 * scale,
+                                }}
+                                dropDownContainerStyle={{
+                                    backgroundColor: Colors.button_bg,
+                                    borderColor: Colors.button_bg,
+                                    borderRadius: 15 * scale,
+                                    elevation: 5,
+                                    shadowColor: Colors.black,
+                                    shadowOffset: { width: 0, height: 4 },
+                                    shadowOpacity: 0.3,
+                                    shadowRadius: 5,
+                                }}
+                                arrowIconStyle={{ tintColor: Colors.white }}
+                                tickIconStyle={{ tintColor: Colors.white }}
+                            />
+                        </View>
+
+                        <Animated.View style={{ transform: [{ scale: btnScale }] }}>
+                            <TouchableOpacity
+                                style={styles.loginBtn}
+                                onPress={handleSignup}
+                                disabled={loading}
+                                activeOpacity={0.9}
+                            >
+                                {loading ? (
+                                    <ActivityIndicator size="small" color={Colors.white} />
+                                ) : (
+                                    <Text style={styles.loginText}>Sign Up</Text>
+                                )}
+                            </TouchableOpacity>
+                        </Animated.View>
+
+                        <View style={styles.signupContainer}>
+                            <Text style={styles.signupText}>Already have an account? </Text>
+                            <TouchableOpacity onPress={() => navigation.goBack()}>
+                                <Text style={styles.signupLink}>Login</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </Animated.View>
+                </ScrollView>
+            </Animated.View>
+
+            <CustomAlert
+                visible={alertVisible}
+                title={alertTitle}
+                message={alertMessage}
+                onClose={() => setAlertVisible(false)}
+            />
+        </LinearGradient>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: { flex: 1 },
+    pageWrapper: { flex: 1 },
+    scrollContent: { flexGrow: 1, justifyContent: 'center', paddingVertical: 20 * scale },
+    header: { alignItems: "center", marginBottom: 20 * scale, marginTop: 40 * scale },
+    logoContainer: {
+        width: 64 * scale, height: 64 * scale, borderRadius: 18 * scale,
+        backgroundColor: Colors.button_bg, justifyContent: 'center', alignItems: 'center',
+        elevation: 8, shadowColor: Colors.shadow, shadowOpacity: 0.3, shadowRadius: 8,
+        shadowOffset: { width: 0, height: 4 }, marginBottom: 10 * scale
+    },
+    logoText: { fontSize: 32 * scale, fontFamily: Fonts.Bold, color: Colors.white },
+    appName: { fontSize: 24 * scale, fontFamily: Fonts.Bold, color: Colors.text_primary, letterSpacing: 0.5 },
+    card: {
+        marginHorizontal: 16 * scale, backgroundColor: Colors.secondary, borderRadius: 24 * scale,
+        padding: 16 * scale, shadowColor: Colors.black, shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05, shadowRadius: 4, elevation: 2,
+    },
+    welcome: { fontSize: 22 * scale, fontFamily: Fonts.Bold, textAlign: "center", color: Colors.primary },
+    subTitle: { fontSize: 13 * scale, fontFamily: Fonts.Medium, color: Colors.text_secondary, textAlign: "center", marginTop: 6 * scale, marginBottom: 20 * scale },
+    inputContainer: { marginBottom: 16 * scale },
+    label: { fontSize: 13 * scale, fontFamily: Fonts.Bold, color: Colors.text_primary, marginBottom: 6 * scale, marginLeft: 4 * scale },
+    inputBox: {
+        flexDirection: "row", alignItems: "center", borderRadius: 30 * scale, height: 50 * scale,
+        paddingHorizontal: 16 * scale, borderWidth: 1
+    },
+    inputIcon: { marginRight: 10 * scale },
+    input: { flex: 1, fontSize: 15 * scale, color: Colors.black, fontFamily: Fonts.Medium, padding: 0 },
+    loginBtn: {
+        backgroundColor: Colors.button_bg, borderRadius: 25 * scale, height: 50 * scale,
+        justifyContent: "center", alignItems: "center", shadowColor: Colors.shadow,
+        shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 5, marginTop: 10 * scale
+    },
+    loginText: { color: Colors.white, fontSize: 16 * scale, fontFamily: Fonts.Bold, letterSpacing: 0.5 },
+    signupContainer: { flexDirection: 'row', justifyContent: 'center', marginTop: 20 * scale },
+    signupText: { fontSize: 13 * scale, color: Colors.text_secondary, fontFamily: Fonts.Medium },
+    signupLink: { color: Colors.text_link, fontFamily: Fonts.Bold, fontSize: 13 * scale },
+    circle1: {
+        position: 'absolute', width: 250 * scale, height: 250 * scale, borderRadius: 125 * scale,
+        backgroundColor: Colors.circle_bg, top: -70 * scale, right: -70 * scale,
+    },
+    circle2: {
+        position: 'absolute', width: 200 * scale, height: 200 * scale, borderRadius: 100 * scale,
+        backgroundColor: Colors.circle_bg, bottom: -40 * scale, left: -40 * scale,
+    }
+});
