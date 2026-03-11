@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState, useCallback } from "react";
 import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, Animated, Image, Easing,
-  Dimensions, ActivityIndicator, StatusBar,
+  Dimensions, ActivityIndicator, StatusBar, Alert,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import LinearGradient from "react-native-linear-gradient";
@@ -13,12 +13,22 @@ import Colors from "../constants/Colors";
 
 const { width } = Dimensions.get("window");
 
+// ─────────────────────────────────────────────────────────────────────────────
+// QUICK ACCESS — 4 large shortcut buttons shown ABOVE the AEPS service list
+// ─────────────────────────────────────────────────────────────────────────────
+const QUICK_ACCESS = [
+  { key: "aeps",    label: "AEPS",    icon: "fingerprint",       color: "#22C55E", screen: "CashWithdraw"   },
+  { key: "bbps",    label: "BBPS",    icon: "lightning-bolt",    color: "#3B82F6", screen: "PaymentsScreen" },
+  { key: "dmt",     label: "DMT",     icon: "bank-transfer",     color: "#F97316", screen: "DmtLogin"       },
+  { key: "recharge",label: "Recharge",icon: "cellphone-wireless",color: "#A855F7", screen: "TopUpScreen"    },
+];
+
 const SERVICES = {
   aeps: [
-    { type: "cw", name: "Cash\nWithdraw" },
-    { type: "be", name: "Balance\nEnquiry" },
+    { type: "cw", name: "Cash\nWithdraw"  },
+    { type: "be", name: "Balance\nEnquiry"},
     { type: "ms", name: "Mini\nStatement" },
-    { type: "ap", name: "Aadhaar\nPay" },
+    { type: "ap", name: "Aadhaar\nPay"   },
   ],
   money_transfer: [{ type: "dmt", name: "DMT" }],
   recharge_bills: [
@@ -48,36 +58,64 @@ const SESSION_KEYS = [
   "kyc_status", "user_level", "is_kyc_online", "user_profile",
 ];
 
+// ─────────────────────────────────────────────────────────────────────────────
+// API HELPERS — replace BASE_URL with your actual backend
+// ─────────────────────────────────────────────────────────────────────────────
+const BASE_URL = "https://your-api-domain.com/api"; // ← update this
+
+const apiGet = async (endpoint, token) => {
+  const res = await fetch(`${BASE_URL}${endpoint}`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+};
+
+const fetchAepsBalance    = async (token)         => { const d = await apiGet("/aeps/balance",                token); return d?.balance ?? d?.aepsBalance ?? "0.00"; };
+const fetchMainBalance    = async (token)         => { const d = await apiGet("/wallet/balance",              token); return d?.balance ?? d?.mainBalance  ?? "0.00"; };
+const fetchBbpsCategories = async (token)         => { const d = await apiGet("/bbps/categories",             token); return d?.categories ?? []; };
+const fetchDmtOperators   = async (token)         => { const d = await apiGet("/dmt/operators",               token); return d?.operators  ?? []; };
+const fetchRechargePlans  = async (token, mobile) => { const d = await apiGet(`/recharge/plans?mobile=${mobile}`, token); return d?.plans ?? []; };
+
+// ─────────────────────────────────────────────────────────────────────────────
 export default function FinanceHome({ navigation }) {
 
-  // ── Insets for safe area ───────────────────────────────────────────────
-  const insets = useSafeAreaInsets();
-  // Header max height accounts for status bar
+  const insets     = useSafeAreaInsets();
   const HEADER_MAX = 260 + insets.top;
   const HEADER_MIN = 80  + insets.top;
   const SCROLL_D   = HEADER_MAX - HEADER_MIN;
 
-  // ── Session state ──────────────────────────────────────────────────────
+  // ── Session ───────────────────────────────────────────────────────────────
   const [ready,        setReady]        = useState(false);
   const [userName,     setUserName]     = useState("");
   const [userPhone,    setUserPhone]    = useState("");
   const [userUsername, setUserUsername] = useState("");
   const [kycStatus,    setKycStatus]    = useState("pending");
+  const [token,        setToken]        = useState("");
 
-  // ── Wallet UI ──────────────────────────────────────────────────────────
+  // ── Wallet balances ───────────────────────────────────────────────────────
+  const [aepsBalance,    setAepsBalance]    = useState("...");
+  const [mainBalance,    setMainBalance]    = useState("...");
+  const [balanceLoading, setBalanceLoading] = useState(false);
+
+  // ── Quick button loading states ───────────────────────────────────────────
+  const [quickLoading, setQuickLoading] = useState({
+    aeps: false, bbps: false, dmt: false, recharge: false,
+  });
+
+  // ── Wallet UI ─────────────────────────────────────────────────────────────
   const [isAeps,      setIsAeps]      = useState(true);
   const [showBalance, setShowBalance] = useState(true);
-  const aepsBalance = "0.00";
-  const mainBalance = "0.00";
 
-  // ── Header collapse ────────────────────────────────────────────────────
+  // ── Header collapse ────────────────────────────────────────────────────────
   const scrollY        = useRef(new Animated.Value(0)).current;
   const headerHeight   = scrollY.interpolate({ inputRange: [0, SCROLL_D], outputRange: [HEADER_MAX, HEADER_MIN], extrapolate: "clamp" });
   const cardOpacity    = scrollY.interpolate({ inputRange: [0, SCROLL_D / 2], outputRange: [1, 0], extrapolate: "clamp" });
   const cardTranslateY = scrollY.interpolate({ inputRange: [0, SCROLL_D], outputRange: [0, -50], extrapolate: "clamp" });
   const cardScale      = scrollY.interpolate({ inputRange: [0, SCROLL_D], outputRange: [1, 0.8], extrapolate: "clamp" });
 
-  // ── Wallet toggle animation ────────────────────────────────────────────
+  // ── Wallet toggle ─────────────────────────────────────────────────────────
   const contentOpacity    = useRef(new Animated.Value(1)).current;
   const contentTranslateY = useRef(new Animated.Value(0)).current;
 
@@ -102,19 +140,36 @@ export default function FinanceHome({ navigation }) {
     }
   }, [showBalance]);
 
-  // ── Load session ───────────────────────────────────────────────────────
+  // ── Load balances from API ────────────────────────────────────────────────
+  const loadBalances = useCallback(async (authToken) => {
+    setBalanceLoading(true);
+    try {
+      const [aeps, main] = await Promise.allSettled([
+        fetchAepsBalance(authToken),
+        fetchMainBalance(authToken),
+      ]);
+      setAepsBalance(aeps.status === "fulfilled" ? aeps.value : "0.00");
+      setMainBalance(main.status === "fulfilled" ? main.value : "0.00");
+    } catch (_) {
+      setAepsBalance("0.00");
+      setMainBalance("0.00");
+    } finally {
+      setBalanceLoading(false);
+    }
+  }, []);
+
+  // ── Load session ──────────────────────────────────────────────────────────
   const loadSession = useCallback(async () => {
     try {
       const pairs = await AsyncStorage.multiGet(SESSION_KEYS);
       const s = Object.fromEntries(pairs.map(([k, v]) => [k, v ?? ""]));
-
-      console.log("🔑 token:", s.header_token ? s.header_token.slice(0, 25) + "..." : "MISSING");
 
       if (!s.header_token || s.header_token.trim() === "") {
         navigation.replace("Login");
         return;
       }
 
+      setToken(s.header_token);
       setUserPhone(s.user_phone);
       setUserUsername(s.user_username);
       setKycStatus(s.kyc_status || "pending");
@@ -129,15 +184,63 @@ export default function FinanceHome({ navigation }) {
       } else {
         setUserName("User");
       }
+
+      // Fetch balances after token is available
+      loadBalances(s.header_token);
+
     } catch (err) {
       console.error("loadSession error:", err);
       setUserName("User");
     } finally {
       setReady(true);
     }
-  }, [navigation]);
+  }, [navigation, loadBalances]);
 
-  // ── Entry animations ───────────────────────────────────────────────────
+  // ── Quick access handler — pre-fetches data, then navigates ──────────────
+  const handleQuickAccess = async (item) => {
+    setQuickLoading(p => ({ ...p, [item.key]: true }));
+    try {
+      switch (item.key) {
+        case "aeps":
+          await loadBalances(token);
+          navigation.navigate(item.screen);
+          break;
+        case "bbps":
+          try {
+            const categories = await fetchBbpsCategories(token);
+            navigation.navigate(item.screen, { bbpsCategories: categories });
+          } catch (_) {
+            navigation.navigate(item.screen);
+          }
+          break;
+        case "dmt":
+          try {
+            const operators = await fetchDmtOperators(token);
+            navigation.navigate(item.screen, { operators });
+          } catch (_) {
+            navigation.navigate(item.screen);
+          }
+          break;
+        case "recharge":
+          try {
+            const plans = await fetchRechargePlans(token, userPhone);
+            navigation.navigate(item.screen, { plans, mobile: userPhone });
+          } catch (_) {
+            navigation.navigate(item.screen, { mobile: userPhone });
+          }
+          break;
+        default:
+          navigation.navigate(item.screen);
+      }
+    } catch (err) {
+      console.error(`Quick access [${item.key}] error:`, err);
+      Alert.alert("Error", "Something went wrong. Please try again.");
+    } finally {
+      setQuickLoading(p => ({ ...p, [item.key]: false }));
+    }
+  };
+
+  // ── Entry animations ──────────────────────────────────────────────────────
   const leftAnim        = useRef(new Animated.Value(-80)).current;
   const leftFade        = useRef(new Animated.Value(0)).current;
   const greetingOpacity = useRef(new Animated.Value(0)).current;
@@ -159,7 +262,7 @@ export default function FinanceHome({ navigation }) {
     ]).start();
   }, []);
 
-  // ── Banner auto-scroll ─────────────────────────────────────────────────
+  // ── Banner auto-scroll ────────────────────────────────────────────────────
   const bannerScrollX = useRef(new Animated.Value(0)).current;
   const scrollRef     = useRef(null);
   const ITEM_W        = width - 36 + 10;
@@ -173,7 +276,7 @@ export default function FinanceHome({ navigation }) {
     return () => clearInterval(iv);
   }, []);
 
-  // ── Plan carousel ──────────────────────────────────────────────────────
+  // ── Plan carousel ─────────────────────────────────────────────────────────
   const CARD_WIDTH    = width * 0.8;
   const SPACING       = 15;
   const SNAP_INTERVAL = CARD_WIDTH + SPACING;
@@ -188,15 +291,14 @@ export default function FinanceHome({ navigation }) {
     return () => clearInterval(iv);
   }, []);
 
-  // ── Derived ────────────────────────────────────────────────────────────
+  // ── Derived ───────────────────────────────────────────────────────────────
   const kyc     = KYC_COLOR[kycStatus] || KYC_COLOR.pending;
   const balance = isAeps ? aepsBalance : mainBalance;
   const avatar  = userName ? userName.charAt(0).toUpperCase() : "U";
 
-  // ── Splash loader ──────────────────────────────────────────────────────
   if (!ready) {
     return (
-      <SafeAreaView style={styles.safeArea} edges={["top","bottom"]}>
+      <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
         <StatusBar barStyle="light-content" backgroundColor="#161616" />
         <View style={styles.splash}>
           <ActivityIndicator size="large" color={Colors.finance_accent} />
@@ -206,10 +308,7 @@ export default function FinanceHome({ navigation }) {
     );
   }
 
-  // ── Main render ────────────────────────────────────────────────────────
   return (
-    // edges={[]} → SafeAreaView handles nothing (we do it manually with insets)
-    // This avoids double padding — we embed insets directly into header
     <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
       <StatusBar barStyle="light-content" backgroundColor="#161616" translucent />
 
@@ -222,7 +321,6 @@ export default function FinanceHome({ navigation }) {
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
             style={[styles.headerGradient, { paddingTop: insets.top + 15 }]}
           >
-            {/* Top row */}
             <View style={styles.headerTopUser}>
               <View style={styles.userSection}>
                 <View style={styles.avatarContainer}>
@@ -241,7 +339,6 @@ export default function FinanceHome({ navigation }) {
                   {!!userUsername && <Text style={styles.usernameTag}>{userUsername}</Text>}
                 </View>
               </View>
-
               <View style={styles.headerActions}>
                 <TouchableOpacity style={styles.glassBtn}>
                   <Icon name="magnify" size={20} color="#FFF" />
@@ -258,7 +355,6 @@ export default function FinanceHome({ navigation }) {
               <LinearGradient colors={["#2C2C2C", "#000000"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.walletCard}>
                 <View style={styles.cardCircle1} />
                 <View style={styles.cardCircle2} />
-
                 <View style={styles.rowBetween}>
                   <View style={styles.walletTag}>
                     <Icon name="wallet-outline" size={14} color="#d4b06a" />
@@ -270,20 +366,21 @@ export default function FinanceHome({ navigation }) {
                     <Icon name="swap-horizontal" size={20} color="#d4b06a" />
                   </TouchableOpacity>
                 </View>
-
                 <View style={{ marginTop: 10 }}>
                   <Text style={styles.cardLabel}>Total Balance</Text>
                   <View style={{ flexDirection: "row", alignItems: "center" }}>
                     <Text style={styles.currencySymbol}>₹</Text>
                     <Animated.View style={{ opacity: contentOpacity, transform: [{ translateY: contentTranslateY }] }}>
-                      <Text style={styles.cardBalance}>{showBalance ? "••••••" : balance}</Text>
+                      {balanceLoading
+                        ? <ActivityIndicator size="small" color="#FFF" style={{ marginLeft: 4 }} />
+                        : <Text style={styles.cardBalance}>{showBalance ? "••••••" : balance}</Text>
+                      }
                     </Animated.View>
                     <TouchableOpacity onPress={() => setShowBalance(p => !p)} style={{ marginLeft: 10 }}>
                       <Icon name={showBalance ? "eye-off" : "eye"} size={20} color="rgba(255,255,255,0.5)" />
                     </TouchableOpacity>
                   </View>
                 </View>
-
                 <View style={styles.cardFooter}>
                   <View style={[styles.kycBadge, { borderColor: kyc }]}>
                     <View style={[styles.kycDotSmall, { backgroundColor: kyc }]} />
@@ -293,7 +390,6 @@ export default function FinanceHome({ navigation }) {
                 </View>
               </LinearGradient>
             </Animated.View>
-
           </LinearGradient>
         </Animated.View>
 
@@ -306,7 +402,28 @@ export default function FinanceHome({ navigation }) {
         >
           <View style={styles.body}>
 
-            {/* AEPS Services */}
+            {/* ══ QUICK ACCESS: AEPS · BBPS · DMT · Recharge ══ */}
+            <View style={styles.quickRow}>
+              {QUICK_ACCESS.map((item) => (
+                <TouchableOpacity
+                  key={item.key}
+                  style={styles.quickBtn}
+                  activeOpacity={0.8}
+                  onPress={() => handleQuickAccess(item)}
+                  disabled={quickLoading[item.key]}
+                >
+                  <View style={[styles.quickIconBg, { backgroundColor: item.color + "22" }]}>
+                    {quickLoading[item.key]
+                      ? <ActivityIndicator size="small" color={item.color} />
+                      : <Icon name={item.icon} size={26} color={item.color} />
+                    }
+                  </View>
+                  <Text style={styles.quickLabel}>{item.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* ── AEPS Services ── */}
             <SectionHeader title="Aeps Services" />
             <Animated.View style={{ transform: [{ translateX: leftAnim }], opacity: leftFade }}>
               <View style={styles.grid}>
@@ -325,7 +442,7 @@ export default function FinanceHome({ navigation }) {
               </View>
             </Animated.View>
 
-            {/* Money Transfer */}
+            {/* ── Money Transfer ── */}
             <SectionHeader title="Money Transfer" />
             <Animated.View style={{ transform: [{ translateX: leftAnim }], opacity: leftFade }}>
               <View style={styles.grid}>
@@ -340,7 +457,7 @@ export default function FinanceHome({ navigation }) {
               </View>
             </Animated.View>
 
-            {/* Plan Carousel */}
+            {/* ── Plan Carousel ── */}
             <View style={{ height: 80, marginTop: 8 }}>
               <ScrollView ref={planRef} horizontal snapToInterval={SNAP_INTERVAL} decelerationRate="fast" showsHorizontalScrollIndicator={false}>
                 {[
@@ -366,7 +483,7 @@ export default function FinanceHome({ navigation }) {
               </ScrollView>
             </View>
 
-            {/* Recharge & Bills */}
+            {/* ── Recharge & Bills ── */}
             <View style={[styles.sectionHeader, { justifyContent: "space-between", marginBottom: 10 }]}>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <View style={styles.sectionIndicator} />
@@ -393,7 +510,7 @@ export default function FinanceHome({ navigation }) {
               </View>
             </Animated.View>
 
-            {/* Banner */}
+            {/* ── Banner ── */}
             <View style={styles.bannerContainer}>
               <ScrollView
                 ref={scrollRef} horizontal snapToInterval={ITEM_W}
@@ -418,7 +535,7 @@ export default function FinanceHome({ navigation }) {
               </View>
             </View>
 
-            {/* Great Deals */}
+            {/* ── Great Deals ── */}
             <View style={styles.dealHeaderRow}>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <View style={[styles.dealIconBox, { backgroundColor: Colors.finance_chip }]}>
@@ -431,7 +548,7 @@ export default function FinanceHome({ navigation }) {
               </View>
             </View>
 
-            {/* Bill Pay Card */}
+            {/* ── Bill Pay Card ── */}
             <LinearGradient colors={[Colors.primary, "#000000"]} style={styles.billPayCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
               <View style={styles.billPayDecorCircle} />
               <View style={styles.rowBetween}>
@@ -476,7 +593,6 @@ export default function FinanceHome({ navigation }) {
                 <Text style={styles.navLabelActive}>Home</Text>
               </View>
             </TouchableOpacity>
-
             {[
               { icon: "file-document-outline", label: "Report",  screen: "WalletTransactionScreen" },
               { icon: "history",               label: "History", screen: "InvoiceScreen", badge: true },
@@ -510,26 +626,13 @@ function SectionHeader({ title }) {
 }
 
 const styles = StyleSheet.create({
-  // ── Safe area ─────────────────────────────────────────────────────────────
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#161616",   // matches header — no white flash on notch
-  },
-
+  safeArea:   { flex: 1, backgroundColor: "#161616" },
   container:  { flex: 1, backgroundColor: Colors.finance_bg_1 },
   rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-
-  // ── Splash ────────────────────────────────────────────────────────────────
   splash:     { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#161616" },
   splashText: { marginTop: 12, color: "#888", fontFamily: Fonts.Medium, fontSize: 14 },
 
-  // ── Header ────────────────────────────────────────────────────────────────
-  headerContainer: {
-    position: "absolute", top: 0, left: 0, right: 0, zIndex: 100,
-    overflow: "hidden", backgroundColor: "#161616",
-    borderBottomLeftRadius: 30, borderBottomRightRadius: 30, elevation: 10,
-  },
-  // paddingTop is applied inline using insets.top + 15
+  headerContainer:   { position: "absolute", top: 0, left: 0, right: 0, zIndex: 100, overflow: "hidden", backgroundColor: "#161616", borderBottomLeftRadius: 30, borderBottomRightRadius: 30, elevation: 10 },
   headerGradient:    { flex: 1, paddingHorizontal: 20, paddingBottom: 5 },
   headerTopUser:     { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 },
   userSection:       { flexDirection: "row", alignItems: "center", flex: 1 },
@@ -545,7 +648,6 @@ const styles = StyleSheet.create({
   glassBtn:          { width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center", marginLeft: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.15)" },
   notificationBadge: { position: "absolute", top: 10, right: 10, width: 8, height: 8, borderRadius: 4, backgroundColor: "#FF3B30", zIndex: 1, borderWidth: 1.5, borderColor: "#333" },
 
-  // ── Wallet card ───────────────────────────────────────────────────────────
   walletCard:     { marginTop: 12, borderRadius: 24, padding: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", overflow: "hidden" },
   cardCircle1:    { position: "absolute", top: -30, right: -30, width: 100, height: 100, borderRadius: 50, backgroundColor: "rgba(212,176,106,0.1)" },
   cardCircle2:    { position: "absolute", bottom: -40, left: -20, width: 120, height: 120, borderRadius: 60, backgroundColor: "rgba(255,255,255,0.05)" },
@@ -561,7 +663,26 @@ const styles = StyleSheet.create({
   kycDotSmall:    { width: 6, height: 6, borderRadius: 3, marginRight: 5 },
   kycBadgeText:   { fontSize: 9, fontFamily: Fonts.Bold, letterSpacing: 0.5 },
 
-  // ── Body ──────────────────────────────────────────────────────────────────
+  // ── NEW: Quick Access Row ─────────────────────────────────────────────────
+  quickRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 18,
+    marginTop: 4,
+    backgroundColor: "#FFF",
+    borderRadius: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  quickBtn:    { flex: 1, alignItems: "center" },
+  quickIconBg: { width: 52, height: 52, borderRadius: 16, justifyContent: "center", alignItems: "center", marginBottom: 6 },
+  quickLabel:  { fontSize: 11, fontFamily: Fonts.Bold, color: "#333", textAlign: "center" },
+
   body:             { padding: 18 },
   sectionHeader:    { flexDirection: "row", alignItems: "center", marginTop: 2, marginBottom: 4 },
   sectionIndicator: { width: 3, height: 16, backgroundColor: Colors.finance_accent, borderRadius: 4, marginRight: 8 },
@@ -572,7 +693,6 @@ const styles = StyleSheet.create({
   categoryBox:      { width: "23%", backgroundColor: "#FFF", alignItems: "center", paddingVertical: 6, borderRadius: 12, paddingHorizontal: 8, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 3, elevation: 2, marginVertical: 4, borderWidth: 0.5, borderColor: "rgba(0,0,0,0.05)" },
   categoryText:     { color: "#444", fontSize: 10, textAlign: "center", marginTop: 4, fontFamily: Fonts.Medium, lineHeight: 12 },
 
-  // ── Plan carousel ─────────────────────────────────────────────────────────
   planCard:        { backgroundColor: "#fff", borderRadius: 14, padding: 12, marginVertical: 10, elevation: 2, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 3, borderLeftWidth: 3 },
   planRow:         { flexDirection: "row", alignItems: "center" },
   planIconBg:      { width: 34, height: 34, borderRadius: 17, justifyContent: "center", alignItems: "center" },
@@ -581,20 +701,17 @@ const styles = StyleSheet.create({
   rechargeBtn:     { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 16, elevation: 1 },
   rechargeBtnText: { color: "#000", fontSize: 12, fontFamily: Fonts.Bold },
 
-  // ── Banner ────────────────────────────────────────────────────────────────
   bannerContainer:     { marginTop: 20, marginBottom: 4, height: 130, borderRadius: 12, overflow: "hidden", justifyContent: "center", alignItems: "center" },
   bannerImage:         { width: width - 36, height: 130, resizeMode: "cover", borderRadius: 12, backgroundColor: "#fff", marginRight: 10 },
   paginationContainer: { position: "absolute", bottom: 8, flexDirection: "row", alignSelf: "center" },
   paginationDot:       { height: 6, borderRadius: 3, backgroundColor: Colors.finance_accent, marginHorizontal: 3 },
 
-  // ── Deals ─────────────────────────────────────────────────────────────────
-  dealHeaderRow:  { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10, marginTop: 10, paddingVertical: 12, paddingHorizontal: 16, backgroundColor: Colors.white, borderRadius: 16, elevation: 2 },
-  dealIconBox:    { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center", marginRight: 10 },
-  dealHeaderTitle:{ fontSize: 14, fontFamily: Fonts.Bold },
-  hotTag:         { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
-  hotTagText:     { color: Colors.white, fontSize: 10, fontFamily: Fonts.Bold },
+  dealHeaderRow:   { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10, marginTop: 10, paddingVertical: 12, paddingHorizontal: 16, backgroundColor: Colors.white, borderRadius: 16, elevation: 2 },
+  dealIconBox:     { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center", marginRight: 10 },
+  dealHeaderTitle: { fontSize: 14, fontFamily: Fonts.Bold },
+  hotTag:          { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
+  hotTagText:      { color: Colors.white, fontSize: 10, fontFamily: Fonts.Bold },
 
-  // ── Bill pay ──────────────────────────────────────────────────────────────
   billPayCard:        { marginHorizontal: 4, marginTop: 15, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", overflow: "hidden" },
   billPayDecorCircle: { position: "absolute", top: -30, right: -30, width: 100, height: 100, borderRadius: 50, backgroundColor: "rgba(212,176,106,0.1)" },
   billPayTitle:       { color: "#FFF", fontSize: 18, fontFamily: Fonts.Bold },
@@ -606,7 +723,6 @@ const styles = StyleSheet.create({
   billPayButton:      { flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: Colors.finance_accent, paddingVertical: 10, borderRadius: 12 },
   billPayButtonText:  { color: "#000", fontWeight: "bold", marginRight: 6 },
 
-  // ── Bottom nav ────────────────────────────────────────────────────────────
   bottomNavContainer: { position: "absolute", bottom: 12, width: "100%", alignItems: "center" },
   bottomNav:          { backgroundColor: "#1A1A1A", width: "92%", height: 64, borderRadius: 32, flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 8, shadowColor: "#000", shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25, shadowRadius: 15, elevation: 10, borderWidth: 1, borderColor: "#333" },
   tabItem:            { flex: 1, height: "100%", justifyContent: "center", alignItems: "center" },

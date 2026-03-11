@@ -50,6 +50,7 @@ import MoneyTransfer from "../screens/DMT/MoneyTransfer"
 // import BBPSServices from "../screens/BBPS_Services/BBPSServiceScreen"
 import SupportScreen from "../screens/Account/SupportScreen"
 import FaqSupportScreen from "../screens/HomeScreen/FaQSupport"
+import KYCScreen from '../screens/kyc/Kyc';
 
 const Stack = createStackNavigator();
 
@@ -142,6 +143,8 @@ const AppNavigator = () => {
       <Stack.Screen name="FaqSupportScreen" component={FaqSupportScreen} />
       <Stack.Screen name="Signup" component={Signup} />
       <Stack.Screen name="SignupScreen" component={SignupScreen} />
+      <Stack.Screen name="Kyc" component={KYCScreen} />
+
     </Stack.Navigator>
   );
 };
