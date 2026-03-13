@@ -17,10 +17,10 @@ const { width } = Dimensions.get("window");
 // QUICK ACCESS — 4 large shortcut buttons shown ABOVE the AEPS service list
 // ─────────────────────────────────────────────────────────────────────────────
 const QUICK_ACCESS = [
-  { key: "aeps", label: "AEPS", icon: "fingerprint", color: "#22C55E", screen: "CashWithdraw" },
-  { key: "bbps", label: "BBPS", icon: "lightning-bolt", color: "#3B82F6", screen: "PaymentsScreen" },
-  { key: "dmt", label: "DMT", icon: "bank-transfer", color: "#F97316", screen: "DmtLogin" },
-  { key: "recharge", label: "Recharge", icon: "cellphone-wireless", color: "#A855F7", screen: "TopUpScreen" },
+  { key: "aeps", label: "AEPS", icon: "fingerprint", color: Colors.finance_accent, screen: "CashWithdraw" },
+  { key: "bbps", label: "BBPS", icon: "lightning-bolt", color: Colors.finance_accent, screen: "PaymentsScreen" },
+  { key: "dmt", label: "DMT", icon: "bank-transfer", color: Colors.finance_accent, screen: "DmtLogin" },
+  { key: "recharge", label: "Recharge", icon: "cellphone-wireless", color: Colors.finance_accent, screen: "TopUpScreen" },
 ];
 
 const SERVICES = {

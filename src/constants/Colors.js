@@ -82,6 +82,18 @@ const Colors = {
 
   lightPrimary: "#4682B4",
 
+  // constants/Colors.js — verify these keys exist:
+  finance_accent: "#D4B06A",  // ← must not be undefined
+  finance_success: "#22C55E",
+  finance_error: "#EF4444",
+  finance_text: "#1A1A2E",
+  finance_bg_1: "#F7F8FA",
+  finance_chip: "#FFF3D6",
+  primary: "#1A1A2E",
+  white: "#FFFFFF",
+  black: "#000000",
+
+
 };
 
 export default Colors;
