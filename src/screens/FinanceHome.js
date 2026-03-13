@@ -196,7 +196,7 @@ export default function FinanceHome({ navigation }) {
   }, [navigation, loadBalances]);
 
   // ── AEPS service press handler ────────────────────────────────────────────
-  // Aadhaar Pay (type "ap") navigates to KYCScreen when KYC is not approved,
+  // Aadhaar Pay (type "ap") navigates to Offlinekyc when KYC is not approved,
   // otherwise proceeds to AadhaarPay screen.
   const handleAepsService = (item) => {
     switch (item.type) {
@@ -219,7 +219,7 @@ export default function FinanceHome({ navigation }) {
               { text: "Cancel", style: "cancel" },
               {
                 text: "Complete KYC",
-                onPress: () => navigation.navigate("KYCScreen"),
+                onPress: () => navigation.navigate("Offlinekyc"),
               },
             ]
           );
@@ -418,9 +418,9 @@ export default function FinanceHome({ navigation }) {
                   </View>
                 </View>
                 <View style={styles.cardFooter}>
-                  {/* ── KYC badge now navigates to KYCScreen ── */}
+                  {/* ── KYC badge now navigates to Offlinekyc ── */}
                   <TouchableOpacity
-                    onPress={() => navigation.navigate("KYCScreen")}
+                    onPress={() => navigation.navigate("Offlinekyc")}
                     activeOpacity={0.75}
                     style={[styles.kycBadge, { borderColor: kyc }]}
                   >
