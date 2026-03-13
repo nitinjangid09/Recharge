@@ -33,29 +33,29 @@ const { width } = Dimensions.get("window");
 
 // ── Colors ────────────────────────────────────────────────────────────────────
 const C = {
-  bg:         "#F7F8FA",
-  card:       "#FFFFFF",
-  primary:    "#E55A2B",        // orange accent
+  bg: "#F7F8FA",
+  card: "#FFFFFF",
+  primary: "#E55A2B",        // orange accent
   primary_lt: "#FFF0EB",
-  success:    "#22C55E",
+  success: "#22C55E",
   success_lt: "#EDFDF4",
-  text:       "#1A1A2E",
-  sub:        "#6B7280",
-  border:     "#E5E7EB",
-  input_bg:   "#F9FAFB",
-  label:      "#9CA3AF",
-  error:      "#EF4444",
-  step_done:  "#22C55E",
-  step_act:   "#E55A2B",
-  step_idle:  "#D1D5DB",
-  white:      "#FFFFFF",
+  text: "#1A1A2E",
+  sub: "#6B7280",
+  border: "#E5E7EB",
+  input_bg: "#F9FAFB",
+  label: "#9CA3AF",
+  error: "#EF4444",
+  step_done: "#22C55E",
+  step_act: "#E55A2B",
+  step_idle: "#D1D5DB",
+  white: "#FFFFFF",
 };
 
 // ── Steps config ──────────────────────────────────────────────────────────────
 const STEPS = [
-  { key: "personal", label: "PERSONAL", icon: "account-outline"   },
-  { key: "business", label: "BUSINESS", icon: "store-outline"     },
-  { key: "banking",  label: "BANKING",  icon: "bank-outline"      },
+  { key: "personal", label: "PERSONAL", icon: "account-outline" },
+  { key: "business", label: "BUSINESS", icon: "store-outline" },
+  { key: "banking", label: "BANKING", icon: "bank-outline" },
 ];
 
 // ── KYC API endpoint ──────────────────────────────────────────────────────────
@@ -63,8 +63,8 @@ const BASE_URL = "https://your-api-domain.com/api"; // ← update
 
 // ─────────────────────────────────────────────────────────────────────────────
 export default function KYCScreen({ navigation }) {
-  const insets  = useSafeAreaInsets();
-  const [step,  setStep]    = useState(0);   // 0=personal, 1=business, 2=banking
+  const insets = useSafeAreaInsets();
+  const [step, setStep] = useState(0);   // 0=personal, 1=business, 2=banking
   const [loading, setLoading] = useState(false);
 
   // Slide animation
@@ -116,29 +116,29 @@ export default function KYCScreen({ navigation }) {
 
   const validatePersonal = () => {
     const e = {};
-    if (!personal.firstName.trim())  e.firstName  = "Required";
-    if (!personal.lastName.trim())   e.lastName   = "Required";
+    if (!personal.firstName.trim()) e.firstName = "Required";
+    if (!personal.lastName.trim()) e.lastName = "Required";
     if (!personal.fatherName.trim()) e.fatherName = "Required";
-    if (!personal.email.trim())      e.email      = "Required";
-    if (!personal.phone.trim())      e.phone      = "Required";
-    if (!personal.dob.trim())        e.dob        = "Required";
-    if (!personal.address.trim())    e.address    = "Required";
-    if (!personal.pincode.trim())    e.pincode    = "Required";
-    if (!personal.state.trim())      e.state      = "Required";
-    if (!personal.city.trim())       e.city       = "Required";
+    if (!personal.email.trim()) e.email = "Required";
+    if (!personal.phone.trim()) e.phone = "Required";
+    if (!personal.dob.trim()) e.dob = "Required";
+    if (!personal.address.trim()) e.address = "Required";
+    if (!personal.pincode.trim()) e.pincode = "Required";
+    if (!personal.state.trim()) e.state = "Required";
+    if (!personal.city.trim()) e.city = "Required";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const validateBusiness = () => {
     const e = {};
-    if (!business.shopName.trim())    e.shopName    = "Required";
+    if (!business.shopName.trim()) e.shopName = "Required";
     if (!business.shopAddress.trim()) e.shopAddress = "Required";
-    if (!business.pincode.trim())     e.pincode     = "Required";
-    if (!business.state.trim())       e.state       = "Required";
-    if (!business.city.trim())        e.city        = "Required";
+    if (!business.pincode.trim()) e.pincode = "Required";
+    if (!business.state.trim()) e.state = "Required";
+    if (!business.city.trim()) e.city = "Required";
     if (!business.personalPan.trim()) e.personalPan = "Required";
-    if (!business.aadhaar.trim())     e.aadhaar     = "Required";
+    if (!business.aadhaar.trim()) e.aadhaar = "Required";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -146,10 +146,10 @@ export default function KYCScreen({ navigation }) {
   const validateBanking = () => {
     const e = {};
     if (!banking.accountHolder.trim()) e.accountHolder = "Required";
-    if (!banking.bankName.trim())      e.bankName      = "Required";
+    if (!banking.bankName.trim()) e.bankName = "Required";
     if (!banking.accountNumber.trim()) e.accountNumber = "Required";
-    if (!banking.branchName.trim())    e.branchName    = "Required";
-    if (!banking.ifsc.trim())          e.ifsc          = "Required";
+    if (!banking.branchName.trim()) e.branchName = "Required";
+    if (!banking.ifsc.trim()) e.ifsc = "Required";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -277,9 +277,9 @@ export default function KYCScreen({ navigation }) {
                     {loading
                       ? <ActivityIndicator color="#FFF" size="small" />
                       : <>
-                          <Text style={styles.nextBtnText}>Submit KYC</Text>
-                          <Icon name="check" size={18} color="#FFF" style={{ marginLeft: 6 }} />
-                        </>
+                        <Text style={styles.nextBtnText}>Submit KYC</Text>
+                        <Icon name="check" size={18} color="#FFF" style={{ marginLeft: 6 }} />
+                      </>
                     }
                   </LinearGradient>
                 </TouchableOpacity>
@@ -299,7 +299,7 @@ function Stepper({ current }) {
   return (
     <View style={styles.stepperWrap}>
       {STEPS.map((s, i) => {
-        const done   = i < current;
+        const done = i < current;
         const active = i === current;
         return (
           <React.Fragment key={s.key}>
@@ -310,7 +310,7 @@ function Stepper({ current }) {
             <View style={styles.stepItem}>
               <View style={[
                 styles.stepCircle,
-                done   && styles.stepCircleDone,
+                done && styles.stepCircleDone,
                 active && styles.stepCircleActive,
               ]}>
                 {done
@@ -320,7 +320,7 @@ function Stepper({ current }) {
               </View>
               <Text style={[
                 styles.stepLabel,
-                done   && { color: C.success },
+                done && { color: C.success },
                 active && { color: C.primary, fontWeight: "700" },
               ]}>
                 {s.label}
@@ -343,9 +343,9 @@ function Field({ label, value, onChange, placeholder, error, keyboardType, half,
       <TextInput
         style={[
           styles.fieldInput,
-          error         && styles.fieldInputError,
-          multiline     && { height: 72, textAlignVertical: "top", paddingTop: 10 },
-          !editable     && { backgroundColor: "#F0F0F0", color: C.sub },
+          error && styles.fieldInputError,
+          multiline && { height: 72, textAlignVertical: "top", paddingTop: 10 },
+          !editable && { backgroundColor: "#F0F0F0", color: C.sub },
         ]}
         value={value}
         onChangeText={onChange}
@@ -407,8 +407,8 @@ function PersonalForm({ data, onChange, errors }) {
       <Text style={styles.cardTitle}>Personal Details</Text>
       <Text style={styles.cardSub}>Please enter your basic personal information.</Text>
       <View style={styles.row}>
-        <Field label="FIRST NAME"  value={data.firstName}  onChange={v => onChange({ firstName: v })}  error={errors.firstName}  half placeholder="e.g. Shyam" />
-        <Field label="LAST NAME"   value={data.lastName}   onChange={v => onChange({ lastName: v })}   error={errors.lastName}   half placeholder="e.g. Swami" />
+        <Field label="FIRST NAME" value={data.firstName} onChange={v => onChange({ firstName: v })} error={errors.firstName} half placeholder="e.g. First Name" />
+        <Field label="LAST NAME" value={data.lastName} onChange={v => onChange({ lastName: v })} error={errors.lastName} half placeholder="e.g. Last Name" />
       </View>
       <View style={styles.row}>
         <Field label="FATHER'S NAME" value={data.fatherName} onChange={v => onChange({ fatherName: v })} error={errors.fatherName} half placeholder="Father's name" />
@@ -416,15 +416,15 @@ function PersonalForm({ data, onChange, errors }) {
       </View>
       <View style={styles.row}>
         <Field label="EMAIL ADDRESS" value={data.email} onChange={v => onChange({ email: v })} error={errors.email} half placeholder="you@email.com" keyboardType="email-address" />
-        <Field label="PHONE NUMBER"  value={data.phone} onChange={v => onChange({ phone: v })} error={errors.phone} half placeholder="10-digit mobile" keyboardType="phone-pad" />
+        <Field label="PHONE NUMBER" value={data.phone} onChange={v => onChange({ phone: v })} error={errors.phone} half placeholder="10-digit mobile" keyboardType="phone-pad" />
       </View>
       <View style={styles.row}>
-        <Field label="DATE OF BIRTH" value={data.dob}     onChange={v => onChange({ dob: v })}     error={errors.dob}     half placeholder="DD-MM-YYYY" keyboardType="numbers-and-punctuation" />
-        <Field label="ADDRESS"       value={data.address} onChange={v => onChange({ address: v })} error={errors.address} half placeholder="House/Street" />
+        <Field label="DATE OF BIRTH" value={data.dob} onChange={v => onChange({ dob: v })} error={errors.dob} half placeholder="DD-MM-YYYY" keyboardType="numbers-and-punctuation" />
+        <Field label="ADDRESS" value={data.address} onChange={v => onChange({ address: v })} error={errors.address} half placeholder="House/Street" />
       </View>
       <View style={styles.row}>
         <Field label="PINCODE" value={data.pincode} onChange={v => onChange({ pincode: v })} error={errors.pincode} half placeholder="6-digit code" keyboardType="number-pad" />
-        <Field label="STATE"   value={data.state}   onChange={v => onChange({ state: v })}   error={errors.state}   half placeholder="e.g. Rajasthan" />
+        <Field label="STATE" value={data.state} onChange={v => onChange({ state: v })} error={errors.state} half placeholder="e.g. Rajasthan" />
       </View>
       <Field label="CITY" value={data.city} onChange={v => onChange({ city: v })} error={errors.city} placeholder="e.g. Jaipur" />
     </View>
@@ -443,13 +443,13 @@ function BusinessForm({ data, onChange, errors, docs, onPickDoc }) {
 
       <Field label="SHOP/BUSINESS NAME" value={data.shopName} onChange={v => onChange({ shopName: v })} error={errors.shopName} placeholder="Your shop name" />
       <View style={styles.row}>
-        <OptionalField label="BUSINESS PAN CARD" value={data.panCard}    onChange={v => onChange({ panCard: v })}    placeholder="ABCDE1234F" half />
-        <OptionalField label="GST NUMBER"        value={data.gstNumber}  onChange={v => onChange({ gstNumber: v })}  placeholder="22AAAAA0000A1Z5" half />
+        <OptionalField label="BUSINESS PAN CARD" value={data.panCard} onChange={v => onChange({ panCard: v })} placeholder="ABCDE1234F" half />
+        <OptionalField label="GST NUMBER" value={data.gstNumber} onChange={v => onChange({ gstNumber: v })} placeholder="22AAAAA0000A1Z5" half />
       </View>
       <Field label="SHOP ADDRESS" value={data.shopAddress} onChange={v => onChange({ shopAddress: v })} error={errors.shopAddress} placeholder="Full shop address" />
       <View style={styles.row}>
         <Field label="PINCODE" value={data.pincode} onChange={v => onChange({ pincode: v })} error={errors.pincode} half placeholder="6-digit" keyboardType="number-pad" />
-        <Field label="STATE"   value={data.state}   onChange={v => onChange({ state: v })}   error={errors.state}   half placeholder="e.g. Rajasthan" />
+        <Field label="STATE" value={data.state} onChange={v => onChange({ state: v })} error={errors.state} half placeholder="e.g. Rajasthan" />
       </View>
       <Field label="CITY" value={data.city} onChange={v => onChange({ city: v })} error={errors.city} placeholder="e.g. Jaipur" />
 
@@ -459,7 +459,7 @@ function BusinessForm({ data, onChange, errors, docs, onPickDoc }) {
       </View>
       <View style={styles.row}>
         <Field label="PERSONAL PAN NUMBER" value={data.personalPan} onChange={v => onChange({ personalPan: v.toUpperCase() })} error={errors.personalPan} half placeholder="ACDFD3434D" />
-        <Field label="AADHAAR NUMBER"      value={data.aadhaar}     onChange={v => onChange({ aadhaar: v })}                   error={errors.aadhaar}     half placeholder="12-digit" keyboardType="number-pad" />
+        <Field label="AADHAAR NUMBER" value={data.aadhaar} onChange={v => onChange({ aadhaar: v })} error={errors.aadhaar} half placeholder="12-digit" keyboardType="number-pad" />
       </View>
 
       {/* Document upload */}
@@ -471,17 +471,17 @@ function BusinessForm({ data, onChange, errors, docs, onPickDoc }) {
           <TouchableOpacity key={i} style={[styles.docBox, docs[i] && styles.docBoxDone]} onPress={() => onPickDoc(i)} activeOpacity={0.8}>
             {docs[i]
               ? <>
-                  <View style={styles.docCheckCircle}>
-                    <Icon name="check" size={18} color="#FFF" />
-                  </View>
-                  <Text style={styles.docUploadedText}>UPLOADED</Text>
-                  <Text style={styles.docFileName} numberOfLines={1}>{docs[i].name}</Text>
-                </>
+                <View style={styles.docCheckCircle}>
+                  <Icon name="check" size={18} color="#FFF" />
+                </View>
+                <Text style={styles.docUploadedText}>UPLOADED</Text>
+                <Text style={styles.docFileName} numberOfLines={1}>{docs[i].name}</Text>
+              </>
               : <>
-                  <Icon name="file-pdf-box" size={32} color={C.label} />
-                  <Text style={styles.docLabel}>{label}</Text>
-                  <Text style={styles.docTapText}>Tap to upload</Text>
-                </>
+                <Icon name="file-pdf-box" size={32} color={C.label} />
+                <Text style={styles.docLabel}>{label}</Text>
+                <Text style={styles.docTapText}>Tap to upload</Text>
+              </>
             }
           </TouchableOpacity>
         ))}
@@ -501,11 +501,11 @@ function BankingForm({ data, onChange, errors }) {
 
       <View style={styles.row}>
         <Field label="ACCOUNT HOLDER NAME" value={data.accountHolder} onChange={v => onChange({ accountHolder: v })} error={errors.accountHolder} half placeholder="Same as bank records" />
-        <Field label="BANK NAME"           value={data.bankName}      onChange={v => onChange({ bankName: v })}      error={errors.bankName}      half placeholder="e.g. HDFC Bank" />
+        <Field label="BANK NAME" value={data.bankName} onChange={v => onChange({ bankName: v })} error={errors.bankName} half placeholder="e.g. HDFC Bank" />
       </View>
       <View style={styles.row}>
         <Field label="ACCOUNT NUMBER" value={data.accountNumber} onChange={v => onChange({ accountNumber: v })} error={errors.accountNumber} half placeholder="0000000000" keyboardType="number-pad" />
-        <Field label="BRANCH NAME"    value={data.branchName}    onChange={v => onChange({ branchName: v })}    error={errors.branchName}    half placeholder="Branch name" />
+        <Field label="BRANCH NAME" value={data.branchName} onChange={v => onChange({ branchName: v })} error={errors.branchName} half placeholder="Branch name" />
       </View>
       <Field label="IFSC CODE" value={data.ifsc} onChange={v => onChange({ ifsc: v.toUpperCase() })} error={errors.ifsc} placeholder="HDFC0001234" />
 
@@ -532,11 +532,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingBottom: 12,
     backgroundColor: C.bg,
   },
-  headerLeft:     { flexDirection: "row", alignItems: "center" },
-  headerLogo:     { width: 32, height: 32, borderRadius: 10, backgroundColor: C.text, alignItems: "center", justifyContent: "center", marginRight: 10 },
+  headerLeft: { flexDirection: "row", alignItems: "center" },
+  headerLogo: { width: 32, height: 32, borderRadius: 10, backgroundColor: C.text, alignItems: "center", justifyContent: "center", marginRight: 10 },
   headerLogoText: { color: "#FFF", fontWeight: "800", fontSize: 14 },
-  headerTitle:    { fontSize: 16, fontWeight: "700", color: C.text },
-  stepCount:      { fontSize: 11, fontWeight: "700", color: C.sub, letterSpacing: 1 },
+  headerTitle: { fontSize: 16, fontWeight: "700", color: C.text },
+  stepCount: { fontSize: 11, fontWeight: "700", color: C.sub, letterSpacing: 1 },
 
   // ── Stepper ───────────────────────────────────────────────────────────────
   stepperWrap: {
@@ -544,17 +544,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingBottom: 16,
     backgroundColor: C.bg,
   },
-  stepItem:   { alignItems: "center" },
+  stepItem: { alignItems: "center" },
   stepCircle: {
     width: 36, height: 36, borderRadius: 18,
     backgroundColor: C.step_idle,
     alignItems: "center", justifyContent: "center",
     marginBottom: 4,
   },
-  stepCircleDone:   { backgroundColor: C.step_done },
+  stepCircleDone: { backgroundColor: C.step_done },
   stepCircleActive: { backgroundColor: C.step_act },
   stepLabel: { fontSize: 9, fontWeight: "600", color: C.sub, letterSpacing: 0.5 },
-  stepLine:     { flex: 1, height: 2, backgroundColor: C.step_idle, marginBottom: 20, marginHorizontal: 2 },
+  stepLine: { flex: 1, height: 2, backgroundColor: C.step_idle, marginBottom: 20, marginHorizontal: 2 },
   stepLineDone: { backgroundColor: C.step_done },
 
   // ── Scroll ────────────────────────────────────────────────────────────────
@@ -568,12 +568,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   cardTitle: { fontSize: 20, fontWeight: "800", color: C.text, marginBottom: 4 },
-  cardSub:   { fontSize: 13, color: C.sub, marginBottom: 20 },
+  cardSub: { fontSize: 13, color: C.sub, marginBottom: 20 },
 
   // ── Fields ────────────────────────────────────────────────────────────────
-  row:        { flexDirection: "row", gap: 12 },
-  fieldWrap:  { marginBottom: 14, flex: 1 },
-  fieldHalf:  { flex: 1 },
+  row: { flexDirection: "row", gap: 12 },
+  fieldWrap: { marginBottom: 14, flex: 1 },
+  fieldHalf: { flex: 1 },
   fieldLabel: { fontSize: 10, fontWeight: "700", color: C.label, letterSpacing: 0.8, marginBottom: 6 },
   fieldInput: {
     backgroundColor: C.input_bg,
@@ -582,14 +582,14 @@ const styles = StyleSheet.create({
     fontSize: 14, color: C.text, fontWeight: "500",
   },
   fieldInputError: { borderColor: C.error, backgroundColor: "#FFF5F5" },
-  fieldError:      { color: C.error, fontSize: 10, marginTop: 3 },
+  fieldError: { color: C.error, fontSize: 10, marginTop: 3 },
 
   // ── Gender picker ─────────────────────────────────────────────────────────
-  genderRow:          { flexDirection: "row", gap: 6, marginTop: 0 },
-  genderBtn:          { flex: 1, paddingVertical: 8, borderRadius: 8, backgroundColor: C.input_bg, borderWidth: 1, borderColor: C.border, alignItems: "center" },
-  genderBtnActive:    { backgroundColor: C.primary_lt, borderColor: C.primary },
-  genderBtnText:      { fontSize: 11, fontWeight: "600", color: C.sub },
-  genderBtnTextActive:{ color: C.primary },
+  genderRow: { flexDirection: "row", gap: 6, marginTop: 0 },
+  genderBtn: { flex: 1, paddingVertical: 8, borderRadius: 8, backgroundColor: C.input_bg, borderWidth: 1, borderColor: C.border, alignItems: "center" },
+  genderBtnActive: { backgroundColor: C.primary_lt, borderColor: C.primary },
+  genderBtnText: { fontSize: 11, fontWeight: "600", color: C.sub },
+  genderBtnTextActive: { color: C.primary },
 
   // ── Section divider ───────────────────────────────────────────────────────
   sectionDivider: {
@@ -599,19 +599,19 @@ const styles = StyleSheet.create({
   sectionDividerText: { fontSize: 10, fontWeight: "700", color: C.sub, letterSpacing: 1 },
 
   // ── Document grid ─────────────────────────────────────────────────────────
-  docGrid:        { flexDirection: "row", gap: 10 },
+  docGrid: { flexDirection: "row", gap: 10 },
   docBox: {
     flex: 1, aspectRatio: 0.75,
     backgroundColor: C.input_bg, borderRadius: 12,
     borderWidth: 1.5, borderColor: C.border, borderStyle: "dashed",
     alignItems: "center", justifyContent: "center", padding: 8,
   },
-  docBoxDone:        { backgroundColor: C.success_lt, borderColor: C.success, borderStyle: "solid" },
-  docCheckCircle:    { width: 30, height: 30, borderRadius: 15, backgroundColor: C.success, alignItems: "center", justifyContent: "center", marginBottom: 6 },
-  docUploadedText:   { fontSize: 9, fontWeight: "700", color: C.success, letterSpacing: 0.5 },
-  docFileName:       { fontSize: 9, color: C.sub, textAlign: "center", marginTop: 2 },
-  docLabel:          { fontSize: 10, fontWeight: "600", color: C.sub, textAlign: "center", marginTop: 6, lineHeight: 14 },
-  docTapText:        { fontSize: 9, color: C.label, marginTop: 2 },
+  docBoxDone: { backgroundColor: C.success_lt, borderColor: C.success, borderStyle: "solid" },
+  docCheckCircle: { width: 30, height: 30, borderRadius: 15, backgroundColor: C.success, alignItems: "center", justifyContent: "center", marginBottom: 6 },
+  docUploadedText: { fontSize: 9, fontWeight: "700", color: C.success, letterSpacing: 0.5 },
+  docFileName: { fontSize: 9, color: C.sub, textAlign: "center", marginTop: 2 },
+  docLabel: { fontSize: 10, fontWeight: "600", color: C.sub, textAlign: "center", marginTop: 6, lineHeight: 14 },
+  docTapText: { fontSize: 9, color: C.label, marginTop: 2 },
 
   // ── Info banner ───────────────────────────────────────────────────────────
   infoBanner: {
@@ -624,14 +624,14 @@ const styles = StyleSheet.create({
 
   // ── Action buttons ────────────────────────────────────────────────────────
   actionRow: { flexDirection: "row", alignItems: "center", marginTop: 4 },
-  prevBtn:   {
+  prevBtn: {
     flexDirection: "row", alignItems: "center",
     paddingVertical: 12, paddingHorizontal: 18,
     borderRadius: 12, borderWidth: 1, borderColor: C.border,
     backgroundColor: C.card, gap: 6,
   },
   prevBtnText: { fontSize: 14, fontWeight: "600", color: C.text },
-  nextBtn:     { borderRadius: 12, overflow: "hidden" },
+  nextBtn: { borderRadius: 12, overflow: "hidden" },
   nextBtnGrad: { flexDirection: "row", alignItems: "center", paddingVertical: 13, paddingHorizontal: 24 },
   nextBtnText: { fontSize: 14, fontWeight: "700", color: "#FFF" },
 });

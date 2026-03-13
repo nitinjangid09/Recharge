@@ -143,7 +143,7 @@ const AppNavigator = () => {
       <Stack.Screen name="FaqSupportScreen" component={FaqSupportScreen} />
       <Stack.Screen name="Signup" component={Signup} />
       <Stack.Screen name="SignupScreen" component={SignupScreen} />
-      <Stack.Screen name="Kyc" component={KYCScreen} />
+      <Stack.Screen name="KYCScreen" component={KYCScreen} />
 
     </Stack.Navigator>
   );

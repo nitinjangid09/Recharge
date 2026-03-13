@@ -2,7 +2,7 @@ import axios from "axios";
 import { ToastAndroid } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const BASE_URL = "http://192.168.1.23:8000";
+const BASE_URL = "http://192.168.1.19:8000";
 
 
 // OrderHistoryScreen
