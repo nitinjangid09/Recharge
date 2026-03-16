@@ -118,14 +118,15 @@ export const fetchUserWallet = async ({ headerToken, headerKey }) => {
   }
 };
 
-export const fetchUserProfile = async ({ headerToken, headerKey }) => {
+export const fetchUserProfile = async ({ headerToken }) => {
   try {
-    const response = await axios.get(`${BASE_URL}/user-profile`, {
-      headers: { headerToken, headerKey },
+    const response = await axios.get(`${BASE_URL}/fetch-user-profile`, {
+      headers: { "Authorization": `Bearer ${headerToken}` },
     });
     return response.data;
   } catch (error) {
     console.log("Profile API Error:", error?.response?.data || error);
+    if (error?.response?.data) return error.response.data;
     return (
       error?.response?.data || {
         status: "ERROR",

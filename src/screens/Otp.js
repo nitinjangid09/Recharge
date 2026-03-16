@@ -140,11 +140,11 @@ export default function OTP({ navigation, route }) {
 
     // multiSet saves all keys in one transaction — faster & atomic
     await AsyncStorage.multiSet(pairs);
-    console.log("✅ Session saved | token:", token?.slice(0, 20) + "...");
+    console.log("✅ Session saved | token:", token);
   };
 
   /* ── Fade out → navigate ────────────────────────────────────────────────── */
-  const navigateToHome = () => {
+  const navigateTo = (screenName) => {
     Animated.timing(fadeAnim, {
       toValue: 0,
       duration: 300,
@@ -152,7 +152,7 @@ export default function OTP({ navigation, route }) {
     }).start(() => {
       navigation.reset({
         index: 0,
-        routes: [{ name: "FinanceHome" }],
+        routes: [{ name: screenName }],
       });
     });
   };
@@ -196,7 +196,17 @@ export default function OTP({ navigation, route }) {
       if (result?.success && result?.token) {
         // ✅ Save fresh token + full user data from this login response
         await saveSessionToStorage(result);
-        navigateToHome();
+        
+        const kycStatus = result?.user?.kycStatus;
+        if (kycStatus === "submitted") {
+          navigateTo("KycSubmitted");
+        } else if (kycStatus === "approved") {
+          navigateTo("FinanceHome");
+        } else if (kycStatus === "pending" || kycStatus === "rejected") {
+          navigateTo("Offlinekyc");
+        } else {
+          navigateTo("Offlinekyc");
+        }
       } else {
         triggerShake();
         showAlert(

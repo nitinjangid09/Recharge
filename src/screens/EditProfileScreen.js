@@ -6,14 +6,17 @@ import {
   Image,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
   ScrollView,
+
 } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { launchImageLibrary } from "react-native-image-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { fetchUserProfile } from "../api/AuthApi";
 import Colors from "../constants/Colors";
-import Fonts from "../constants/Fonts"; // Import Fonts
+import Fonts from "../constants/Fonts";
 import HeaderBar from "../componets/HeaderBar";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const InputBox = ({
   label,
@@ -80,20 +83,37 @@ const EditProfileScreen = ({ navigation, route }) => {
     });
   };
 
-  useEffect(() => {
-    if (!profileData) return;
+  const loadUserProfile = async () => {
+    try {
+      const headerToken = await AsyncStorage.getItem("header_token");
+      if (!headerToken) return;
 
-    setName(profileData?.profile?.name || "");
-    setUsername(profileData?.profile?.username || "");
-    setEmail(profileData?.profile?.email || "");
-    setPhone(profileData?.profile?.mobile || "");
-    setAddress(profileData?.kyc?.district || "");
-    setAadhar(profileData?.profile?.aadhar_number || "");
-    setPan(profileData?.profile?.pan_number || "");
-    setProfilePic(
-      profileData?.profile?.profile ||
-      "https://i.pravatar.cc/150?img=32"
-    );
+      const result = await fetchUserProfile({ headerToken });
+
+      if (result?.success === true) {
+        const d = result.data;
+        setName(`${d.firstName || ""} ${d.lastName || ""}`.trim());
+        setUsername(d.userName || "");
+        setEmail(d.email || "");
+        setPhone(d.phone || "");
+        setAddress(d.personalAddress?.address || d.businessAddress?.address || "");
+        setAadhar(d.aadharNumber || "");
+        setPan(d.panNumber || "");
+        setProfilePic(d.profilePic || "https://i.pravatar.cc/150?img=32");
+      }
+    } catch (error) {
+      console.log("Load profile error:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (profileData) {
+      setName(`${profileData.firstName || ""} ${profileData.lastName || ""}`.trim());
+      setUsername(profileData.userName || "");
+      setEmail(profileData.email || "");
+      setPhone(profileData.phone || "");
+    }
+    loadUserProfile();
   }, [profileData]);
 
   return (

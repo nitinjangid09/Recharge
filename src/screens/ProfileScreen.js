@@ -7,7 +7,7 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
-  Animated
+  Animated,
 } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -17,6 +17,7 @@ import HeaderBar from "../componets/HeaderBar";
 import { fetchUserProfile, logoutUser } from "../api/AuthApi";
 import CustomAlert from "../screens/CustomAlert";
 import { ActivityIndicator } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ProfileScreen({ navigation }) {
   /* -------------------- Animation -------------------- */
@@ -64,17 +65,16 @@ export default function ProfileScreen({ navigation }) {
       setLoading(true); // 👈 start loader
 
       const headerToken = await AsyncStorage.getItem("header_token");
-      const headerKey = await AsyncStorage.getItem("header_key");
 
-      if (!headerToken || !headerKey) {
+      if (!headerToken) {
         setLoading(false);
         Alert.alert("Error", "Unable to load profile");
         return;
       }
 
-      const result = await fetchUserProfile({ headerToken, headerKey });
+      const result = await fetchUserProfile({ headerToken });
 
-      if (result?.status === "SUCCESS") {
+      if (result?.success === true) {
         setProfileData(result.data);
 
         await AsyncStorage.setItem(
@@ -136,120 +136,122 @@ export default function ProfileScreen({ navigation }) {
 
   /* -------------------- UI -------------------- */
   return (
-    <ScrollView style={styles.container}>
-      <Animated.View
-        style={[
-          styles.profileCard,
-          {
-            transform: [{ translateY: slideAnim }],
-            opacity: fadeAnim
-          }
-        ]}
-      >
-        <HeaderBar title="Profile" onBack={() => navigation.goBack()} />
+    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.finance_bg_2 }}>
+      <ScrollView style={styles.container}>
+        <Animated.View
+          style={[
+            styles.profileCard,
+            {
+              transform: [{ translateY: slideAnim }],
+              opacity: fadeAnim
+            }
+          ]}
+        >
+          <HeaderBar title="Profile" onBack={() => navigation.goBack()} />
 
-        <Image
-          style={styles.avatar}
-          source={{ uri: "https://randomuser.me/api/portraits/women/44.jpg" }}
-        />
+          <Image
+            style={styles.avatar}
+            source={{ uri: "https://randomuser.me/api/portraits/women/44.jpg" }}
+          />
 
-        <Text style={styles.name}>
-          {profileData?.profile?.name || "—"}
-        </Text>
+          <Text style={styles.name}>
+            {profileData ? `${profileData.firstName || ""} ${profileData.lastName || ""}`.trim() : "—"}
+          </Text>
 
-        <Text style={styles.email}>
-          {profileData?.profile?.email || "—"}
-        </Text>
+          <Text style={styles.email}>
+            {profileData?.email || "—"}
+          </Text>
 
-        <View style={styles.rowMenu}>
-          <View style={styles.rowItem}>
-            <MaterialCommunityIcons name="bell-outline" size={22} color={Colors.finance_accent} />
-            <Text style={styles.rowText}>Notification</Text>
-          </View>
-
-          <View style={styles.rowItem}>
-            <MaterialCommunityIcons name="ticket-percent-outline" size={22} color={Colors.finance_accent} />
-            <Text style={styles.rowText}>Voucher</Text>
-          </View>
-
-          <TouchableOpacity onPress={() => navigation.navigate("InvoiceScreen")}>
+          <View style={styles.rowMenu}>
             <View style={styles.rowItem}>
-              <MaterialCommunityIcons name="history" size={22} color={Colors.finance_accent} />
-              <Text style={styles.rowText}>History</Text>
+              <MaterialCommunityIcons name="bell-outline" size={22} color={Colors.finance_accent} />
+              <Text style={styles.rowText}>Notification</Text>
             </View>
-          </TouchableOpacity>
+
+            <View style={styles.rowItem}>
+              <MaterialCommunityIcons name="ticket-percent-outline" size={22} color={Colors.finance_accent} />
+              <Text style={styles.rowText}>Voucher</Text>
+            </View>
+
+            <TouchableOpacity onPress={() => navigation.navigate("InvoiceScreen")}>
+              <View style={styles.rowItem}>
+                <MaterialCommunityIcons name="history" size={22} color={Colors.finance_accent} />
+                <Text style={styles.rowText}>History</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+
+        <View style={styles.listBox}>
+          <Item
+            icon="account-edit"
+            text="Edit Profile"
+            onPress={() =>
+              navigation.navigate("EditProfileScreen", { profileData })
+            }
+          />
+
+          <Item
+            icon="map-marker-outline"
+            text="Address Management"
+            onPress={() => navigation.navigate("Address")}
+          />
+
+          <Item
+            icon="lock-reset"
+            text="Change Password"
+            onPress={() => navigation.navigate("ChangePassword")}
+          />
+
+          <Item
+            icon="dialpad"
+            text="Change PIN"
+            onPress={() => navigation.navigate("ChangePin")}
+          />
+
+          <Item
+            icon="help-circle-outline"
+            text="Help & Support"
+            onPress={() => navigation.navigate("SupportScreen")}
+          />
+
+          <Item
+            icon="ticket-outline"
+            text="Raise Ticket"
+            onPress={() => navigation.navigate("FaqSupportScreen")}
+          />
+
+          <Item
+            icon="cog-outline"
+            text="Settings"
+          />
+
+          <Item
+            icon="logout"
+            text="Log Out"
+            isLogout
+            onPress={handleLogout}
+          />
         </View>
-      </Animated.View>
 
-      <View style={styles.listBox}>
-        <Item
-          icon="account-edit"
-          text="Edit Profile"
-          onPress={() =>
-            navigation.navigate("EditProfileScreen", { profileData })
-          }
+        <CustomAlert
+          visible={alertVisible}
+          title={alertTitle}
+          message={alertMessage}
+          onClose={() => {
+            setAlertVisible(false);
+            alertAction && alertAction();
+          }}
         />
 
-        <Item
-          icon="map-marker-outline"
-          text="Address Management"
-          onPress={() => navigation.navigate("Address")}
-        />
-
-        <Item
-          icon="lock-reset"
-          text="Change Password"
-          onPress={() => navigation.navigate("ChangePassword")}
-        />
-
-        <Item
-          icon="dialpad"
-          text="Change PIN"
-          onPress={() => navigation.navigate("ChangePin")}
-        />
-
-        <Item
-          icon="help-circle-outline"
-          text="Help & Support"
-          onPress={() => navigation.navigate("SupportScreen")}
-        />
-
-        <Item
-          icon="ticket-outline"
-          text="Raise Ticket"
-          onPress={() => navigation.navigate("FaqSupportScreen")}
-        />
-
-        <Item
-          icon="cog-outline"
-          text="Settings"
-        />
-
-        <Item
-          icon="logout"
-          text="Log Out"
-          isLogout
-          onPress={handleLogout}
-        />
-      </View>
-
-      <CustomAlert
-        visible={alertVisible}
-        title={alertTitle}
-        message={alertMessage}
-        onClose={() => {
-          setAlertVisible(false);
-          alertAction && alertAction();
-        }}
-      />
-
-      {loading && (
-        <View style={styles.loaderOverlay}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={styles.loaderText}>Please wait...</Text>
-        </View>
-      )}
-    </ScrollView>
+        {loading && (
+          <View style={styles.loaderOverlay}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+            <Text style={styles.loaderText}>Please wait...</Text>
+          </View>
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 

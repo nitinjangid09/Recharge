@@ -51,6 +51,7 @@ import MoneyTransfer from "../screens/DMT/MoneyTransfer"
 import SupportScreen from "../screens/Account/SupportScreen"
 import FaqSupportScreen from "../screens/HomeScreen/FaQSupport"
 import Offlinekyc from '../screens/kyc/Offlinekyc';
+import KycSubmitted from '../screens/kyc/KycSubmitted';
 
 const Stack = createStackNavigator();
 
@@ -64,11 +65,43 @@ const AppNavigator = () => {
         const token = await AsyncStorage.getItem('header_token');
 
         if (token) {
-          console.log("🔐 Token Found → Go to Home");
-          setInitialRoute('FinanceHome');   // ✅ HOME
+          console.log("🔐 Token Found → Fetching Profile Status");
+          
+          try {
+            const response = await fetch('http://192.168.1.5:8000/fetch-user-profile', {
+              method: 'GET',
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            const result = await response.json();
+
+            if (result?.success && result?.data) {
+              const kycStatus = result.data.kycStatus;
+              console.log("KYC Status fetched:", kycStatus);
+
+              // Sync to storage
+              if (kycStatus) {
+                await AsyncStorage.setItem('kyc_status', kycStatus);
+              }
+
+              if (kycStatus === "submitted") {
+                setInitialRoute('KycSubmitted');
+              } else if (kycStatus === "approved") {
+                setInitialRoute('FinanceHome');
+              } else if (kycStatus === "pending" || kycStatus === "rejected") {
+                setInitialRoute('Offlinekyc');
+              } else {
+                setInitialRoute('Offlinekyc'); // fallback
+              }
+            } else {
+              setInitialRoute('FinanceIntro');
+            }
+          } catch (apiError) {
+            console.error("Profile Fetch Error:", apiError);
+            setInitialRoute('FinanceIntro');
+          }
         } else {
           console.log("❌ No Token → Go to Login");
-          setInitialRoute('FinanceIntro');         // ✅ LOGIN
+          setInitialRoute('FinanceIntro');
         }
 
       } catch (error) {
@@ -144,6 +177,7 @@ const AppNavigator = () => {
       <Stack.Screen name="Signup" component={Signup} />
       <Stack.Screen name="SignupScreen" component={SignupScreen} />
       <Stack.Screen name="Offlinekyc" component={Offlinekyc} />
+      <Stack.Screen name="KycSubmitted" component={KycSubmitted} />
 
     </Stack.Navigator>
   );

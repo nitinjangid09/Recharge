@@ -170,6 +170,7 @@ export default function FinanceHome({ navigation }) {
       }
 
       setToken(s.header_token);
+      console.log("🔑 [DEBUG] Full Token:", s.header_token);
       setUserPhone(s.user_phone);
       setUserUsername(s.user_username);
       setKycStatus(s.kyc_status || "pending");
@@ -420,7 +421,7 @@ export default function FinanceHome({ navigation }) {
                 <View style={styles.cardFooter}>
                   {/* ── KYC badge now navigates to Offlinekyc ── */}
                   <TouchableOpacity
-                    onPress={() => navigation.navigate("Offlinekyc")}
+                    // onPress={() => navigation.navigate("Offlinekyc")}
                     activeOpacity={0.75}
                     style={[styles.kycBadge, { borderColor: kyc }]}
                   >

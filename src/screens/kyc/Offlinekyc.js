@@ -295,7 +295,7 @@ export default function Offlinekyc({ navigation }) {
       Alert.alert(
         "✓ KYC Submitted",
         result.message || "Your KYC has been submitted and is under review. We'll notify you once approved.",
-        [{ text: "OK", onPress: () => navigation.replace("FinanceHome") }]
+        [{ text: "OK", onPress: () => navigation.replace("KycSubmitted") }]
       );
     } else {
       // Surface server-side field errors inline if provided
