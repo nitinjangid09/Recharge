@@ -116,8 +116,10 @@ export default function OTP({ navigation, route }) {
    *    "is_kyc_online"   isKycOnline (JSON boolean string)
    *
    * ─────────────────────────────────────────────────────────────────────── */
-  const saveSessionToStorage = async ({ token, user, isKycOnline }) => {
+  const saveSessionToStorage = async (result) => {
+    const { token, user, isKycOnline } = result;
     const pairs = [
+      ["token", JSON.stringify(result)],
       ["header_token",  token],
       ["is_kyc_online", JSON.stringify(isKycOnline ?? false)],
     ];
