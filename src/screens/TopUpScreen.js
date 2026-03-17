@@ -45,6 +45,7 @@ export default function TopUpScreen({ navigation, route }) {
   const [searchText, setSearchText]             = useState("");
   const [amount, setAmount]                     = useState("199");
   const [operatorCode, setOperatorCode]         = useState("");
+  const [receiptData, setReceiptData]           = useState(null);
 
   const [customToast, setCustomToast] = useState({ visible: false, message: "", type: "success" });
   const toastAnim = useRef(new Animated.Value(0)).current;
@@ -55,6 +56,7 @@ export default function TopUpScreen({ navigation, route }) {
     if (route.params?.mobile)         setMobile(route.params.mobile);
     if (route.params?.operator)       setOperator(route.params.operator);
     if (route.params?.circle)         setCircle(route.params.circle);
+    if (route.params?.operatorCode)   setOperatorCode(route.params.operatorCode);
   }, [route.params]);
 
   const showCustomToast = (msg, type = "success") => {
@@ -99,13 +101,34 @@ export default function TopUpScreen({ navigation, route }) {
       
       const response = await processRecharge({ ...config, headerToken });
       
-      if (response?.success) {
-        showCustomToast("Recharge Successful", "success");
+      if (response?.status === "SUCCESS" || response?.success) {
+        setReceiptData({
+          status: "success",
+          amount: amount,
+          txn_ref: response.txn_ref || response.txnRef || "N/A",
+          message: response.message || "Transaction Successful",
+          mobile: mobile,
+          operator: operator
+        });
       } else {
-        showCustomToast(response?.message || "Recharge Failed", "error");
+        setReceiptData({
+          status: "error",
+          amount: amount,
+          txn_ref: response?.txn_ref || response?.txnRef || "N/A",
+          message: response?.message || response?.error || "Recharge Failed",
+          mobile: mobile,
+          operator: operator
+        });
       }
     } catch (error) {
-       showCustomToast("Something went wrong during recharge", "error");
+       setReceiptData({
+          status: "error",
+          amount: amount,
+          txn_ref: "N/A",
+          message: "Something went wrong during recharge",
+          mobile: mobile,
+          operator: operator
+       });
     } finally {
       setLoading(false);
       setCompleted(false);
@@ -201,11 +224,24 @@ export default function TopUpScreen({ navigation, route }) {
         
         if (result?.success) {
           const fetchedData = result.data || {};
-          const matchedOp = operators.find(op => 
+          let currentOps = operators;
+          if (currentOps.length === 0) {
+             const opsData = await getRechargeOperatorList({ headerToken });
+             if (opsData?.success) {
+               currentOps = opsData.data || [];
+               setOperators(currentOps);
+             }
+          }
+
+          const matchedOp = currentOps.find(op => 
             (op.label && fetchedData.operator && op.label.toLowerCase() === fetchedData.operator.toLowerCase()) || 
             (op.rechargeValue && fetchedData.operatorCode && op.rechargeValue.toLowerCase() === fetchedData.operatorCode.toLowerCase()) ||
             (op.planFetchValue && fetchedData.operatorCode && op.planFetchValue.toLowerCase() === fetchedData.operatorCode.toLowerCase())
           );
+          console.log("🔍 fetchedData:", fetchedData);
+          console.log("🔍 currentOps count:", currentOps.length);
+          console.log("🔍 matchedOp:", matchedOp);
+
           const matchedCir = circles.find(c => 
             String(c.circleCode) === String(fetchedData.circle) || 
             String(c.circlecode) === String(fetchedData.circle)
@@ -213,15 +249,18 @@ export default function TopUpScreen({ navigation, route }) {
           const opName = matchedOp?.label || matchedOp?.name || fetchedData.operator || "";
           const cirName = matchedCir?.circleName || matchedCir?.circlename || fetchedData.state || "";
           
+          const opCode = matchedOp?.rechargeValue || fetchedData.operatorCode || "";
+          console.log("🔍 SETTING OPERATOR CODE:", opCode);
+          setOperatorCode(opCode);
           setOperator(opName);
           setCircle(cirName);
-          setOperatorCode(matchedOp?.rechargeValue || fetchedData.operatorCode || "");
           
           navigation.navigate("StorePlans", {
             mobile: num,
             operator: opName,
             circle: cirName,
             plans: fetchedData.plans || [],
+            operatorCode: opCode,
           });
         } else {
           setOperator(""); setCircle("");
@@ -497,6 +536,51 @@ export default function TopUpScreen({ navigation, route }) {
           </LinearGradient>
         </Animated.View>
       )}
+
+      {/* ══ RECHARGE RECEIPT MODAL ══ */}
+      <Modal visible={!!receiptData} transparent animationType="slide" onRequestClose={() => setReceiptData(null)}>
+        <View style={styles.receiptOverlay}>
+          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setReceiptData(null)} />
+          <View style={styles.receiptContent}>
+            <View style={styles.receiptHeader}>
+              <LinearGradient 
+                colors={receiptData?.status === "success" ? ["#4CAF50", "#388E3C"] : ["#E53935", "#B71C1C"]} 
+                style={[styles.successBadge, receiptData?.status === "error" && { backgroundColor: '#E53935' }]}
+              >
+                <Icon name={receiptData?.status === "success" ? "check" : "close"} size={24} color="#FFF" />
+              </LinearGradient>
+              <Text style={[styles.receiptStatusText, receiptData?.status === "error" && { color: '#E53935' }]}>
+                {receiptData?.message}
+              </Text>
+              <Text style={styles.receiptAmountText}>₹{receiptData?.amount}</Text>
+              <Text style={styles.receiptInfo}>For {receiptData?.mobile} ({receiptData?.operator})</Text>
+            </View>
+
+            <View style={styles.dashedLine} />
+
+            <View style={styles.detailsRow}>
+              <Text style={styles.detailsLabel}>Transaction ID</Text>
+              <Text style={styles.detailsValue}>{receiptData?.txn_ref}</Text>
+            </View>
+
+            <View style={styles.detailsRow}>
+              <Text style={styles.detailsLabel}>Date & Time</Text>
+              <Text style={styles.detailsValue}>{new Date().toLocaleString()}</Text>
+            </View>
+
+            <View style={styles.detailsRow}>
+              <Text style={styles.detailsLabel}>Payment Mode</Text>
+              <Text style={styles.detailsValue}>Main Wallet</Text>
+            </View>
+
+            <View style={styles.dashedLine} />
+
+            <TouchableOpacity style={styles.doneBtn} onPress={() => setReceiptData(null)}>
+              <Text style={styles.doneText}>Download Receipt</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -713,6 +797,20 @@ const styles = StyleSheet.create({
   customToastBox: { position: 'absolute', top: 60, left: 20, right: 20, zIndex: 9999 },
   customToastGrad: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, gap: 10, elevation: 6, shadowColor: "#000", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 5 },
   customToastText: { color: '#FFF', fontFamily: Fonts.Bold, fontSize: 13, flex: 1 },
+
+  receiptOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  receiptContent: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 30 },
+  receiptHeader: { alignItems: 'center', marginBottom: 15 },
+  successBadge: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
+  receiptStatusText: { fontSize: 16, fontFamily: Fonts.Bold, color: '#2E7D32' },
+  receiptAmountText: { fontSize: 32, fontFamily: Fonts.Bold, color: '#111', marginVertical: 6 },
+  receiptInfo: { fontSize: 13, fontFamily: Fonts.Medium, color: '#666' },
+  dashedLine: { borderWidth: 1, borderColor: '#EEE', borderStyle: 'dashed', marginVertical: 18, borderRadius: 1 },
+  detailsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14, alignItems: 'center' },
+  detailsLabel: { fontSize: 13, fontFamily: Fonts.Medium, color: '#777' },
+  detailsValue: { fontSize: 13, fontFamily: Fonts.Bold, color: '#333', flex: 1, textAlign: 'right' },
+  doneBtn: { backgroundColor: '#002E6E', paddingVertical: 14, borderRadius: 12, alignItems: 'center', marginTop: 12 },
+  doneText: { color: '#FFF', fontFamily: Fonts.Bold, fontSize: 14, letterSpacing: 1 },
 
   // ── Loader ────────────────────────────────────────────────────────────────
   fullLoader: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(255,255,255,0.7)", justifyContent: "center", alignItems: "center", zIndex: 1000 },

@@ -250,6 +250,18 @@ export const verifyRechargeMobile = async ({ mobile, headerToken }) => {
 };
 
 export const processRecharge = async ({ amount, operatorCode, number, billerMode, headerToken }) => {
+  const generateIdempotencyKey = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = 'IDES';
+    for (let i = 0; i < 8; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
+  const idempotencyKey = generateIdempotencyKey();
+  console.log("🚀 SENDING RECHARGE PAYLOAD:", { amount, operatorCode, number, billerMode });
+
   try {
     const response = await axios.post(`${BASE_URL}/user/recharge/mobile-prepaid-recharge`, {
       amount,
@@ -259,7 +271,7 @@ export const processRecharge = async ({ amount, operatorCode, number, billerMode
     }, {
       headers: { 
         Authorization: `Bearer ${headerToken}`,
-        "idempotency-key": "IDES129450"
+        "idempotency-key": idempotencyKey
       },
     });
     return response.data;

@@ -95,7 +95,8 @@ export default function StorePlans({ navigation, route }) {
             selectedAmount: String(item.price || item.amount),
             mobile,
             operator,
-            circle
+            circle,
+            operatorCode: route.params?.operatorCode
           });
         }}
       >
