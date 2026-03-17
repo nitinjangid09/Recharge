@@ -213,6 +213,62 @@ export const getOperatorCircle = async (mobile) => {
   }
 };
 
+export const getRechargeOperatorList = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/recharge/operator-list`, {
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get Recharge Operator List Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch operators" };
+  }
+};
+
+export const getRechargeCircleList = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/recharge/circle-list`, {
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get Recharge Circle List Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch circles" };
+  }
+};
+
+export const verifyRechargeMobile = async ({ mobile, headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/recharge/mobile-verify/${mobile}`, {
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Verify Recharge Mobile Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to verify mobile" };
+  }
+};
+
+export const processRecharge = async ({ amount, operatorCode, number, billerMode, headerToken }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/recharge/mobile-prepaid-recharge`, {
+      amount,
+      operatorCode,
+      number,
+      billerMode
+    }, {
+      headers: { 
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": "IDES129450"
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Process Recharge Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Recharge failed" };
+  }
+};
+
 export const fetchOperatorByMobile = async (mobile) => {
   try {
     const auth = await getAuthHeaders();
@@ -551,5 +607,64 @@ export const clearKycStorage = async () => {
     ]);
   } catch (error) {
     console.log("[KYC] clearKycStorage error:", error);
+  }
+};
+// ─────────────────────────────────────────────────────────────────────────────
+// TOPUP BANKS
+// ─────────────────────────────────────────────────────────────────────────────
+export const getAllTopupBanks = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/topupBank/get-all-topup-banks`, {
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get Topup Banks error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch banks" };
+  }
+};
+
+export const addOfflineTopupRequest = async ({ amount, mode, receiverBank, utrNumber, paymentDate, paymentProof, headerToken }) => {
+  try {
+    let formData = new FormData();
+    formData.append("amount", amount);
+    formData.append("mode", mode);
+    formData.append("receiverBank", receiverBank);
+    formData.append("utrNumber", utrNumber);
+    formData.append("paymentDate", paymentDate);
+
+    if (paymentProof) {
+      const filename = paymentProof.split('/').pop();
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : `image`;
+      formData.append("paymentProof", {
+        uri: paymentProof,
+        name: filename,
+        type: type,
+      });
+    }
+
+    const response = await axios.post(`${BASE_URL}/user/offlineTopup/add-offline-topup-request`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        "Authorization": `Bearer ${headerToken}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Add Offline Topup Request Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Request submission failed" };
+  }
+};
+
+export const getWalletBalance = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/wallet/get-wallet-balance`, {
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get Wallet Balance Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch balance" };
   }
 };

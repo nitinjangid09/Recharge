@@ -17,7 +17,7 @@ import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { Animated } from "react-native";
 export default function StorePlans({ navigation, route }) {
-  const { mobile, operator, circle } = route.params || {};
+  const { mobile, operator, circle, plans } = route.params || {};
 
   const [allPlans, setAllPlans] = useState([]);
   const [types, setTypes] = useState([]);
@@ -26,38 +26,43 @@ export default function StorePlans({ navigation, route }) {
 
   // 🔹 API CALL
   useEffect(() => {
-    if (mobile && operator && circle) {
+    if (plans && plans.length > 0) {
+      setAllPlans(plans);
+      const uniqueTypes = plans.map(p => p.categories);
+      setTypes(uniqueTypes);
+      if (uniqueTypes.length > 0) {
+        setActiveType(uniqueTypes[0]);
+      }
+    } else if (mobile && operator && circle) {
       loadPlans();
     }
   }, []);
 
   const loadPlans = async () => {
     setLoading(true);
-
     const res = await fetchPlans(mobile, circle, operator);
 
     if (res?.status === "SUCCESS") {
-      const plans = res.plans || [];
-
-      setAllPlans(plans);
+      const fetchedPlans = res.plans || [];
+      setAllPlans(fetchedPlans);
 
       // 🔹 extract UNIQUE types dynamically
-      const uniqueTypes = [...new Set(plans.map(p => p.type))];
+      const uniqueTypes = [...new Set(fetchedPlans.map(p => p.type || p.categories))];
       setTypes(uniqueTypes);
 
-      // 🔹 default select first type
       if (uniqueTypes.length > 0) {
         setActiveType(uniqueTypes[0]);
       }
     } else {
       ToastAndroid.show(res?.message || "Failed to load plans", ToastAndroid.SHORT);
     }
-
     setLoading(false);
   };
 
   // 🔹 FILTER BY SELECTED TYPE
-  const filteredPlans = allPlans.filter(p => p.type === activeType);
+  const filteredPlans = plans && plans.length > 0
+    ? (allPlans.find(p => p.categories === activeType)?.plan || [])
+    : allPlans.filter(p => p.type === activeType);
 
   // 🔹 UI CARD (UNCHANGED)
   // 🔹 ANIMATED CARD COMPONENT
@@ -86,8 +91,12 @@ export default function StorePlans({ navigation, route }) {
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         onPress={() => {
-          // Handle Selection
-          // navigation.navigate("Payment", { plan: item });
+          navigation.navigate("TopUpScreen", { 
+            selectedAmount: String(item.price || item.amount),
+            mobile,
+            operator,
+            circle
+          });
         }}
       >
         <Animated.View style={[styles.card, { transform: [{ scale: scaleAnim }] }]}>
@@ -95,7 +104,7 @@ export default function StorePlans({ navigation, route }) {
           <View style={styles.cardHeader}>
             <View style={styles.priceWrapper}>
               <Text style={styles.priceSymbol}>₹</Text>
-              <Text style={styles.price}>{item.amount}</Text>
+              <Text style={styles.price}>{item.price || item.amount}</Text>
             </View>
             <LinearGradient
               colors={['#fff', '#fcf9f2']}
@@ -225,7 +234,7 @@ export default function StorePlans({ navigation, route }) {
           <FlatList
             data={filteredPlans}
             renderItem={renderPlan}
-            keyExtractor={item => item.id?.toString()}
+            keyExtractor={(item, index) => item.productId?.toString() || item.id?.toString() || index.toString()}
             contentContainerStyle={{ paddingBottom: 100 }}
             ListEmptyComponent={
               <Text style={{ textAlign: "center", marginTop: 20 }}>

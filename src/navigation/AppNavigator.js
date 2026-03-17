@@ -52,6 +52,7 @@ import SupportScreen from "../screens/Account/SupportScreen"
 import FaqSupportScreen from "../screens/HomeScreen/FaQSupport"
 import Offlinekyc from '../screens/kyc/Offlinekyc';
 import KycSubmitted from '../screens/kyc/KycSubmitted';
+import OfflineTopup from '../screens/OfflineTopup';
 
 const Stack = createStackNavigator();
 
@@ -178,6 +179,7 @@ const AppNavigator = () => {
       <Stack.Screen name="SignupScreen" component={SignupScreen} />
       <Stack.Screen name="Offlinekyc" component={Offlinekyc} />
       <Stack.Screen name="KycSubmitted" component={KycSubmitted} />
+      <Stack.Screen name="OfflineTopup" component={OfflineTopup} />
 
     </Stack.Navigator>
   );

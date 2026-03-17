@@ -24,12 +24,13 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Colors from "../constants/Colors";
 import Fonts from "../constants/Fonts";
 import HeaderBar from "../componets/HeaderBar";
-import { getOperatorCircle, fetchOperatorByMobile } from "../api/AuthApi";
+import { getOperatorCircle, fetchOperatorByMobile, getRechargeOperatorList, getRechargeCircleList, verifyRechargeMobile, processRecharge } from "../api/AuthApi";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 
-export default function TopUpScreen({ navigation }) {
+export default function TopUpScreen({ navigation, route }) {
   const insets = useSafeAreaInsets();
 
   const [type, setType]                         = useState("airtime");
@@ -43,6 +44,29 @@ export default function TopUpScreen({ navigation }) {
   const [loading, setLoading]                   = useState(false);
   const [searchText, setSearchText]             = useState("");
   const [amount, setAmount]                     = useState("199");
+  const [operatorCode, setOperatorCode]         = useState("");
+
+  const [customToast, setCustomToast] = useState({ visible: false, message: "", type: "success" });
+  const toastAnim = useRef(new Animated.Value(0)).current;
+
+  // 🔹 Update states from navigation params
+  useEffect(() => {
+    if (route.params?.selectedAmount) setAmount(String(route.params.selectedAmount));
+    if (route.params?.mobile)         setMobile(route.params.mobile);
+    if (route.params?.operator)       setOperator(route.params.operator);
+    if (route.params?.circle)         setCircle(route.params.circle);
+  }, [route.params]);
+
+  const showCustomToast = (msg, type = "success") => {
+    setCustomToast({ visible: true, message: msg, type });
+    Animated.timing(toastAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start(() => {
+      setTimeout(() => {
+        Animated.timing(toastAnim, { toValue: 0, duration: 300, useNativeDriver: true }).start(() => {
+          setCustomToast({ visible: false, message: "", type: "success" });
+        });
+      }, 2500);
+    });
+  };
 
   /* ── Entry animations ── */
   const slideAnim = useRef(new Animated.Value(50)).current;
@@ -62,8 +86,35 @@ export default function TopUpScreen({ navigation }) {
   const [completed, setCompleted] = useState(false);
   const THUMB_WIDTH = 50;
 
-  const panResponder = useRef(
-    PanResponder.create({
+  const handleRecharge = async () => {
+    try {
+      setLoading(true);
+      const headerToken = await AsyncStorage.getItem("header_token");
+      const config = {
+        amount: Number(amount),
+        operatorCode: operatorCode,
+        number: mobile,
+        billerMode: "prepaidrecharge"
+      };
+      
+      const response = await processRecharge({ ...config, headerToken });
+      
+      if (response?.success) {
+        showCustomToast("Recharge Successful", "success");
+      } else {
+        showCustomToast(response?.message || "Recharge Failed", "error");
+      }
+    } catch (error) {
+       showCustomToast("Something went wrong during recharge", "error");
+    } finally {
+      setLoading(false);
+      setCompleted(false);
+      pan.setValue(0);
+    }
+  };
+
+  const panResponder = React.useMemo(
+    () => PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder:  () => true,
       onPanResponderGrant: () => {
@@ -77,17 +128,23 @@ export default function TopUpScreen({ navigation }) {
       onPanResponderRelease: (_, g) => {
         const w = trackWidthRef.current;
         if (w > 0 && g.dx >= (w - THUMB_WIDTH) * 0.8) {
+          // 🔹 Validation checks
+          if (mobile.length !== 10) { showCustomToast("Enter 10-digit mobile number", "error"); Animated.spring(pan, { toValue: 0, useNativeDriver: false }).start(); return; }
+          if (!operator) { showCustomToast("Select Operator", "error"); Animated.spring(pan, { toValue: 0, useNativeDriver: false }).start(); return; }
+          if (!circle) { showCustomToast("Select Circle", "error"); Animated.spring(pan, { toValue: 0, useNativeDriver: false }).start(); return; }
+          if (!amount || Number(amount) <= 0) { showCustomToast("Enter valid amount", "error"); Animated.spring(pan, { toValue: 0, useNativeDriver: false }).start(); return; }
+
           Animated.timing(pan, { toValue: w - THUMB_WIDTH, duration: 200, useNativeDriver: false }).start(() => {
             setCompleted(true);
-            showToast("Processing Payment...");
-            setTimeout(() => { setCompleted(false); pan.setValue(0); }, 3000);
+            handleRecharge();
           });
         } else {
           Animated.spring(pan, { toValue: 0, useNativeDriver: false }).start();
         }
       },
-    })
-  ).current;
+    }),
+    [mobile, operator, circle, amount, operatorCode]
+  );
 
   useEffect(() => {
     Animated.parallel([
@@ -110,10 +167,20 @@ export default function TopUpScreen({ navigation }) {
   const fetchOperatorCircle = async () => {
     try {
       setLoading(true);
-      const result = await getOperatorCircle("");
-      if (result?.status === "SUCCESS") {
-        setOperators(result.data?.operators || []);
-        setCircles(result.data?.circle     || []);
+      
+      const headerToken = await AsyncStorage.getItem("header_token");
+      if (headerToken) {
+        // Fetch operators from NEW API
+        const opResult = await getRechargeOperatorList({ headerToken });
+        if (opResult?.success) {
+          setOperators(opResult.data || []);
+        }
+
+        // Fetch circles from NEW API
+        const cirResult = await getRechargeCircleList({ headerToken });
+        if (cirResult?.success) {
+          setCircles(cirResult.data || []);
+        }
       }
     } catch (e) {
       console.log("Operator/Circle API error", e);
@@ -129,20 +196,36 @@ export default function TopUpScreen({ navigation }) {
     if (num.length === 10) {
       try {
         setLoading(true);
-        const result = await fetchOperatorByMobile(num);
-        if (result?.status === "SUCCESS") {
-          const matchedOp  = operators.find(op => op.code === result.operator);
-          const matchedCir = circles.find(c  => String(c.circlecode) === String(result.circle));
-          setOperator(matchedOp?.name       || "");
-          setCircle(matchedCir?.circlename  || "");
+        const headerToken = await AsyncStorage.getItem("header_token");
+        const result = await verifyRechargeMobile({ mobile: num, headerToken });
+        
+        if (result?.success) {
+          const fetchedData = result.data || {};
+          const matchedOp = operators.find(op => 
+            (op.label && fetchedData.operator && op.label.toLowerCase() === fetchedData.operator.toLowerCase()) || 
+            (op.rechargeValue && fetchedData.operatorCode && op.rechargeValue.toLowerCase() === fetchedData.operatorCode.toLowerCase()) ||
+            (op.planFetchValue && fetchedData.operatorCode && op.planFetchValue.toLowerCase() === fetchedData.operatorCode.toLowerCase())
+          );
+          const matchedCir = circles.find(c => 
+            String(c.circleCode) === String(fetchedData.circle) || 
+            String(c.circlecode) === String(fetchedData.circle)
+          );
+          const opName = matchedOp?.label || matchedOp?.name || fetchedData.operator || "";
+          const cirName = matchedCir?.circleName || matchedCir?.circlename || fetchedData.state || "";
+          
+          setOperator(opName);
+          setCircle(cirName);
+          setOperatorCode(matchedOp?.rechargeValue || fetchedData.operatorCode || "");
+          
           navigation.navigate("StorePlans", {
-            mobile:   num,
-            operator: matchedOp?.name      || "",
-            circle:   matchedCir?.circlename || "",
+            mobile: num,
+            operator: opName,
+            circle: cirName,
+            plans: fetchedData.plans || [],
           });
         } else {
           setOperator(""); setCircle("");
-          showToast(result?.message || "Unable to detect operator");
+          showCustomToast(result?.message || "Unable to detect operator", "error");
         }
       } catch (err) {
         console.log("Fetch operator error:", err);
@@ -330,43 +413,42 @@ export default function TopUpScreen({ navigation }) {
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
-
-              {/* ══ SLIDER ACTION ══ */}
-              <View style={styles.actionContainer}>
-                {!completed ? (
-                  <View
-                    style={styles.sliderWrapper}
-                    onLayout={(e) => { trackWidthRef.current = e.nativeEvent.layout.width; }}
-                  >
-                    <Animated.View style={[styles.sliderBackground, {
-                      opacity: pan.interpolate({ inputRange: [0, 100], outputRange: [1, 0.5], extrapolate: "clamp" }),
-                    }]}>
-                      <Text style={styles.swipeText}>SWIPE TO RECHARGE</Text>
-                    </Animated.View>
-                    <Animated.View
-                      style={[styles.sliderThumb, { transform: [{ translateX: pan }] }]}
-                      {...panResponder.panHandlers}
-                    >
-                      <LinearGradient colors={[Colors.finance_accent, "#b8944d"]} style={styles.thumbGrad}>
-                        <Icon name="chevron-right" size={28} color={Colors.white} />
-                      </LinearGradient>
-                    </Animated.View>
-                  </View>
-                ) : (
-                  <LinearGradient
-                    colors={[Colors.finance_accent, "#b8944d"]}
-                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                    style={styles.processingBtn}
-                  >
-                    <ActivityIndicator size="small" color={Colors.white} style={{ marginRight: 10 }} />
-                    <Text style={styles.processingText}>PROCESSING...</Text>
-                  </LinearGradient>
-                )}
-              </View>
-
-            </Animated.View>
+              </Animated.View>
           </ScrollView>
         </KeyboardAvoidingView>
+
+        {/* ══ SLIDER ACTION (Fixed at Bottom) ══ */}
+        <View style={styles.actionContainer}>
+          {!completed ? (
+            <View
+              style={styles.sliderWrapper}
+              onLayout={(e) => { trackWidthRef.current = e.nativeEvent.layout.width; }}
+            >
+              <Animated.View style={[styles.sliderBackground, {
+                opacity: pan.interpolate({ inputRange: [0, 100], outputRange: [1, 0.5], extrapolate: "clamp" }),
+              }]}>
+                <Text style={styles.swipeText}>SWIPE TO RECHARGE</Text>
+              </Animated.View>
+              <Animated.View
+                style={[styles.sliderThumb, { transform: [{ translateX: pan }] }]}
+                {...panResponder.panHandlers}
+              >
+                <LinearGradient colors={[Colors.finance_accent, "#b8944d"]} style={styles.thumbGrad}>
+                  <Icon name="chevron-right" size={28} color={Colors.white} />
+                </LinearGradient>
+              </Animated.View>
+            </View>
+          ) : (
+            <LinearGradient
+              colors={[Colors.finance_accent, "#b8944d"]}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+              style={styles.processingBtn}
+            >
+              <ActivityIndicator size="small" color={Colors.white} style={{ marginRight: 10 }} />
+              <Text style={styles.processingText}>PROCESSING...</Text>
+            </LinearGradient>
+          )}
+        </View>
       </View>
 
       {/* ══ OPERATOR MODAL ══ */}
@@ -377,11 +459,11 @@ export default function TopUpScreen({ navigation }) {
         searchText={searchText}
         onSearch={setSearchText}
         searchPlaceholder="Search Operator..."
-        items={operators.filter(op => op.name.toLowerCase().includes(searchText.toLowerCase()))}
+        items={operators.filter(op => (op.label || op.name || "").toLowerCase().includes(searchText.toLowerCase()))}
         selectedValue={operator}
         iconName="sim"
-        getLabel={op => op.name}
-        onSelect={(op) => { setOperator(op.name); setShowOperatorModal(false); setSearchText(""); }}
+        getLabel={op => op.label || op.name}
+        onSelect={(op) => { setOperator(op.label || op.name); setOperatorCode(op.rechargeValue || ""); setShowOperatorModal(false); setSearchText(""); }}
       />
 
       {/* ══ CIRCLE MODAL ══ */}
@@ -392,11 +474,11 @@ export default function TopUpScreen({ navigation }) {
         searchText={searchText}
         onSearch={setSearchText}
         searchPlaceholder="Search Circle..."
-        items={circles.filter(c => c.circlename.toLowerCase().includes(searchText.toLowerCase()))}
+        items={circles.filter(c => (c.circleName || c.circlename || "").toLowerCase().includes(searchText.toLowerCase()))}
         selectedValue={circle}
         iconName="map-marker-radius"
-        getLabel={c => c.circlename}
-        onSelect={(c) => { setCircle(c.circlename); setShowCircleModal(false); setSearchText(""); }}
+        getLabel={c => c.circleName || c.circlename}
+        onSelect={(c) => { setCircle(c.circleName || c.circlename); setShowCircleModal(false); setSearchText(""); }}
       />
 
       {/* ══ FULL SCREEN LOADER ══ */}
@@ -404,6 +486,16 @@ export default function TopUpScreen({ navigation }) {
         <View style={styles.fullLoader}>
           <ActivityIndicator size="large" color={Colors.finance_accent} />
         </View>
+      )}
+
+      {/* ══ CUSTOM TOAST ══ */}
+      {customToast.visible && (
+        <Animated.View style={[styles.customToastBox, { opacity: toastAnim, transform: [{ translateY: toastAnim.interpolate({ inputRange: [0, 1], outputRange: [-40, 0] }) }] }]}>
+          <LinearGradient colors={customToast.type === "success" ? ["#4CAF50", "#2E7D32"] : ["#F44336", "#C62828"]} style={styles.customToastGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+              <Icon name={customToast.type === "success" ? "check-circle" : "alert-circle"} size={20} color={Colors.white} />
+              <Text style={styles.customToastText}>{customToast.message}</Text>
+          </LinearGradient>
+        </Animated.View>
       )}
     </SafeAreaView>
   );
@@ -589,7 +681,7 @@ const styles = StyleSheet.create({
   viewPlansText:    { color: Colors.black, fontFamily: Fonts.Bold, fontSize: 14 },
 
   // ── Slider ────────────────────────────────────────────────────────────────
-  actionContainer: { marginTop: 10 },
+  actionContainer: { padding: 12, backgroundColor: Colors.finance_bg_1, borderTopWidth: 1, borderTopColor: 'rgba(212, 176, 106, 0.1)' },
   sliderWrapper:   { height: 60, backgroundColor: Colors.white, borderRadius: 30, borderWidth: 1.5, borderColor: Colors.finance_accent, justifyContent: "center", elevation: 4, overflow: "hidden" },
   sliderBackground:{ ...StyleSheet.absoluteFillObject, justifyContent: "center", alignItems: "center" },
   swipeText:       { color: Colors.finance_accent, fontSize: 14, fontFamily: Fonts.Bold, letterSpacing: 2 },
@@ -617,6 +709,10 @@ const styles = StyleSheet.create({
   checkCircle:         { width: 20, height: 20, borderRadius: 10, backgroundColor: Colors.finance_accent, alignItems: "center", justifyContent: "center" },
   emptyWrap:           { alignItems: "center", paddingVertical: 30 },
   emptyTxt:            { color: "#BDBDBD", fontSize: 13, fontFamily: Fonts.Medium },
+
+  customToastBox: { position: 'absolute', top: 60, left: 20, right: 20, zIndex: 9999 },
+  customToastGrad: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, gap: 10, elevation: 6, shadowColor: "#000", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 5 },
+  customToastText: { color: '#FFF', fontFamily: Fonts.Bold, fontSize: 13, flex: 1 },
 
   // ── Loader ────────────────────────────────────────────────────────────────
   fullLoader: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(255,255,255,0.7)", justifyContent: "center", alignItems: "center", zIndex: 1000 },

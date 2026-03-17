@@ -10,18 +10,11 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Fonts from "../constants/Fonts";
 import Colors from "../constants/Colors";
+import { getWalletBalance, fetchUserProfile } from "../api/AuthApi";
 
 const { width } = Dimensions.get("window");
 
-// ─────────────────────────────────────────────────────────────────────────────
-// QUICK ACCESS — 4 large shortcut buttons shown ABOVE the AEPS service list
-// ─────────────────────────────────────────────────────────────────────────────
-const QUICK_ACCESS = [
-  { key: "aeps", label: "AEPS", icon: "fingerprint", color: Colors.finance_accent, screen: "CashWithdraw" },
-  { key: "bbps", label: "BBPS", icon: "lightning-bolt", color: Colors.finance_accent, screen: "PaymentsScreen" },
-  { key: "dmt", label: "DMT", icon: "bank-transfer", color: Colors.finance_accent, screen: "DmtLogin" },
-  { key: "recharge", label: "Recharge", icon: "cellphone-wireless", color: Colors.finance_accent, screen: "TopUpScreen" },
-];
+
 
 const SERVICES = {
   aeps: [
@@ -98,6 +91,12 @@ export default function FinanceHome({ navigation }) {
   const [aepsBalance, setAepsBalance] = useState("...");
   const [mainBalance, setMainBalance] = useState("...");
   const [balanceLoading, setBalanceLoading] = useState(false);
+  const [assignedServices, setAssignedServices] = useState([]);
+  const [servicesLoading, setServicesLoading] = useState(false);
+
+  const hasService = (name) => {
+    return assignedServices.some(s => s.name?.toLowerCase() === name.toLowerCase());
+  };
 
   // ── Quick button loading states ───────────────────────────────────────────
   const [quickLoading, setQuickLoading] = useState({
@@ -144,15 +143,18 @@ export default function FinanceHome({ navigation }) {
   const loadBalances = useCallback(async (authToken) => {
     setBalanceLoading(true);
     try {
-      const [aeps, main] = await Promise.allSettled([
-        fetchAepsBalance(authToken),
-        fetchMainBalance(authToken),
-      ]);
-      setAepsBalance(aeps.status === "fulfilled" ? aeps.value : "0.00");
-      setMainBalance(main.status === "fulfilled" ? main.value : "0.00");
-    } catch (_) {
-      setAepsBalance("0.00");
-      setMainBalance("0.00");
+      const result = await getWalletBalance({ headerToken: authToken });
+      if (result?.success && result?.data) {
+        setAepsBalance(String(result.data.aepsWallet ?? "0"));
+        setMainBalance(String(result.data.mainWallet ?? "0"));
+      } else {
+        setAepsBalance("0");
+        setMainBalance("0");
+      }
+    } catch (error) {
+      console.log("Load Balances Local Error:", error);
+      setAepsBalance("0");
+      setMainBalance("0");
     } finally {
       setBalanceLoading(false);
     }
@@ -174,6 +176,13 @@ export default function FinanceHome({ navigation }) {
       setUserPhone(s.user_phone);
       setUserUsername(s.user_username);
       setKycStatus(s.kyc_status || "pending");
+
+      // ─── STATIC TESTING DATA (Instead of dynamic API fetch for now) ───
+      setServicesLoading(false);
+      setAssignedServices([
+        { "_id": "6993147e71936d89b7185e36", "name": "bbps" },
+        { "_id": "699314b271936d89b7185e48", "name": "recharge" }
+      ]);
 
       if (s.user_name?.trim()) {
         setUserName(s.user_name.trim());
@@ -418,6 +427,14 @@ export default function FinanceHome({ navigation }) {
                     </TouchableOpacity>
                   </View>
                 </View>
+
+                <TouchableOpacity
+                  style={styles.addMoneyBtn}
+                  onPress={() => navigation.navigate("OfflineTopup")}
+                >
+                  <Icon name="plus" size={14} color="#000" />
+                  <Text style={styles.addMoneyText}>Add Balance</Text>
+                </TouchableOpacity>
                 <View style={styles.cardFooter}>
                   {/* ── KYC badge now navigates to Offlinekyc ── */}
                   <TouchableOpacity
@@ -445,126 +462,162 @@ export default function FinanceHome({ navigation }) {
         >
           <View style={styles.body}>
 
-            {/* ══ QUICK ACCESS: AEPS · BBPS · DMT · Recharge ══ */}
-            <View style={styles.quickRow}>
-              {QUICK_ACCESS.map((item) => (
-                <TouchableOpacity
-                  key={item.key}
-                  style={styles.quickBtn}
-                  activeOpacity={0.8}
-                  onPress={() => handleQuickAccess(item)}
-                  disabled={quickLoading[item.key]}
-                >
-                  <View style={[styles.quickIconBg, { backgroundColor: item.color + "22" }]}>
-                    {quickLoading[item.key]
-                      ? <ActivityIndicator size="small" color={item.color} />
-                      : <Icon name={item.icon} size={26} color={item.color} />
-                    }
-                  </View>
-                  <Text style={styles.quickLabel}>{item.label}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
 
-            {/* ── AEPS Services ── */}
-            <SectionHeader title="Aeps Services" />
-            <Animated.View style={{ transform: [{ translateX: leftAnim }], opacity: leftFade }}>
-              <View style={styles.grid}>
-                {SERVICES.aeps.map((item, i) => (
-                  <TouchableOpacity
-                    key={i}
-                    style={[
-                      styles.categoryBox,
-                      // Visually hint that Aadhaar Pay needs KYC when not approved
-                      item.type === "ap" && kycStatus !== "approved" && styles.categoryBoxLocked,
-                    ]}
-                    onPress={() => handleAepsService(item)}
-                  >
-                    <View style={{ position: "relative" }}>
-                      <Icon name={ICON_MAP[item.type] || ICON_MAP.default} size={22} color={Colors.finance_text} />
-                      {/* Lock overlay badge for Aadhaar Pay when KYC pending/rejected */}
-                      {item.type === "ap" && kycStatus !== "approved" && (
-                        <View style={styles.lockBadge}>
-                          <Icon name="lock" size={8} color="#FFF" />
+
+            {servicesLoading ? (
+              <ActivityIndicator size="small" color={Colors.finance_accent} style={{ marginTop: 20 }} />
+            ) : assignedServices.length === 0 ? (
+              <View style={{ alignItems: "center", marginTop: 40, padding: 20 }}>
+                <Icon name="alert-circle-outline" size={40} color="#999" />
+                <Text style={{ color: "#666", fontFamily: Fonts.Medium, marginTop: 10, fontSize: 13, textAlign: "center" }}>No service allowed at this moment.</Text>
+              </View>
+            ) : (
+              <>
+                {/* ── Top Shortcuts for Assigned Services ── */}
+                <SectionHeader title="User Services" />
+                <View style={[styles.grid, { justifyContent: "flex-start" }]}>
+                  {assignedServices.map((item) => (
+                    <TouchableOpacity
+                      key={item._id}
+                      style={[styles.categoryBox, { marginRight: 12 }]}
+                      activeOpacity={0.75}
+                      onPress={() => {
+                        const name = item.name?.toLowerCase();
+                        if (name === "recharge") navigation.navigate("TopUpScreen");
+                        else if (name === "bbps") navigation.navigate("PaymentsScreen");
+                        else if (name === "aeps") navigation.navigate("CashWithdraw");
+                      }}
+                    >
+                      <View style={{ position: "relative" }}>
+                        <Icon 
+                          name={
+                            item.name?.toLowerCase() === "bbps" ? "lightning-bolt" : 
+                            item.name?.toLowerCase() === "recharge" ? "cellphone-wireless" : "apps"
+                          } 
+                          size={22} 
+                          color={Colors.finance_text} 
+                        />
+                      </View>
+                      <Text style={styles.categoryText}>{item.name.toUpperCase()}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                {/* ── AEPS Services ── */}
+                {hasService("aeps") && (
+                  <>
+                    <SectionHeader title="Aeps Services" />
+                    <Animated.View style={{ transform: [{ translateX: leftAnim }], opacity: leftFade }}>
+                      <View style={styles.grid}>
+                        {SERVICES.aeps.map((item, i) => (
+                          <TouchableOpacity
+                            key={i}
+                            style={[
+                              styles.categoryBox,
+                              // Visually hint that Aadhaar Pay needs KYC when not approved
+                              item.type === "ap" && kycStatus !== "approved" && styles.categoryBoxLocked,
+                            ]}
+                            onPress={() => handleAepsService(item)}
+                          >
+                            <View style={{ position: "relative" }}>
+                              <Icon name={ICON_MAP[item.type] || ICON_MAP.default} size={22} color={Colors.finance_text} />
+                              {/* Lock overlay badge for Aadhaar Pay when KYC pending/rejected */}
+                              {item.type === "ap" && kycStatus !== "approved" && (
+                                <View style={styles.lockBadge}>
+                                  <Icon name="lock" size={8} color="#FFF" />
+                                </View>
+                              )}
+                            </View>
+                            <Text style={styles.categoryText}>{item.name.replace("\n", " ")}</Text>
+                            {item.type === "ap" && kycStatus !== "approved" && (
+                              <Text style={styles.kycRequiredText}>KYC needed</Text>
+                            )}
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </Animated.View>
+                  </>
+                )}
+
+                {/* ── Money Transfer ── */}
+                {hasService("dmt") && (
+                  <>
+                    <SectionHeader title="Money Transfer" />
+                    <Animated.View style={{ transform: [{ translateX: leftAnim }], opacity: leftFade }}>
+                      <View style={styles.grid}>
+                        {SERVICES.money_transfer.map((item, i) => (
+                          <TouchableOpacity key={i} style={styles.categoryBox}
+                            onPress={() => item.type === "dmt" && navigation.navigate("DmtLogin")}
+                          >
+                            <Icon name={ICON_MAP[item.type] || ICON_MAP.default} size={22} color={Colors.finance_text} />
+                            <Text style={styles.categoryText}>{item.name}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </Animated.View>
+                  </>
+                )}
+
+                {/* ── Plan Carousel ── */}
+                {(hasService("bbps") || hasService("recharge")) && (
+                  <View style={{ height: 80, marginTop: 8 }}>
+                    <ScrollView ref={planRef} horizontal snapToInterval={SNAP_INTERVAL} decelerationRate="fast" showsHorizontalScrollIndicator={false}>
+                      {[
+                        { title: userPhone || "9876543210", sub: "Your plan expires in", highlight: "4 days", hColor: "#FF3B30", icon: "cellphone", btnText: "Recharge", btnColor: Colors.finance_accent, borderColor: "#FF3B30" },
+                        { title: "JioFiber", sub: "Bill Due:", highlight: "Tomorrow", hColor: "#FF9500", icon: "router-wireless", btnText: "Pay Bill", btnColor: "#FF9500", borderColor: "#FF9500" },
+                        { title: userPhone || "9876543210", sub: "Your plan expires in", highlight: "4 days", hColor: "#FF3B30", icon: "cellphone", btnText: "Recharge", btnColor: Colors.finance_accent, borderColor: "#FF3B30" },
+                      ].map((p, i) => (
+                        <View key={i} style={[styles.planCard, { width: CARD_WIDTH, marginRight: SPACING, borderLeftColor: p.borderColor }]}>
+                          <View style={styles.planRow}>
+                            <View style={[styles.planIconBg, { backgroundColor: p.btnColor }]}>
+                              <Icon name={p.icon} size={22} color="#FFF" />
+                            </View>
+                            <View style={{ flex: 1, marginLeft: 12 }}>
+                              <Text style={styles.planTitle}>{p.title}</Text>
+                              <Text style={styles.planSubtitle}>{p.sub} <Text style={{ color: p.hColor, fontWeight: "bold" }}>{p.highlight}</Text></Text>
+                            </View>
+                            <TouchableOpacity style={[styles.rechargeBtn, { backgroundColor: p.btnColor }]}>
+                              <Text style={styles.rechargeBtnText}>{p.btnText}</Text>
+                            </TouchableOpacity>
+                          </View>
                         </View>
-                      )}
-                    </View>
-                    <Text style={styles.categoryText}>{item.name.replace("\n", " ")}</Text>
-                    {item.type === "ap" && kycStatus !== "approved" && (
-                      <Text style={styles.kycRequiredText}>KYC needed</Text>
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </Animated.View>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
 
-            {/* ── Money Transfer ── */}
-            <SectionHeader title="Money Transfer" />
-            <Animated.View style={{ transform: [{ translateX: leftAnim }], opacity: leftFade }}>
-              <View style={styles.grid}>
-                {SERVICES.money_transfer.map((item, i) => (
-                  <TouchableOpacity key={i} style={styles.categoryBox}
-                    onPress={() => item.type === "dmt" && navigation.navigate("DmtLogin")}
-                  >
-                    <Icon name={ICON_MAP[item.type] || ICON_MAP.default} size={22} color={Colors.finance_text} />
-                    <Text style={styles.categoryText}>{item.name}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </Animated.View>
-
-            {/* ── Plan Carousel ── */}
-            <View style={{ height: 80, marginTop: 8 }}>
-              <ScrollView ref={planRef} horizontal snapToInterval={SNAP_INTERVAL} decelerationRate="fast" showsHorizontalScrollIndicator={false}>
-                {[
-                  { title: userPhone || "9876543210", sub: "Your plan expires in", highlight: "4 days", hColor: "#FF3B30", icon: "cellphone", btnText: "Recharge", btnColor: Colors.finance_accent, borderColor: "#FF3B30" },
-                  { title: "JioFiber", sub: "Bill Due:", highlight: "Tomorrow", hColor: "#FF9500", icon: "router-wireless", btnText: "Pay Bill", btnColor: "#FF9500", borderColor: "#FF9500" },
-                  { title: userPhone || "9876543210", sub: "Your plan expires in", highlight: "4 days", hColor: "#FF3B30", icon: "cellphone", btnText: "Recharge", btnColor: Colors.finance_accent, borderColor: "#FF3B30" },
-                ].map((p, i) => (
-                  <View key={i} style={[styles.planCard, { width: CARD_WIDTH, marginRight: SPACING, borderLeftColor: p.borderColor }]}>
-                    <View style={styles.planRow}>
-                      <View style={[styles.planIconBg, { backgroundColor: p.btnColor }]}>
-                        <Icon name={p.icon} size={22} color="#FFF" />
+                {/* ── Recharge & Bills ── */}
+                {(hasService("bbps") || hasService("recharge")) && (
+                  <>
+                    <View style={[styles.sectionHeader, { justifyContent: "space-between", marginBottom: 10 }]}>
+                      <View style={{ flexDirection: "row", alignItems: "center" }}>
+                        <View style={styles.sectionIndicator} />
+                        <Text style={styles.sectionTitle}>Recharge & Bills</Text>
                       </View>
-                      <View style={{ flex: 1, marginLeft: 12 }}>
-                        <Text style={styles.planTitle}>{p.title}</Text>
-                        <Text style={styles.planSubtitle}>{p.sub} <Text style={{ color: p.hColor, fontWeight: "bold" }}>{p.highlight}</Text></Text>
-                      </View>
-                      <TouchableOpacity style={[styles.rechargeBtn, { backgroundColor: p.btnColor }]}>
-                        <Text style={styles.rechargeBtnText}>{p.btnText}</Text>
+                      <TouchableOpacity style={styles.viewAllBtn} onPress={() => navigation.navigate("PaymentsScreen")}>
+                        <Text style={styles.viewText}>View All</Text>
+                        <Icon name="arrow-right" size={18} color={Colors.finance_accent} />
                       </TouchableOpacity>
                     </View>
-                  </View>
-                ))}
-              </ScrollView>
-            </View>
-
-            {/* ── Recharge & Bills ── */}
-            <View style={[styles.sectionHeader, { justifyContent: "space-between", marginBottom: 10 }]}>
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <View style={styles.sectionIndicator} />
-                <Text style={styles.sectionTitle}>Recharge & Bills</Text>
-              </View>
-              <TouchableOpacity style={styles.viewAllBtn} onPress={() => navigation.navigate("PaymentsScreen")}>
-                <Text style={styles.viewText}>View All</Text>
-                <Icon name="arrow-right" size={18} color={Colors.finance_accent} />
-              </TouchableOpacity>
-            </View>
-            <Animated.View style={{ transform: [{ translateX: leftAnim }], opacity: leftFade }}>
-              <View style={styles.grid}>
-                {SERVICES.recharge_bills.map((item, i) => (
-                  <TouchableOpacity key={i} style={styles.categoryBox}
-                    onPress={() => {
-                      if (item.type === "rech") navigation.navigate("TopUpScreen");
-                      else if (item.type === "C04") navigation.navigate("Electricity");
-                    }}
-                  >
-                    <Icon name={ICON_MAP[item.type] || ICON_MAP.default} size={22} color={Colors.finance_text} />
-                    <Text style={styles.categoryText}>{item.name}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </Animated.View>
+                    <Animated.View style={{ transform: [{ translateX: leftAnim }], opacity: leftFade }}>
+                      <View style={styles.grid}>
+                        {SERVICES.recharge_bills.map((item, i) => (
+                          <TouchableOpacity key={i} style={styles.categoryBox}
+                            onPress={() => {
+                              if (item.type === "rech") navigation.navigate("TopUpScreen");
+                              else if (item.type === "C04") navigation.navigate("Electricity");
+                            }}
+                          >
+                            <Icon name={ICON_MAP[item.type] || ICON_MAP.default} size={22} color={Colors.finance_text} />
+                            <Text style={styles.categoryText}>{item.name}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </Animated.View>
+                  </>
+                )}
+              </>
+            )}
 
             {/* ── Banner ── */}
             <View style={styles.bannerContainer}>
@@ -705,6 +758,8 @@ const styles = StyleSheet.create({
   notificationBadge: { position: "absolute", top: 10, right: 10, width: 8, height: 8, borderRadius: 4, backgroundColor: "#FF3B30", zIndex: 1, borderWidth: 1.5, borderColor: "#333" },
 
   walletCard: { marginTop: 12, borderRadius: 24, padding: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", overflow: "hidden" },
+  addMoneyBtn: { position: "absolute", right: 16, top: 75, backgroundColor: Colors.finance_accent, flexDirection: "row", alignItems: "center", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 16, elevation: 2 },
+  addMoneyText: { color: "#000", fontSize: 11, fontFamily: Fonts.Bold, marginLeft: 3 },
   cardCircle1: { position: "absolute", top: -30, right: -30, width: 100, height: 100, borderRadius: 50, backgroundColor: "rgba(212,176,106,0.1)" },
   cardCircle2: { position: "absolute", bottom: -40, left: -20, width: 120, height: 120, borderRadius: 60, backgroundColor: "rgba(255,255,255,0.05)" },
   walletTag: { flexDirection: "row", alignItems: "center", backgroundColor: "rgba(0,0,0,0.3)", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: "rgba(212,176,106,0.3)" },
