@@ -14,8 +14,20 @@ import { getWalletBalance, fetchUserProfile } from "../api/AuthApi";
 
 const { width } = Dimensions.get("window");
 
+// ─────────────────────────────────────────────────────────────────────────────
+// GREETING — updates every minute so it changes as the day progresses
+// ─────────────────────────────────────────────────────────────────────────────
+const getGreeting = () => {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 12) return { text: "Good Morning,", icon: "weather-sunny", color: "#FFC107" };
+  if (h >= 12 && h < 17) return { text: "Good Afternoon,", icon: "weather-partly-cloudy", color: "#FF9800" };
+  if (h >= 17 && h < 21) return { text: "Good Evening,", icon: "weather-sunset", color: "#FF5722" };
+  return { text: "Good Night,", icon: "weather-night", color: "#7C4DFF" };
+};
 
-
+// ─────────────────────────────────────────────────────────────────────────────
+// CONSTANTS
+// ─────────────────────────────────────────────────────────────────────────────
 const SERVICES = {
   aeps: [
     { type: "cw", name: "Cash\nWithdraw" },
@@ -52,25 +64,31 @@ const SESSION_KEYS = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// API HELPERS — replace BASE_URL with your actual backend
+// API HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
 const BASE_URL = "https://your-api-domain.com/api"; // ← update this
 
 const apiGet = async (endpoint, token) => {
   const res = await fetch(`${BASE_URL}${endpoint}`, {
     method: "GET",
-    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 };
 
-const fetchAepsBalance = async (token) => { const d = await apiGet("/aeps/balance", token); return d?.balance ?? d?.aepsBalance ?? "0.00"; };
-const fetchMainBalance = async (token) => { const d = await apiGet("/wallet/balance", token); return d?.balance ?? d?.mainBalance ?? "0.00"; };
-const fetchBbpsCategories = async (token) => { const d = await apiGet("/bbps/categories", token); return d?.categories ?? []; };
-const fetchDmtOperators = async (token) => { const d = await apiGet("/dmt/operators", token); return d?.operators ?? []; };
-const fetchRechargePlans = async (token, mobile) => { const d = await apiGet(`/recharge/plans?mobile=${mobile}`, token); return d?.plans ?? []; };
+const fetchBbpsCategories = async (token) => {
+  const d = await apiGet("/bbps/categories", token); return d?.categories ?? [];
+};
+const fetchDmtOperators = async (token) => {
+  const d = await apiGet("/dmt/operators", token); return d?.operators ?? [];
+};
+const fetchRechargePlans = async (token, mobile) => {
+  const d = await apiGet(`/recharge/plans?mobile=${mobile}`, token); return d?.plans ?? [];
+};
 
+// ─────────────────────────────────────────────────────────────────────────────
+// COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
 export default function FinanceHome({ navigation }) {
 
@@ -79,7 +97,18 @@ export default function FinanceHome({ navigation }) {
   const HEADER_MIN = 80 + insets.top;
   const SCROLL_D = HEADER_MAX - HEADER_MIN;
 
-  // ── Session ───────────────────────────────────────────────────────────────
+  // ── Greeting (auto-updates every minute) ──────────────────────────────────
+  const [greeting, setGreeting] = useState(getGreeting());
+
+  useEffect(() => {
+    // recalculate immediately
+    setGreeting(getGreeting());
+    // then refresh every 60 seconds so the label updates as time passes
+    const iv = setInterval(() => setGreeting(getGreeting()), 60_000);
+    return () => clearInterval(iv);
+  }, []);
+
+  // ── Session ────────────────────────────────────────────────────────────────
   const [ready, setReady] = useState(false);
   const [userName, setUserName] = useState("");
   const [userPhone, setUserPhone] = useState("");
@@ -87,23 +116,22 @@ export default function FinanceHome({ navigation }) {
   const [kycStatus, setKycStatus] = useState("pending");
   const [token, setToken] = useState("");
 
-  // ── Wallet balances ───────────────────────────────────────────────────────
+  // ── Wallet ─────────────────────────────────────────────────────────────────
   const [aepsBalance, setAepsBalance] = useState("...");
   const [mainBalance, setMainBalance] = useState("...");
   const [balanceLoading, setBalanceLoading] = useState(false);
   const [assignedServices, setAssignedServices] = useState([]);
   const [servicesLoading, setServicesLoading] = useState(false);
 
-  const hasService = (name) => {
-    return assignedServices.some(s => s.name?.toLowerCase() === name.toLowerCase());
-  };
+  const hasService = (name) =>
+    assignedServices.some((s) => s.name?.toLowerCase() === name.toLowerCase());
 
-  // ── Quick button loading states ───────────────────────────────────────────
+  // ── Quick btn loading ──────────────────────────────────────────────────────
   const [quickLoading, setQuickLoading] = useState({
     aeps: false, bbps: false, dmt: false, recharge: false,
   });
 
-  // ── Wallet UI ─────────────────────────────────────────────────────────────
+  // ── Wallet UI ──────────────────────────────────────────────────────────────
   const [isAeps, setIsAeps] = useState(true);
   const [showBalance, setShowBalance] = useState(true);
 
@@ -114,7 +142,7 @@ export default function FinanceHome({ navigation }) {
   const cardTranslateY = scrollY.interpolate({ inputRange: [0, SCROLL_D], outputRange: [0, -50], extrapolate: "clamp" });
   const cardScale = scrollY.interpolate({ inputRange: [0, SCROLL_D], outputRange: [1, 0.8], extrapolate: "clamp" });
 
-  // ── Wallet toggle ─────────────────────────────────────────────────────────
+  // ── Wallet toggle ──────────────────────────────────────────────────────────
   const contentOpacity = useRef(new Animated.Value(1)).current;
   const contentTranslateY = useRef(new Animated.Value(0)).current;
 
@@ -123,7 +151,7 @@ export default function FinanceHome({ navigation }) {
       Animated.timing(contentOpacity, { toValue: 0, duration: 150, useNativeDriver: true }),
       Animated.timing(contentTranslateY, { toValue: -15, duration: 150, useNativeDriver: true }),
     ]).start(() => {
-      setIsAeps(p => !p);
+      setIsAeps((p) => !p);
       contentTranslateY.setValue(15);
       Animated.parallel([
         Animated.timing(contentOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
@@ -139,7 +167,7 @@ export default function FinanceHome({ navigation }) {
     }
   }, [showBalance]);
 
-  // ── Load balances from API ────────────────────────────────────────────────
+  // ── Load balances ──────────────────────────────────────────────────────────
   const loadBalances = useCallback(async (authToken) => {
     setBalanceLoading(true);
     try {
@@ -151,8 +179,8 @@ export default function FinanceHome({ navigation }) {
         setAepsBalance("0");
         setMainBalance("0");
       }
-    } catch (error) {
-      console.log("Load Balances Local Error:", error);
+    } catch (err) {
+      console.log("loadBalances error:", err);
       setAepsBalance("0");
       setMainBalance("0");
     } finally {
@@ -160,49 +188,48 @@ export default function FinanceHome({ navigation }) {
     }
   }, []);
 
-  // ── Load session ──────────────────────────────────────────────────────────
+  // ── Load session ───────────────────────────────────────────────────────────
   const loadSession = useCallback(async () => {
     try {
       const pairs = await AsyncStorage.multiGet(SESSION_KEYS);
       const s = Object.fromEntries(pairs.map(([k, v]) => [k, v ?? ""]));
 
-      if (!s.header_token || s.header_token.trim() === "") {
-        navigation.replace("Login");
-        return;
-      }
+      if (!s.header_token?.trim()) { navigation.replace("Login"); return; }
 
       setToken(s.header_token);
-      console.log("🔑 [DEBUG] Full Token:", s.header_token);
       setUserPhone(s.user_phone);
       setUserUsername(s.user_username);
       setKycStatus(s.kyc_status || "pending");
 
-      // ─── Dynamic API fetch for Assigned Services ───
       setServicesLoading(true);
+
+      // Fetch profile + services
       const fetchProfile = async () => {
         try {
           const res = await fetchUserProfile({ headerToken: s.header_token });
           if (res?.success && res?.data) {
             const p = res.data;
-            setUserName(`${p.firstName ?? ""} ${p.lastName ?? ""}`.trim() || s.user_name?.trim() || "User");
-            if (Array.isArray(p.assignedServices)) {
-              setAssignedServices(p.assignedServices);
-            } else {
-              setAssignedServices([]);
-            }
+            setUserName(
+              `${p.firstName ?? ""} ${p.lastName ?? ""}`.trim() ||
+              s.user_name?.trim() || "User"
+            );
+            setAssignedServices(
+              Array.isArray(p.assignedServices) ? p.assignedServices : []
+            );
           } else {
+            setUserName(s.user_name?.trim() || "User");
             setAssignedServices([]);
           }
         } catch (err) {
-          console.log("Fetch profile error:", err);
+          console.log("fetchProfile error:", err);
+          setUserName(s.user_name?.trim() || "User");
           setAssignedServices([]);
         } finally {
           setServicesLoading(false);
         }
       };
-      
-      fetchProfile();
 
+      fetchProfile();
       loadBalances(s.header_token);
 
     } catch (err) {
@@ -213,76 +240,50 @@ export default function FinanceHome({ navigation }) {
     }
   }, [navigation, loadBalances]);
 
-  // ── AEPS service press handler ────────────────────────────────────────────
-  // Aadhaar Pay (type "ap") navigates to Offlinekyc when KYC is not approved,
-  // otherwise proceeds to AadhaarPay screen.
+  // ── AEPS service press ─────────────────────────────────────────────────────
   const handleAepsService = (item) => {
     switch (item.type) {
-      case "cw":
-        navigation.navigate("CashWithdraw");
-        break;
-      case "be":
-        navigation.navigate("BalanceEnquiry");
-        break;
-      case "ms":
-        navigation.navigate("MiniStatement");
-        break;
+      case "cw": navigation.navigate("CashWithdraw"); break;
+      case "be": navigation.navigate("BalanceEnquiry"); break;
+      case "ms": navigation.navigate("MiniStatement"); break;
       case "ap":
         if (kycStatus !== "approved") {
-          // KYC not done — redirect user to complete KYC first
-          Alert.alert(
-            "KYC Required",
-            "Please complete your KYC verification to use Aadhaar Pay.",
-            [
-              { text: "Cancel", style: "cancel" },
-              {
-                text: "Complete KYC",
-                onPress: () => navigation.navigate("Offlinekyc"),
-              },
-            ]
-          );
+          Alert.alert("KYC Required", "Please complete your KYC verification to use Aadhaar Pay.", [
+            { text: "Cancel", style: "cancel" },
+            { text: "Complete KYC", onPress: () => navigation.navigate("Offlinekyc") },
+          ]);
         } else {
           navigation.navigate("AadhaarPay");
         }
         break;
-      default:
-        break;
+      default: break;
     }
   };
 
-  // ── Quick access handler — pre-fetches data, then navigates ──────────────
+  // ── Quick access ───────────────────────────────────────────────────────────
   const handleQuickAccess = async (item) => {
-    setQuickLoading(p => ({ ...p, [item.key]: true }));
+    setQuickLoading((p) => ({ ...p, [item.key]: true }));
     try {
       switch (item.key) {
         case "aeps":
           await loadBalances(token);
           navigation.navigate(item.screen);
           break;
-        case "bbps":
-          try {
-            const categories = await fetchBbpsCategories(token);
-            navigation.navigate(item.screen, { bbpsCategories: categories });
-          } catch (_) {
-            navigation.navigate(item.screen);
-          }
+        case "bbps": {
+          const cats = await fetchBbpsCategories(token).catch(() => []);
+          navigation.navigate(item.screen, { bbpsCategories: cats });
           break;
-        case "dmt":
-          try {
-            const operators = await fetchDmtOperators(token);
-            navigation.navigate(item.screen, { operators });
-          } catch (_) {
-            navigation.navigate(item.screen);
-          }
+        }
+        case "dmt": {
+          const ops = await fetchDmtOperators(token).catch(() => []);
+          navigation.navigate(item.screen, { operators: ops });
           break;
-        case "recharge":
-          try {
-            const plans = await fetchRechargePlans(token, userPhone);
-            navigation.navigate(item.screen, { plans, mobile: userPhone });
-          } catch (_) {
-            navigation.navigate(item.screen, { mobile: userPhone });
-          }
+        }
+        case "recharge": {
+          const plans = await fetchRechargePlans(token, userPhone).catch(() => []);
+          navigation.navigate(item.screen, { plans, mobile: userPhone });
           break;
+        }
         default:
           navigation.navigate(item.screen);
       }
@@ -290,11 +291,11 @@ export default function FinanceHome({ navigation }) {
       console.error(`Quick access [${item.key}] error:`, err);
       Alert.alert("Error", "Something went wrong. Please try again.");
     } finally {
-      setQuickLoading(p => ({ ...p, [item.key]: false }));
+      setQuickLoading((p) => ({ ...p, [item.key]: false }));
     }
   };
 
-  // ── Entry animations ──────────────────────────────────────────────────────
+  // ── Entry animations ───────────────────────────────────────────────────────
   const leftAnim = useRef(new Animated.Value(-80)).current;
   const leftFade = useRef(new Animated.Value(0)).current;
   const greetingOpacity = useRef(new Animated.Value(0)).current;
@@ -316,11 +317,10 @@ export default function FinanceHome({ navigation }) {
     ]).start();
   }, []);
 
-  // ── Banner auto-scroll ────────────────────────────────────────────────────
+  // ── Banner ─────────────────────────────────────────────────────────────────
   const bannerScrollX = useRef(new Animated.Value(0)).current;
   const scrollRef = useRef(null);
   const ITEM_W = width - 36 + 10;
-
   useEffect(() => {
     let idx = 0;
     const iv = setInterval(() => {
@@ -330,12 +330,11 @@ export default function FinanceHome({ navigation }) {
     return () => clearInterval(iv);
   }, []);
 
-  // ── Plan carousel ─────────────────────────────────────────────────────────
+  // ── Plan carousel ──────────────────────────────────────────────────────────
   const CARD_WIDTH = width * 0.8;
   const SPACING = 15;
   const SNAP_INTERVAL = CARD_WIDTH + SPACING;
   const planRef = useRef(null);
-
   useEffect(() => {
     let idx = 0;
     const iv = setInterval(() => {
@@ -345,11 +344,14 @@ export default function FinanceHome({ navigation }) {
     return () => clearInterval(iv);
   }, []);
 
-  // ── Derived ───────────────────────────────────────────────────────────────
+  // ── Derived ────────────────────────────────────────────────────────────────
   const kyc = KYC_COLOR[kycStatus] || KYC_COLOR.pending;
   const balance = isAeps ? aepsBalance : mainBalance;
   const avatar = userName ? userName.charAt(0).toUpperCase() : "U";
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // SPLASH
+  // ─────────────────────────────────────────────────────────────────────────
   if (!ready) {
     return (
       <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
@@ -362,6 +364,9 @@ export default function FinanceHome({ navigation }) {
     );
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // RENDER
+  // ─────────────────────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
       <StatusBar barStyle="light-content" backgroundColor="#161616" translucent />
@@ -375,6 +380,7 @@ export default function FinanceHome({ navigation }) {
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
             style={[styles.headerGradient, { paddingTop: insets.top + 15 }]}
           >
+            {/* ── Top row ── */}
             <View style={styles.headerTopUser}>
               <View style={styles.userSection}>
                 <View style={styles.avatarContainer}>
@@ -384,15 +390,31 @@ export default function FinanceHome({ navigation }) {
                   <View style={[styles.kycDot, { backgroundColor: kyc }]} />
                 </View>
                 <View style={styles.userDetails}>
-                  <Animated.Text style={[styles.welcomeText, { opacity: greetingOpacity, transform: [{ translateX: greetingSlide }] }]}>
-                    Good Morning,
-                  </Animated.Text>
+                  {/* ── DYNAMIC GREETING ── */}
+                  <Animated.View style={[
+                    styles.greetingRow,
+                    { opacity: greetingOpacity, transform: [{ translateX: greetingSlide }] },
+                  ]}>
+                    <Icon
+                      name={greeting.icon}
+                      size={13}
+                      color={greeting.color}
+                      style={{ marginRight: 5 }}
+                    />
+                    <Text style={[styles.welcomeText, { color: greeting.color }]}>
+                      {greeting.text}
+                    </Text>
+                  </Animated.View>
+
                   <Animated.Text style={[styles.userNameTitle, { opacity: nameOpacity }]}>
                     {userName}
                   </Animated.Text>
-                  {!!userUsername && <Text style={styles.usernameTag}>{userUsername}</Text>}
+                  {!!userUsername && (
+                    <Text style={styles.usernameTag}>{userUsername}</Text>
+                  )}
                 </View>
               </View>
+
               <View style={styles.headerActions}>
                 <TouchableOpacity style={styles.glassBtn}>
                   <Icon name="magnify" size={20} color="#FFF" />
@@ -404,11 +426,19 @@ export default function FinanceHome({ navigation }) {
               </View>
             </View>
 
-            {/* Wallet card */}
-            <Animated.View style={{ opacity: cardOpacity, transform: [{ translateY: cardTranslateY }, { scale: cardScale }] }}>
-              <LinearGradient colors={["#2C2C2C", "#000000"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.walletCard}>
+            {/* ── Wallet Card ── */}
+            <Animated.View style={{
+              opacity: cardOpacity,
+              transform: [{ translateY: cardTranslateY }, { scale: cardScale }],
+            }}>
+              <LinearGradient
+                colors={["#2C2C2C", "#000000"]}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                style={styles.walletCard}
+              >
                 <View style={styles.cardCircle1} />
                 <View style={styles.cardCircle2} />
+
                 <View style={styles.rowBetween}>
                   <View style={styles.walletTag}>
                     <Icon name="wallet-outline" size={14} color="#d4b06a" />
@@ -420,6 +450,7 @@ export default function FinanceHome({ navigation }) {
                     <Icon name="swap-horizontal" size={20} color="#d4b06a" />
                   </TouchableOpacity>
                 </View>
+
                 <View style={{ marginTop: 10 }}>
                   <Text style={styles.cardLabel}>Total Balance</Text>
                   <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -430,7 +461,7 @@ export default function FinanceHome({ navigation }) {
                         : <Text style={styles.cardBalance}>{showBalance ? "••••••" : balance}</Text>
                       }
                     </Animated.View>
-                    <TouchableOpacity onPress={() => setShowBalance(p => !p)} style={{ marginLeft: 10 }}>
+                    <TouchableOpacity onPress={() => setShowBalance((p) => !p)} style={{ marginLeft: 10 }}>
                       <Icon name={showBalance ? "eye-off" : "eye"} size={20} color="rgba(255,255,255,0.5)" />
                     </TouchableOpacity>
                   </View>
@@ -443,15 +474,16 @@ export default function FinanceHome({ navigation }) {
                   <Icon name="plus" size={14} color="#000" />
                   <Text style={styles.addMoneyText}>Add Balance</Text>
                 </TouchableOpacity>
+
                 <View style={styles.cardFooter}>
-                  {/* ── KYC badge now navigates to Offlinekyc ── */}
                   <TouchableOpacity
-                    // onPress={() => navigation.navigate("Offlinekyc")}
                     activeOpacity={0.75}
                     style={[styles.kycBadge, { borderColor: kyc }]}
                   >
                     <View style={[styles.kycDotSmall, { backgroundColor: kyc }]} />
-                    <Text style={[styles.kycBadgeText, { color: kyc }]}>KYC {kycStatus.toUpperCase()}</Text>
+                    <Text style={[styles.kycBadgeText, { color: kyc }]}>
+                      KYC {kycStatus.toUpperCase()}
+                    </Text>
                     <Icon name="chevron-right" size={10} color={kyc} style={{ marginLeft: 2 }} />
                   </TouchableOpacity>
                   <Text style={styles.cardFooterText}>tap switch to change wallet</Text>
@@ -464,58 +496,57 @@ export default function FinanceHome({ navigation }) {
         {/* ══ BODY ══ */}
         <Animated.ScrollView
           contentContainerStyle={{ paddingTop: HEADER_MAX, paddingBottom: 110 }}
-          onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false })}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: false }
+          )}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.body}>
-
-
 
             {servicesLoading ? (
               <ActivityIndicator size="small" color={Colors.finance_accent} style={{ marginTop: 20 }} />
             ) : assignedServices.length === 0 ? (
               <View style={{ alignItems: "center", marginTop: 40, padding: 20 }}>
                 <Icon name="alert-circle-outline" size={40} color="#999" />
-                <Text style={{ color: "#666", fontFamily: Fonts.Medium, marginTop: 10, fontSize: 13, textAlign: "center" }}>No service allowed at this moment.</Text>
+                <Text style={{ color: "#666", fontFamily: Fonts.Medium, marginTop: 10, fontSize: 13, textAlign: "center" }}>
+                  No service allowed at this moment.
+                </Text>
               </View>
             ) : (
               <>
-                {/* ── Top Shortcuts for Assigned Services ── */}
-                {assignedServices.length > 0 && (
-                  <>
-                    <SectionHeader title="User Services" />
-                    <View style={styles.servicesContainerBox}>
-                      {assignedServices.map((item) => (
-                        <TouchableOpacity
-                          key={item._id}
-                          style={styles.serviceItemBox}
-                          activeOpacity={0.75}
-                          onPress={() => {
-                            const name = item.name?.toLowerCase();
-                            if (name === "recharge") navigation.navigate("TopUpScreen");
-                            else if (name === "bbps") navigation.navigate("PaymentsScreen");
-                            else if (name === "aeps") navigation.navigate("CashWithdraw");
-                          }}
-                        >
-                          <View style={styles.serviceItemIconBg}>
-                            <Icon
-                              name={
-                                item.name?.toLowerCase() === "bbps" ? "lightning-bolt" :
-                                  item.name?.toLowerCase() === "recharge" ? "cellphone-wireless" : "apps"
-                              }
-                              size={24}
-                              color={Colors.finance_accent}
-                            />
-                          </View>
-                          <Text style={styles.serviceItemText}>{item.name.toUpperCase()}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  </>
-                )}
+                {/* User Services */}
+                <SectionHeader title="User Services" />
+                <View style={styles.servicesContainerBox}>
+                  {assignedServices.map((item) => (
+                    <TouchableOpacity
+                      key={item._id}
+                      style={styles.serviceItemBox}
+                      activeOpacity={0.75}
+                      onPress={() => {
+                        const n = item.name?.toLowerCase();
+                        if (n === "recharge") navigation.navigate("TopUpScreen");
+                        else if (n === "bbps") navigation.navigate("PaymentsScreen");
+                        else if (n === "aeps") navigation.navigate("CashWithdraw");
+                      }}
+                    >
+                      <View style={styles.serviceItemIconBg}>
+                        <Icon
+                          name={
+                            item.name?.toLowerCase() === "bbps" ? "lightning-bolt" :
+                              item.name?.toLowerCase() === "recharge" ? "cellphone-wireless" : "apps"
+                          }
+                          size={24}
+                          color={Colors.finance_accent}
+                        />
+                      </View>
+                      <Text style={styles.serviceItemText}>{item.name.toUpperCase()}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
 
-                {/* ── AEPS Services ── */}
+                {/* AEPS Services */}
                 {hasService("aeps") && (
                   <>
                     <SectionHeader title="Aeps Services" />
@@ -526,14 +557,12 @@ export default function FinanceHome({ navigation }) {
                             key={i}
                             style={[
                               styles.categoryBox,
-                              // Visually hint that Aadhaar Pay needs KYC when not approved
                               item.type === "ap" && kycStatus !== "approved" && styles.categoryBoxLocked,
                             ]}
                             onPress={() => handleAepsService(item)}
                           >
                             <View style={{ position: "relative" }}>
                               <Icon name={ICON_MAP[item.type] || ICON_MAP.default} size={22} color={Colors.finance_text} />
-                              {/* Lock overlay badge for Aadhaar Pay when KYC pending/rejected */}
                               {item.type === "ap" && kycStatus !== "approved" && (
                                 <View style={styles.lockBadge}>
                                   <Icon name="lock" size={8} color="#FFF" />
@@ -551,14 +580,16 @@ export default function FinanceHome({ navigation }) {
                   </>
                 )}
 
-                {/* ── Money Transfer ── */}
+                {/* Money Transfer */}
                 {hasService("dmt") && (
                   <>
                     <SectionHeader title="Money Transfer" />
                     <Animated.View style={{ transform: [{ translateX: leftAnim }], opacity: leftFade }}>
                       <View style={styles.grid}>
                         {SERVICES.money_transfer.map((item, i) => (
-                          <TouchableOpacity key={i} style={styles.categoryBox}
+                          <TouchableOpacity
+                            key={i}
+                            style={styles.categoryBox}
                             onPress={() => item.type === "dmt" && navigation.navigate("DmtLogin")}
                           >
                             <Icon name={ICON_MAP[item.type] || ICON_MAP.default} size={22} color={Colors.finance_text} />
@@ -570,10 +601,16 @@ export default function FinanceHome({ navigation }) {
                   </>
                 )}
 
-                {/* ── Plan Carousel ── */}
+                {/* Plan Carousel */}
                 {(hasService("bbps") || hasService("recharge")) && (
                   <View style={{ height: 80, marginTop: 8 }}>
-                    <ScrollView ref={planRef} horizontal snapToInterval={SNAP_INTERVAL} decelerationRate="fast" showsHorizontalScrollIndicator={false}>
+                    <ScrollView
+                      ref={planRef}
+                      horizontal
+                      snapToInterval={SNAP_INTERVAL}
+                      decelerationRate="fast"
+                      showsHorizontalScrollIndicator={false}
+                    >
                       {[
                         { title: userPhone || "9876543210", sub: "Your plan expires in", highlight: "4 days", hColor: "#FF3B30", icon: "cellphone", btnText: "Recharge", btnColor: Colors.finance_accent, borderColor: "#FF3B30" },
                         { title: "JioFiber", sub: "Bill Due:", highlight: "Tomorrow", hColor: "#FF9500", icon: "router-wireless", btnText: "Pay Bill", btnColor: "#FF9500", borderColor: "#FF9500" },
@@ -586,7 +623,10 @@ export default function FinanceHome({ navigation }) {
                             </View>
                             <View style={{ flex: 1, marginLeft: 12 }}>
                               <Text style={styles.planTitle}>{p.title}</Text>
-                              <Text style={styles.planSubtitle}>{p.sub} <Text style={{ color: p.hColor, fontWeight: "bold" }}>{p.highlight}</Text></Text>
+                              <Text style={styles.planSubtitle}>
+                                {p.sub}{" "}
+                                <Text style={{ color: p.hColor, fontWeight: "bold" }}>{p.highlight}</Text>
+                              </Text>
                             </View>
                             <TouchableOpacity style={[styles.rechargeBtn, { backgroundColor: p.btnColor }]}>
                               <Text style={styles.rechargeBtnText}>{p.btnText}</Text>
@@ -598,7 +638,7 @@ export default function FinanceHome({ navigation }) {
                   </View>
                 )}
 
-                {/* ── Recharge & Bills ── */}
+                {/* Recharge & Bills */}
                 {(hasService("bbps") || hasService("recharge")) && (
                   <>
                     <View style={[styles.sectionHeader, { justifyContent: "space-between", marginBottom: 10 }]}>
@@ -614,7 +654,9 @@ export default function FinanceHome({ navigation }) {
                     <Animated.View style={{ transform: [{ translateX: leftAnim }], opacity: leftFade }}>
                       <View style={styles.grid}>
                         {SERVICES.recharge_bills.map((item, i) => (
-                          <TouchableOpacity key={i} style={styles.categoryBox}
+                          <TouchableOpacity
+                            key={i}
+                            style={styles.categoryBox}
                             onPress={() => {
                               if (item.type === "rech") navigation.navigate("TopUpScreen");
                               else if (item.type === "C04") navigation.navigate("Electricity");
@@ -631,15 +673,26 @@ export default function FinanceHome({ navigation }) {
               </>
             )}
 
-            {/* ── Banner ── */}
+            {/* Banner */}
             <View style={styles.bannerContainer}>
               <ScrollView
-                ref={scrollRef} horizontal snapToInterval={ITEM_W}
-                decelerationRate="fast" showsHorizontalScrollIndicator={false}
-                scrollEventThrottle={16} contentContainerStyle={{ paddingRight: 20 }}
-                onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: bannerScrollX } } }], { useNativeDriver: false })}
+                ref={scrollRef}
+                horizontal
+                snapToInterval={ITEM_W}
+                decelerationRate="fast"
+                showsHorizontalScrollIndicator={false}
+                scrollEventThrottle={16}
+                contentContainerStyle={{ paddingRight: 20 }}
+                onScroll={Animated.event(
+                  [{ nativeEvent: { contentOffset: { x: bannerScrollX } } }],
+                  { useNativeDriver: false }
+                )}
               >
-                {[require("../assets/banner_a.png"), require("../assets/banner_b.png"), require("../assets/banner_c.png")].map((img, i) => (
+                {[
+                  require("../assets/banner_a.png"),
+                  require("../assets/banner_b.png"),
+                  require("../assets/banner_c.png"),
+                ].map((img, i) => (
                   <Image key={i} source={img} style={styles.bannerImage} />
                 ))}
               </ScrollView>
@@ -656,7 +709,7 @@ export default function FinanceHome({ navigation }) {
               </View>
             </View>
 
-            {/* ── Great Deals ── */}
+            {/* Great Deals */}
             <View style={styles.dealHeaderRow}>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <View style={[styles.dealIconBox, { backgroundColor: Colors.finance_chip }]}>
@@ -669,8 +722,12 @@ export default function FinanceHome({ navigation }) {
               </View>
             </View>
 
-            {/* ── Bill Pay Card ── */}
-            <LinearGradient colors={[Colors.primary, "#000000"]} style={styles.billPayCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+            {/* Bill Pay Card */}
+            <LinearGradient
+              colors={[Colors.primary, "#000000"]}
+              style={styles.billPayCard}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            >
               <View style={styles.billPayDecorCircle} />
               <View style={styles.rowBetween}>
                 <View>
@@ -703,12 +760,16 @@ export default function FinanceHome({ navigation }) {
           </View>
         </Animated.ScrollView>
 
-        {/* ══ BOTTOM NAV ══ */}
+        {/* Bottom Nav */}
         <View style={styles.bottomNavContainer}>
           <View style={styles.bottomNav}>
             <TouchableOpacity style={styles.tabItem} activeOpacity={0.8}>
               <View style={{ alignItems: "center" }}>
-                <LinearGradient colors={["#F5E7C6", "#d4b06a"]} style={styles.activeTabGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+                <LinearGradient
+                  colors={["#F5E7C6", "#d4b06a"]}
+                  style={styles.activeTabGradient}
+                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                >
                   <Icon name="home" size={24} color={Colors.black} />
                 </LinearGradient>
                 <Text style={styles.navLabelActive}>Home</Text>
@@ -737,6 +798,9 @@ export default function FinanceHome({ navigation }) {
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION HEADER
+// ─────────────────────────────────────────────────────────────────────────────
 function SectionHeader({ title }) {
   return (
     <View style={styles.sectionHeader}>
@@ -746,6 +810,9 @@ function SectionHeader({ title }) {
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// STYLES
+// ─────────────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#161616" },
   container: { flex: 1, backgroundColor: Colors.finance_bg_1 },
@@ -753,7 +820,12 @@ const styles = StyleSheet.create({
   splash: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#161616" },
   splashText: { marginTop: 12, color: "#888", fontFamily: Fonts.Medium, fontSize: 14 },
 
-  headerContainer: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 100, overflow: "hidden", backgroundColor: "#161616", borderBottomLeftRadius: 30, borderBottomRightRadius: 30, elevation: 10 },
+  // ── Header ────────────────────────────────────────────────────────────────
+  headerContainer: {
+    position: "absolute", top: 0, left: 0, right: 0, zIndex: 100,
+    overflow: "hidden", backgroundColor: "#161616",
+    borderBottomLeftRadius: 30, borderBottomRightRadius: 30, elevation: 10,
+  },
   headerGradient: { flex: 1, paddingHorizontal: 20, paddingBottom: 5 },
   headerTopUser: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 },
   userSection: { flexDirection: "row", alignItems: "center", flex: 1 },
@@ -762,13 +834,26 @@ const styles = StyleSheet.create({
   avatarText: { color: "#000", fontSize: 18, fontFamily: Fonts.Bold },
   kycDot: { position: "absolute", bottom: 0, right: 0, width: 10, height: 10, borderRadius: 5, borderWidth: 1.5, borderColor: "#161616" },
   userDetails: { flex: 1 },
-  welcomeText: { color: "rgba(255,255,255,0.7)", fontSize: 12, fontFamily: Fonts.Medium, marginBottom: 2 },
+
+  // ── Dynamic greeting row ──────────────────────────────────────────────────
+  greetingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 3,
+  },
+  welcomeText: {
+    fontSize: 12,
+    fontFamily: Fonts.Medium,
+    // color is set dynamically from greeting.color
+  },
+
   userNameTitle: { color: "#FFF", fontSize: 18, fontFamily: Fonts.Bold, letterSpacing: 0.5 },
   usernameTag: { color: Colors.finance_accent, fontSize: 10, fontFamily: Fonts.Medium, marginTop: 1 },
   headerActions: { flexDirection: "row" },
   glassBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center", marginLeft: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.15)" },
   notificationBadge: { position: "absolute", top: 10, right: 10, width: 8, height: 8, borderRadius: 4, backgroundColor: "#FF3B30", zIndex: 1, borderWidth: 1.5, borderColor: "#333" },
 
+  // ── Wallet card ────────────────────────────────────────────────────────────
   walletCard: { marginTop: 12, borderRadius: 24, padding: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", overflow: "hidden" },
   addMoneyBtn: { position: "absolute", right: 16, top: 75, backgroundColor: Colors.finance_accent, flexDirection: "row", alignItems: "center", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 16, elevation: 2 },
   addMoneyText: { color: "#000", fontSize: 11, fontFamily: Fonts.Bold, marginLeft: 3 },
@@ -786,26 +871,7 @@ const styles = StyleSheet.create({
   kycDotSmall: { width: 6, height: 6, borderRadius: 3, marginRight: 5 },
   kycBadgeText: { fontSize: 9, fontFamily: Fonts.Bold, letterSpacing: 0.5 },
 
-  // ── Quick Access Row ──────────────────────────────────────────────────────
-  quickRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 18,
-    marginTop: 4,
-    backgroundColor: "#FFF",
-    borderRadius: 20,
-    paddingVertical: 14,
-    paddingHorizontal: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  quickBtn: { flex: 1, alignItems: "center" },
-  quickIconBg: { width: 52, height: 52, borderRadius: 16, justifyContent: "center", alignItems: "center", marginBottom: 6 },
-  quickLabel: { fontSize: 11, fontFamily: Fonts.Bold, color: "#333", textAlign: "center" },
-
+  // ── Body ──────────────────────────────────────────────────────────────────
   body: { padding: 18 },
   sectionHeader: { flexDirection: "row", alignItems: "center", marginTop: 2, marginBottom: 4 },
   sectionIndicator: { width: 3, height: 16, backgroundColor: Colors.finance_accent, borderRadius: 4, marginRight: 8 },
@@ -814,12 +880,11 @@ const styles = StyleSheet.create({
   viewText: { fontSize: 12, fontFamily: Fonts.Bold, color: Colors.finance_accent, marginRight: 4 },
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" },
   categoryBox: { width: "23%", backgroundColor: "#FFF", alignItems: "center", paddingVertical: 6, borderRadius: 12, paddingHorizontal: 8, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 3, elevation: 2, marginVertical: 4, borderWidth: 0.5, borderColor: "rgba(0,0,0,0.05)" },
-  // Locked state for Aadhaar Pay when KYC not approved
   categoryBoxLocked: { backgroundColor: "#FFF8F8", borderColor: "#F9736640", opacity: 0.85 },
   categoryText: { color: "#444", fontSize: 10, textAlign: "center", marginTop: 4, fontFamily: Fonts.Medium, lineHeight: 12 },
   servicesContainerBox: { flexDirection: "row", backgroundColor: "#FFF", borderRadius: 20, paddingVertical: 10, paddingHorizontal: 12, marginBottom: 18, marginTop: 6, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 3, gap: 12 },
   serviceItemBox: { alignItems: "center", width: 65 },
-  serviceItemIconBg: { width: 44, height: 44, borderRadius: 16, backgroundColor: "#FFFCF5", justifyContent: "center", alignItems: "center", marginBottom: 6, borderWidth: 1, borderColor: "rgba(212, 176, 106, 0.2)" },
+  serviceItemIconBg: { width: 44, height: 44, borderRadius: 16, backgroundColor: "#FFFCF5", justifyContent: "center", alignItems: "center", marginBottom: 6, borderWidth: 1, borderColor: "rgba(212,176,106,0.2)" },
   serviceItemText: { fontSize: 11, fontFamily: Fonts.Bold, color: "#333", textAlign: "center" },
   kycRequiredText: { color: "#F97316", fontSize: 8, textAlign: "center", marginTop: 2, fontFamily: Fonts.Medium },
   lockBadge: { position: "absolute", bottom: -2, right: -6, width: 12, height: 12, borderRadius: 6, backgroundColor: "#F97316", alignItems: "center", justifyContent: "center" },
