@@ -33,19 +33,19 @@ const { width } = Dimensions.get("window");
 export default function TopUpScreen({ navigation, route }) {
   const insets = useSafeAreaInsets();
 
-  const [type, setType]                         = useState("airtime");
-  const [mobile, setMobile]                     = useState("");
-  const [operator, setOperator]                 = useState("");
-  const [circle, setCircle]                     = useState("");
-  const [operators, setOperators]               = useState([]);
-  const [circles, setCircles]                   = useState([]);
+  const [type, setType] = useState("airtime");
+  const [mobile, setMobile] = useState("");
+  const [operator, setOperator] = useState("");
+  const [circle, setCircle] = useState("");
+  const [operators, setOperators] = useState([]);
+  const [circles, setCircles] = useState([]);
   const [showOperatorModal, setShowOperatorModal] = useState(false);
-  const [showCircleModal, setShowCircleModal]   = useState(false);
-  const [loading, setLoading]                   = useState(false);
-  const [searchText, setSearchText]             = useState("");
-  const [amount, setAmount]                     = useState("199");
-  const [operatorCode, setOperatorCode]         = useState("");
-  const [receiptData, setReceiptData]           = useState(null);
+  const [showCircleModal, setShowCircleModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [searchText, setSearchText] = useState("");
+  const [amount, setAmount] = useState("199");
+  const [operatorCode, setOperatorCode] = useState("");
+  const [receiptData, setReceiptData] = useState(null);
 
   const [customToast, setCustomToast] = useState({ visible: false, message: "", type: "success" });
   const toastAnim = useRef(new Animated.Value(0)).current;
@@ -53,10 +53,10 @@ export default function TopUpScreen({ navigation, route }) {
   // 🔹 Update states from navigation params
   useEffect(() => {
     if (route.params?.selectedAmount) setAmount(String(route.params.selectedAmount));
-    if (route.params?.mobile)         setMobile(route.params.mobile);
-    if (route.params?.operator)       setOperator(route.params.operator);
-    if (route.params?.circle)         setCircle(route.params.circle);
-    if (route.params?.operatorCode)   setOperatorCode(route.params.operatorCode);
+    if (route.params?.mobile) setMobile(route.params.mobile);
+    if (route.params?.operator) setOperator(route.params.operator);
+    if (route.params?.circle) setCircle(route.params.circle);
+    if (route.params?.operatorCode) setOperatorCode(route.params.operatorCode);
   }, [route.params]);
 
   const showCustomToast = (msg, type = "success") => {
@@ -72,7 +72,7 @@ export default function TopUpScreen({ navigation, route }) {
 
   /* ── Entry animations ── */
   const slideAnim = useRef(new Animated.Value(50)).current;
-  const fadeAnim  = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const showToast = (message) => {
     if (Platform.OS === "android") {
@@ -83,7 +83,7 @@ export default function TopUpScreen({ navigation, route }) {
   };
 
   /* ── Slide-to-pay ── */
-  const pan           = useRef(new Animated.Value(0)).current;
+  const pan = useRef(new Animated.Value(0)).current;
   const trackWidthRef = useRef(0);
   const [completed, setCompleted] = useState(false);
   const THUMB_WIDTH = 50;
@@ -98,15 +98,18 @@ export default function TopUpScreen({ navigation, route }) {
         number: mobile,
         billerMode: "prepaidrecharge"
       };
-      
+
       const response = await processRecharge({ ...config, headerToken });
-      
-      if (response?.status === "SUCCESS" || response?.success) {
+
+      const isSuccess = response?.success === true || response?.status === "SUCCESS" || response?.data?.status === "SUCCESS";
+      const resData = response?.data || {};
+
+      if (isSuccess) {
         setReceiptData({
           status: "success",
           amount: amount,
-          txn_ref: response.txn_ref || response.txnRef || "N/A",
-          message: response.message || "Transaction Successful",
+          txn_ref: resData.txn_ref || response.txn_ref || "",
+          message: resData.message || response.message || "Recharge Successful",
           mobile: mobile,
           operator: operator
         });
@@ -114,21 +117,21 @@ export default function TopUpScreen({ navigation, route }) {
         setReceiptData({
           status: "error",
           amount: amount,
-          txn_ref: response?.txn_ref || response?.txnRef || "N/A",
-          message: response?.message || response?.error || "Recharge Failed",
+          txn_ref: resData.txn_ref || response?.txn_ref || "N/A",
+          message: resData.message || response?.message || response?.error || "Recharge Failed",
           mobile: mobile,
           operator: operator
         });
       }
     } catch (error) {
-       setReceiptData({
-          status: "error",
-          amount: amount,
-          txn_ref: "N/A",
-          message: "Something went wrong during recharge",
-          mobile: mobile,
-          operator: operator
-       });
+      setReceiptData({
+        status: "error",
+        amount: amount,
+        txn_ref: "N/A",
+        message: "Something went wrong during recharge",
+        mobile: mobile,
+        operator: operator
+      });
     } finally {
       setLoading(false);
       setCompleted(false);
@@ -139,7 +142,7 @@ export default function TopUpScreen({ navigation, route }) {
   const panResponder = React.useMemo(
     () => PanResponder.create({
       onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder:  () => true,
+      onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: () => {
         pan.setOffset(0);
         pan.setValue(0);
@@ -172,7 +175,7 @@ export default function TopUpScreen({ navigation, route }) {
   useEffect(() => {
     Animated.parallel([
       Animated.timing(slideAnim, { toValue: 0, duration: 800, useNativeDriver: true, easing: Easing.out(Easing.exp) }),
-      Animated.timing(fadeAnim,  { toValue: 1, duration: 800, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
     ]).start();
     fetchOperatorCircle();
   }, []);
@@ -180,7 +183,7 @@ export default function TopUpScreen({ navigation, route }) {
   useEffect(() => {
     const backAction = () => {
       if (showOperatorModal) { setShowOperatorModal(false); return true; }
-      if (showCircleModal)   { setShowCircleModal(false);   return true; }
+      if (showCircleModal) { setShowCircleModal(false); return true; }
       return false;
     };
     const handler = BackHandler.addEventListener("hardwareBackPress", backAction);
@@ -190,7 +193,7 @@ export default function TopUpScreen({ navigation, route }) {
   const fetchOperatorCircle = async () => {
     try {
       setLoading(true);
-      
+
       const headerToken = await AsyncStorage.getItem("header_token");
       if (headerToken) {
         // Fetch operators from NEW API
@@ -221,20 +224,20 @@ export default function TopUpScreen({ navigation, route }) {
         setLoading(true);
         const headerToken = await AsyncStorage.getItem("header_token");
         const result = await verifyRechargeMobile({ mobile: num, headerToken });
-        
+
         if (result?.success) {
           const fetchedData = result.data || {};
           let currentOps = operators;
           if (currentOps.length === 0) {
-             const opsData = await getRechargeOperatorList({ headerToken });
-             if (opsData?.success) {
-               currentOps = opsData.data || [];
-               setOperators(currentOps);
-             }
+            const opsData = await getRechargeOperatorList({ headerToken });
+            if (opsData?.success) {
+              currentOps = opsData.data || [];
+              setOperators(currentOps);
+            }
           }
 
-          const matchedOp = currentOps.find(op => 
-            (op.label && fetchedData.operator && op.label.toLowerCase() === fetchedData.operator.toLowerCase()) || 
+          const matchedOp = currentOps.find(op =>
+            (op.label && fetchedData.operator && op.label.toLowerCase() === fetchedData.operator.toLowerCase()) ||
             (op.rechargeValue && fetchedData.operatorCode && op.rechargeValue.toLowerCase() === fetchedData.operatorCode.toLowerCase()) ||
             (op.planFetchValue && fetchedData.operatorCode && op.planFetchValue.toLowerCase() === fetchedData.operatorCode.toLowerCase())
           );
@@ -242,19 +245,19 @@ export default function TopUpScreen({ navigation, route }) {
           console.log("🔍 currentOps count:", currentOps.length);
           console.log("🔍 matchedOp:", matchedOp);
 
-          const matchedCir = circles.find(c => 
-            String(c.circleCode) === String(fetchedData.circle) || 
+          const matchedCir = circles.find(c =>
+            String(c.circleCode) === String(fetchedData.circle) ||
             String(c.circlecode) === String(fetchedData.circle)
           );
           const opName = matchedOp?.label || matchedOp?.name || fetchedData.operator || "";
           const cirName = matchedCir?.circleName || matchedCir?.circlename || fetchedData.state || "";
-          
+
           const opCode = matchedOp?.rechargeValue || fetchedData.operatorCode || "";
           console.log("🔍 SETTING OPERATOR CODE:", opCode);
           setOperatorCode(opCode);
           setOperator(opName);
           setCircle(cirName);
-          
+
           navigation.navigate("StorePlans", {
             mobile: num,
             operator: opName,
@@ -440,7 +443,44 @@ export default function TopUpScreen({ navigation, route }) {
 
                 <TouchableOpacity
                   style={styles.viewPlansBtn}
-                  onPress={() => showToast("Loading available plans...")}
+                  onPress={async () => {
+                    if (mobile.length !== 10) {
+                      showCustomToast("Enter 10-digit mobile number", "error");
+                      return;
+                    }
+                    if (!operator) {
+                      showCustomToast("Select Operator", "error");
+                      return;
+                    }
+                    if (!circle) {
+                      showCustomToast("Select Circle", "error");
+                      return;
+                    }
+
+                    try {
+                      setLoading(true);
+                      const headerToken = await AsyncStorage.getItem("header_token");
+                      const result = await verifyRechargeMobile({ mobile: mobile, headerToken });
+
+                      if (result?.success) {
+                        const fetchedData = result.data || {};
+                        navigation.navigate("StorePlans", {
+                          mobile: mobile,
+                          operator: operator,
+                          circle: circle,
+                          plans: fetchedData.plans || [],
+                          operatorCode: operatorCode,
+                        });
+                      } else {
+                        showCustomToast(result?.message || "Unable to load plans", "error");
+                      }
+                    } catch (err) {
+                      console.log("Explore plans error:", err);
+                      showCustomToast("Something went wrong", "error");
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
                 >
                   <LinearGradient
                     colors={[Colors.finance_accent, "#E0C38C"]}
@@ -452,7 +492,7 @@ export default function TopUpScreen({ navigation, route }) {
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
-              </Animated.View>
+            </Animated.View>
           </ScrollView>
         </KeyboardAvoidingView>
 
@@ -531,8 +571,8 @@ export default function TopUpScreen({ navigation, route }) {
       {customToast.visible && (
         <Animated.View style={[styles.customToastBox, { opacity: toastAnim, transform: [{ translateY: toastAnim.interpolate({ inputRange: [0, 1], outputRange: [-40, 0] }) }] }]}>
           <LinearGradient colors={customToast.type === "success" ? ["#4CAF50", "#2E7D32"] : ["#F44336", "#C62828"]} style={styles.customToastGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-              <Icon name={customToast.type === "success" ? "check-circle" : "alert-circle"} size={20} color={Colors.white} />
-              <Text style={styles.customToastText}>{customToast.message}</Text>
+            <Icon name={customToast.type === "success" ? "check-circle" : "alert-circle"} size={20} color={Colors.white} />
+            <Text style={styles.customToastText}>{customToast.message}</Text>
           </LinearGradient>
         </Animated.View>
       )}
@@ -543,8 +583,8 @@ export default function TopUpScreen({ navigation, route }) {
           <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setReceiptData(null)} />
           <View style={styles.receiptContent}>
             <View style={styles.receiptHeader}>
-              <LinearGradient 
-                colors={receiptData?.status === "success" ? ["#4CAF50", "#388E3C"] : ["#E53935", "#B71C1C"]} 
+              <LinearGradient
+                colors={receiptData?.status === "success" ? ["#4CAF50", "#388E3C"] : ["#E53935", "#B71C1C"]}
                 style={[styles.successBadge, receiptData?.status === "error" && { backgroundColor: '#E53935' }]}
               >
                 <Icon name={receiptData?.status === "success" ? "check" : "close"} size={24} color="#FFF" />
@@ -554,14 +594,21 @@ export default function TopUpScreen({ navigation, route }) {
               </Text>
               <Text style={styles.receiptAmountText}>₹{receiptData?.amount}</Text>
               <Text style={styles.receiptInfo}>For {receiptData?.mobile} ({receiptData?.operator})</Text>
+              {receiptData?.status === "success" && receiptData?.txn_ref && receiptData.txn_ref !== "N/A" && (
+                <Text style={[styles.receiptInfo, { marginTop: 4, fontFamily: Fonts.Bold, color: '#333' }]}>
+                  Txn ID: {receiptData?.txn_ref}
+                </Text>
+              )}
             </View>
 
             <View style={styles.dashedLine} />
 
-            <View style={styles.detailsRow}>
-              <Text style={styles.detailsLabel}>Transaction ID</Text>
-              <Text style={styles.detailsValue}>{receiptData?.txn_ref}</Text>
-            </View>
+            {receiptData?.status === "success" && receiptData?.txn_ref && (
+              <View style={styles.detailsRow}>
+                <Text style={styles.detailsLabel}>Transaction ID</Text>
+                <Text style={styles.detailsValue}>{receiptData?.txn_ref}</Text>
+              </View>
+            )}
 
             <View style={styles.detailsRow}>
               <Text style={styles.detailsLabel}>Date & Time</Text>
@@ -717,19 +764,19 @@ const styles = StyleSheet.create({
     borderBottomColor: "#F0F0F0",
     paddingBottom: 4,
   },
-  floatingLabel:   { fontSize: 10, color: "#999", fontFamily: Fonts.Medium, marginBottom: 2 },
-  rowCenter:       { flexDirection: "row", alignItems: "center" },
-  prefixText:      { fontSize: 16, fontFamily: Fonts.Medium, color: "#AAA", marginRight: 8 },
-  bigInput:        { flex: 1, fontSize: 18, fontFamily: Fonts.Bold, color: Colors.finance_text, padding: 0, height: 34 },
+  floatingLabel: { fontSize: 10, color: "#999", fontFamily: Fonts.Medium, marginBottom: 2 },
+  rowCenter: { flexDirection: "row", alignItems: "center" },
+  prefixText: { fontSize: 16, fontFamily: Fonts.Medium, color: "#AAA", marginRight: 8 },
+  bigInput: { flex: 1, fontSize: 18, fontFamily: Fonts.Bold, color: Colors.finance_text, padding: 0, height: 34 },
   contactBtnRound: { width: 30, height: 30, borderRadius: 15, backgroundColor: Colors.finance_accent, alignItems: "center", justifyContent: "center", elevation: 4 },
 
   // ── Connection ────────────────────────────────────────────────────────────
   connectionContainer: { backgroundColor: "#F9F9F9", borderRadius: 14, borderWidth: 1, borderColor: "#EEE", overflow: "hidden" },
-  connectionRow:       { flexDirection: "row", alignItems: "center", padding: 10 },
-  iconBox:             { width: 30, height: 30, borderRadius: 8, backgroundColor: Colors.white, alignItems: "center", justifyContent: "center", elevation: 2 },
-  connectionLabel:     { fontSize: 9, fontFamily: Fonts.Bold, color: "#777", textTransform: "uppercase" },
-  connectionValues:    { fontSize: 12, fontFamily: Fonts.Medium, color: "#000", marginTop: 2 },
-  dividerLine:         { height: 1, backgroundColor: "#EEE", marginHorizontal: 14 },
+  connectionRow: { flexDirection: "row", alignItems: "center", padding: 10 },
+  iconBox: { width: 30, height: 30, borderRadius: 8, backgroundColor: Colors.white, alignItems: "center", justifyContent: "center", elevation: 2 },
+  connectionLabel: { fontSize: 9, fontFamily: Fonts.Bold, color: "#777", textTransform: "uppercase" },
+  connectionValues: { fontSize: 12, fontFamily: Fonts.Medium, color: "#000", marginTop: 2 },
+  dividerLine: { height: 1, backgroundColor: "#EEE", marginHorizontal: 14 },
 
   // ── Amount card ───────────────────────────────────────────────────────────
   premiumAmountCard: {
@@ -745,54 +792,54 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: "rgba(212, 176, 106, 0.4)",
   },
-  typeSelector:    { flexDirection: "row", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: 12, padding: 3, marginBottom: 12 },
-  typeBtn:         { flex: 1, paddingVertical: 8, alignItems: "center", borderRadius: 10 },
-  typeBtnActive:   { backgroundColor: "rgba(212, 176, 106, 0.2)", borderWidth: 1, borderColor: "rgba(212, 176, 106, 0.5)" },
-  typeText:        { fontSize: 11, fontFamily: Fonts.Medium, color: "rgba(255,255,255,0.4)" },
-  typeTextActive:  { color: Colors.finance_accent, fontFamily: Fonts.Bold },
-  amountHeader:    { fontSize: 10, color: "rgba(255,255,255,0.6)", fontFamily: Fonts.Medium, textTransform: "uppercase", letterSpacing: 1, textAlign: "center", marginBottom: 8 },
-  amountInputRow:  { flexDirection: "row", alignItems: "center", marginBottom: 12, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", paddingVertical: 8, paddingHorizontal: 14 },
-  currencySymbol:  { fontSize: 20, fontFamily: Fonts.Bold, color: Colors.finance_accent, marginRight: 8 },
-  hugeInput:       { flex: 1, fontSize: 28, fontFamily: Fonts.Bold, color: "#FFFFFF", padding: 0 },
-  suggestionsWrapper:   { marginBottom: 12 },
+  typeSelector: { flexDirection: "row", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: 12, padding: 3, marginBottom: 12 },
+  typeBtn: { flex: 1, paddingVertical: 8, alignItems: "center", borderRadius: 10 },
+  typeBtnActive: { backgroundColor: "rgba(212, 176, 106, 0.2)", borderWidth: 1, borderColor: "rgba(212, 176, 106, 0.5)" },
+  typeText: { fontSize: 11, fontFamily: Fonts.Medium, color: "rgba(255,255,255,0.4)" },
+  typeTextActive: { color: Colors.finance_accent, fontFamily: Fonts.Bold },
+  amountHeader: { fontSize: 10, color: "rgba(255,255,255,0.6)", fontFamily: Fonts.Medium, textTransform: "uppercase", letterSpacing: 1, textAlign: "center", marginBottom: 8 },
+  amountInputRow: { flexDirection: "row", alignItems: "center", marginBottom: 12, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", paddingVertical: 8, paddingHorizontal: 14 },
+  currencySymbol: { fontSize: 20, fontFamily: Fonts.Bold, color: Colors.finance_accent, marginRight: 8 },
+  hugeInput: { flex: 1, fontSize: 28, fontFamily: Fonts.Bold, color: "#FFFFFF", padding: 0 },
+  suggestionsWrapper: { marginBottom: 12 },
   suggestionsContainer: { flexDirection: "row", alignItems: "center", gap: 8 },
-  suggestionChip:       { backgroundColor: "rgba(255,255,255,0.05)", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
+  suggestionChip: { backgroundColor: "rgba(255,255,255,0.05)", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
   suggestionChipActive: { backgroundColor: "rgba(212, 176, 106, 0.2)", borderColor: Colors.finance_accent },
-  suggestionText:       { color: "rgba(255,255,255,0.7)", fontSize: 12, fontFamily: Fonts.Medium },
+  suggestionText: { color: "rgba(255,255,255,0.7)", fontSize: 12, fontFamily: Fonts.Medium },
   suggestionTextActive: { color: Colors.finance_accent, fontFamily: Fonts.Bold },
-  viewPlansBtn:     { borderRadius: 14, overflow: "hidden" },
-  viewPlansGradient:{ flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 14, gap: 10 },
-  viewPlansText:    { color: Colors.black, fontFamily: Fonts.Bold, fontSize: 14 },
+  viewPlansBtn: { borderRadius: 14, overflow: "hidden" },
+  viewPlansGradient: { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 14, gap: 10 },
+  viewPlansText: { color: Colors.black, fontFamily: Fonts.Bold, fontSize: 14 },
 
   // ── Slider ────────────────────────────────────────────────────────────────
   actionContainer: { padding: 12, backgroundColor: Colors.finance_bg_1, borderTopWidth: 1, borderTopColor: 'rgba(212, 176, 106, 0.1)' },
-  sliderWrapper:   { height: 60, backgroundColor: Colors.white, borderRadius: 30, borderWidth: 1.5, borderColor: Colors.finance_accent, justifyContent: "center", elevation: 4, overflow: "hidden" },
-  sliderBackground:{ ...StyleSheet.absoluteFillObject, justifyContent: "center", alignItems: "center" },
-  swipeText:       { color: Colors.finance_accent, fontSize: 14, fontFamily: Fonts.Bold, letterSpacing: 2 },
-  sliderThumb:     { width: 52, height: 52, borderRadius: 26, position: "absolute", left: 4, elevation: 5 },
-  thumbGrad:       { width: 52, height: 52, borderRadius: 26, alignItems: "center", justifyContent: "center" },
-  processingBtn:   { height: 60, borderRadius: 30, flexDirection: "row", alignItems: "center", justifyContent: "center" },
-  processingText:  { color: Colors.white, fontFamily: Fonts.Bold, fontSize: 14, letterSpacing: 1 },
+  sliderWrapper: { height: 60, backgroundColor: Colors.white, borderRadius: 30, borderWidth: 1.5, borderColor: Colors.finance_accent, justifyContent: "center", elevation: 4, overflow: "hidden" },
+  sliderBackground: { ...StyleSheet.absoluteFillObject, justifyContent: "center", alignItems: "center" },
+  swipeText: { color: Colors.finance_accent, fontSize: 14, fontFamily: Fonts.Bold, letterSpacing: 2 },
+  sliderThumb: { width: 52, height: 52, borderRadius: 26, position: "absolute", left: 4, elevation: 5 },
+  thumbGrad: { width: 52, height: 52, borderRadius: 26, alignItems: "center", justifyContent: "center" },
+  processingBtn: { height: 60, borderRadius: 30, flexDirection: "row", alignItems: "center", justifyContent: "center" },
+  processingText: { color: Colors.white, fontFamily: Fonts.Bold, fontSize: 14, letterSpacing: 1 },
 
   // ── Bottom sheet ──────────────────────────────────────────────────────────
-  sheetBackdrop:       { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.45)" },
-  bottomSheet:         { position: "absolute", bottom: 0, left: 0, right: 0, backgroundColor: "#fff", borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: "75%", elevation: 20, shadowColor: "#000", shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.15, shadowRadius: 12 },
-  sheetHeader:         { paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: "#F0F0F0" },
-  handleBar:           { width: 40, height: 4, borderRadius: 2, backgroundColor: "#E0E0E0", alignSelf: "center", marginTop: 10, marginBottom: 10 },
-  sheetTitleRow:       { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 },
-  sheetTitle:          { fontSize: 15, fontFamily: Fonts.Bold, color: "#333" },
-  closeBtn:            { width: 28, height: 28, borderRadius: 14, backgroundColor: "#F4F4F4", alignItems: "center", justifyContent: "center" },
-  sheetSearchRow:      { flexDirection: "row", alignItems: "center", backgroundColor: "#F5F5F5", borderRadius: 10, paddingHorizontal: 10, marginBottom: 4, height: 40 },
-  sheetSearchInput:    { flex: 1, fontSize: 13, fontFamily: Fonts.Medium, color: "#212121", padding: 0 },
-  sheetListItem:       { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "#F5F5F5" },
-  sheetListItemSel:    { backgroundColor: Colors.finance_accent + "15" },
-  sheetListIconBox:    { width: 32, height: 32, borderRadius: 10, backgroundColor: "#F5F5F5", alignItems: "center", justifyContent: "center", marginRight: 10 },
+  sheetBackdrop: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.45)" },
+  bottomSheet: { position: "absolute", bottom: 0, left: 0, right: 0, backgroundColor: "#fff", borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: "75%", elevation: 20, shadowColor: "#000", shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.15, shadowRadius: 12 },
+  sheetHeader: { paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: "#F0F0F0" },
+  handleBar: { width: 40, height: 4, borderRadius: 2, backgroundColor: "#E0E0E0", alignSelf: "center", marginTop: 10, marginBottom: 10 },
+  sheetTitleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 },
+  sheetTitle: { fontSize: 15, fontFamily: Fonts.Bold, color: "#333" },
+  closeBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: "#F4F4F4", alignItems: "center", justifyContent: "center" },
+  sheetSearchRow: { flexDirection: "row", alignItems: "center", backgroundColor: "#F5F5F5", borderRadius: 10, paddingHorizontal: 10, marginBottom: 4, height: 40 },
+  sheetSearchInput: { flex: 1, fontSize: 13, fontFamily: Fonts.Medium, color: "#212121", padding: 0 },
+  sheetListItem: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "#F5F5F5" },
+  sheetListItemSel: { backgroundColor: Colors.finance_accent + "15" },
+  sheetListIconBox: { width: 32, height: 32, borderRadius: 10, backgroundColor: "#F5F5F5", alignItems: "center", justifyContent: "center", marginRight: 10 },
   sheetListIconBoxSel: { backgroundColor: Colors.finance_accent + "25" },
-  sheetListTxt:        { flex: 1, fontSize: 13, fontFamily: Fonts.Medium, color: "#212121" },
-  sheetListTxtSel:     { color: Colors.finance_accent, fontFamily: Fonts.Bold },
-  checkCircle:         { width: 20, height: 20, borderRadius: 10, backgroundColor: Colors.finance_accent, alignItems: "center", justifyContent: "center" },
-  emptyWrap:           { alignItems: "center", paddingVertical: 30 },
-  emptyTxt:            { color: "#BDBDBD", fontSize: 13, fontFamily: Fonts.Medium },
+  sheetListTxt: { flex: 1, fontSize: 13, fontFamily: Fonts.Medium, color: "#212121" },
+  sheetListTxtSel: { color: Colors.finance_accent, fontFamily: Fonts.Bold },
+  checkCircle: { width: 20, height: 20, borderRadius: 10, backgroundColor: Colors.finance_accent, alignItems: "center", justifyContent: "center" },
+  emptyWrap: { alignItems: "center", paddingVertical: 30 },
+  emptyTxt: { color: "#BDBDBD", fontSize: 13, fontFamily: Fonts.Medium },
 
   customToastBox: { position: 'absolute', top: 60, left: 20, right: 20, zIndex: 9999 },
   customToastGrad: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, gap: 10, elevation: 6, shadowColor: "#000", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 5 },
@@ -815,3 +862,12 @@ const styles = StyleSheet.create({
   // ── Loader ────────────────────────────────────────────────────────────────
   fullLoader: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(255,255,255,0.7)", justifyContent: "center", alignItems: "center", zIndex: 1000 },
 });
+// {
+//     "success": true,
+//     "message": "Recharge Successful",
+//     "data": {
+//         "status": "SUCCESS",
+//         "txn_ref": "RCHG202603171901523796",
+//         "message": "Transaction Successful"
+//     }
+// }

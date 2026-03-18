@@ -680,3 +680,15 @@ export const getWalletBalance = async ({ headerToken }) => {
     return error?.response?.data || { success: false, message: "Unable to fetch balance" };
   }
 };
+
+export const fetchBbpsCategories = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/bbps/fetch-bbps-categories`, {
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Fetch BBPS Categories Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch categories" };
+  }
+};

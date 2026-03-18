@@ -475,11 +475,11 @@ export default function FinanceHome({ navigation }) {
               <>
                 {/* ── Top Shortcuts for Assigned Services ── */}
                 <SectionHeader title="User Services" />
-                <View style={[styles.grid, { justifyContent: "flex-start" }]}>
+                <View style={styles.servicesContainerBox}>
                   {assignedServices.map((item) => (
                     <TouchableOpacity
                       key={item._id}
-                      style={[styles.categoryBox, { marginRight: 12 }]}
+                      style={styles.serviceItemBox}
                       activeOpacity={0.75}
                       onPress={() => {
                         const name = item.name?.toLowerCase();
@@ -488,17 +488,17 @@ export default function FinanceHome({ navigation }) {
                         else if (name === "aeps") navigation.navigate("CashWithdraw");
                       }}
                     >
-                      <View style={{ position: "relative" }}>
+                      <View style={styles.serviceItemIconBg}>
                         <Icon 
                           name={
                             item.name?.toLowerCase() === "bbps" ? "lightning-bolt" : 
                             item.name?.toLowerCase() === "recharge" ? "cellphone-wireless" : "apps"
                           } 
-                          size={22} 
-                          color={Colors.finance_text} 
+                          size={24} 
+                          color={Colors.finance_accent} 
                         />
                       </View>
-                      <Text style={styles.categoryText}>{item.name.toUpperCase()}</Text>
+                      <Text style={styles.serviceItemText}>{item.name.toUpperCase()}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -805,6 +805,10 @@ const styles = StyleSheet.create({
   // Locked state for Aadhaar Pay when KYC not approved
   categoryBoxLocked: { backgroundColor: "#FFF8F8", borderColor: "#F9736640", opacity: 0.85 },
   categoryText: { color: "#444", fontSize: 10, textAlign: "center", marginTop: 4, fontFamily: Fonts.Medium, lineHeight: 12 },
+  servicesContainerBox: { flexDirection: "row", backgroundColor: "#FFF", borderRadius: 20, paddingVertical: 10, paddingHorizontal: 12, marginBottom: 18, marginTop: 6, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 3, gap: 12 },
+  serviceItemBox: { alignItems: "center", width: 65 },
+  serviceItemIconBg: { width: 44, height: 44, borderRadius: 16, backgroundColor: "#FFFCF5", justifyContent: "center", alignItems: "center", marginBottom: 6, borderWidth: 1, borderColor: "rgba(212, 176, 106, 0.2)" },
+  serviceItemText: { fontSize: 11, fontFamily: Fonts.Bold, color: "#333", textAlign: "center" },
   kycRequiredText: { color: "#F97316", fontSize: 8, textAlign: "center", marginTop: 2, fontFamily: Fonts.Medium },
   lockBadge: { position: "absolute", bottom: -2, right: -6, width: 12, height: 12, borderRadius: 6, backgroundColor: "#F97316", alignItems: "center", justifyContent: "center" },
 
