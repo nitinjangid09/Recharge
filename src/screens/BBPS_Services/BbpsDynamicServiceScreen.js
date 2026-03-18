@@ -24,14 +24,17 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Colors from "../../utils/Color";
+/*
 import {
   getServices,
   getBillersByCategory,
   getBillerDetails,
   normaliseFields,
 } from "../../api/bbpsApi";
+*/
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Helpers
@@ -42,6 +45,19 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December",
 ];
 const DAYS_SHORT = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+ 
+const BANNER_ICONS = {
+  "Electricity": "⚡",
+  "Water": "💧",
+  "Gas": "🔥",
+  "Mobile Prepaid": "📱",
+  "DTH": "📺",
+  "Cable TV": "📺",
+  "Broadband Postpaid": "🌐",
+  "Landline Postpaid": "☎️",
+  "Insurance": "🛡️",
+  "Credit Card": "💳",
+};
 
 /** Returns true if the field should show a date/calendar picker */
 const isDobField = (field) => {
@@ -257,14 +273,14 @@ const CalendarPicker = ({ visible, onClose, onSelect, initialDate }) => {
 //  SelectBox — outside parent for stable reference
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SelectBox = ({ label, value, placeholder, onPress, loading, disabled }) => (
+const SelectBox = ({ label, value, placeholder, onPress, loading, disabled, hideArrow }) => (
   <View style={styles.block}>
     <Text style={styles.blockLabel}>{label}</Text>
     <TouchableOpacity
       style={[styles.selectBox, disabled && styles.selectDisabled]}
       onPress={onPress}
       disabled={disabled || loading}
-      activeOpacity={0.75}
+      activeOpacity={disabled ? 1 : 0.75}
     >
       {loading ? (
         <View style={styles.row}>
@@ -276,7 +292,7 @@ const SelectBox = ({ label, value, placeholder, onPress, loading, disabled }) =>
           <Text style={[styles.selectTxt, !value && styles.placeholder]} numberOfLines={1}>
             {value || placeholder}
           </Text>
-          <Text style={styles.arrow}>▼</Text>
+          {!hideArrow && <Text style={styles.arrow}>▼</Text>}
         </View>
       )}
     </TouchableOpacity>
@@ -352,18 +368,54 @@ const DynamicField = ({
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+//  Mock Data for Offline Testing
+// ─────────────────────────────────────────────────────────────────────────────
+
+const MOCK_SERVICES = [
+  { id: 1, name: "Electricity", cat_key: "ELECTRICITY", icon: "https://cdn-icons-png.flaticon.com/512/2815/2815412.png" },
+  { id: 2, name: "Water", cat_key: "WATER", icon: "https://cdn-icons-png.flaticon.com/512/3100/3100554.png" },
+  { id: 3, name: "Gas", cat_key: "GAS", icon: "https://cdn-icons-png.flaticon.com/512/2933/2933930.png" },
+];
+
+const MOCK_BILLERS = {
+  "ELECTRICITY": [
+    { id: 101, biller_name: "BSES Yamuna", cat_key: "ELECTRICITY" },
+    { id: 102, biller_name: "BSES Rajdhani", cat_key: "ELECTRICITY" },
+    { id: 103, biller_name: "Tata Power Delhi", cat_key: "ELECTRICITY" },
+  ],
+  "WATER": [
+    { id: 201, biller_name: "Delhi Jal Board", cat_key: "WATER" },
+    { id: 202, biller_name: "Haryana Water", cat_key: "WATER" },
+  ],
+  "GAS": [
+    { id: 301, biller_name: "Indraprastha Gas (IGL)", cat_key: "GAS" },
+    { id: 302, biller_name: "Mahanagar Gas", cat_key: "GAS" },
+  ],
+};
+
+const MOCK_FIELDS = [
+  { name: "account_number", label: "Consumer Number (CA Number)", mandatory: true, type: "NUMERIC", minLength: 5, maxLength: 12 },
+  { name: "dob", label: "Date of Birth", mandatory: true, type: "DATE" },
+  { name: "amount", label: "Amount", mandatory: true, type: "NUMERIC" },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
 //  Main Screen
 // ─────────────────────────────────────────────────────────────────────────────
 
 const BbpsDynamicServiceScreen = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const { serviceType } = route.params || {};
 
   const [services, setServices] = useState([]);
   const [billers, setBillers] = useState([]);
   const [dynamicFields, setDynamicFields] = useState([]);
   const [billerDetail, setBillerDetail] = useState(null);
 
-  const [selectedService, setSelectedService] = useState(null);
+  const [selectedService, setSelectedService] = useState(
+    serviceType ? { name: serviceType, cat_key: serviceType } : null
+  );
   const [selectedBiller, setSelectedBiller] = useState(null);
 
   const [serviceModal, setServiceModal] = useState(false);
@@ -383,14 +435,21 @@ const BbpsDynamicServiceScreen = () => {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState(null);
 
-  useEffect(() => { loadServices(); }, []);
+  useEffect(() => {
+    if (serviceType) {
+      loadBillers(serviceType);
+    } else {
+      loadServices();
+    }
+  }, [serviceType]);
 
   // ─── loaders ───────────────────────────────────────────────────────────────
 
   const loadServices = async () => {
     setServicesLoading(true);
-    const data = await getServices();
-    setServices(Array.isArray(data) ? data : []);
+    // Simulate API delay
+    await new Promise(r => setTimeout(r, 600));
+    setServices(MOCK_SERVICES);
     setServicesLoading(false);
   };
 
@@ -403,11 +462,30 @@ const BbpsDynamicServiceScreen = () => {
     setDetailsError(null);
     setFormData({});
     setDobErrors({});
-    const data = await getBillersByCategory(cat_key);
-    const list = Array.isArray(data) ? data : [];
-    setBillers(list);
-    setBillersLoading(false);
-    if (list.length > 0) setBillerModal(true);
+
+    try {
+      const token = await AsyncStorage.getItem("header_token");
+      const response = await fetch(
+        `http://192.168.1.5:8000/user/bbps/fetch-particular-category-billers?category=${encodeURIComponent(cat_key)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const res = await response.json();
+      if (res?.success && res.data) {
+        setBillers(res.data);
+        if (res.data.length > 0) setBillerModal(true);
+      } else {
+        setDetailsError(res?.message || "Failed to load billers");
+      }
+    } catch (err) {
+      console.log("Fetch billers error:", err);
+      setDetailsError("Network error. Please try again.");
+    } finally {
+      setBillersLoading(false);
+    }
   };
 
   const loadBillerDetails = async (biller) => {
@@ -417,15 +495,12 @@ const BbpsDynamicServiceScreen = () => {
     setBillerDetail(null);
     setFormData({});
     setDobErrors({});
+
     try {
-      const detail = await getBillerDetails(biller);
-      if (!detail) {
-        setDetailsError("Could not load biller fields. Please try again or choose another biller.");
-        return;
-      }
-      setBillerDetail(detail);
-      const fields = normaliseFields(detail);
-      setDynamicFields(Array.isArray(fields) ? fields : []);
+      await new Promise(r => setTimeout(r, 700));
+      // Standardize response structure mapping to mock data
+      setBillerDetail(biller); 
+      setDynamicFields(MOCK_FIELDS);
     } catch (err) {
       console.error("[loadBillerDetails] error:", err);
       setDetailsError("An unexpected error occurred. Please retry.");
@@ -589,14 +664,17 @@ const BbpsDynamicServiceScreen = () => {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingBottom: 50 }}
         >
-          {/* Step 1: Service */}
-          <SelectBox
-            label="SELECT SERVICE"
-            value={selectedService?.name}
-            placeholder="Choose a service category"
-            onPress={() => setServiceModal(true)}
-            loading={servicesLoading}
-          />
+          {/* Step 1: Service Banner */}
+          {selectedService && (
+            <View style={styles.serviceBanner}>
+              <View>
+                <Text style={styles.serviceBannerText}>{selectedService.name}</Text>
+                <Text style={styles.serviceBannerSubText}>
+                  Proceed to select your provider below to fetch and pay your due amounts securely.
+                </Text>
+              </View>
+            </View>
+          )}
 
           {/* Step 2: Biller */}
           {selectedService && (
@@ -865,6 +943,44 @@ const styles = StyleSheet.create({
     paddingTop: 22,
     borderTopLeftRadius: 26,
     borderTopRightRadius: 26,
+  },
+
+  serviceBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.white || "#FFF",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 16,
+    marginBottom: 20,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.02)",
+  },
+  serviceIconCircle: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: "#F3F6FF", 
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 14,
+  },
+  serviceIcon: { fontSize: 20 },
+  serviceBannerText: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: Colors.black || "#1A1A2E",
+  },
+  serviceBannerSubText: {
+    fontSize: 11,
+    color: "#6B7280", 
+    marginTop: 4,
+    lineHeight: 16,
   },
 
   block: { marginBottom: 18 },

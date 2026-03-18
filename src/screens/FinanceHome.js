@@ -177,23 +177,31 @@ export default function FinanceHome({ navigation }) {
       setUserUsername(s.user_username);
       setKycStatus(s.kyc_status || "pending");
 
-      // ─── STATIC TESTING DATA (Instead of dynamic API fetch for now) ───
-      setServicesLoading(false);
-      setAssignedServices([
-        { "_id": "6993147e71936d89b7185e36", "name": "bbps" },
-        { "_id": "699314b271936d89b7185e48", "name": "recharge" }
-      ]);
-
-      if (s.user_name?.trim()) {
-        setUserName(s.user_name.trim());
-      } else if (s.user_profile) {
+      // ─── Dynamic API fetch for Assigned Services ───
+      setServicesLoading(true);
+      const fetchProfile = async () => {
         try {
-          const p = JSON.parse(s.user_profile);
-          setUserName(`${p.firstName ?? ""} ${p.lastName ?? ""}`.trim() || "User");
-        } catch (_) { setUserName("User"); }
-      } else {
-        setUserName("User");
-      }
+          const res = await fetchUserProfile({ headerToken: s.header_token });
+          if (res?.success && res?.data) {
+            const p = res.data;
+            setUserName(`${p.firstName ?? ""} ${p.lastName ?? ""}`.trim() || s.user_name?.trim() || "User");
+            if (Array.isArray(p.assignedServices)) {
+              setAssignedServices(p.assignedServices);
+            } else {
+              setAssignedServices([]);
+            }
+          } else {
+            setAssignedServices([]);
+          }
+        } catch (err) {
+          console.log("Fetch profile error:", err);
+          setAssignedServices([]);
+        } finally {
+          setServicesLoading(false);
+        }
+      };
+      
+      fetchProfile();
 
       loadBalances(s.header_token);
 
@@ -474,34 +482,38 @@ export default function FinanceHome({ navigation }) {
             ) : (
               <>
                 {/* ── Top Shortcuts for Assigned Services ── */}
-                <SectionHeader title="User Services" />
-                <View style={styles.servicesContainerBox}>
-                  {assignedServices.map((item) => (
-                    <TouchableOpacity
-                      key={item._id}
-                      style={styles.serviceItemBox}
-                      activeOpacity={0.75}
-                      onPress={() => {
-                        const name = item.name?.toLowerCase();
-                        if (name === "recharge") navigation.navigate("TopUpScreen");
-                        else if (name === "bbps") navigation.navigate("PaymentsScreen");
-                        else if (name === "aeps") navigation.navigate("CashWithdraw");
-                      }}
-                    >
-                      <View style={styles.serviceItemIconBg}>
-                        <Icon 
-                          name={
-                            item.name?.toLowerCase() === "bbps" ? "lightning-bolt" : 
-                            item.name?.toLowerCase() === "recharge" ? "cellphone-wireless" : "apps"
-                          } 
-                          size={24} 
-                          color={Colors.finance_accent} 
-                        />
-                      </View>
-                      <Text style={styles.serviceItemText}>{item.name.toUpperCase()}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
+                {assignedServices.length > 0 && (
+                  <>
+                    <SectionHeader title="User Services" />
+                    <View style={styles.servicesContainerBox}>
+                      {assignedServices.map((item) => (
+                        <TouchableOpacity
+                          key={item._id}
+                          style={styles.serviceItemBox}
+                          activeOpacity={0.75}
+                          onPress={() => {
+                            const name = item.name?.toLowerCase();
+                            if (name === "recharge") navigation.navigate("TopUpScreen");
+                            else if (name === "bbps") navigation.navigate("PaymentsScreen");
+                            else if (name === "aeps") navigation.navigate("CashWithdraw");
+                          }}
+                        >
+                          <View style={styles.serviceItemIconBg}>
+                            <Icon
+                              name={
+                                item.name?.toLowerCase() === "bbps" ? "lightning-bolt" :
+                                  item.name?.toLowerCase() === "recharge" ? "cellphone-wireless" : "apps"
+                              }
+                              size={24}
+                              color={Colors.finance_accent}
+                            />
+                          </View>
+                          <Text style={styles.serviceItemText}>{item.name.toUpperCase()}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </>
+                )}
 
                 {/* ── AEPS Services ── */}
                 {hasService("aeps") && (

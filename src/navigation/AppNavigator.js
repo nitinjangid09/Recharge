@@ -53,7 +53,7 @@ import FaqSupportScreen from "../screens/HomeScreen/FaQSupport"
 import Offlinekyc from '../screens/kyc/Offlinekyc';
 import KycSubmitted from '../screens/kyc/KycSubmitted';
 import OfflineTopup from '../screens/OfflineTopup';
-
+import BbpsDynamicServiceScreen from '../screens/BBPS_Services/BbpsDynamicServiceScreen';
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
@@ -67,7 +67,7 @@ const AppNavigator = () => {
 
         if (token) {
           console.log("🔐 Token Found → Fetching Profile Status");
-          
+
           try {
             const response = await fetch('http://192.168.1.5:8000/fetch-user-profile', {
               method: 'GET',
@@ -180,6 +180,7 @@ const AppNavigator = () => {
       <Stack.Screen name="Offlinekyc" component={Offlinekyc} />
       <Stack.Screen name="KycSubmitted" component={KycSubmitted} />
       <Stack.Screen name="OfflineTopup" component={OfflineTopup} />
+      <Stack.Screen name="BbpsDynamicServiceScreen" component={BbpsDynamicServiceScreen} />
 
     </Stack.Navigator>
   );
