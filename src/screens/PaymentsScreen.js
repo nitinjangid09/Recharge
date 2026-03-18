@@ -166,7 +166,9 @@ export default function PaymentsScreen({ navigation }) {
                       <TouchableOpacity
                         key={cat._id || i}
                         onPress={() => {
-                          navigation.navigate("BbpsDynamicServiceScreen", { serviceType: cat.name });
+                          if (cat.name === "Mobile Prepaid") navigation.navigate("TopUpScreen");
+                          else if (cat.name === "Electricity") navigation.navigate("Electricity");
+                          else navigation.navigate("BBPSServices", { serviceType: cat.name });
                         }}
                       >
                         <Feature
