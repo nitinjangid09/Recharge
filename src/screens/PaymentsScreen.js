@@ -105,16 +105,20 @@ export default function PaymentsScreen({ navigation }) {
 
           <View style={styles.card}>
             <View>
-              <Text style={styles.smallText}>PREPAID • 6350580877</Text>
-              <Text style={styles.mainText}>₹299 pack expiring in 3 days</Text>
+              <Text style={styles.smallText}>ELECTRICITY • 510984752</Text>
+              <Text style={styles.mainText}>₹1,245 due on 25 March</Text>
             </View>
 
             <TouchableOpacity>
-              <Text style={styles.rechargeBtn}>Recharge</Text>
+              <Text style={styles.rechargeBtn}>Pay Now</Text>
             </TouchableOpacity>
           </View>
           <Animated.View style={{ transform: [{ translateY: slideAnim }] }}>
-            <View style={styles.banner}>
+            <LinearGradient
+              colors={["#fde4a8", "#FFF"]}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+              style={styles.banner}
+            >
               <View>
                 <Text style={styles.bannerText}>
                   pay your recharge,{"\n"}electricity, credit card &
@@ -127,7 +131,7 @@ export default function PaymentsScreen({ navigation }) {
                 source={require("../assets/bbps.png")}
                 style={styles.bannerImage}
               />
-            </View>
+            </LinearGradient>
 
 
             {/* -------- MAIN PAY CARD -------- */}
@@ -166,9 +170,7 @@ export default function PaymentsScreen({ navigation }) {
                       <TouchableOpacity
                         key={cat._id || i}
                         onPress={() => {
-                          if (cat.name === "Mobile Prepaid") navigation.navigate("TopUpScreen");
-                          else if (cat.name === "Electricity") navigation.navigate("Electricity");
-                          else navigation.navigate("BBPSServices", { serviceType: cat.name });
+                          navigation.navigate("BbpsDynamicServiceScreen", { serviceType: cat.name });
                         }}
                       >
                         <Feature

@@ -45,7 +45,7 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December",
 ];
 const DAYS_SHORT = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
- 
+
 const BANNER_ICONS = {
   "Electricity": "⚡",
   "Water": "💧",
@@ -496,14 +496,48 @@ const BbpsDynamicServiceScreen = () => {
     setFormData({});
     setDobErrors({});
 
+    const bId = biller.billerId || biller.biller_id || biller.id;
+    if (!bId) {
+      setDetailsError("Biller ID is missing.");
+      setDetailsLoading(false);
+      return;
+    }
+
     try {
-      await new Promise(r => setTimeout(r, 700));
-      // Standardize response structure mapping to mock data
-      setBillerDetail(biller); 
-      setDynamicFields(MOCK_FIELDS);
+      const token = await AsyncStorage.getItem("header_token");
+      const response = await fetch(
+        `http://192.168.1.5:8000/user/bbps/fetch-biller-info?billerId=${encodeURIComponent(bId)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const res = await response.json();
+
+      if (res?.success && res.data?.biller) {
+        setBillerDetail(res.data.biller);
+        const paramsRaw = res.data.biller.billerInputParams?.paramInfo;
+        const params = Array.isArray(paramsRaw) ? paramsRaw : paramsRaw ? [paramsRaw] : [];
+
+        // Map backend parameters into the structure the UI expects
+        const mappedFields = params.map(p => ({
+          name: p.paramName,
+          label: p.paramName,
+          type: p.dataType === "NUMERIC" ? "NUMERIC" : "TEXT",
+          mandatory: p.isOptional === "false", // "false" strings equality
+          minLength: p.minLength ? Number(p.minLength) : undefined,
+          maxLength: p.maxLength ? Number(p.maxLength) : undefined,
+          regEx: p.regEx
+        }));
+
+        setDynamicFields(mappedFields);
+      } else {
+        setDetailsError(res?.message || "Failed to load biller details");
+      }
     } catch (err) {
       console.error("[loadBillerDetails] error:", err);
-      setDetailsError("An unexpected error occurred. Please retry.");
+      setDetailsError("Network error. Please try again.");
     } finally {
       setDetailsLoading(false);
     }
@@ -619,7 +653,7 @@ const BbpsDynamicServiceScreen = () => {
     if (dynamicFields.length > 0 && dynamicFields.every((f) => f.mandatory)) {
       return { buttonLabel: "Fetch Bill", buttonSub: svc ? `Fetch bill for ${svc}` : "" };
     }
-    return { buttonLabel: "Continue", buttonSub: svc };
+    return { buttonLabel: "Validate", buttonSub: svc };
   }, [dynamicFields, selectedService]);
 
   const billerDisplayName =
@@ -965,7 +999,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 12,
-    backgroundColor: "#F3F6FF", 
+    backgroundColor: "#F3F6FF",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 14,
@@ -978,7 +1012,7 @@ const styles = StyleSheet.create({
   },
   serviceBannerSubText: {
     fontSize: 11,
-    color: "#6B7280", 
+    color: "#6B7280",
     marginTop: 4,
     lineHeight: 16,
   },
