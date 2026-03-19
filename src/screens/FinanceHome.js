@@ -25,6 +25,19 @@ import Colors from "../constants/Colors";
 import { getWalletBalance, fetchUserProfile } from "../api/AuthApi";
 
 // ─────────────────────────────────────────────────────────────────────────────
+// WHY Colors.bg IS APPLIED INLINE (not in StyleSheet.create)
+// ─────────────────────────────────────────────────────────────────────────────
+// StyleSheet.create() is evaluated once at module load time — before the
+// Colors object is imported and resolved. If you write:
+//   body: { backgroundColor: Colors.bg }  ← inside StyleSheet.create()
+// it will be undefined because the import hasn't settled yet.
+//
+// The fix: pass { backgroundColor: Colors.bg } as an inline style prop
+// in JSX, where it is evaluated at render time when Colors is already loaded.
+// This is why you'll see it in the JSX as style={[S.xxx, BG]} or inline.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────────────────
 // RESPONSIVE
 // ─────────────────────────────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -69,7 +82,7 @@ const ALL_ITEMS = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SERVICES
+// SERVICES  — Recharge & Bills removed
 // ─────────────────────────────────────────────────────────────────────────────
 const SERVICES = {
   aeps: [
@@ -79,23 +92,11 @@ const SERVICES = {
     { type: "ap", name: "Aadhaar\nPay" },
   ],
   money_transfer: [{ type: "dmt", name: "DMT" }],
-  recharge_bills: [
-    { type: "rech", name: "Mobile" },
-    { type: "C03", name: "DTH" },
-    { type: "C04", name: "Electricity" },
-    { type: "C05", name: "Broadband" },
-    { type: "C06", name: "Cable TV" },
-    { type: "C09", name: "Education" },
-    { type: "C14", name: "Gas" },
-    { type: "C22", name: "Insurance" },
-  ],
 };
 
 const ICON_MAP = {
   cw: "cash", be: "bank", ms: "file-document-outline", ap: "fingerprint",
-  dmt: "bank-transfer", rech: "cellphone", C03: "satellite-variant",
-  C04: "flash", C05: "wifi", C06: "television", C09: "school",
-  C14: "gas-cylinder", C22: "account-group-outline", default: "apps",
+  dmt: "bank-transfer", default: "apps",
 };
 
 const KYC_COLOR = { approved: "#22C55E", rejected: "#EF4444", pending: "#F97316" };
@@ -118,15 +119,9 @@ const apiGet = async (ep, tok) => {
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.json();
 };
-const fetchBbpsCategories = (t) =>
-  apiGet("/bbps/categories", t).then((d) => d?.categories ?? []).catch(() => []);
-const fetchDmtOperators = (t) =>
-  apiGet("/dmt/operators", t).then((d) => d?.operators ?? []).catch(() => []);
-const fetchRechargePlans = (t, m) =>
-  apiGet(`/recharge/plans?mobile=${m}`, t).then((d) => d?.plans ?? []).catch(() => []);
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MAIN COMPONENT
+// COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
 export default function FinanceHome({ navigation }) {
   const insets = useSafeAreaInsets();
@@ -134,8 +129,8 @@ export default function FinanceHome({ navigation }) {
   const TOP_ROW_H = rs(56);
   const WALLET_H = vscale(175);
   const GAP = rs(10);
-  const HEADER_MAX = insets.top + TOP_ROW_H + GAP + WALLET_H + rs(12);
-  const HEADER_MIN = insets.top + TOP_ROW_H + rs(12);
+  const HEADER_MAX = insets.top + TOP_ROW_H + GAP + WALLET_H + rs(14);
+  const HEADER_MIN = insets.top + TOP_ROW_H + rs(14);
   const SCROLL_D = HEADER_MAX - HEADER_MIN;
 
   // ── Greeting ───────────────────────────────────────────────────────────────
@@ -145,113 +140,41 @@ export default function FinanceHome({ navigation }) {
     return () => clearInterval(iv);
   }, []);
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // SEARCH ANIMATION — THE DEFINITIVE FIX
-  //
-  // ROOT CAUSE of "Attempting to run JS driven animation on animated node
-  // that has been moved to native":
-  //
-  //   React Native marks an Animated.Value as "native" the FIRST time it
-  //   is used with useNativeDriver:true. After that, ANY animation on that
-  //   same value (or an interpolation of it) with useNativeDriver:false
-  //   throws the error — even in a completely different animation call.
-  //
-  //   The previous code used layerAOpacity_anim / layerBOpacity_anim with
-  //   useNativeDriver:true. Those same values were then passed as the
-  //   `opacity` prop to Animated.View nodes whose CHILDREN contained
-  //   greetAlpha, greetSlide, nameAlpha — all of which use
-  //   useNativeDriver:false. React Native sees the parent node was marked
-  //   native and then refuses to run JS animations on anything in the
-  //   subtree.
-  //
-  // THE CORRECT FIX:
-  //   Use useNativeDriver:FALSE for ALL search-related layer animations.
-  //   Opacity absolutely works with JS driver — it is only *slower* by a
-  //   tiny margin that is invisible at 200ms. There is NO correctness
-  //   reason to use native driver for a simple 200ms opacity fade.
-  //
-  //   The ONLY values that MUST use native driver are those that animate
-  //   transform properties (translateX, translateY, scale) because those
-  //   properties cannot be driven from JS without causing layout jank.
-  //   Plain opacity on a parent View is fine with JS driver.
-  //
-  // RULE TABLE (enforced throughout this file):
-  //   layerAOpacity  → useNativeDriver: FALSE  (simple opacity fade)
-  //   layerBOpacity  → useNativeDriver: FALSE  (simple opacity fade)
-  //   resultsFade    → useNativeDriver: FALSE  (simple opacity fade)
-  //   wAlpha         → useNativeDriver: TRUE   (opacity only, isolated node)
-  //   wSlide         → useNativeDriver: TRUE   (transform only, isolated node)
-  //   cardOpacity    → useNativeDriver: FALSE  (driven by scrollY, JS)
-  //   cardTranslateY → useNativeDriver: FALSE  (driven by scrollY, JS)
-  //   cardScale      → useNativeDriver: FALSE  (driven by scrollY, JS)
-  //   leftAnim       → useNativeDriver: FALSE  (transform, JS — entry anim)
-  //   leftFade       → useNativeDriver: FALSE  (opacity, JS — entry anim)
-  //   greetAlpha     → useNativeDriver: FALSE  (opacity, JS)
-  //   greetSlide     → useNativeDriver: FALSE  (transform, JS)
-  //   nameAlpha      → useNativeDriver: FALSE  (opacity, JS)
-  // ─────────────────────────────────────────────────────────────────────────
-
-  // All three search animation values → useNativeDriver: FALSE, no exceptions
-  const layerAOpacity = useRef(new Animated.Value(1)).current; // 1 = Layer A visible
-  const layerBOpacity = useRef(new Animated.Value(0)).current; // 0 = Layer B hidden
-  const resultsFade = useRef(new Animated.Value(0)).current; // 0 = results hidden
+  // ── Search — all useNativeDriver:false ─────────────────────────────────────
+  const layerAOpacity = useRef(new Animated.Value(1)).current;
+  const layerBOpacity = useRef(new Animated.Value(0)).current;
+  const resultsFade = useRef(new Animated.Value(0)).current;
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const inputRef = useRef(null);
-  const closingRef = useRef(false); // guard against re-entrant close calls
+  const closingRef = useRef(false);
 
   const openSearch = useCallback(() => {
     if (searchOpen || closingRef.current) return;
     setSearchOpen(true);
     setSearchQuery("");
     setSearchResults([]);
-
     Animated.parallel([
-      Animated.timing(layerAOpacity, {
-        toValue: 0, duration: 200,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: false, // ← JS driver, safe with any child animation
-      }),
-      Animated.timing(layerBOpacity, {
-        toValue: 1, duration: 200,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: false, // ← JS driver
-      }),
-    ]).start(() => {
-      if (!closingRef.current) inputRef.current?.focus();
-    });
+      Animated.timing(layerAOpacity, { toValue: 0, duration: 200, easing: Easing.out(Easing.ease), useNativeDriver: false }),
+      Animated.timing(layerBOpacity, { toValue: 1, duration: 200, easing: Easing.out(Easing.ease), useNativeDriver: false }),
+    ]).start(() => { if (!closingRef.current) inputRef.current?.focus(); });
   }, [searchOpen]);
 
   const closeSearch = useCallback(() => {
-    if (closingRef.current) return; // already closing
+    if (closingRef.current) return;
     closingRef.current = true;
     Keyboard.dismiss();
-
-    // Hide results overlay
-    Animated.timing(resultsFade, {
-      toValue: 0, duration: 150,
-      useNativeDriver: false, // ← JS driver
-    }).start();
-
-    // Restore layers
+    Animated.timing(resultsFade, { toValue: 0, duration: 150, useNativeDriver: false }).start();
     Animated.parallel([
-      Animated.timing(layerAOpacity, {
-        toValue: 1, duration: 200,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: false, // ← JS driver
-      }),
-      Animated.timing(layerBOpacity, {
-        toValue: 0, duration: 200,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: false, // ← JS driver
-      }),
+      Animated.timing(layerAOpacity, { toValue: 1, duration: 200, easing: Easing.out(Easing.ease), useNativeDriver: false }),
+      Animated.timing(layerBOpacity, { toValue: 0, duration: 200, easing: Easing.out(Easing.ease), useNativeDriver: false }),
     ]).start(() => {
       setSearchOpen(false);
       setSearchQuery("");
       setSearchResults([]);
-      closingRef.current = false; // unlock after state is set
+      closingRef.current = false;
     });
   }, []);
 
@@ -260,18 +183,12 @@ export default function FinanceHome({ navigation }) {
     const q = text.trim().toLowerCase();
     if (!q) {
       setSearchResults([]);
-      Animated.timing(resultsFade, {
-        toValue: 0, duration: 120,
-        useNativeDriver: false,
-      }).start();
+      Animated.timing(resultsFade, { toValue: 0, duration: 120, useNativeDriver: false }).start();
       return;
     }
     const list = ALL_ITEMS.filter((i) => i.label.toLowerCase().includes(q));
     setSearchResults(list);
-    Animated.timing(resultsFade, {
-      toValue: 1, duration: 160,
-      useNativeDriver: false,
-    }).start();
+    Animated.timing(resultsFade, { toValue: 1, duration: 160, useNativeDriver: false }).start();
   };
 
   const onSelectResult = (item) => {
@@ -279,7 +196,7 @@ export default function FinanceHome({ navigation }) {
     setTimeout(() => navigation.navigate(item.screen), 300);
   };
 
-  // ── Session ────────────────────────────────────────────────────────────────
+  // ── State ──────────────────────────────────────────────────────────────────
   const [ready, setReady] = useState(false);
   const [userName, setUserName] = useState("");
   const [userPhone, setUserPhone] = useState("");
@@ -287,7 +204,6 @@ export default function FinanceHome({ navigation }) {
   const [kycStatus, setKycStatus] = useState("pending");
   const [token, setToken] = useState("");
 
-  // ── Wallet ─────────────────────────────────────────────────────────────────
   const [aepsBalance, setAepsBalance] = useState("...");
   const [mainBalance, setMainBalance] = useState("...");
   const [balanceLoading, setBalanceLoading] = useState(false);
@@ -299,14 +215,14 @@ export default function FinanceHome({ navigation }) {
   const hasService = (n) =>
     assignedServices.some((s) => s.name?.toLowerCase() === n.toLowerCase());
 
-  // ── Header collapse — all JS driver (driven by scrollY) ───────────────────
+  // ── Header collapse ────────────────────────────────────────────────────────
   const scrollY = useRef(new Animated.Value(0)).current;
   const headerHeight = scrollY.interpolate({ inputRange: [0, SCROLL_D], outputRange: [HEADER_MAX, HEADER_MIN], extrapolate: "clamp" });
   const cardOpacity = scrollY.interpolate({ inputRange: [0, SCROLL_D * 0.6], outputRange: [1, 0], extrapolate: "clamp" });
   const cardTranslateY = scrollY.interpolate({ inputRange: [0, SCROLL_D], outputRange: [0, -40], extrapolate: "clamp" });
   const cardScale = scrollY.interpolate({ inputRange: [0, SCROLL_D], outputRange: [1, 0.9], extrapolate: "clamp" });
 
-  // ── Wallet toggle — native driver safe: isolated node, only opacity+transform
+  // ── Wallet toggle — native driver, isolated leaf node ─────────────────────
   const wAlpha = useRef(new Animated.Value(1)).current;
   const wSlide = useRef(new Animated.Value(0)).current;
 
@@ -399,7 +315,7 @@ export default function FinanceHome({ navigation }) {
     }
   };
 
-  // ── Entry animations — all JS driver ──────────────────────────────────────
+  // ── Entry animations ───────────────────────────────────────────────────────
   const leftAnim = useRef(new Animated.Value(-80)).current;
   const leftFade = useRef(new Animated.Value(0)).current;
   const greetAlpha = useRef(new Animated.Value(0)).current;
@@ -452,9 +368,10 @@ export default function FinanceHome({ navigation }) {
   // ─────────────────────────────────────────────────────────────────────────
   if (!ready) {
     return (
-      <SafeAreaView style={S.safe} edges={["top", "bottom"]}>
-        <StatusBar barStyle="light-content" backgroundColor="#161616" />
-        <View style={S.splash}>
+      // Colors.bg inline — safe at render time
+      <SafeAreaView style={[S.safe, { backgroundColor: Colors.bg }]} edges={["top", "bottom"]}>
+        <StatusBar barStyle="light-content" backgroundColor={Colors.bg} />
+        <View style={[S.splash, { backgroundColor: Colors.bg }]}>
           <ActivityIndicator size="large" color={Colors.finance_accent} />
           <Text style={S.splashTxt}>Loading…</Text>
         </View>
@@ -466,24 +383,29 @@ export default function FinanceHome({ navigation }) {
   // RENDER
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <SafeAreaView style={S.safe} edges={["bottom"]}>
+    // ─── Colors.bg applied inline on every background surface ───────────
+    // 1. SafeAreaView  — outermost shell, fills status-bar area
+    // 2. Root View     — fills the remaining screen
+    // 3. Animated.ScrollView — covers the area behind the scroll content
+    // 4. Body View     — the actual scrollable content area
+    // All four must match so no flash of another color appears during
+    // over-scroll bounce or between the header curve and scroll content.
+    // ─────────────────────────────────────────────────────────────────────────
+    <SafeAreaView style={[S.safe, { backgroundColor: Colors.bg }]} edges={["bottom"]}>
       <StatusBar barStyle="light-content" backgroundColor="#161616" translucent />
-      <View style={S.root}>
 
-        {/* ══ HEADER ══ */}
+      <View style={[S.root, { backgroundColor: Colors.bg }]}>
+
+        {/* ══ HEADER — bottom border radius rs(32) ══ */}
         <Animated.View style={[S.headerWrap, { height: headerHeight }]}>
           <LinearGradient
             colors={["#161616", "#000000"]}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
             style={[S.headerGrad, { paddingTop: insets.top + rs(10) }]}
           >
-            {/* TOP ROW — two layers, both JS driver opacity */}
             <View style={{ height: TOP_ROW_H, marginBottom: GAP }}>
 
-              {/* ── LAYER A: avatar + greeting + buttons
-                  opacity driven by layerAOpacity → useNativeDriver:false
-                  Child animations (greetAlpha, greetSlide etc.) also
-                  useNativeDriver:false → NO CONFLICT ── */}
+              {/* Layer A — avatar / greeting / buttons */}
               <Animated.View
                 style={[S.layerA, { opacity: layerAOpacity }]}
                 pointerEvents={searchOpen ? "none" : "auto"}
@@ -525,10 +447,7 @@ export default function FinanceHome({ navigation }) {
                 </View>
               </Animated.View>
 
-              {/* ── LAYER B: search bar
-                  opacity driven by layerBOpacity → useNativeDriver:false
-                  Back button calls closeSearch() which only uses
-                  useNativeDriver:false animations → NO CONFLICT ── */}
+              {/* Layer B — search bar */}
               <Animated.View
                 style={[S.layerB, { opacity: layerBOpacity }]}
                 pointerEvents={searchOpen ? "auto" : "none"}
@@ -541,7 +460,6 @@ export default function FinanceHome({ navigation }) {
                 >
                   <Icon name="arrow-left" size={rs(22)} color={Colors.finance_accent} />
                 </TouchableOpacity>
-
                 <View style={S.searchInputWrap}>
                   <Icon name="magnify" size={rs(15)} color="rgba(255,255,255,0.35)" style={{ marginRight: rs(6) }} />
                   <TextInput
@@ -556,10 +474,7 @@ export default function FinanceHome({ navigation }) {
                     autoCapitalize="none"
                   />
                   {searchQuery.length > 0 && (
-                    <TouchableOpacity
-                      onPress={() => onSearchChange("")}
-                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    >
+                    <TouchableOpacity onPress={() => onSearchChange("")} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                       <Icon name="close-circle" size={rs(17)} color="rgba(255,255,255,0.4)" />
                     </TouchableOpacity>
                   )}
@@ -567,13 +482,10 @@ export default function FinanceHome({ navigation }) {
               </Animated.View>
             </View>
 
-            {/* ── WALLET CARD — position never changes ── */}
+            {/* Wallet Card */}
             <Animated.View
               pointerEvents={searchOpen ? "none" : "auto"}
-              style={{
-                opacity: cardOpacity,
-                transform: [{ translateY: cardTranslateY }, { scale: cardScale }],
-              }}
+              style={{ opacity: cardOpacity, transform: [{ translateY: cardTranslateY }, { scale: cardScale }] }}
             >
               <LinearGradient
                 colors={["#2C2C2C", "#111111"]}
@@ -639,8 +551,7 @@ export default function FinanceHome({ navigation }) {
           </LinearGradient>
         </Animated.View>
 
-        {/* ══ SEARCH RESULTS OVERLAY
-            resultsFade → useNativeDriver:false, isolated from everything above ══ */}
+        {/* Search results overlay */}
         {searchOpen && searchQuery.length > 0 && (
           <Animated.View
             style={[S.resultsOverlay, { top: RESULTS_TOP, opacity: resultsFade }]}
@@ -680,13 +591,17 @@ export default function FinanceHome({ navigation }) {
           </Animated.View>
         )}
 
-        {/* Tap-outside to close */}
         {searchOpen && (
           <TouchableOpacity style={S.searchOverlay} activeOpacity={1} onPress={closeSearch} />
         )}
 
-        {/* ══ SCROLLABLE BODY ══ */}
+        {/* ══ SCROLLABLE BODY ══
+            style={{ backgroundColor: Colors.bg }} on the ScrollView
+            covers the overscroll bounce area at top and bottom.
+            The inner body View also gets the same color so the content
+            area never shows a different background behind list items.    */}
         <Animated.ScrollView
+          style={{ backgroundColor: Colors.bg }}
           contentContainerStyle={{ paddingTop: HEADER_MAX + rs(8), paddingBottom: rs(110) }}
           onScroll={Animated.event(
             [{ nativeEvent: { contentOffset: { y: scrollY } } }],
@@ -696,7 +611,9 @@ export default function FinanceHome({ navigation }) {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={S.body}>
+          {/* body View — inline backgroundColor so Colors.bg is applied
+              at render time, not at StyleSheet.create() time              */}
+          <View style={[S.body, { backgroundColor: Colors.bg }]}>
 
             {servicesLoading ? (
               <ActivityIndicator size="small" color={Colors.finance_accent} style={{ marginTop: rs(20) }} />
@@ -707,11 +624,14 @@ export default function FinanceHome({ navigation }) {
               </View>
             ) : (
               <>
-                <SecHeader title="User Services" />
-                <View style={S.servicesBox}>
+                {/* User Services — transparent grid, no white card */}
+                <SecHeader title="Services" />
+                <View style={S.svcGrid}>
                   {assignedServices.map((item) => (
                     <TouchableOpacity
-                      key={item._id} style={S.svcItem} activeOpacity={0.75}
+                      key={item._id}
+                      style={S.svcGridItem}
+                      activeOpacity={0.75}
                       onPress={() => {
                         const n = item.name?.toLowerCase();
                         if (n === "recharge") navigation.navigate("TopUpScreen");
@@ -719,20 +639,21 @@ export default function FinanceHome({ navigation }) {
                         else if (n === "aeps") navigation.navigate("CashWithdraw");
                       }}
                     >
-                      <View style={S.svcIconBg}>
+                      <View style={S.svcIconCircle}>
                         <Icon
                           name={
                             item.name?.toLowerCase() === "bbps" ? "lightning-bolt" :
                               item.name?.toLowerCase() === "recharge" ? "cellphone-wireless" : "apps"
                           }
-                          size={rs(24)} color={Colors.finance_accent}
+                          size={rs(26)} color={Colors.finance_accent}
                         />
                       </View>
-                      <Text style={S.svcLabel}>{item.name.toUpperCase()}</Text>
+                      <Text style={S.svcGridLabel}>{item.name.toUpperCase()}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
 
+                {/* AEPS */}
                 {hasService("aeps") && (
                   <>
                     <SecHeader title="AEPS Services" />
@@ -744,7 +665,7 @@ export default function FinanceHome({ navigation }) {
                             style={[S.gridBox, item.type === "ap" && kycStatus !== "approved" && S.gridBoxLocked]}
                             onPress={() => handleAepsService(item)}
                           >
-                            <View>
+                            <View style={{ position: "relative" }}>
                               <Icon name={ICON_MAP[item.type] || ICON_MAP.default} size={rs(22)} color={Colors.finance_text} />
                               {item.type === "ap" && kycStatus !== "approved" && (
                                 <View style={S.lockBadge}><Icon name="lock" size={rs(7)} color="#FFF" /></View>
@@ -761,6 +682,7 @@ export default function FinanceHome({ navigation }) {
                   </>
                 )}
 
+                {/* Money Transfer */}
                 {hasService("dmt") && (
                   <>
                     <SecHeader title="Money Transfer" />
@@ -778,65 +700,10 @@ export default function FinanceHome({ navigation }) {
                     </Animated.View>
                   </>
                 )}
-
-                {(hasService("bbps") || hasService("recharge")) && (
-                  <View style={{ height: vscale(80), marginTop: rs(8) }}>
-                    <ScrollView ref={planRef} horizontal snapToInterval={SNAP_INT} decelerationRate="fast" showsHorizontalScrollIndicator={false}>
-                      {[
-                        { title: userPhone || "9876543210", sub: "Plan expires in", hl: "4 days", hlC: "#FF3B30", icon: "cellphone", btnTxt: "Recharge", btnC: Colors.finance_accent, bdrC: "#FF3B30" },
-                        { title: "JioFiber", sub: "Bill Due:", hl: "Tomorrow", hlC: "#FF9500", icon: "router-wireless", btnTxt: "Pay Bill", btnC: "#FF9500", bdrC: "#FF9500" },
-                        { title: userPhone || "9876543210", sub: "Plan expires in", hl: "4 days", hlC: "#FF3B30", icon: "cellphone", btnTxt: "Recharge", btnC: Colors.finance_accent, bdrC: "#FF3B30" },
-                      ].map((p, i) => (
-                        <View key={i} style={[S.planCard, { width: CARD_W, marginRight: SPACING, borderLeftColor: p.bdrC }]}>
-                          <View style={S.planRow}>
-                            <View style={[S.planIconBg, { backgroundColor: p.btnC }]}>
-                              <Icon name={p.icon} size={rs(20)} color="#FFF" />
-                            </View>
-                            <View style={{ flex: 1, marginLeft: rs(10) }}>
-                              <Text style={S.planTitle} numberOfLines={1}>{p.title}</Text>
-                              <Text style={S.planSub}>{p.sub} <Text style={{ color: p.hlC, fontWeight: "bold" }}>{p.hl}</Text></Text>
-                            </View>
-                            <TouchableOpacity style={[S.planBtn, { backgroundColor: p.btnC }]}>
-                              <Text style={S.planBtnTxt}>{p.btnTxt}</Text>
-                            </TouchableOpacity>
-                          </View>
-                        </View>
-                      ))}
-                    </ScrollView>
-                  </View>
-                )}
-
-                {(hasService("bbps") || hasService("recharge")) && (
-                  <>
-                    <View style={[S.secHeaderRow, { justifyContent: "space-between", marginBottom: rs(10) }]}>
-                      <View style={{ flexDirection: "row", alignItems: "center" }}>
-                        <View style={S.secBar} /><Text style={S.secTitle}>Recharge & Bills</Text>
-                      </View>
-                      <TouchableOpacity style={S.viewAllBtn} onPress={() => navigation.navigate("PaymentsScreen")}>
-                        <Text style={S.viewAllTxt}>View All</Text>
-                        <Icon name="arrow-right" size={rs(15)} color={Colors.finance_accent} />
-                      </TouchableOpacity>
-                    </View>
-                    <Animated.View style={{ transform: [{ translateX: leftAnim }], opacity: leftFade }}>
-                      <View style={S.grid}>
-                        {SERVICES.recharge_bills.map((item, i) => (
-                          <TouchableOpacity key={i} style={S.gridBox}
-                            onPress={() => {
-                              if (item.type === "rech") navigation.navigate("TopUpScreen");
-                              else if (item.type === "C04") navigation.navigate("Electricity");
-                            }}
-                          >
-                            <Icon name={ICON_MAP[item.type] || ICON_MAP.default} size={rs(22)} color={Colors.finance_text} />
-                            <Text style={S.gridTxt}>{item.name}</Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    </Animated.View>
-                  </>
-                )}
               </>
             )}
 
+            {/* Banner */}
             <View style={S.bannerWrap}>
               <ScrollView
                 ref={scrollRef} horizontal snapToInterval={ITEM_W}
@@ -861,6 +728,7 @@ export default function FinanceHome({ navigation }) {
               </View>
             </View>
 
+            {/* Great Deals */}
             <View style={S.dealsRow}>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <View style={[S.dealIconBg, { backgroundColor: Colors.finance_chip }]}>
@@ -873,6 +741,7 @@ export default function FinanceHome({ navigation }) {
               </View>
             </View>
 
+            {/* Bill Pay Card */}
             <LinearGradient colors={[Colors.primary, "#000000"]} style={S.billCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
               <View style={S.billCircle} />
               <View style={S.rowBetween}>
@@ -897,7 +766,7 @@ export default function FinanceHome({ navigation }) {
                   </View>
                 ))}
               </View>
-              <TouchableOpacity style={S.billPayBtn}>
+              <TouchableOpacity style={S.billPayBtn} onPress={() => navigation.navigate("PaymentsScreen")}>
                 <Text style={S.billPayBtnTxt}>Pay Now</Text>
                 <Icon name="arrow-right" size={rs(15)} color="#000" />
               </TouchableOpacity>
@@ -906,7 +775,7 @@ export default function FinanceHome({ navigation }) {
           </View>
         </Animated.ScrollView>
 
-        {/* ══ BOTTOM NAV ══ */}
+        {/* Bottom Nav */}
         <View style={[S.navWrap, { bottom: insets.bottom + rs(8) }]}>
           <View style={S.navBar}>
             <TouchableOpacity style={S.tabItem} activeOpacity={0.8}>
@@ -945,7 +814,7 @@ export default function FinanceHome({ navigation }) {
 // ─────────────────────────────────────────────────────────────────────────────
 function SecHeader({ title }) {
   return (
-    <View style={[S.secHeaderRow, { marginTop: rs(2), marginBottom: rs(4) }]}>
+    <View style={[S.secHeaderRow, { marginTop: rs(10), marginBottom: rs(8) }]}>
       <View style={S.secBar} />
       <Text style={S.secTitle}>{title}</Text>
     </View>
@@ -955,26 +824,42 @@ function SecHeader({ title }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // STYLES
 // ─────────────────────────────────────────────────────────────────────────────
+// IMPORTANT: Colors.bg is NOT used here.
+// StyleSheet.create() runs at module load time, before the Colors import
+// is fully resolved. Using Colors.bg here would produce undefined.
+// All background color is applied as inline style={{ backgroundColor: Colors.bg }}
+// in the JSX above, where it is evaluated at render time.
+// ─────────────────────────────────────────────────────────────────────────────
 const S = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#161616" },
-  root: { flex: 1, backgroundColor: Colors.finance_bg_1 },
+  safe: { flex: 1 },
+  root: { flex: 1 },
   rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  splash: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#161616" },
+
+  splash: { flex: 1, justifyContent: "center", alignItems: "center" },
   splashTxt: { marginTop: rs(12), color: "#888", fontFamily: Fonts.Medium, fontSize: rs(14) },
   emptyServiceTxt: { color: "#666", fontFamily: Fonts.Medium, marginTop: rs(10), fontSize: rs(13), textAlign: "center" },
 
   searchOverlay: { position: "absolute", zIndex: 90, top: 0, left: 0, right: 0, bottom: 0 },
 
+  // Header — bottom border radius gives the curved bottom edge
   headerWrap: {
     position: "absolute", top: 0, left: 0, right: 0, zIndex: 100,
     overflow: "visible",
     backgroundColor: "#161616",
-    borderBottomLeftRadius: rs(28), borderBottomRightRadius: rs(28),
-    elevation: 10,
-    shadowColor: "#000", shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.28, shadowRadius: 8,
+    borderBottomLeftRadius: rs(32),
+    borderBottomRightRadius: rs(32),
+    elevation: 12,
+    shadowColor: "#000", shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.32, shadowRadius: 10,
   },
-  headerGrad: { flex: 1, paddingHorizontal: rs(18), paddingBottom: rs(10) },
+  headerGrad: {
+    flex: 1,
+    paddingHorizontal: rs(18),
+    paddingBottom: rs(14),
+    borderBottomLeftRadius: rs(32),
+    borderBottomRightRadius: rs(32),
+    overflow: "hidden",
+  },
 
   layerA: {
     position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
@@ -1029,15 +914,11 @@ const S = StyleSheet.create({
   },
 
   resultsOverlay: {
-    position: "absolute",
-    left: rs(16), right: rs(16),
-    zIndex: 200,
-    backgroundColor: "#1C1C1C",
-    borderRadius: rs(16),
-    borderWidth: 1, borderColor: "rgba(212,176,106,0.22)",
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
+    position: "absolute", left: rs(16), right: rs(16),
+    zIndex: 200, backgroundColor: "#1C1C1C",
+    borderRadius: rs(16), borderWidth: 1,
+    borderColor: "rgba(212,176,106,0.22)", overflow: "hidden",
+    shadowColor: "#000", shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.45, shadowRadius: 14, elevation: 20,
   },
   resultRow: {
@@ -1049,8 +930,7 @@ const S = StyleSheet.create({
     width: rs(30), height: rs(30), borderRadius: rs(9),
     backgroundColor: "rgba(212,176,106,0.09)",
     alignItems: "center", justifyContent: "center",
-    marginRight: rs(10), borderWidth: 1,
-    borderColor: "rgba(212,176,106,0.12)",
+    marginRight: rs(10), borderWidth: 1, borderColor: "rgba(212,176,106,0.12)",
   },
   resultLabel: { flex: 1, color: "#DDD", fontSize: rs(13), fontFamily: Fonts.Medium },
   moreHint: { textAlign: "center", color: "#666", fontSize: rs(10), fontFamily: Fonts.Medium, paddingVertical: rs(7) },
@@ -1077,15 +957,28 @@ const S = StyleSheet.create({
   kycDotSm: { width: rs(5), height: rs(5), borderRadius: rs(3), marginRight: rs(4) },
   kycBadgeTxt: { fontSize: rs(9), fontFamily: Fonts.Bold, letterSpacing: 0.5 },
 
+  // body — NO backgroundColor here; it is set inline in JSX as Colors.bg
   body: { paddingHorizontal: rs(16), paddingTop: rs(4) },
+
   secHeaderRow: { flexDirection: "row", alignItems: "center" },
   secBar: { width: rs(3), height: rs(15), backgroundColor: Colors.finance_accent, borderRadius: rs(4), marginRight: rs(7) },
-  secTitle: { fontSize: rs(14), fontFamily: Fonts.Bold, color: "#333", letterSpacing: 0.4, textTransform: "capitalize" },
-  viewAllBtn: { flexDirection: "row", alignItems: "center", backgroundColor: "#fffcf5", paddingVertical: rs(4), paddingHorizontal: rs(9), borderRadius: rs(14), borderWidth: 1, borderColor: "rgba(212,176,106,0.4)", elevation: 1 },
-  viewAllTxt: { fontSize: rs(11), fontFamily: Fonts.Bold, color: Colors.finance_accent, marginRight: rs(3) },
+  secTitle: { fontSize: rs(14), fontFamily: Fonts.Bold, color: Colors.finance_text, letterSpacing: 0.4, textTransform: "capitalize" },
+
+  // User Services — plain transparent grid
+  svcGrid: { flexDirection: "row", flexWrap: "wrap", marginBottom: rs(8) },
+  svcGridItem: { width: "25%", alignItems: "center", paddingVertical: rs(10) },
+  svcIconCircle: {
+    width: rs(60), height: rs(60), borderRadius: rs(15),
+    backgroundColor: Colors.white,
+    justifyContent: "center", alignItems: "center",
+    marginBottom: rs(6),
+    borderWidth: 1.5, borderColor: "rgba(212,176,106,0.22)",
+  },
+  svcGridLabel: { fontSize: rs(9), fontFamily: Fonts.Bold, color: Colors.finance_text, textAlign: "center", letterSpacing: 0.3 },
+
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" },
   gridBox: {
-    width: "23%", backgroundColor: "#FFF", alignItems: "center",
+    width: "23%", backgroundColor: Colors.white, alignItems: "center",
     paddingVertical: rs(8), borderRadius: rs(12), paddingHorizontal: rs(3),
     shadowColor: "#000", shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05, shadowRadius: 3, elevation: 2,
@@ -1095,33 +988,23 @@ const S = StyleSheet.create({
   gridTxt: { color: "#444", fontSize: rs(9), textAlign: "center", marginTop: rs(4), fontFamily: Fonts.Medium, lineHeight: rs(12) },
   lockBadge: { position: "absolute", bottom: -2, right: -5, width: rs(11), height: rs(11), borderRadius: rs(6), backgroundColor: "#F97316", alignItems: "center", justifyContent: "center" },
   kycNeedTxt: { color: "#F97316", fontSize: rs(7), textAlign: "center", marginTop: rs(2), fontFamily: Fonts.Medium },
-  servicesBox: {
-    flexDirection: "row", flexWrap: "wrap",
-    backgroundColor: "#FFF", borderRadius: rs(18),
-    paddingVertical: rs(10), paddingHorizontal: rs(11),
-    marginBottom: rs(14), marginTop: rs(5),
-    shadowColor: "#000", shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06, shadowRadius: 5, elevation: 3, gap: rs(10),
-  },
-  svcItem: { alignItems: "center", width: rs(58) },
-  svcIconBg: { width: rs(42), height: rs(42), borderRadius: rs(14), backgroundColor: "#FFFCF5", justifyContent: "center", alignItems: "center", marginBottom: rs(5), borderWidth: 1, borderColor: "rgba(212,176,106,0.2)" },
-  svcLabel: { fontSize: rs(9), fontFamily: Fonts.Bold, color: "#333", textAlign: "center" },
-  planCard: { backgroundColor: "#fff", borderRadius: rs(13), padding: rs(11), marginVertical: rs(9), elevation: 2, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.09, shadowRadius: 3, borderLeftWidth: 3 },
-  planRow: { flexDirection: "row", alignItems: "center" },
-  planIconBg: { width: rs(32), height: rs(32), borderRadius: rs(16), justifyContent: "center", alignItems: "center" },
-  planTitle: { fontSize: rs(13), fontFamily: Fonts.Bold, color: "#333" },
-  planSub: { fontSize: rs(10), color: "#666", marginTop: 1, fontFamily: Fonts.Medium },
-  planBtn: { paddingHorizontal: rs(10), paddingVertical: rs(5), borderRadius: rs(13), elevation: 1 },
-  planBtnTxt: { color: "#000", fontSize: rs(11), fontFamily: Fonts.Bold },
+
   bannerWrap: { marginTop: rs(16), marginBottom: rs(4), height: vscale(128), borderRadius: rs(12), overflow: "hidden", justifyContent: "center", alignItems: "center" },
   bannerImg: { width: SW - rs(36), height: vscale(128), resizeMode: "cover", borderRadius: rs(12), backgroundColor: "#fff", marginRight: rs(10) },
   paginRow: { position: "absolute", bottom: rs(7), flexDirection: "row", alignSelf: "center" },
   paginDot: { height: rs(5), borderRadius: rs(3), backgroundColor: Colors.finance_accent, marginHorizontal: rs(3) },
-  dealsRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: rs(9), marginTop: rs(9), paddingVertical: rs(11), paddingHorizontal: rs(13), backgroundColor: Colors.white, borderRadius: rs(14), elevation: 2 },
+
+  dealsRow: {
+    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
+    marginBottom: rs(9), marginTop: rs(9),
+    paddingVertical: rs(11), paddingHorizontal: rs(13),
+    backgroundColor: Colors.white, borderRadius: rs(14), elevation: 2,
+  },
   dealIconBg: { width: rs(29), height: rs(29), borderRadius: rs(14), alignItems: "center", justifyContent: "center", marginRight: rs(7) },
   dealTitle: { fontSize: rs(13), fontFamily: Fonts.Bold },
   hotTag: { paddingHorizontal: rs(8), paddingVertical: rs(3), borderRadius: rs(9) },
   hotTagTxt: { color: Colors.white, fontSize: rs(9), fontFamily: Fonts.Bold },
+
   billCard: { marginHorizontal: rs(1), marginTop: rs(11), borderRadius: rs(18), padding: rs(17), borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", overflow: "hidden", marginBottom: rs(6) },
   billCircle: { position: "absolute", top: -28, right: -28, width: rs(90), height: rs(90), borderRadius: rs(45), backgroundColor: "rgba(212,176,106,0.1)" },
   billTitle: { color: "#FFF", fontSize: rs(15), fontFamily: Fonts.Bold },
@@ -1131,6 +1014,7 @@ const S = StyleSheet.create({
   billActionTxt: { color: "rgba(255,255,255,0.7)", fontSize: rs(10), marginTop: rs(5), fontFamily: Fonts.Medium },
   billPayBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: Colors.finance_accent, paddingVertical: rs(10), borderRadius: rs(11) },
   billPayBtnTxt: { color: "#000", fontWeight: "bold", marginRight: rs(5), fontSize: rs(12) },
+
   navWrap: { position: "absolute", width: "100%", alignItems: "center" },
   navBar: { backgroundColor: "#1A1A1A", width: "92%", height: rs(58), borderRadius: rs(29), flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: rs(7), shadowColor: "#000", shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.24, shadowRadius: 14, elevation: 10, borderWidth: 1, borderColor: "#333" },
   tabItem: { flex: 1, height: "100%", justifyContent: "center", alignItems: "center" },

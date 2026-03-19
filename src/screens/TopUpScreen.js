@@ -28,7 +28,7 @@ import { getOperatorCircle, fetchOperatorByMobile, getRechargeOperatorList, getR
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const { width } = Dimensions.get("window");
+const { width, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 export default function TopUpScreen({ navigation, route }) {
   const insets = useSafeAreaInsets();
@@ -196,13 +196,11 @@ export default function TopUpScreen({ navigation, route }) {
 
       const headerToken = await AsyncStorage.getItem("header_token");
       if (headerToken) {
-        // Fetch operators from NEW API
         const opResult = await getRechargeOperatorList({ headerToken });
         if (opResult?.success) {
           setOperators(opResult.data || []);
         }
 
-        // Fetch circles from NEW API
         const cirResult = await getRechargeCircleList({ headerToken });
         if (cirResult?.success) {
           setCircles(cirResult.data || []);
@@ -241,9 +239,6 @@ export default function TopUpScreen({ navigation, route }) {
             (op.rechargeValue && fetchedData.operatorCode && op.rechargeValue.toLowerCase() === fetchedData.operatorCode.toLowerCase()) ||
             (op.planFetchValue && fetchedData.operatorCode && op.planFetchValue.toLowerCase() === fetchedData.operatorCode.toLowerCase())
           );
-          console.log("🔍 fetchedData:", fetchedData);
-          console.log("🔍 currentOps count:", currentOps.length);
-          console.log("🔍 matchedOp:", matchedOp);
 
           const matchedCir = circles.find(c =>
             String(c.circleCode) === String(fetchedData.circle) ||
@@ -251,9 +246,8 @@ export default function TopUpScreen({ navigation, route }) {
           );
           const opName = matchedOp?.label || matchedOp?.name || fetchedData.operator || "";
           const cirName = matchedCir?.circleName || matchedCir?.circlename || fetchedData.state || "";
-
           const opCode = matchedOp?.rechargeValue || fetchedData.operatorCode || "";
-          console.log("🔍 SETTING OPERATOR CODE:", opCode);
+
           setOperatorCode(opCode);
           setOperator(opName);
           setCircle(cirName);
@@ -281,16 +275,6 @@ export default function TopUpScreen({ navigation, route }) {
 
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    /*
-     *  SafeAreaView strategy:
-     *    • edges={["bottom"]}  → handles home-indicator / gesture bar at bottom
-     *    • StatusBar translucent + backgroundColor match header so the
-     *      status-bar area is visually part of the header gradient
-     *    • HeaderBar's paddingTop is driven by insets.top so it never
-     *      overlaps the clock/battery row
-     *    • The container backgroundColor (#161616 or Colors.finance_bg_1) fills
-     *      the full screen including the status-bar region
-     */
     <SafeAreaView
       style={[styles.safeArea, { backgroundColor: Colors.finance_bg_1 }]}
       edges={["bottom"]}
@@ -303,7 +287,7 @@ export default function TopUpScreen({ navigation, route }) {
 
       <View style={styles.container}>
 
-        {/* Header — top padding = insets.top so it clears the status bar */}
+        {/* Header */}
         <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
           <HeaderBar
             title="Mobile Recharge"
@@ -444,18 +428,9 @@ export default function TopUpScreen({ navigation, route }) {
                 <TouchableOpacity
                   style={styles.viewPlansBtn}
                   onPress={async () => {
-                    if (mobile.length !== 10) {
-                      showCustomToast("Enter 10-digit mobile number", "error");
-                      return;
-                    }
-                    if (!operator) {
-                      showCustomToast("Select Operator", "error");
-                      return;
-                    }
-                    if (!circle) {
-                      showCustomToast("Select Circle", "error");
-                      return;
-                    }
+                    if (mobile.length !== 10) { showCustomToast("Enter 10-digit mobile number", "error"); return; }
+                    if (!operator) { showCustomToast("Select Operator", "error"); return; }
+                    if (!circle) { showCustomToast("Select Circle", "error"); return; }
 
                     try {
                       setLoading(true);
@@ -475,7 +450,6 @@ export default function TopUpScreen({ navigation, route }) {
                         showCustomToast(result?.message || "Unable to load plans", "error");
                       }
                     } catch (err) {
-                      console.log("Explore plans error:", err);
                       showCustomToast("Something went wrong", "error");
                     } finally {
                       setLoading(false);
@@ -633,14 +607,129 @@ export default function TopUpScreen({ navigation, route }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Reusable bottom sheet modal (operator + circle share same UI)
+// BottomSheetModal — fixed shadow + swipe-down-to-close
 // ─────────────────────────────────────────────────────────────────────────────
-function BottomSheetModal({ visible, onClose, title, searchText, onSearch, searchPlaceholder, items, selectedValue, iconName, getLabel, onSelect }) {
+function BottomSheetModal({
+  visible,
+  onClose,
+  title,
+  searchText,
+  onSearch,
+  searchPlaceholder,
+  items,
+  selectedValue,
+  iconName,
+  getLabel,
+  onSelect,
+}) {
+  // Animated translateY for the sheet panel
+  const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  // Animated opacity for the backdrop
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
+
+  // Open / close animations driven by `visible`
+  useEffect(() => {
+    if (visible) {
+      Animated.parallel([
+        Animated.spring(translateY, {
+          toValue: 0,
+          useNativeDriver: true,
+          bounciness: 4,
+          speed: 14,
+        }),
+        Animated.timing(backdropOpacity, {
+          toValue: 1,
+          duration: 260,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(translateY, {
+          toValue: SCREEN_HEIGHT,
+          duration: 260,
+          useNativeDriver: true,
+        }),
+        Animated.timing(backdropOpacity, {
+          toValue: 0,
+          duration: 260,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [visible]);
+
+  // Swipe-down-to-close pan responder (handle bar only)
+  const swipePan = useRef(new Animated.Value(0)).current;
+
+  const swipeResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, g) => g.dy > 4, // only downward
+      onPanResponderMove: (_, g) => {
+        if (g.dy > 0) swipePan.setValue(g.dy);
+      },
+      onPanResponderRelease: (_, g) => {
+        if (g.dy > 80 || g.vy > 0.5) {
+          // Snap down and close
+          Animated.timing(swipePan, {
+            toValue: SCREEN_HEIGHT,
+            duration: 220,
+            useNativeDriver: true,
+          }).start(() => {
+            swipePan.setValue(0);
+            onClose();
+          });
+        } else {
+          // Snap back
+          Animated.spring(swipePan, {
+            toValue: 0,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    })
+  ).current;
+
+  // Combined translateY = sheet open/close + drag
+  const combinedTranslateY = Animated.add(translateY, swipePan);
+
+  if (!visible) return null;
+
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <TouchableOpacity style={styles.sheetBackdrop} activeOpacity={1} onPress={onClose} />
-      <View style={styles.bottomSheet}>
-        <View style={styles.sheetHeader}>
+    /*
+     *  KEY FIX:
+     *  ─────────
+     *  We NO LONGER use <Modal> here.  Instead the sheet is rendered
+     *  directly into the component tree as an absolute-positioned View
+     *  that covers the full screen.  This prevents the RN Modal's own
+     *  shadow/elevation from leaking through the backdrop.
+     *
+     *  The backdrop and the sheet are siblings inside the same absolute
+     *  container so the shadow is perfectly clipped.
+     */
+    <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+      {/* ── Backdrop ── */}
+      <Animated.View
+        style={[styles.sheetBackdrop, { opacity: backdropOpacity }]}
+        pointerEvents="auto"
+      >
+        <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose} />
+      </Animated.View>
+
+      {/* ── Sheet panel ── */}
+      <Animated.View
+        style={[
+          styles.bottomSheet,
+          { transform: [{ translateY: combinedTranslateY }] },
+        ]}
+        pointerEvents="auto"
+      >
+        {/* Decorative top-shadow strip — replaces elevation */}
+        <View style={styles.sheetTopShadow} />
+
+        {/* Header (drag handle lives here — pan responder attached) */}
+        <View style={styles.sheetHeader} {...swipeResponder.panHandlers}>
           <View style={styles.handleBar} />
           <View style={styles.sheetTitleRow}>
             <Text style={styles.sheetTitle}>{title}</Text>
@@ -665,7 +754,12 @@ function BottomSheetModal({ visible, onClose, title, searchText, onSearch, searc
           </View>
         </View>
 
-        <ScrollView contentContainerStyle={{ paddingBottom: 20 }} keyboardShouldPersistTaps="handled">
+        {/* List */}
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 20 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           {items.length > 0 ? (
             items.map((item, idx) => {
               const label = getLabel(item);
@@ -695,8 +789,8 @@ function BottomSheetModal({ visible, onClose, title, searchText, onSearch, searc
             </View>
           )}
         </ScrollView>
-      </View>
-    </Modal>
+      </Animated.View>
+    </View>
   );
 }
 
@@ -707,16 +801,12 @@ const styles = StyleSheet.create({
   // ── Root ──────────────────────────────────────────────────────────────────
   safeArea: {
     flex: 1,
-    // backgroundColor is applied inline using Colors.finance_bg_1
-    // so the status bar region matches the header
   },
   container: {
     flex: 1,
   },
 
   // ── Header wrapper ────────────────────────────────────────────────────────
-  // paddingTop is set inline as insets.top
-  // HeaderBar itself has no extra top padding
   headerWrapper: {
     backgroundColor: Colors.finance_bg_1 ?? "#F7F8FA",
   },
@@ -822,10 +912,56 @@ const styles = StyleSheet.create({
   processingText: { color: Colors.white, fontFamily: Fonts.Bold, fontSize: 14, letterSpacing: 1 },
 
   // ── Bottom sheet ──────────────────────────────────────────────────────────
-  sheetBackdrop: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.45)" },
-  bottomSheet: { position: "absolute", bottom: 0, left: 0, right: 0, backgroundColor: "#fff", borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: "75%", elevation: 20, shadowColor: "#000", shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.15, shadowRadius: 12 },
-  sheetHeader: { paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: "#F0F0F0" },
-  handleBar: { width: 40, height: 4, borderRadius: 2, backgroundColor: "#E0E0E0", alignSelf: "center", marginTop: 10, marginBottom: 10 },
+  // Backdrop: full screen dark overlay — NO elevation/shadow here
+  sheetBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.48)",
+  },
+  // Sheet panel: NO elevation at all — avoids Android shadow bleeding
+  // through the backdrop. Visual depth is provided by the borderTop + 
+  // the sheetTopShadow strip rendered as the first child.
+  bottomSheet: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: "75%",
+    // ✅ No elevation / no shadowColor — prevents bleed-through on Android & iOS
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: "rgba(0,0,0,0.08)",
+    overflow: "hidden",
+  },
+  // Decorative strip that simulates a top-shadow inside the sheet
+  sheetTopShadow: {
+    height: 6,
+    marginHorizontal: 0,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    // A very subtle gradient-like effect via backgroundColor + opacity
+    backgroundColor: "rgba(0,0,0,0.04)",
+  },
+  sheetHeader: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+    // Cursor area for swipe-down gesture — give it a bit more height
+    paddingTop: 4,
+  },
+  handleBar: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#E0E0E0",
+    alignSelf: "center",
+    marginTop: 10,
+    marginBottom: 10,
+  },
   sheetTitleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 },
   sheetTitle: { fontSize: 15, fontFamily: Fonts.Bold, color: "#333" },
   closeBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: "#F4F4F4", alignItems: "center", justifyContent: "center" },
@@ -841,10 +977,12 @@ const styles = StyleSheet.create({
   emptyWrap: { alignItems: "center", paddingVertical: 30 },
   emptyTxt: { color: "#BDBDBD", fontSize: 13, fontFamily: Fonts.Medium },
 
+  // ── Toast ──────────────────────────────────────────────────────────────────
   customToastBox: { position: 'absolute', top: 60, left: 20, right: 20, zIndex: 9999 },
   customToastGrad: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, gap: 10, elevation: 6, shadowColor: "#000", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 5 },
   customToastText: { color: '#FFF', fontFamily: Fonts.Bold, fontSize: 13, flex: 1 },
 
+  // ── Receipt ────────────────────────────────────────────────────────────────
   receiptOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   receiptContent: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 30 },
   receiptHeader: { alignItems: 'center', marginBottom: 15 },
@@ -862,12 +1000,3 @@ const styles = StyleSheet.create({
   // ── Loader ────────────────────────────────────────────────────────────────
   fullLoader: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(255,255,255,0.7)", justifyContent: "center", alignItems: "center", zIndex: 1000 },
 });
-// {
-//     "success": true,
-//     "message": "Recharge Successful",
-//     "data": {
-//         "status": "SUCCESS",
-//         "txn_ref": "RCHG202603171901523796",
-//         "message": "Transaction Successful"
-//     }
-// }
