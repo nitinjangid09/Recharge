@@ -1,7 +1,7 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const BASE_URL = "http://192.168.1.5:8000";
+const BASE_URL = "http://192.168.1.31:8000";
 
 
 const safeTransform = (raw) => {
@@ -269,7 +269,7 @@ export const processRecharge = async ({ amount, operatorCode, number, billerMode
       number,
       billerMode
     }, {
-      headers: { 
+      headers: {
         Authorization: `Bearer ${headerToken}`,
         "idempotency-key": idempotencyKey
       },
@@ -361,7 +361,7 @@ export const submitOfflineKyc = async ({ personal, business, files, banking }) =
       const parsed = JSON.parse(tokenStr);
       if (parsed.token) finalToken = parsed.token;
       if (parsed.user && parsed.user._id) userId = parsed.user._id;
-    } catch (e) {}
+    } catch (e) { }
   }
 
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");

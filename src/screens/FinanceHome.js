@@ -15,7 +15,6 @@ import {
   TextInput,
   FlatList,
   Keyboard,
-  Platform,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import LinearGradient from "react-native-linear-gradient";
@@ -26,7 +25,7 @@ import Colors from "../constants/Colors";
 import { getWalletBalance, fetchUserProfile } from "../api/AuthApi";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// RESPONSIVE HELPERS
+// RESPONSIVE
 // ─────────────────────────────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get("window");
 const scale = (n) => Math.round((SW / 375) * n);
@@ -46,7 +45,7 @@ const getGreeting = () => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SEARCHABLE ITEMS
+// SEARCH ITEMS
 // ─────────────────────────────────────────────────────────────────────────────
 const ALL_ITEMS = [
   { id: "1", label: "Cash Withdraw", icon: "cash", screen: "CashWithdraw" },
@@ -70,7 +69,7 @@ const ALL_ITEMS = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SERVICES CONSTANTS
+// SERVICES
 // ─────────────────────────────────────────────────────────────────────────────
 const SERVICES = {
   aeps: [
@@ -108,10 +107,9 @@ const SESSION_KEYS = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// API HELPERS
+// API
 // ─────────────────────────────────────────────────────────────────────────────
 const BASE_URL = "https://your-api-domain.com/api";
-
 const apiGet = async (ep, tok) => {
   const r = await fetch(`${BASE_URL}${ep}`, {
     method: "GET",
@@ -120,13 +118,12 @@ const apiGet = async (ep, tok) => {
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.json();
 };
-
-const fetchBbpsCategories = (tok) =>
-  apiGet("/bbps/categories", tok).then((d) => d?.categories ?? []).catch(() => []);
-const fetchDmtOperators = (tok) =>
-  apiGet("/dmt/operators", tok).then((d) => d?.operators ?? []).catch(() => []);
-const fetchRechargePlans = (tok, mob) =>
-  apiGet(`/recharge/plans?mobile=${mob}`, tok).then((d) => d?.plans ?? []).catch(() => []);
+const fetchBbpsCategories = (t) =>
+  apiGet("/bbps/categories", t).then((d) => d?.categories ?? []).catch(() => []);
+const fetchDmtOperators = (t) =>
+  apiGet("/dmt/operators", t).then((d) => d?.operators ?? []).catch(() => []);
+const fetchRechargePlans = (t, m) =>
+  apiGet(`/recharge/plans?mobile=${m}`, t).then((d) => d?.plans ?? []).catch(() => []);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MAIN COMPONENT
@@ -134,14 +131,11 @@ const fetchRechargePlans = (tok, mob) =>
 export default function FinanceHome({ navigation }) {
   const insets = useSafeAreaInsets();
 
-  // Header heights — the search bar is a SECOND ROW inside the header,
-  // so HEADER_MAX accounts for both rows. When search is open the wallet
-  // card row is unchanged; only the top-row content swaps.
-  const TOP_ROW_H = rs(56);   // greeting + avatar row height
-  const WALLET_H = vscale(168); // wallet card area
-  const PADDING_V = rs(20);   // vertical breathing room
-  const HEADER_MAX = insets.top + TOP_ROW_H + WALLET_H + PADDING_V;
-  const HEADER_MIN = insets.top + TOP_ROW_H + rs(16);
+  const TOP_ROW_H = rs(56);
+  const WALLET_H = vscale(175);
+  const GAP = rs(10);
+  const HEADER_MAX = insets.top + TOP_ROW_H + GAP + WALLET_H + rs(12);
+  const HEADER_MIN = insets.top + TOP_ROW_H + rs(12);
   const SCROLL_D = HEADER_MAX - HEADER_MIN;
 
   // ── Greeting ───────────────────────────────────────────────────────────────
@@ -151,62 +145,139 @@ export default function FinanceHome({ navigation }) {
     return () => clearInterval(iv);
   }, []);
 
-  // ── Search state ───────────────────────────────────────────────────────────
-  // The search bar occupies the SAME ROW as greeting/avatar.
-  // When open: greeting/avatar hidden, full-width bar shown in their place.
-  // Results dropdown renders BELOW that row, above the wallet card.
+  // ─────────────────────────────────────────────────────────────────────────
+  // SEARCH ANIMATION — THE DEFINITIVE FIX
+  //
+  // ROOT CAUSE of "Attempting to run JS driven animation on animated node
+  // that has been moved to native":
+  //
+  //   React Native marks an Animated.Value as "native" the FIRST time it
+  //   is used with useNativeDriver:true. After that, ANY animation on that
+  //   same value (or an interpolation of it) with useNativeDriver:false
+  //   throws the error — even in a completely different animation call.
+  //
+  //   The previous code used layerAOpacity_anim / layerBOpacity_anim with
+  //   useNativeDriver:true. Those same values were then passed as the
+  //   `opacity` prop to Animated.View nodes whose CHILDREN contained
+  //   greetAlpha, greetSlide, nameAlpha — all of which use
+  //   useNativeDriver:false. React Native sees the parent node was marked
+  //   native and then refuses to run JS animations on anything in the
+  //   subtree.
+  //
+  // THE CORRECT FIX:
+  //   Use useNativeDriver:FALSE for ALL search-related layer animations.
+  //   Opacity absolutely works with JS driver — it is only *slower* by a
+  //   tiny margin that is invisible at 200ms. There is NO correctness
+  //   reason to use native driver for a simple 200ms opacity fade.
+  //
+  //   The ONLY values that MUST use native driver are those that animate
+  //   transform properties (translateX, translateY, scale) because those
+  //   properties cannot be driven from JS without causing layout jank.
+  //   Plain opacity on a parent View is fine with JS driver.
+  //
+  // RULE TABLE (enforced throughout this file):
+  //   layerAOpacity  → useNativeDriver: FALSE  (simple opacity fade)
+  //   layerBOpacity  → useNativeDriver: FALSE  (simple opacity fade)
+  //   resultsFade    → useNativeDriver: FALSE  (simple opacity fade)
+  //   wAlpha         → useNativeDriver: TRUE   (opacity only, isolated node)
+  //   wSlide         → useNativeDriver: TRUE   (transform only, isolated node)
+  //   cardOpacity    → useNativeDriver: FALSE  (driven by scrollY, JS)
+  //   cardTranslateY → useNativeDriver: FALSE  (driven by scrollY, JS)
+  //   cardScale      → useNativeDriver: FALSE  (driven by scrollY, JS)
+  //   leftAnim       → useNativeDriver: FALSE  (transform, JS — entry anim)
+  //   leftFade       → useNativeDriver: FALSE  (opacity, JS — entry anim)
+  //   greetAlpha     → useNativeDriver: FALSE  (opacity, JS)
+  //   greetSlide     → useNativeDriver: FALSE  (transform, JS)
+  //   nameAlpha      → useNativeDriver: FALSE  (opacity, JS)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // All three search animation values → useNativeDriver: FALSE, no exceptions
+  const layerAOpacity = useRef(new Animated.Value(1)).current; // 1 = Layer A visible
+  const layerBOpacity = useRef(new Animated.Value(0)).current; // 0 = Layer B hidden
+  const resultsFade = useRef(new Animated.Value(0)).current; // 0 = results hidden
+
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const inputRef = useRef(null);
-
-  // Animated values for the search bar row
-  const searchRowAnim = useRef(new Animated.Value(0)).current; // 0=closed, 1=open
-  const userRowAnim = useRef(new Animated.Value(1)).current; // 1=visible
+  const closingRef = useRef(false); // guard against re-entrant close calls
 
   const openSearch = useCallback(() => {
+    if (searchOpen || closingRef.current) return;
     setSearchOpen(true);
     setSearchQuery("");
-    setSearchResults(ALL_ITEMS);
+    setSearchResults([]);
+
     Animated.parallel([
-      Animated.timing(userRowAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
-      Animated.spring(searchRowAnim, { toValue: 1, tension: 80, friction: 10, useNativeDriver: false }),
-    ]).start(() => inputRef.current?.focus());
-  }, []);
+      Animated.timing(layerAOpacity, {
+        toValue: 0, duration: 200,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: false, // ← JS driver, safe with any child animation
+      }),
+      Animated.timing(layerBOpacity, {
+        toValue: 1, duration: 200,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: false, // ← JS driver
+      }),
+    ]).start(() => {
+      if (!closingRef.current) inputRef.current?.focus();
+    });
+  }, [searchOpen]);
 
   const closeSearch = useCallback(() => {
+    if (closingRef.current) return; // already closing
+    closingRef.current = true;
     Keyboard.dismiss();
+
+    // Hide results overlay
+    Animated.timing(resultsFade, {
+      toValue: 0, duration: 150,
+      useNativeDriver: false, // ← JS driver
+    }).start();
+
+    // Restore layers
     Animated.parallel([
-      Animated.timing(userRowAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
-      Animated.timing(searchRowAnim, { toValue: 0, duration: 200, easing: Easing.out(Easing.ease), useNativeDriver: false }),
+      Animated.timing(layerAOpacity, {
+        toValue: 1, duration: 200,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: false, // ← JS driver
+      }),
+      Animated.timing(layerBOpacity, {
+        toValue: 0, duration: 200,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: false, // ← JS driver
+      }),
     ]).start(() => {
       setSearchOpen(false);
       setSearchQuery("");
       setSearchResults([]);
+      closingRef.current = false; // unlock after state is set
     });
   }, []);
 
   const onSearchChange = (text) => {
     setSearchQuery(text);
     const q = text.trim().toLowerCase();
-    setSearchResults(
-      q ? ALL_ITEMS.filter((i) => i.label.toLowerCase().includes(q)) : ALL_ITEMS
-    );
+    if (!q) {
+      setSearchResults([]);
+      Animated.timing(resultsFade, {
+        toValue: 0, duration: 120,
+        useNativeDriver: false,
+      }).start();
+      return;
+    }
+    const list = ALL_ITEMS.filter((i) => i.label.toLowerCase().includes(q));
+    setSearchResults(list);
+    Animated.timing(resultsFade, {
+      toValue: 1, duration: 160,
+      useNativeDriver: false,
+    }).start();
   };
 
   const onSelectResult = (item) => {
     closeSearch();
-    setTimeout(() => navigation.navigate(item.screen), 250);
+    setTimeout(() => navigation.navigate(item.screen), 300);
   };
-
-  // Animated width of search bar: 0 → full row width
-  const ROW_W = SW - rs(36); // horizontal padding × 2
-  const searchBarW = searchRowAnim.interpolate({
-    inputRange: [0, 1], outputRange: [0, ROW_W],
-  });
-  const searchBarOpacity = searchRowAnim.interpolate({
-    inputRange: [0, 0.5, 1], outputRange: [0, 0, 1],
-  });
 
   // ── Session ────────────────────────────────────────────────────────────────
   const [ready, setReady] = useState(false);
@@ -228,26 +299,26 @@ export default function FinanceHome({ navigation }) {
   const hasService = (n) =>
     assignedServices.some((s) => s.name?.toLowerCase() === n.toLowerCase());
 
-  // ── Header scroll collapse ─────────────────────────────────────────────────
+  // ── Header collapse — all JS driver (driven by scrollY) ───────────────────
   const scrollY = useRef(new Animated.Value(0)).current;
   const headerHeight = scrollY.interpolate({ inputRange: [0, SCROLL_D], outputRange: [HEADER_MAX, HEADER_MIN], extrapolate: "clamp" });
   const cardOpacity = scrollY.interpolate({ inputRange: [0, SCROLL_D * 0.6], outputRange: [1, 0], extrapolate: "clamp" });
   const cardTranslateY = scrollY.interpolate({ inputRange: [0, SCROLL_D], outputRange: [0, -40], extrapolate: "clamp" });
   const cardScale = scrollY.interpolate({ inputRange: [0, SCROLL_D], outputRange: [1, 0.9], extrapolate: "clamp" });
 
-  // ── Wallet toggle ──────────────────────────────────────────────────────────
-  const wOpacity = useRef(new Animated.Value(1)).current;
+  // ── Wallet toggle — native driver safe: isolated node, only opacity+transform
+  const wAlpha = useRef(new Animated.Value(1)).current;
   const wSlide = useRef(new Animated.Value(0)).current;
 
   const toggleWallet = () => {
     Animated.parallel([
-      Animated.timing(wOpacity, { toValue: 0, duration: 140, useNativeDriver: true }),
-      Animated.timing(wSlide, { toValue: -12, duration: 140, useNativeDriver: true }),
+      Animated.timing(wAlpha, { toValue: 0, duration: 140, useNativeDriver: true }),
+      Animated.timing(wSlide, { toValue: -10, duration: 140, useNativeDriver: true }),
     ]).start(() => {
       setIsAeps((p) => !p);
-      wSlide.setValue(12);
+      wSlide.setValue(10);
       Animated.parallel([
-        Animated.timing(wOpacity, { toValue: 1, duration: 180, useNativeDriver: true }),
+        Animated.timing(wAlpha, { toValue: 1, duration: 180, useNativeDriver: true }),
         Animated.timing(wSlide, { toValue: 0, duration: 180, easing: Easing.out(Easing.back(1.4)), useNativeDriver: true }),
       ]).start();
     });
@@ -328,12 +399,12 @@ export default function FinanceHome({ navigation }) {
     }
   };
 
-  // ── Entry animations ───────────────────────────────────────────────────────
+  // ── Entry animations — all JS driver ──────────────────────────────────────
   const leftAnim = useRef(new Animated.Value(-80)).current;
   const leftFade = useRef(new Animated.Value(0)).current;
-  const greetOpacity = useRef(new Animated.Value(0)).current;
+  const greetAlpha = useRef(new Animated.Value(0)).current;
   const greetSlide = useRef(new Animated.Value(-20)).current;
-  const nameOpacity = useRef(new Animated.Value(0)).current;
+  const nameAlpha = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     loadSession();
@@ -343,10 +414,10 @@ export default function FinanceHome({ navigation }) {
     ]).start();
     Animated.stagger(250, [
       Animated.parallel([
-        Animated.timing(greetOpacity, { toValue: 1, duration: 700, useNativeDriver: false }),
+        Animated.timing(greetAlpha, { toValue: 1, duration: 700, useNativeDriver: false }),
         Animated.spring(greetSlide, { toValue: 0, friction: 8, useNativeDriver: false }),
       ]),
-      Animated.timing(nameOpacity, { toValue: 1, duration: 700, useNativeDriver: false }),
+      Animated.timing(nameAlpha, { toValue: 1, duration: 700, useNativeDriver: false }),
     ]).start();
   }, []);
 
@@ -361,12 +432,12 @@ export default function FinanceHome({ navigation }) {
   }, []);
 
   const CARD_W = SW * 0.8;
-  const CARD_SPACING = rs(15);
-  const SNAP_INTERVAL = CARD_W + CARD_SPACING;
+  const SPACING = rs(15);
+  const SNAP_INT = CARD_W + SPACING;
   const planRef = useRef(null);
   useEffect(() => {
     let i = 0;
-    const iv = setInterval(() => { i = (i + 1) % 2; planRef.current?.scrollTo({ x: i * SNAP_INTERVAL, animated: true }); }, 4000);
+    const iv = setInterval(() => { i = (i + 1) % 2; planRef.current?.scrollTo({ x: i * SNAP_INT, animated: true }); }, 4000);
     return () => clearInterval(iv);
   }, []);
 
@@ -374,6 +445,7 @@ export default function FinanceHome({ navigation }) {
   const kyc = KYC_COLOR[kycStatus] || KYC_COLOR.pending;
   const balance = isAeps ? aepsBalance : mainBalance;
   const avatar = userName ? userName.charAt(0).toUpperCase() : "U";
+  const RESULTS_TOP = insets.top + rs(10) + TOP_ROW_H + rs(6);
 
   // ─────────────────────────────────────────────────────────────────────────
   // SPLASH
@@ -384,7 +456,7 @@ export default function FinanceHome({ navigation }) {
         <StatusBar barStyle="light-content" backgroundColor="#161616" />
         <View style={S.splash}>
           <ActivityIndicator size="large" color={Colors.finance_accent} />
-          <Text style={S.splashTxt}>Loading...</Text>
+          <Text style={S.splashTxt}>Loading…</Text>
         </View>
       </SafeAreaView>
     );
@@ -398,31 +470,24 @@ export default function FinanceHome({ navigation }) {
       <StatusBar barStyle="light-content" backgroundColor="#161616" translucent />
       <View style={S.root}>
 
-        {/* ════════════════════════════════════════════
-            COLLAPSIBLE HEADER
-        ════════════════════════════════════════════ */}
+        {/* ══ HEADER ══ */}
         <Animated.View style={[S.headerWrap, { height: headerHeight }]}>
           <LinearGradient
             colors={["#161616", "#000000"]}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
             style={[S.headerGrad, { paddingTop: insets.top + rs(10) }]}
           >
+            {/* TOP ROW — two layers, both JS driver opacity */}
+            <View style={{ height: TOP_ROW_H, marginBottom: GAP }}>
 
-            {/* ── TOP ROW ────────────────────────────────────────────────────
-                This row has two absolute layers that swap:
-                  Layer A: Avatar + greeting + action buttons  (default)
-                  Layer B: Search bar                          (search mode)
-                Both layers are the same height (TOP_ROW_H).
-                They never overlap the wallet card below.
-            ─────────────────────────────────────────────────────────────── */}
-            <View style={[S.topRow, { height: TOP_ROW_H }]}>
-
-              {/* ── LAYER A: Normal header content ── */}
+              {/* ── LAYER A: avatar + greeting + buttons
+                  opacity driven by layerAOpacity → useNativeDriver:false
+                  Child animations (greetAlpha, greetSlide etc.) also
+                  useNativeDriver:false → NO CONFLICT ── */}
               <Animated.View
-                style={[S.topLayerA, { opacity: userRowAnim }]}
+                style={[S.layerA, { opacity: layerAOpacity }]}
                 pointerEvents={searchOpen ? "none" : "auto"}
               >
-                {/* Avatar (taps to Profile) */}
                 <TouchableOpacity
                   onPress={() => navigation.navigate("ProfileScreen")}
                   activeOpacity={0.8}
@@ -434,21 +499,18 @@ export default function FinanceHome({ navigation }) {
                   <View style={[S.kycDot, { backgroundColor: kyc }]} />
                 </TouchableOpacity>
 
-                {/* Greeting + name */}
                 <View style={S.userInfo}>
-                  <Animated.View style={[S.greetRow, { opacity: greetOpacity, transform: [{ translateX: greetSlide }] }]}>
+                  <Animated.View style={[S.greetRow, { opacity: greetAlpha, transform: [{ translateX: greetSlide }] }]}>
                     <Icon name={greeting.icon} size={rs(12)} color={greeting.color} style={{ marginRight: 4 }} />
                     <Text style={[S.greetTxt, { color: greeting.color }]}>{greeting.text}</Text>
                   </Animated.View>
-                  <Animated.Text style={[S.nameTxt, { opacity: nameOpacity }]} numberOfLines={1} ellipsizeMode="tail">
+                  <Animated.Text style={[S.nameTxt, { opacity: nameAlpha }]} numberOfLines={1} ellipsizeMode="tail">
                     {userName}
                   </Animated.Text>
                   {!!userUsername && <Text style={S.usernameTxt} numberOfLines={1}>{userUsername}</Text>}
                 </View>
 
-                {/* Action buttons */}
                 <View style={S.actions}>
-                  {/* Search button → opens bar */}
                   <TouchableOpacity
                     style={S.glassBtn}
                     onPress={openSearch}
@@ -456,7 +518,6 @@ export default function FinanceHome({ navigation }) {
                   >
                     <Icon name="magnify" size={rs(20)} color="#FFF" />
                   </TouchableOpacity>
-                  {/* Bell */}
                   <TouchableOpacity style={S.glassBtn}>
                     <View style={S.notifDot} />
                     <Icon name="bell-ring-outline" size={rs(20)} color="#FFF" />
@@ -464,95 +525,67 @@ export default function FinanceHome({ navigation }) {
                 </View>
               </Animated.View>
 
-              {/* ── LAYER B: Search bar (same row height, slides in over Layer A) ── */}
+              {/* ── LAYER B: search bar
+                  opacity driven by layerBOpacity → useNativeDriver:false
+                  Back button calls closeSearch() which only uses
+                  useNativeDriver:false animations → NO CONFLICT ── */}
               <Animated.View
-                style={[S.topLayerB, { opacity: searchBarOpacity }]}
+                style={[S.layerB, { opacity: layerBOpacity }]}
                 pointerEvents={searchOpen ? "auto" : "none"}
               >
-                <Animated.View style={[S.searchBarInner, { width: searchBarW }]}>
-                  {/* Back arrow */}
-                  <TouchableOpacity onPress={closeSearch} style={S.searchBack} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                    <Icon name="arrow-left" size={rs(20)} color={Colors.finance_accent} />
-                  </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={closeSearch}
+                  style={S.searchBack}
+                  hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
+                  activeOpacity={0.5}
+                >
+                  <Icon name="arrow-left" size={rs(22)} color={Colors.finance_accent} />
+                </TouchableOpacity>
 
-                  {/* Input */}
+                <View style={S.searchInputWrap}>
+                  <Icon name="magnify" size={rs(15)} color="rgba(255,255,255,0.35)" style={{ marginRight: rs(6) }} />
                   <TextInput
                     ref={inputRef}
                     style={S.searchInput}
-                    placeholder="Search services, payments…"
-                    placeholderTextColor="rgba(255,255,255,0.35)"
+                    placeholder="Type to search…"
+                    placeholderTextColor="rgba(255,255,255,0.3)"
                     value={searchQuery}
                     onChangeText={onSearchChange}
                     returnKeyType="search"
                     autoCorrect={false}
                     autoCapitalize="none"
                   />
-
-                  {/* Clear / icon */}
-                  {searchQuery.length > 0 ? (
-                    <TouchableOpacity onPress={() => onSearchChange("")} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                      <Icon name="close-circle" size={rs(18)} color="rgba(255,255,255,0.45)" />
+                  {searchQuery.length > 0 && (
+                    <TouchableOpacity
+                      onPress={() => onSearchChange("")}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <Icon name="close-circle" size={rs(17)} color="rgba(255,255,255,0.4)" />
                     </TouchableOpacity>
-                  ) : (
-                    <Icon name="magnify" size={rs(18)} color="rgba(255,255,255,0.3)" />
                   )}
-                </Animated.View>
+                </View>
               </Animated.View>
             </View>
 
-            {/* ── SEARCH RESULTS — rendered BETWEEN top-row & wallet card ── */}
-            {searchOpen && (
-              <Animated.View style={[S.resultsBox, { opacity: searchBarOpacity }]}>
-                {searchResults.length === 0 ? (
-                  <View style={S.emptyRow}>
-                    <Icon name="magnify-close" size={rs(15)} color="#555" />
-                    <Text style={S.emptyTxt}>No results for "{searchQuery}"</Text>
-                  </View>
-                ) : (
-                  <FlatList
-                    data={searchResults.slice(0, 5)}
-                    keyExtractor={(item) => item.id}
-                    keyboardShouldPersistTaps="handled"
-                    scrollEnabled={false}
-                    renderItem={({ item, index }) => (
-                      <TouchableOpacity
-                        style={[S.resultRow, index === Math.min(searchResults.length, 5) - 1 && { borderBottomWidth: 0 }]}
-                        onPress={() => onSelectResult(item)}
-                        activeOpacity={0.72}
-                      >
-                        <View style={S.resultIcon}>
-                          <Icon name={item.icon} size={rs(15)} color={Colors.finance_accent} />
-                        </View>
-                        <Text style={S.resultLabel}>{item.label}</Text>
-                        <Icon name="arrow-top-left" size={rs(12)} color="#666" />
-                      </TouchableOpacity>
-                    )}
-                  />
-                )}
-                {searchResults.length > 5 && (
-                  <Text style={S.moreHint}>+{searchResults.length - 5} more — refine your search</Text>
-                )}
-              </Animated.View>
-            )}
-
-            {/* ── WALLET CARD ── */}
-            <Animated.View style={{
-              opacity: cardOpacity,
-              transform: [{ translateY: cardTranslateY }, { scale: cardScale }],
-            }}>
+            {/* ── WALLET CARD — position never changes ── */}
+            <Animated.View
+              pointerEvents={searchOpen ? "none" : "auto"}
+              style={{
+                opacity: cardOpacity,
+                transform: [{ translateY: cardTranslateY }, { scale: cardScale }],
+              }}
+            >
               <LinearGradient
                 colors={["#2C2C2C", "#111111"]}
                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
                 style={S.walletCard}
               >
-                <View style={S.circ1} />
-                <View style={S.circ2} />
+                <View style={S.circ1} /><View style={S.circ2} />
 
-                {/* Wallet type row */}
                 <View style={S.rowBetween}>
                   <View style={S.walletTag}>
                     <Icon name="wallet-outline" size={rs(13)} color="#d4b06a" />
-                    <Animated.Text style={[S.walletTagTxt, { opacity: wOpacity }]}>
+                    <Animated.Text style={[S.walletTagTxt, { opacity: wAlpha }]}>
                       {isAeps ? "AEPS Wallet" : "Main Wallet"}
                     </Animated.Text>
                   </View>
@@ -561,12 +594,11 @@ export default function FinanceHome({ navigation }) {
                   </TouchableOpacity>
                 </View>
 
-                {/* Balance */}
                 <View style={{ marginTop: rs(8) }}>
                   <Text style={S.balLabel}>Total Balance</Text>
                   <View style={{ flexDirection: "row", alignItems: "center" }}>
                     {!balanceLoading && <Text style={S.rupee}>₹</Text>}
-                    <Animated.View style={{ opacity: wOpacity, transform: [{ translateY: wSlide }] }}>
+                    <Animated.View style={{ opacity: wAlpha, transform: [{ translateY: wSlide }] }}>
                       {balanceLoading
                         ? <ActivityIndicator size="small" color="#FFF" style={{ marginLeft: 4 }} />
                         : <Text style={S.balAmt}>{showBalance ? "••••••" : balance}</Text>
@@ -584,13 +616,11 @@ export default function FinanceHome({ navigation }) {
                   </View>
                 </View>
 
-                {/* Add Balance */}
                 <TouchableOpacity style={S.addBtn} onPress={() => navigation.navigate("OfflineTopup")}>
                   <Icon name="plus" size={rs(12)} color="#000" />
                   <Text style={S.addBtnTxt}>Add Balance</Text>
                 </TouchableOpacity>
 
-                {/* Footer */}
                 <View style={S.cardFooter}>
                   <TouchableOpacity
                     style={[S.kycBadge, { borderColor: kyc }]}
@@ -609,24 +639,65 @@ export default function FinanceHome({ navigation }) {
           </LinearGradient>
         </Animated.View>
 
-        {/* Tap-outside to close search — sits behind header, above content */}
+        {/* ══ SEARCH RESULTS OVERLAY
+            resultsFade → useNativeDriver:false, isolated from everything above ══ */}
+        {searchOpen && searchQuery.length > 0 && (
+          <Animated.View
+            style={[S.resultsOverlay, { top: RESULTS_TOP, opacity: resultsFade }]}
+            pointerEvents="box-none"
+          >
+            {searchResults.length === 0 ? (
+              <View style={S.emptyRow}>
+                <Icon name="magnify-close" size={rs(16)} color="#666" />
+                <Text style={S.emptyTxt}>No results for "{searchQuery}"</Text>
+              </View>
+            ) : (
+              <>
+                <FlatList
+                  data={searchResults.slice(0, 6)}
+                  keyExtractor={(item) => item.id}
+                  keyboardShouldPersistTaps="handled"
+                  scrollEnabled={false}
+                  renderItem={({ item, index }) => (
+                    <TouchableOpacity
+                      style={[S.resultRow, index === Math.min(searchResults.length, 6) - 1 && { borderBottomWidth: 0 }]}
+                      onPress={() => onSelectResult(item)}
+                      activeOpacity={0.72}
+                    >
+                      <View style={S.resultIconBox}>
+                        <Icon name={item.icon} size={rs(15)} color={Colors.finance_accent} />
+                      </View>
+                      <Text style={S.resultLabel}>{item.label}</Text>
+                      <Icon name="arrow-top-left" size={rs(12)} color="#555" />
+                    </TouchableOpacity>
+                  )}
+                />
+                {searchResults.length > 6 && (
+                  <Text style={S.moreHint}>+{searchResults.length - 6} more · keep typing</Text>
+                )}
+              </>
+            )}
+          </Animated.View>
+        )}
+
+        {/* Tap-outside to close */}
         {searchOpen && (
           <TouchableOpacity style={S.searchOverlay} activeOpacity={1} onPress={closeSearch} />
         )}
 
-        {/* ════════════════════════════════════════════
-            SCROLLABLE BODY
-        ════════════════════════════════════════════ */}
+        {/* ══ SCROLLABLE BODY ══ */}
         <Animated.ScrollView
-          contentContainerStyle={{ paddingTop: HEADER_MAX + rs(6), paddingBottom: rs(110) }}
-          onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false })}
+          contentContainerStyle={{ paddingTop: HEADER_MAX + rs(8), paddingBottom: rs(110) }}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: false }
+          )}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
           <View style={S.body}>
 
-            {/* Services */}
             {servicesLoading ? (
               <ActivityIndicator size="small" color={Colors.finance_accent} style={{ marginTop: rs(20) }} />
             ) : assignedServices.length === 0 ? (
@@ -636,7 +707,6 @@ export default function FinanceHome({ navigation }) {
               </View>
             ) : (
               <>
-                {/* User Services */}
                 <SecHeader title="User Services" />
                 <View style={S.servicesBox}>
                   {assignedServices.map((item) => (
@@ -663,7 +733,6 @@ export default function FinanceHome({ navigation }) {
                   ))}
                 </View>
 
-                {/* AEPS */}
                 {hasService("aeps") && (
                   <>
                     <SecHeader title="AEPS Services" />
@@ -692,7 +761,6 @@ export default function FinanceHome({ navigation }) {
                   </>
                 )}
 
-                {/* Money Transfer */}
                 {hasService("dmt") && (
                   <>
                     <SecHeader title="Money Transfer" />
@@ -711,16 +779,15 @@ export default function FinanceHome({ navigation }) {
                   </>
                 )}
 
-                {/* Plan Carousel */}
                 {(hasService("bbps") || hasService("recharge")) && (
                   <View style={{ height: vscale(80), marginTop: rs(8) }}>
-                    <ScrollView ref={planRef} horizontal snapToInterval={SNAP_INTERVAL} decelerationRate="fast" showsHorizontalScrollIndicator={false}>
+                    <ScrollView ref={planRef} horizontal snapToInterval={SNAP_INT} decelerationRate="fast" showsHorizontalScrollIndicator={false}>
                       {[
                         { title: userPhone || "9876543210", sub: "Plan expires in", hl: "4 days", hlC: "#FF3B30", icon: "cellphone", btnTxt: "Recharge", btnC: Colors.finance_accent, bdrC: "#FF3B30" },
                         { title: "JioFiber", sub: "Bill Due:", hl: "Tomorrow", hlC: "#FF9500", icon: "router-wireless", btnTxt: "Pay Bill", btnC: "#FF9500", bdrC: "#FF9500" },
                         { title: userPhone || "9876543210", sub: "Plan expires in", hl: "4 days", hlC: "#FF3B30", icon: "cellphone", btnTxt: "Recharge", btnC: Colors.finance_accent, bdrC: "#FF3B30" },
                       ].map((p, i) => (
-                        <View key={i} style={[S.planCard, { width: CARD_W, marginRight: CARD_SPACING, borderLeftColor: p.bdrC }]}>
+                        <View key={i} style={[S.planCard, { width: CARD_W, marginRight: SPACING, borderLeftColor: p.bdrC }]}>
                           <View style={S.planRow}>
                             <View style={[S.planIconBg, { backgroundColor: p.btnC }]}>
                               <Icon name={p.icon} size={rs(20)} color="#FFF" />
@@ -739,7 +806,6 @@ export default function FinanceHome({ navigation }) {
                   </View>
                 )}
 
-                {/* Recharge & Bills */}
                 {(hasService("bbps") || hasService("recharge")) && (
                   <>
                     <View style={[S.secHeaderRow, { justifyContent: "space-between", marginBottom: rs(10) }]}>
@@ -771,7 +837,6 @@ export default function FinanceHome({ navigation }) {
               </>
             )}
 
-            {/* Banner */}
             <View style={S.bannerWrap}>
               <ScrollView
                 ref={scrollRef} horizontal snapToInterval={ITEM_W}
@@ -796,7 +861,6 @@ export default function FinanceHome({ navigation }) {
               </View>
             </View>
 
-            {/* Great Deals */}
             <View style={S.dealsRow}>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <View style={[S.dealIconBg, { backgroundColor: Colors.finance_chip }]}>
@@ -809,7 +873,6 @@ export default function FinanceHome({ navigation }) {
               </View>
             </View>
 
-            {/* Bill Pay Card */}
             <LinearGradient colors={[Colors.primary, "#000000"]} style={S.billCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
               <View style={S.billCircle} />
               <View style={S.rowBetween}>
@@ -843,9 +906,7 @@ export default function FinanceHome({ navigation }) {
           </View>
         </Animated.ScrollView>
 
-        {/* ════════════════════════════════════════════
-            BOTTOM NAV
-        ════════════════════════════════════════════ */}
+        {/* ══ BOTTOM NAV ══ */}
         <View style={[S.navWrap, { bottom: insets.bottom + rs(8) }]}>
           <View style={S.navBar}>
             <TouchableOpacity style={S.tabItem} activeOpacity={0.8}>
@@ -892,7 +953,7 @@ function SecHeader({ title }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// STYLESHEET
+// STYLES
 // ─────────────────────────────────────────────────────────────────────────────
 const S = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#161616" },
@@ -902,42 +963,24 @@ const S = StyleSheet.create({
   splashTxt: { marginTop: rs(12), color: "#888", fontFamily: Fonts.Medium, fontSize: rs(14) },
   emptyServiceTxt: { color: "#666", fontFamily: Fonts.Medium, marginTop: rs(10), fontSize: rs(13), textAlign: "center" },
 
-  // ── Search overlay ────────────────────────────────────────────────────────
-  searchOverlay: {
-    position: "absolute", zIndex: 80,
-    top: 0, left: 0, right: 0, bottom: 0,
-  },
+  searchOverlay: { position: "absolute", zIndex: 90, top: 0, left: 0, right: 0, bottom: 0 },
 
-  // ── Header ────────────────────────────────────────────────────────────────
   headerWrap: {
     position: "absolute", top: 0, left: 0, right: 0, zIndex: 100,
-    overflow: "visible",   // visible so dropdown isn't clipped
+    overflow: "visible",
     backgroundColor: "#161616",
     borderBottomLeftRadius: rs(28), borderBottomRightRadius: rs(28),
     elevation: 10,
-    // clip visual shadow only — not children
     shadowColor: "#000", shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3, shadowRadius: 8,
+    shadowOpacity: 0.28, shadowRadius: 8,
   },
-  headerGrad: { flex: 1, paddingHorizontal: rs(18), paddingBottom: rs(6) },
+  headerGrad: { flex: 1, paddingHorizontal: rs(18), paddingBottom: rs(10) },
 
-  // ── Top row — fixed height container that holds Layer A and Layer B ────────
-  topRow: {
-    width: "100%",
-    marginBottom: rs(4),
-    // No overflow: hidden here so the dropdown sits outside it cleanly
+  layerA: {
+    position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
   },
-
-  // Layer A: Avatar + greeting + buttons — fills the entire topRow
-  topLayerA: {
-    position: "absolute",
-    top: 0, left: 0, right: 0, bottom: 0,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-
-  avatarWrap: { position: "relative", marginRight: rs(11) },
+  avatarWrap: { position: "relative", marginRight: rs(10) },
   avatarGrad: {
     width: rs(44), height: rs(44), borderRadius: rs(22),
     alignItems: "center", justifyContent: "center",
@@ -949,20 +992,17 @@ const S = StyleSheet.create({
     width: rs(10), height: rs(10), borderRadius: rs(5),
     borderWidth: 1.5, borderColor: "#161616",
   },
-
   userInfo: { flex: 1, minWidth: 0 },
   greetRow: { flexDirection: "row", alignItems: "center", marginBottom: rs(1) },
   greetTxt: { fontSize: rs(12), fontFamily: Fonts.Medium },
   nameTxt: { color: "#FFF", fontSize: rs(16), fontFamily: Fonts.Bold, letterSpacing: 0.3, flexShrink: 1 },
   usernameTxt: { color: Colors.finance_accent, fontSize: rs(9), fontFamily: Fonts.Medium, marginTop: 1, flexShrink: 1 },
-
   actions: { flexDirection: "row", flexShrink: 0, marginLeft: rs(6) },
   glassBtn: {
     width: rs(38), height: rs(38), borderRadius: rs(19),
     backgroundColor: "rgba(255,255,255,0.1)",
     alignItems: "center", justifyContent: "center",
-    marginLeft: rs(7), borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.14)",
+    marginLeft: rs(7), borderWidth: 1, borderColor: "rgba(255,255,255,0.14)",
   },
   notifDot: {
     position: "absolute", top: rs(8), right: rs(8),
@@ -970,70 +1010,56 @@ const S = StyleSheet.create({
     backgroundColor: "#FF3B30", zIndex: 1, borderWidth: 1.5, borderColor: "#333",
   },
 
-  // Layer B: Search bar — same absolute bounds as Layer A
-  topLayerB: {
-    position: "absolute",
-    top: 0, left: 0, right: 0, bottom: 0,
-    alignItems: "center",
-    justifyContent: "center",
+  layerB: {
+    position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+    flexDirection: "row", alignItems: "center",
   },
-  searchBarInner: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(28,28,28,0.98)",
-    borderRadius: rs(14),
-    paddingHorizontal: rs(12),
-    paddingVertical: rs(9),
-    borderWidth: 1,
-    borderColor: "rgba(212,176,106,0.38)",
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3, shadowRadius: 6, elevation: 8,
+  searchBack: { marginRight: rs(8), padding: rs(4) },
+  searchInputWrap: {
+    flex: 1, flexDirection: "row", alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.09)",
+    borderRadius: rs(13),
+    paddingHorizontal: rs(12), paddingVertical: rs(10),
+    borderWidth: 1, borderColor: "rgba(212,176,106,0.28)",
   },
-  searchBack: { marginRight: rs(8) },
   searchInput: {
     flex: 1, color: "#FFF",
     fontSize: rs(14), fontFamily: Fonts.Medium,
     paddingVertical: 0, includeFontPadding: false,
   },
 
-  // ── Results dropdown — sits BELOW the topRow, ABOVE the wallet card ───────
-  resultsBox: {
-    marginHorizontal: 0,
-    marginBottom: rs(6),
+  resultsOverlay: {
+    position: "absolute",
+    left: rs(16), right: rs(16),
+    zIndex: 200,
     backgroundColor: "#1C1C1C",
-    borderRadius: rs(14),
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.07)",
+    borderRadius: rs(16),
+    borderWidth: 1, borderColor: "rgba(212,176,106,0.22)",
     overflow: "hidden",
-    // shadow so it visually floats over the wallet card below
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4, shadowRadius: 10, elevation: 12,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.45, shadowRadius: 14, elevation: 20,
   },
   resultRow: {
     flexDirection: "row", alignItems: "center",
-    paddingHorizontal: rs(14), paddingVertical: rs(10),
+    height: rs(46), paddingHorizontal: rs(14),
     borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.045)",
   },
-  resultIcon: {
+  resultIconBox: {
     width: rs(30), height: rs(30), borderRadius: rs(9),
     backgroundColor: "rgba(212,176,106,0.09)",
     alignItems: "center", justifyContent: "center",
-    marginRight: rs(11), borderWidth: 1,
-    borderColor: "rgba(212,176,106,0.14)",
+    marginRight: rs(10), borderWidth: 1,
+    borderColor: "rgba(212,176,106,0.12)",
   },
   resultLabel: { flex: 1, color: "#DDD", fontSize: rs(13), fontFamily: Fonts.Medium },
-  moreHint: { textAlign: "center", color: "#555", fontSize: rs(10), fontFamily: Fonts.Medium, paddingVertical: rs(7) },
-  emptyRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: rs(14), paddingVertical: rs(13) },
-  emptyTxt: { color: "#555", fontFamily: Fonts.Medium, fontSize: rs(12), marginLeft: rs(8) },
+  moreHint: { textAlign: "center", color: "#666", fontSize: rs(10), fontFamily: Fonts.Medium, paddingVertical: rs(7) },
+  emptyRow: { flexDirection: "row", alignItems: "center", height: rs(48), paddingHorizontal: rs(14) },
+  emptyTxt: { color: "#666", fontFamily: Fonts.Medium, fontSize: rs(12), marginLeft: rs(8) },
 
-  // ── Wallet card ────────────────────────────────────────────────────────────
   walletCard: {
     borderRadius: rs(22), padding: rs(15),
-    borderWidth: 1, borderColor: "rgba(255,255,255,0.09)",
-    overflow: "hidden",
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.09)", overflow: "hidden",
   },
   circ1: { position: "absolute", top: -28, right: -28, width: rs(90), height: rs(90), borderRadius: rs(45), backgroundColor: "rgba(212,176,106,0.09)" },
   circ2: { position: "absolute", bottom: -36, left: -18, width: rs(110), height: rs(110), borderRadius: rs(55), backgroundColor: "rgba(255,255,255,0.04)" },
@@ -1043,7 +1069,7 @@ const S = StyleSheet.create({
   balLabel: { color: "rgba(255,255,255,0.55)", fontSize: rs(10), fontFamily: Fonts.Medium, letterSpacing: 1, textTransform: "uppercase" },
   rupee: { color: "#d4b06a", fontSize: rs(21), fontFamily: Fonts.Light, marginRight: rs(3), marginTop: rs(2) },
   balAmt: { color: "#FFF", fontSize: rs(25), fontFamily: Fonts.Bold, letterSpacing: 1 },
-  addBtn: { position: "absolute", right: rs(14), top: rs(66), backgroundColor: Colors.finance_accent, flexDirection: "row", alignItems: "center", paddingHorizontal: rs(9), paddingVertical: rs(5), borderRadius: rs(14), elevation: 2 },
+  addBtn: { position: "absolute", right: rs(14), top: rs(64), backgroundColor: Colors.finance_accent, flexDirection: "row", alignItems: "center", paddingHorizontal: rs(9), paddingVertical: rs(5), borderRadius: rs(14), elevation: 2 },
   addBtnTxt: { color: "#000", fontSize: rs(10), fontFamily: Fonts.Bold, marginLeft: rs(3) },
   cardFooter: { marginTop: rs(9), flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   footerHint: { color: "rgba(255,255,255,0.28)", fontSize: rs(9), fontStyle: "italic" },
@@ -1051,14 +1077,12 @@ const S = StyleSheet.create({
   kycDotSm: { width: rs(5), height: rs(5), borderRadius: rs(3), marginRight: rs(4) },
   kycBadgeTxt: { fontSize: rs(9), fontFamily: Fonts.Bold, letterSpacing: 0.5 },
 
-  // ── Body ──────────────────────────────────────────────────────────────────
   body: { paddingHorizontal: rs(16), paddingTop: rs(4) },
   secHeaderRow: { flexDirection: "row", alignItems: "center" },
   secBar: { width: rs(3), height: rs(15), backgroundColor: Colors.finance_accent, borderRadius: rs(4), marginRight: rs(7) },
   secTitle: { fontSize: rs(14), fontFamily: Fonts.Bold, color: "#333", letterSpacing: 0.4, textTransform: "capitalize" },
   viewAllBtn: { flexDirection: "row", alignItems: "center", backgroundColor: "#fffcf5", paddingVertical: rs(4), paddingHorizontal: rs(9), borderRadius: rs(14), borderWidth: 1, borderColor: "rgba(212,176,106,0.4)", elevation: 1 },
   viewAllTxt: { fontSize: rs(11), fontFamily: Fonts.Bold, color: Colors.finance_accent, marginRight: rs(3) },
-
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" },
   gridBox: {
     width: "23%", backgroundColor: "#FFF", alignItems: "center",
@@ -1071,7 +1095,6 @@ const S = StyleSheet.create({
   gridTxt: { color: "#444", fontSize: rs(9), textAlign: "center", marginTop: rs(4), fontFamily: Fonts.Medium, lineHeight: rs(12) },
   lockBadge: { position: "absolute", bottom: -2, right: -5, width: rs(11), height: rs(11), borderRadius: rs(6), backgroundColor: "#F97316", alignItems: "center", justifyContent: "center" },
   kycNeedTxt: { color: "#F97316", fontSize: rs(7), textAlign: "center", marginTop: rs(2), fontFamily: Fonts.Medium },
-
   servicesBox: {
     flexDirection: "row", flexWrap: "wrap",
     backgroundColor: "#FFF", borderRadius: rs(18),
@@ -1083,7 +1106,6 @@ const S = StyleSheet.create({
   svcItem: { alignItems: "center", width: rs(58) },
   svcIconBg: { width: rs(42), height: rs(42), borderRadius: rs(14), backgroundColor: "#FFFCF5", justifyContent: "center", alignItems: "center", marginBottom: rs(5), borderWidth: 1, borderColor: "rgba(212,176,106,0.2)" },
   svcLabel: { fontSize: rs(9), fontFamily: Fonts.Bold, color: "#333", textAlign: "center" },
-
   planCard: { backgroundColor: "#fff", borderRadius: rs(13), padding: rs(11), marginVertical: rs(9), elevation: 2, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.09, shadowRadius: 3, borderLeftWidth: 3 },
   planRow: { flexDirection: "row", alignItems: "center" },
   planIconBg: { width: rs(32), height: rs(32), borderRadius: rs(16), justifyContent: "center", alignItems: "center" },
@@ -1091,18 +1113,15 @@ const S = StyleSheet.create({
   planSub: { fontSize: rs(10), color: "#666", marginTop: 1, fontFamily: Fonts.Medium },
   planBtn: { paddingHorizontal: rs(10), paddingVertical: rs(5), borderRadius: rs(13), elevation: 1 },
   planBtnTxt: { color: "#000", fontSize: rs(11), fontFamily: Fonts.Bold },
-
   bannerWrap: { marginTop: rs(16), marginBottom: rs(4), height: vscale(128), borderRadius: rs(12), overflow: "hidden", justifyContent: "center", alignItems: "center" },
   bannerImg: { width: SW - rs(36), height: vscale(128), resizeMode: "cover", borderRadius: rs(12), backgroundColor: "#fff", marginRight: rs(10) },
   paginRow: { position: "absolute", bottom: rs(7), flexDirection: "row", alignSelf: "center" },
   paginDot: { height: rs(5), borderRadius: rs(3), backgroundColor: Colors.finance_accent, marginHorizontal: rs(3) },
-
   dealsRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: rs(9), marginTop: rs(9), paddingVertical: rs(11), paddingHorizontal: rs(13), backgroundColor: Colors.white, borderRadius: rs(14), elevation: 2 },
   dealIconBg: { width: rs(29), height: rs(29), borderRadius: rs(14), alignItems: "center", justifyContent: "center", marginRight: rs(7) },
   dealTitle: { fontSize: rs(13), fontFamily: Fonts.Bold },
   hotTag: { paddingHorizontal: rs(8), paddingVertical: rs(3), borderRadius: rs(9) },
   hotTagTxt: { color: Colors.white, fontSize: rs(9), fontFamily: Fonts.Bold },
-
   billCard: { marginHorizontal: rs(1), marginTop: rs(11), borderRadius: rs(18), padding: rs(17), borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", overflow: "hidden", marginBottom: rs(6) },
   billCircle: { position: "absolute", top: -28, right: -28, width: rs(90), height: rs(90), borderRadius: rs(45), backgroundColor: "rgba(212,176,106,0.1)" },
   billTitle: { color: "#FFF", fontSize: rs(15), fontFamily: Fonts.Bold },
@@ -1112,7 +1131,6 @@ const S = StyleSheet.create({
   billActionTxt: { color: "rgba(255,255,255,0.7)", fontSize: rs(10), marginTop: rs(5), fontFamily: Fonts.Medium },
   billPayBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: Colors.finance_accent, paddingVertical: rs(10), borderRadius: rs(11) },
   billPayBtnTxt: { color: "#000", fontWeight: "bold", marginRight: rs(5), fontSize: rs(12) },
-
   navWrap: { position: "absolute", width: "100%", alignItems: "center" },
   navBar: { backgroundColor: "#1A1A1A", width: "92%", height: rs(58), borderRadius: rs(29), flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: rs(7), shadowColor: "#000", shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.24, shadowRadius: 14, elevation: 10, borderWidth: 1, borderColor: "#333" },
   tabItem: { flex: 1, height: "100%", justifyContent: "center", alignItems: "center" },
