@@ -16,8 +16,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import Colors from "../../constants/Colors";
 import Fonts from "../../constants/Fonts";
-import CustomAlert from "../../components/CustomAlert";
 import { fadeIn, slideUp, buttonPress } from "../../utils/ScreenAnimations";
+import CustomAlert from "../../componets/CustomAlert";
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get("window");

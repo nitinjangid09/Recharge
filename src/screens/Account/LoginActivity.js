@@ -8,12 +8,13 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Colors from "../../constants/Colors";
-import CustomAlert from "../../componets/CustomAlert";
 import {
   fadeIn,
   slideUp,
   buttonPress,
 } from "../../utils/ScreenAnimations";
+import CustomAlert from "../../componets/CustomAlert";
+
 
 export default function LoginActivity() {
   const navigation = useNavigation();

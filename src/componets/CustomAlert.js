@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Modal,
 } from "react-native";
-import Colors from "../utils/Color";
+import Colors from "../constants/Colors";
 
 const CustomAlert = ({ visible, type, title, message, onClose }) => {
   const getColor = () => {
