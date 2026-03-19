@@ -345,6 +345,7 @@ export default function TopUpScreen({ navigation, route }) {
                 <View style={styles.connectionContainer}>
                   <TouchableOpacity
                     style={styles.connectionRow}
+                    activeOpacity={1}
                     onPress={() => operators.length && setShowOperatorModal(true)}
                   >
                     <View style={styles.iconBox}>
@@ -352,15 +353,18 @@ export default function TopUpScreen({ navigation, route }) {
                     </View>
                     <View style={{ flex: 1, marginLeft: 12 }}>
                       <Text style={styles.connectionLabel}>Operator</Text>
-                      <Text style={styles.connectionValues}>{operator || "Select Provider"}</Text>
+                      <Text style={[styles.connectionValues, showOperatorModal && { color: Colors.finance_accent }]}>
+                        {operator || "Select Provider"}
+                      </Text>
                     </View>
-                    <Icon name="chevron-down" size={20} color={Colors.finance_text} />
+                    <Icon name={showOperatorModal ? "chevron-up" : "chevron-down"} size={20} color={showOperatorModal ? Colors.finance_accent : Colors.finance_text} />
                   </TouchableOpacity>
 
                   <View style={styles.dividerLine} />
 
                   <TouchableOpacity
                     style={styles.connectionRow}
+                    activeOpacity={1}
                     onPress={() => circles.length && setShowCircleModal(true)}
                   >
                     <View style={styles.iconBox}>
@@ -368,9 +372,11 @@ export default function TopUpScreen({ navigation, route }) {
                     </View>
                     <View style={{ flex: 1, marginLeft: 12 }}>
                       <Text style={styles.connectionLabel}>Circle</Text>
-                      <Text style={styles.connectionValues}>{circle || "Select Circle"}</Text>
+                      <Text style={[styles.connectionValues, showCircleModal && { color: Colors.finance_accent }]}>
+                        {circle || "Select Circle"}
+                      </Text>
                     </View>
-                    <Icon name="chevron-down" size={20} color={Colors.finance_text} />
+                    <Icon name={showCircleModal ? "chevron-up" : "chevron-down"} size={20} color={showCircleModal ? Colors.finance_accent : Colors.finance_text} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -627,35 +633,14 @@ function BottomSheetModal({
   // Animated opacity for the backdrop
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
-  // Open / close animations driven by `visible`
+  // Open / close visibility driven by `visible`
   useEffect(() => {
     if (visible) {
-      Animated.parallel([
-        Animated.spring(translateY, {
-          toValue: 0,
-          useNativeDriver: true,
-          bounciness: 4,
-          speed: 14,
-        }),
-        Animated.timing(backdropOpacity, {
-          toValue: 1,
-          duration: 260,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      translateY.setValue(0);
+      backdropOpacity.setValue(1);
     } else {
-      Animated.parallel([
-        Animated.timing(translateY, {
-          toValue: SCREEN_HEIGHT,
-          duration: 260,
-          useNativeDriver: true,
-        }),
-        Animated.timing(backdropOpacity, {
-          toValue: 0,
-          duration: 260,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      translateY.setValue(SCREEN_HEIGHT);
+      backdropOpacity.setValue(0);
     }
   }, [visible]);
 
@@ -677,8 +662,9 @@ function BottomSheetModal({
             duration: 220,
             useNativeDriver: true,
           }).start(() => {
-            swipePan.setValue(0);
             onClose();
+            // Reset swipePan only after a slight delay or on next mount
+            setTimeout(() => swipePan.setValue(0), 100);
           });
         } else {
           // Snap back
@@ -691,8 +677,18 @@ function BottomSheetModal({
     })
   ).current;
 
-  // Combined translateY = sheet open/close + drag
+  // Combined translateY = sheet open/close + swipe
   const combinedTranslateY = Animated.add(translateY, swipePan);
+
+  // Interpolate backdrop opacity based on swipe position
+  const interpolatedBackdropOpacity = Animated.multiply(
+    backdropOpacity,
+    swipePan.interpolate({
+      inputRange: [0, SCREEN_HEIGHT * 0.5],
+      outputRange: [1, 0],
+      extrapolate: "clamp",
+    })
+  );
 
   if (!visible) return null;
 
@@ -711,7 +707,7 @@ function BottomSheetModal({
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
       {/* ── Backdrop ── */}
       <Animated.View
-        style={[styles.sheetBackdrop, { opacity: backdropOpacity }]}
+        style={[styles.sheetBackdrop, { opacity: interpolatedBackdropOpacity }]}
         pointerEvents="auto"
       >
         <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose} />
@@ -725,9 +721,6 @@ function BottomSheetModal({
         ]}
         pointerEvents="auto"
       >
-        {/* Decorative top-shadow strip — replaces elevation */}
-        <View style={styles.sheetTopShadow} />
-
         {/* Header (drag handle lives here — pan responder attached) */}
         <View style={styles.sheetHeader} {...swipeResponder.panHandlers}>
           <View style={styles.handleBar} />
@@ -769,7 +762,7 @@ function BottomSheetModal({
                   key={idx}
                   style={[styles.sheetListItem, isSel && styles.sheetListItemSel]}
                   onPress={() => onSelect(item)}
-                  activeOpacity={0.75}
+                  activeOpacity={1}
                 >
                   <View style={[styles.sheetListIconBox, isSel && styles.sheetListIconBoxSel]}>
                     <Icon name={iconName} size={20} color={isSel ? Colors.finance_accent : "#666"} />
@@ -823,13 +816,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 12,
     marginBottom: 12,
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
     borderWidth: 1,
-    borderColor: "rgba(212, 176, 106, 0.1)",
+    borderColor: "rgba(212, 176, 106, 0.15)",
   },
   modernCardHeader: {
     flexDirection: "row",
@@ -863,7 +851,7 @@ const styles = StyleSheet.create({
   // ── Connection ────────────────────────────────────────────────────────────
   connectionContainer: { backgroundColor: "#F9F9F9", borderRadius: 14, borderWidth: 1, borderColor: "#EEE", overflow: "hidden" },
   connectionRow: { flexDirection: "row", alignItems: "center", padding: 10 },
-  iconBox: { width: 30, height: 30, borderRadius: 8, backgroundColor: Colors.white, alignItems: "center", justifyContent: "center", elevation: 2 },
+  iconBox: { width: 30, height: 30, borderRadius: 8, backgroundColor: Colors.white, alignItems: "center", justifyContent: "center" },
   connectionLabel: { fontSize: 9, fontFamily: Fonts.Bold, color: "#777", textTransform: "uppercase" },
   connectionValues: { fontSize: 12, fontFamily: Fonts.Medium, color: "#000", marginTop: 2 },
   dividerLine: { height: 1, backgroundColor: "#EEE", marginHorizontal: 14 },
@@ -874,11 +862,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 14,
     marginBottom: 14,
-    elevation: 8,
-    shadowColor: Colors.finance_accent,
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
     borderWidth: 1.5,
     borderColor: "rgba(212, 176, 106, 0.4)",
   },
@@ -903,10 +886,10 @@ const styles = StyleSheet.create({
 
   // ── Slider ────────────────────────────────────────────────────────────────
   actionContainer: { padding: 12, backgroundColor: Colors.finance_bg_1, borderTopWidth: 1, borderTopColor: 'rgba(212, 176, 106, 0.1)' },
-  sliderWrapper: { height: 60, backgroundColor: Colors.white, borderRadius: 30, borderWidth: 1.5, borderColor: Colors.finance_accent, justifyContent: "center", elevation: 4, overflow: "hidden" },
+  sliderWrapper: { height: 60, backgroundColor: Colors.white, borderRadius: 30, borderWidth: 1.5, borderColor: Colors.finance_accent, justifyContent: "center", overflow: "hidden" },
   sliderBackground: { ...StyleSheet.absoluteFillObject, justifyContent: "center", alignItems: "center" },
   swipeText: { color: Colors.finance_accent, fontSize: 14, fontFamily: Fonts.Bold, letterSpacing: 2 },
-  sliderThumb: { width: 52, height: 52, borderRadius: 26, position: "absolute", left: 4, elevation: 5 },
+  sliderThumb: { width: 52, height: 52, borderRadius: 26, position: "absolute", left: 4 },
   thumbGrad: { width: 52, height: 52, borderRadius: 26, alignItems: "center", justifyContent: "center" },
   processingBtn: { height: 60, borderRadius: 30, flexDirection: "row", alignItems: "center", justifyContent: "center" },
   processingText: { color: Colors.white, fontFamily: Fonts.Bold, fontSize: 14, letterSpacing: 1 },
@@ -936,21 +919,11 @@ const styles = StyleSheet.create({
     borderColor: "rgba(0,0,0,0.08)",
     overflow: "hidden",
   },
-  // Decorative strip that simulates a top-shadow inside the sheet
-  sheetTopShadow: {
-    height: 6,
-    marginHorizontal: 0,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    // A very subtle gradient-like effect via backgroundColor + opacity
-    backgroundColor: "rgba(0,0,0,0.04)",
-  },
   sheetHeader: {
     paddingHorizontal: 16,
     paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: "#F0F0F0",
-    // Cursor area for swipe-down gesture — give it a bit more height
     paddingTop: 4,
   },
   handleBar: {
@@ -979,7 +952,7 @@ const styles = StyleSheet.create({
 
   // ── Toast ──────────────────────────────────────────────────────────────────
   customToastBox: { position: 'absolute', top: 60, left: 20, right: 20, zIndex: 9999 },
-  customToastGrad: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, gap: 10, elevation: 6, shadowColor: "#000", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 5 },
+  customToastGrad: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, gap: 10 },
   customToastText: { color: '#FFF', fontFamily: Fonts.Bold, fontSize: 13, flex: 1 },
 
   // ── Receipt ────────────────────────────────────────────────────────────────

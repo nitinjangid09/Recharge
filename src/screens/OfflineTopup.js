@@ -118,7 +118,7 @@ export default function OfflineTopup({ navigation }) {
       setAlertVisible(true);
       return;
     }
-    
+
     setSubmitting(true);
     try {
       const headerToken = await AsyncStorage.getItem("header_token");
@@ -157,7 +157,7 @@ export default function OfflineTopup({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.innerContent}>
-        <HeaderBar title="Offline Topup Request" onBack={() => navigation.goBack()} />
+        <HeaderBar title="Topup Request" onBack={() => navigation.goBack()} />
 
         <View style={styles.formCard}>
           <Text style={styles.cardHeader}>Submit Topup Request</Text>
@@ -171,27 +171,11 @@ export default function OfflineTopup({ navigation }) {
             keyboardType="numeric"
           />
 
-          <View style={styles.fieldWrapper}>
-            <Text style={styles.boxLabel}>Mode</Text>
-            <View style={styles.modeContainer}>
-              {["upi", "neft", "rtgs", "cash"].map((m) => (
-                <TouchableOpacity
-                  key={m}
-                  style={[styles.modeItem, mode === m && styles.modeItemActive]}
-                  onPress={() => setMode(m)}
-                >
-                  <Text style={[styles.modeText, mode === m && styles.modeTextActive]}>
-                    {m.toUpperCase()}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
 
           <View style={styles.fieldWrapper}>
             <Text style={styles.boxLabel}>Select Receiver Bank</Text>
-            <TouchableOpacity 
-              style={styles.inputContainer} 
+            <TouchableOpacity
+              style={styles.inputContainer}
               onPress={() => setBankModalVisible(true)}
               activeOpacity={0.7}
             >
@@ -297,34 +281,34 @@ export default function OfflineTopup({ navigation }) {
 
       {/* ─── Response Custom Alert ─── */}
       <Modal visible={alertVisible} transparent animationType="slide">
-         <View style={styles.alertOverlay}>
-            <View style={styles.alertContent}>
-               <View style={[styles.alertIconCircle, { backgroundColor: alertType === 'success' ? '#22C55E' : '#EF4444' }]}>
-                  <Icon name={alertType === 'success' ? 'check' : 'close'} size={32} color="#fff" />
-               </View>
-               <Text style={styles.alertTitle}>{alertTitle}</Text>
-               <Text style={styles.alertMessage}>{alertMessage}</Text>
-               
-               <TouchableOpacity 
-                 style={{ width: "100%", marginTop: 10 }} 
-                 onPress={() => {
-                   setAlertVisible(false);
-                   if (alertType === 'success') {
-                      setTimeout(() => navigation.goBack(), 100);
-                   }
-                 }}
-               >
-                 <LinearGradient
-                   colors={[Colors.finance_accent, "#C29A47"]}
-                   style={styles.alertBtn}
-                   start={{ x: 0, y: 0 }}
-                   end={{ x: 1, y: 1 }}
-                 >
-                   <Text style={{ color: "#000", fontFamily: Fonts.Bold, fontSize: 14 }}>Done</Text>
-                 </LinearGradient>
-               </TouchableOpacity>
+        <View style={styles.alertOverlay}>
+          <View style={styles.alertContent}>
+            <View style={[styles.alertIconCircle, { backgroundColor: alertType === 'success' ? '#22C55E' : '#EF4444' }]}>
+              <Icon name={alertType === 'success' ? 'check' : 'close'} size={32} color="#fff" />
             </View>
-         </View>
+            <Text style={styles.alertTitle}>{alertTitle}</Text>
+            <Text style={styles.alertMessage}>{alertMessage}</Text>
+
+            <TouchableOpacity
+              style={{ width: "100%", marginTop: 10 }}
+              onPress={() => {
+                setAlertVisible(false);
+                if (alertType === 'success') {
+                  setTimeout(() => navigation.goBack(), 100);
+                }
+              }}
+            >
+              <LinearGradient
+                colors={[Colors.finance_accent, "#C29A47"]}
+                style={styles.alertBtn}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Text style={{ color: "#000", fontFamily: Fonts.Bold, fontSize: 14 }}>Done</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
       </Modal>
     </SafeAreaView>
   );
