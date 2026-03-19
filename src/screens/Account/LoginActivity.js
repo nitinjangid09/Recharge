@@ -7,7 +7,7 @@ import {
   Animated,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import Colors from "../../utils/Color";
+import Colors from "../../constants/Colors";
 import CustomAlert from "../../componets/CustomAlert";
 import {
   fadeIn,

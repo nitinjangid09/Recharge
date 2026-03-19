@@ -11,7 +11,7 @@ import {
   ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Colors from "../../utils/Color";
+import Colors from "../../constants/Colors";
 import CustomAlert from "../../componets/CustomAlert";
 import { FadeSlideUp } from "../../utils/ScreenAnimations";
 

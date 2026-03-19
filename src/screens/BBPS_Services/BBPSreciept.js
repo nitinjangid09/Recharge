@@ -10,39 +10,39 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import Colors from "../../Utils/Color";
+import Colors from "../../Ut`ils/Color";
 
 const BbpsReceiptScreen = ({ route }) => {
   const navigation = useNavigation();
 
   const {
-    serviceName   = "",
-    billerName    = "",
-    billerId      = "",
-    formData      = {},
+    serviceName = "",
+    billerName = "",
+    billerId = "",
+    formData = {},
     transactionId = "",
     amount,
-    status        = "success",
+    status = "success",
     failureReason = "Transaction could not be processed. Please try again.",
   } = route?.params || {};
 
   const isSuccess = status !== "failed";
 
   // ── Animations ──────────────────────────────────────────────────────────────
-  const iconScale   = useRef(new Animated.Value(0)).current;
+  const iconScale = useRef(new Animated.Value(0)).current;
   const iconOpacity = useRef(new Animated.Value(0)).current;
-  const cardSlide   = useRef(new Animated.Value(40)).current;
+  const cardSlide = useRef(new Animated.Value(40)).current;
   const cardOpacity = useRef(new Animated.Value(0)).current;
-  const btnOpacity  = useRef(new Animated.Value(0)).current;
+  const btnOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.sequence([
       Animated.parallel([
-        Animated.spring(iconScale,   { toValue: 1, tension: 60, friction: 7, useNativeDriver: true }),
+        Animated.spring(iconScale, { toValue: 1, tension: 60, friction: 7, useNativeDriver: true }),
         Animated.timing(iconOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
       ]),
       Animated.parallel([
-        Animated.timing(cardSlide,   { toValue: 0, duration: 350, useNativeDriver: true }),
+        Animated.timing(cardSlide, { toValue: 0, duration: 350, useNativeDriver: true }),
         Animated.timing(cardOpacity, { toValue: 1, duration: 350, useNativeDriver: true }),
       ]),
       Animated.timing(btnOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
@@ -216,11 +216,11 @@ export default BbpsReceiptScreen;
 // ─────────────────────────────────────────────────────────────────────────────
 
 const SUCCESS_GREEN = "#16A34A";
-const SUCCESS_BG    = "#F0FDF4";
-const SUCCESS_RING  = "#BBF7D0";
-const FAILED_RED    = "#DC2626";
-const FAILED_BG     = "#FEF2F2";
-const FAILED_RING   = "#FECACA";
+const SUCCESS_BG = "#F0FDF4";
+const SUCCESS_RING = "#BBF7D0";
+const FAILED_RED = "#DC2626";
+const FAILED_BG = "#FEF2F2";
+const FAILED_RING = "#FECACA";
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.primary },
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
   // Header — identical to service screen
   header: { paddingVertical: 22, alignItems: "center" },
   headerTitle: { fontSize: 22, fontWeight: "700", color: Colors.white || "#FFF", letterSpacing: 0.3 },
-  headerSub:   { fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 3 },
+  headerSub: { fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 3 },
 
   // Body card — identical to service screen
   body: {
@@ -252,14 +252,14 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     elevation: 4,
   },
-  iconWrapSuccess: { backgroundColor: SUCCESS_BG,  borderColor: SUCCESS_RING  },
-  iconWrapFailed:  { backgroundColor: FAILED_BG,   borderColor: FAILED_RING   },
+  iconWrapSuccess: { backgroundColor: SUCCESS_BG, borderColor: SUCCESS_RING },
+  iconWrapFailed: { backgroundColor: FAILED_BG, borderColor: FAILED_RING },
   iconEmoji: { fontSize: 34, fontWeight: "800" },
 
   // Status text
-  statusTitle:  { fontSize: 20, fontWeight: "700", marginBottom: 4 },
+  statusTitle: { fontSize: 20, fontWeight: "700", marginBottom: 4 },
   successColor: { color: SUCCESS_GREEN },
-  failedColor:  { color: FAILED_RED },
+  failedColor: { color: FAILED_RED },
   amountText: {
     fontSize: 30, fontWeight: "800", color: Colors.black || "#1A1A2E", marginTop: 4, marginBottom: 4,
   },
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18, paddingVertical: 14,
   },
   cardHeaderSuccess: { backgroundColor: SUCCESS_BG },
-  cardHeaderFailed:  { backgroundColor: FAILED_BG },
+  cardHeaderFailed: { backgroundColor: FAILED_BG },
   cardHeaderTxt: { fontSize: 13, fontWeight: "700", color: Colors.black || "#1A1A2E" },
   cardHeaderSub: { fontSize: 11, color: "#9CA3AF" },
 
@@ -301,17 +301,17 @@ const styles = StyleSheet.create({
     flex: 1.5, textAlign: "right",
   },
   detailValueHighlight: { fontSize: 15, fontWeight: "700", color: Colors.primary },
-  detailValueMono:      { fontFamily: "monospace", fontSize: 12 },
+  detailValueMono: { fontFamily: "monospace", fontSize: 12 },
 
   // Status badge
   badge: {
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6,
   },
-  badgeSuccess:    { backgroundColor: SUCCESS_BG },
-  badgeFailed:     { backgroundColor: FAILED_BG },
-  badgeTxt:        { fontSize: 11, fontWeight: "700", letterSpacing: 0.6 },
+  badgeSuccess: { backgroundColor: SUCCESS_BG },
+  badgeFailed: { backgroundColor: FAILED_BG },
+  badgeTxt: { fontSize: 11, fontWeight: "700", letterSpacing: 0.6 },
   badgeTxtSuccess: { color: SUCCESS_GREEN },
-  badgeTxtFailed:  { color: FAILED_RED },
+  badgeTxtFailed: { color: FAILED_RED },
 
   // Buttons
   btnGroup: { width: "100%", marginTop: 28, gap: 12 },

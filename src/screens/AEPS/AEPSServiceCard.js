@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import Colors from "../../utils/Color";
+import Colors from "../../constants/Colors";
 import { FadeSlideUp } from "../../utils/ScreenAnimations";
 
 const { width } = Dimensions.get("window");

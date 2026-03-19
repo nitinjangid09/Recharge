@@ -4,7 +4,7 @@ const Colors = {
   // Core Theme Colors (Gold/Black/White)
   primary: "#000000",      // Main Actions, Headings, Icons (Black)
   secondary: "#FAF3E1",    // Secondary Backgrounds (Beige)
-  accent: "#000000",       // Focus states, Links, Cursors (Black)
+  accent: "#FF6D1F",       // Focus states, Links, Cursors (Black)
 
   // Backgrounds
   background_gradient: ["#F5E7C6", "#F5E7C6"], // Main Screen Background (Solid Gold)

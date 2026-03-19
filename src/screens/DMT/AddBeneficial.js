@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Picker } from "@react-native-picker/picker";
-import Colors from "../../utils/Color";
+import Colors from "../../constants/Colors";
 
 const AddBeneficiary = () => {
   const [relation, setRelation] = useState("");
