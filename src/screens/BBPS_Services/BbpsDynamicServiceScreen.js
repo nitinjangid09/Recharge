@@ -27,6 +27,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Colors from "../../constants/Colors";
+import { fetchBbpsBill, validateBbpsBill } from "../../api/AuthApi";
 /*
 import {
   getServices,
@@ -270,6 +271,31 @@ const CalendarPicker = ({ visible, onClose, onSelect, initialDate }) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+//  Custom Alert Modal
+// ─────────────────────────────────────────────────────────────────────────────
+const CustomAlert = ({ visible, title, message, type = "error", onClose }) => {
+  const isSuccess = type === "success";
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={alertStyles.overlay}>
+        <View style={alertStyles.card}>
+          <View style={[alertStyles.iconWrap, isSuccess && alertStyles.iconWrapSuccess]}>
+            <Text style={[alertStyles.icon, isSuccess && alertStyles.iconSuccess]}>
+              {isSuccess ? "✅" : "⚠"}
+            </Text>
+          </View>
+          <Text style={alertStyles.title}>{title}</Text>
+          <Text style={alertStyles.message}>{message}</Text>
+          <TouchableOpacity style={alertStyles.btn} onPress={onClose}>
+            <Text style={alertStyles.btnTxt}>OK</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 //  SelectBox — outside parent for stable reference
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -435,6 +461,11 @@ const BbpsDynamicServiceScreen = () => {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState(null);
 
+  // Custom Alert
+  const [alert, setAlert] = useState({ visible: false, title: "", message: "", type: "error" });
+  const showAlert = (title, message, type = "error") => setAlert({ visible: true, title, message, type });
+  const hideAlert = () => setAlert(prev => ({ ...prev, visible: false }));
+
   useEffect(() => {
     if (serviceType) {
       loadBillers(serviceType);
@@ -596,17 +627,17 @@ const BbpsDynamicServiceScreen = () => {
       } else {
         // Regular field validation
         if (field.mandatory && !val) {
-          Alert.alert("Required", `Please enter ${field.label}`);
+          showAlert("Required", `Please enter ${field.label}`);
           return;
         }
         if (val && field.minLength > 0 && val.length < field.minLength) {
-          Alert.alert("Invalid", `${field.label} must be at least ${field.minLength} characters`);
+          showAlert("Invalid", `${field.label} must be at least ${field.minLength} characters`);
           return;
         }
         if (val && field.regex) {
           try {
             if (!new RegExp(field.regex).test(val)) {
-              Alert.alert("Invalid Format", `${field.label} format is incorrect`);
+              showAlert("Invalid Format", `${field.label} format is incorrect`);
               return;
             }
           } catch (_) { }
@@ -621,12 +652,75 @@ const BbpsDynamicServiceScreen = () => {
     }
     setDobErrors({});
 
+    if (buttonLabel === "Fetch Bill") {
+      performFetchBill();
+    } else {
+      performValidateBill();
+    }
+  };
+
+  const performValidateBill = async () => {
+    setDetailsLoading(true);
+    try {
+      const token = await AsyncStorage.getItem("header_token");
+      const bId = selectedBiller.billerId || selectedBiller.biller_id || selectedBiller.id;
+      
+      const res = await validateBbpsBill({
+        billerId: bId,
+        customerParams: formData,
+        headerToken: token
+      });
+
+      if (res?.success) {
+        // Show success alert
+        showAlert("Success", res?.message || "Bill Validated", "success");
+      } else {
+        showAlert("Validation Failed", res?.message || "Could not validate bill.", "error");
+      }
+    } catch (err) {
+      showAlert("Error", "Network error while validating bill.", "error");
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+
+  const performFetchBill = async () => {
+    setDetailsLoading(true);
+    try {
+      const token = await AsyncStorage.getItem("header_token");
+      const bId = selectedBiller.billerId || selectedBiller.biller_id || selectedBiller.id;
+      
+      const res = await fetchBbpsBill({
+        billerId: bId,
+        customerParams: formData,
+        headerToken: token
+      });
+
+      if (res?.success) {
+        navigateToReceipt(res.data);
+      } else {
+        const msg = res?.message || "";
+        if (msg.toLowerCase().includes("no bill due")) {
+          showAlert("No Bill Due", msg, "success");
+        } else {
+          showAlert("Fetch Failed", msg || "Could not fetch bill details.");
+        }
+      }
+    } catch (err) {
+      showAlert("Error", "Network error while fetching bill.");
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+
+  const navigateToReceipt = (fetchedData = null) => {
     navigation.navigate("BBPSReceipt", {
       serviceName: selectedService.name,
       billerName: selectedBiller.biller_name || selectedBiller.billerName || selectedBiller.name,
       billerId: selectedBiller.biller_id || selectedBiller.billerId || selectedBiller.id,
       billerDetail,
       formData,
+      fetchedData,
       transactionId: "TXN" + Date.now(),
     });
   };
@@ -650,11 +744,13 @@ const BbpsDynamicServiceScreen = () => {
 
   const { buttonLabel, buttonSub } = useMemo(() => {
     const svc = selectedService?.name || "";
-    if (dynamicFields.length > 0 && dynamicFields.every((f) => f.mandatory)) {
-      return { buttonLabel: "Fetch Bill", buttonSub: svc ? `Fetch bill for ${svc}` : "" };
+    const validation = billerDetail?.billerSupportBillValidation;
+
+    if (validation === "MANDATORY") {
+      return { buttonLabel: "Validate", buttonSub: svc };
     }
-    return { buttonLabel: "Validate", buttonSub: svc };
-  }, [dynamicFields, selectedService]);
+    return { buttonLabel: "Fetch Bill", buttonSub: svc ? `Fetch bill for ${svc}` : "" };
+  }, [selectedService, billerDetail]);
 
   const billerDisplayName =
     selectedBiller?.biller_name ||
@@ -683,6 +779,15 @@ const BbpsDynamicServiceScreen = () => {
         onClose={() => setCalendarOpen(false)}
         onSelect={handleDateSelect}
         initialDate={activeCalInitialDate}
+      />
+
+      {/* Custom Alert Modal */}
+      <CustomAlert
+        visible={alert.visible}
+        title={alert.title}
+        message={alert.message}
+        type={alert.type}
+        onClose={hideAlert}
       />
 
       {/* Header */}
@@ -1108,3 +1213,28 @@ const styles = StyleSheet.create({
   listIconPH: { width: 30, height: 30, marginRight: 14, borderRadius: 8, backgroundColor: "#F0F2F8" },
   emptyMsg: { textAlign: "center", paddingVertical: 34, color: "#B0B8CC", fontSize: 14 },
 });
+
+const alertStyles = StyleSheet.create({
+  overlay: {
+    flex: 1, backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center", alignItems: "center", padding: 30,
+  },
+  card: {
+    backgroundColor: "#FFF", borderRadius: 24, padding: 25,
+    width: "100%", alignItems: "center",
+    elevation: 20, shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 15,
+  },
+  iconWrap: {
+    width: 60, height: 60, borderRadius: 30, backgroundColor: "#FEF2F2",
+    alignItems: "center", justifyContent: "center", marginBottom: 15,
+  },
+  icon: { fontSize: 30, color: "#DC2626" },
+  title: { fontSize: 18, fontWeight: "700", color: "#111827", marginBottom: 8, textAlign: "center" },
+  message: { fontSize: 14, color: "#4B5563", textAlign: "center", lineHeight: 20, marginBottom: 20 },
+  btn: {
+    backgroundColor: Colors.finance_accent || Colors.primary,
+    paddingVertical: 12, paddingHorizontal: 35, borderRadius: 14,
+    elevation: 4,
+  },
+  btnTxt: { color: "#FFF", fontSize: 15, fontWeight: "700" },
+});

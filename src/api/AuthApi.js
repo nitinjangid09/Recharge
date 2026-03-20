@@ -755,3 +755,64 @@ export const getRechargeReport = async ({ from, to, headerToken }) => {
     return { success: false, message: error.message || "Network error", data: [] };
   }
 };
+
+/**
+ * fetchBbpsBill
+ * @param {{ billerId: string, customerParams: object, headerToken: string }} params
+ */
+export const fetchBbpsBill = async ({ billerId, customerParams, headerToken }) => {
+  try {
+    const url = `${BASE_URL}/user/bbps/fetch-bill`;
+    
+    // Extract first param
+    const paramName = Object.keys(customerParams || {})[0] || "";
+    const paramValue = paramName ? customerParams[paramName] : "";
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${headerToken}`,
+      },
+      body: JSON.stringify({ billerId, paramName, paramValue }),
+    });
+    const text = await response.text();
+    if (text.trimStart().startsWith("<")) {
+      return { success: false, message: "Server error. Please try again." };
+    }
+    return JSON.parse(text);
+  } catch (error) {
+    return { success: false, message: error.message || "Network error" };
+  }
+};
+
+/**
+ * validateBbpsBill
+ * @param {{ billerId: string, customerParams: object, headerToken: string }} params
+ */
+export const validateBbpsBill = async ({ billerId, customerParams, headerToken }) => {
+  try {
+    const url = `${BASE_URL}/user/bbps/validate-bill`;
+
+    // Extract first param
+    const paramName = Object.keys(customerParams || {})[0] || "";
+    const paramValue = paramName ? customerParams[paramName] : "";
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${headerToken}`,
+      },
+      body: JSON.stringify({ billerId, paramName, paramValue }),
+    });
+    const text = await response.text();
+    if (text.trimStart().startsWith("<")) {
+      return { success: false, message: "Server error. Please try again." };
+    }
+    return JSON.parse(text);
+  } catch (error) {
+    return { success: false, message: error.message || "Network error" };
+  }
+};
+
