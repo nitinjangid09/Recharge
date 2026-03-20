@@ -9,37 +9,73 @@ import Fonts from "../constants/Fonts";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fetchBbpsCategories } from "../api/AuthApi";
 
-const ICON_MAP = {
-  "Mobile Prepaid": "phone",
-  "Electricity": "flash",
-  "DTH": "satellite-variant",
-  "Cable TV": "television",
-  "Fastag": "car",
-  "Gas": "gas-cylinder",
-  "Insurance": "account-group-outline",
-  "Water": "water",
-  "Broadband Postpaid": "wifi",
-  "Credit Card": "credit-card",
-  "Municipal Services": "city",
-  "Municipal Taxes": "bank",
-  "Recurring Deposit": "piggy-bank",
-  "Subscription": "playlist-music",
-  "Clubs and Associations": "account-group",
-  "Donation": "hand-heart",
-  "Education Fees": "school",
-  "Hospital": "hospital-building",
-  "Hospital and Pathology": "pulse",
-  "Housing Society": "home-city",
-  "Landline Postpaid": "phone-classic",
-  "Loan Repayment": "cash-register",
-  "LPG Gas": "fire",
-  "Mobile Postpaid": "cellphone",
-  "National Pension System": "account-badge",
-  "NCMC Recharge": "subway",
-  "Prepaid Meter": "speedometer",
-  "Rental": "home-group",
-  "eChallan": "file-document-alert",
+import BroadbandPostpaidIcon from "../assets/BBPSIcon/Broadband Postpaid.svg";
+import CableTVIcon from "../assets/BBPSIcon/Cable TV.svg";
+import ClubsAndAssociationsIcon from "../assets/BBPSIcon/Clubs and Associations.svg";
+import CreditCardIcon from "../assets/BBPSIcon/Credit Card.svg";
+import DTHIconSVG from "../assets/BBPSIcon/DTH.svg";
+import DonationIconSVG from "../assets/BBPSIcon/Donation.svg";
+import AgentCollectionIcon from "../assets/BBPSIcon/agent collection.svg";
+import ChallanIcon from "../assets/BBPSIcon/Challan.svg";
+import EducationFeesIcon from "../assets/BBPSIcon/Education Fees.svg";
+import ElectricityIcon from "../assets/BBPSIcon/Electricity.svg";
+import FastagIcon from "../assets/BBPSIcon/Fastag.svg";
+import GasIcon from "../assets/BBPSIcon/Gas.svg";
+import HospitalAndPathologyIcon from "../assets/BBPSIcon/Hospital and Pathology.svg";
+import HospitalIcon from "../assets/BBPSIcon/Hospital.svg";
+import HousingSocietyIcon from "../assets/BBPSIcon/Housing Society.svg";
+import InsuranceIcon from "../assets/BBPSIcon/Insurance.svg";
+import LPGGasIcon from "../assets/BBPSIcon/LPG Gas.svg";
+import LandlinePostpaidIcon from "../assets/BBPSIcon/Landline Postpaid.svg";
+import LoanRepaymentIcon from "../assets/BBPSIcon/Loan Repayment.svg";
+import MobilePostpaidIcon from "../assets/BBPSIcon/Mobile Postpaid.svg";
+import MobilePrepaidIcon from "../assets/BBPSIcon/Mobile Prepaid.svg";
+import MunicipalServicesIcon from "../assets/BBPSIcon/Municipal Services.svg";
+import MunicipalTaxesIcon from "../assets/BBPSIcon/Municipal Taxes.svg";
+import NCMCRechargeIcon from "../assets/BBPSIcon/NCMC Recharge.svg";
+import NationalPensionSystemIcon from "../assets/BBPSIcon/National Pension System.svg";
+import PrepaidMeterIcon from "../assets/BBPSIcon/Prepaid Meter.svg";
+import RecurringDepositIcon from "../assets/BBPSIcon/Recurring Deposit.svg";
+import RentalIcon from "../assets/BBPSIcon/Rental.svg";
+import SubscriptionIcon from "../assets/BBPSIcon/Subscription.svg";
+import WaterIcon from "../assets/BBPSIcon/Water.svg";
+
+
+const SVG_MAP = {
+  "Broadband Postpaid": BroadbandPostpaidIcon,
+  "Cable TV": CableTVIcon,
+  "Clubs and Associations": ClubsAndAssociationsIcon,
+  "Credit Card": CreditCardIcon,
+  "DTH": DTHIconSVG,
+  "Donation": DonationIconSVG,
+  "Agent Collection": AgentCollectionIcon,
+  "eChallan": ChallanIcon,
+  "Education Fees": EducationFeesIcon,
+  " Education Fees": EducationFeesIcon,
+  "Electricity": ElectricityIcon,
+  "Fastag": FastagIcon,
+  "Gas": GasIcon,
+  "Hospital and Pathology": HospitalAndPathologyIcon,
+  "Hospital": HospitalIcon,
+  "Housing Society": HousingSocietyIcon,
+  "Insurance": InsuranceIcon,
+  "LPG Gas": LPGGasIcon,
+  "Landline Postpaid": LandlinePostpaidIcon,
+  "Loan Repayment": LoanRepaymentIcon,
+  "Mobile Postpaid": MobilePostpaidIcon,
+  "Mobile Prepaid": MobilePrepaidIcon,
+  "Municipal Services": MunicipalServicesIcon,
+  "Munic~ipal Services": MunicipalServicesIcon,
+  "Municipal Taxes": MunicipalTaxesIcon,
+  "NCMC Recharge": NCMCRechargeIcon,
+  "National Pension System": NationalPensionSystemIcon,
+  "Prepaid Meter": PrepaidMeterIcon,
+  "Recurring Deposit": RecurringDepositIcon,
+  "Rental": RentalIcon,
+  "Subscription": SubscriptionIcon,
+  "Water": WaterIcon,
 };
+
 
 export default function PaymentsScreen({ navigation }) {
   const insets = useSafeAreaInsets();
@@ -174,7 +210,7 @@ export default function PaymentsScreen({ navigation }) {
                         }}
                       >
                         <Feature
-                          icon={ICON_MAP[cat.name] || "playlist-star"}
+                          SvgComponent={SVG_MAP[cat.name]}
                           text={cat.name}
                         />
                       </TouchableOpacity>
@@ -205,34 +241,38 @@ export default function PaymentsScreen({ navigation }) {
   );
 }
 
-const Feature = ({ icon, text }) => (
+const Feature = ({ icon, text, SvgComponent }) => (
   <View style={{ alignItems: "center", marginBottom: 8, width: 68 }}>
     <View style={styles.iconCircle}>
-      <Icon name={icon} size={24} color={Colors.finance_accent} />
+      {SvgComponent ? (
+        <SvgComponent width={26} height={26} fill={Colors.finance_accent} color={Colors.finance_accent} />
+      ) : (
+        <Icon name={icon} size={24} color={Colors.finance_accent} />
+      )}
     </View>
     <Text style={styles.iconLabel}>{text}</Text>
   </View>
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.finance_bg_1 },
+  container: { flex: 1, backgroundColor: Colors.bg },
   headerGradient: { paddingBottom: 35, borderBottomLeftRadius: 24, borderBottomRightRadius: 24, elevation: 8, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 5 },
   header: { marginTop: 0, paddingHorizontal: 16, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   headerTitle: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.white, letterSpacing: 0.5 },
   subTitle: { fontSize: 11, fontFamily: Fonts.Medium, color: "rgba(255,255,255,0.6)", marginTop: 2 },
   qrCircle: { width: 36, height: 36, backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 18, justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.15)" },
 
-  card: { marginTop: -20, backgroundColor: Colors.white, borderRadius: 16, padding: 15, flexDirection: "row", justifyContent: "space-between", elevation: 4, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, borderWidth: 1, borderColor: "rgba(0,0,0,0.02)" },
+  card: { marginTop: -20, backgroundColor: Colors.homebg, borderRadius: 16, padding: 15, flexDirection: "row", justifyContent: "space-between", elevation: 4, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, borderWidth: 1, borderColor: "rgba(0,0,0,0.02)" },
   smallText: { color: "#666", fontSize: 11, fontFamily: Fonts.Medium },
   mainText: { color: "#333", fontSize: 14, fontFamily: Fonts.Bold, marginTop: 4 },
   rechargeBtn: { color: Colors.finance_accent, fontFamily: Fonts.Bold, fontSize: 13 },
 
-  bigCard: { marginTop: 15, marginBottom: 80, backgroundColor: Colors.white, borderRadius: 20, paddingVertical: 15, paddingHorizontal: 10, elevation: 2, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, borderWidth: 1, borderColor: "rgba(0,0,0,0.03)" },
+  bigCard: { marginTop: 15, marginBottom: 80, backgroundColor: Colors.homebg, borderRadius: 20, paddingVertical: 15, paddingHorizontal: 10, elevation: 2, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, borderWidth: 1, borderColor: "rgba(0,0,0,0.03)" },
   sectionTitle: { fontSize: 14, fontFamily: Fonts.Bold, fontWeight: "bold", color: "#333", textTransform: "uppercase", letterSpacing: 0.5 },
   link: { color: Colors.finance_accent, fontFamily: Fonts.Bold, fontSize: 12 },
 
   iconGrid: { marginTop: 15, flexDirection: "row", flexWrap: "wrap", justifyContent: "space-around", rowGap: 12 },
-  iconCircle: { width: 44, height: 44, borderRadius: 16, backgroundColor: "#FFFCF5", justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "rgba(212, 176, 106, 0.2)" },
+  iconCircle: { width: 44, height: 44, borderRadius: 16, backgroundColor: Colors.bg, justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "rgba(212, 176, 106, 0.2)" },
   iconLabel: { width: "100%", textAlign: "center", fontSize: 11, fontFamily: Fonts.Bold, color: "#444", marginTop: 4, marginBottom: 8 },
 
   rowBetween: { flexDirection: "row", justifyContent: "space-between" },
