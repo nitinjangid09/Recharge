@@ -692,3 +692,66 @@ export const fetchBbpsCategories = async ({ headerToken }) => {
     return error?.response?.data || { success: false, message: "Unable to fetch categories" };
   }
 };
+
+/**
+ * Fetch wallet ledger / report
+ * GET /user/wallet/wallet-report?from=YYYY-MM-DD&to=YYYY-MM-DD
+ *
+ * @param {object} params
+ * @param {string} params.from       - "YYYY-MM-DD"
+ * @param {string} params.to         - "YYYY-MM-DD"
+ * @param {string} params.headerToken - JWT token from AsyncStorage
+ *
+ * @returns {Promise<{ success: boolean, message: string, data: Array }>}
+ */
+export const getWalletReport = async ({ from, to, headerToken }) => {
+  try {
+    const url = `${BASE_URL}/user/wallet/wallet-report?from=${from}&to=${to}`;
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${headerToken}`,
+      },
+    });
+    const json = await response.json();
+    return json; // { success, message, data: [...] }
+  } catch (error) {
+    console.log("getWalletReport error:", error);
+    return { success: false, message: error.message || "Network error", data: [] };
+  }
+};
+
+/**
+ * getRechargeReport
+ * @param {{ from: string, to: string, headerToken: string }} params
+ * @returns {Promise<{ success: boolean, message: string, data: Array }>}
+ */
+export const getRechargeReport = async ({ from, to, headerToken }) => {
+  try {
+    const url = `${BASE_URL}/user/rechargeReport/complete-recharge-report?from=${from}&to=${to}`;
+    console.log("[getRechargeReport] →", url);
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${headerToken}`,
+      },
+    });
+
+    const text = await response.text();
+
+    // Guard against HTML error pages
+    if (text.trimStart().startsWith("<")) {
+      console.log("[getRechargeReport] HTML response — server error");
+      return { success: false, message: "Server error. Please try again.", data: [] };
+    }
+
+    const json = JSON.parse(text);
+    return json; // { success, message, data: [...] }
+  } catch (error) {
+    console.log("[getRechargeReport] error:", error?.message || error);
+    return { success: false, message: error.message || "Network error", data: [] };
+  }
+};

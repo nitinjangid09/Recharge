@@ -18,710 +18,463 @@ import {
   Alert,
   ToastAndroid,
   StatusBar,
+  Share,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Colors from "../constants/Colors";
 import Fonts from "../constants/Fonts";
 import HeaderBar from "../componets/HeaderBar";
-import { getOperatorCircle, fetchOperatorByMobile, getRechargeOperatorList, getRechargeCircleList, verifyRechargeMobile, processRecharge } from "../api/AuthApi";
+import {
+  getRechargeOperatorList,
+  getRechargeCircleList,
+  verifyRechargeMobile,
+  processRecharge,
+} from "../api/AuthApi";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const { width, height: SCREEN_HEIGHT } = Dimensions.get("window");
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-export default function TopUpScreen({ navigation, route }) {
-  const insets = useSafeAreaInsets();
+// ─────────────────────────────────────────────────────────────────────────────
+//  Download receipt helper
+// ─────────────────────────────────────────────────────────────────────────────
 
-  const [type, setType] = useState("airtime");
-  const [mobile, setMobile] = useState("");
-  const [operator, setOperator] = useState("");
-  const [circle, setCircle] = useState("");
-  const [operators, setOperators] = useState([]);
-  const [circles, setCircles] = useState([]);
-  const [showOperatorModal, setShowOperatorModal] = useState(false);
-  const [showCircleModal, setShowCircleModal] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [searchText, setSearchText] = useState("");
-  const [amount, setAmount] = useState("199");
-  const [operatorCode, setOperatorCode] = useState("");
-  const [receiptData, setReceiptData] = useState(null);
+const downloadReceipt = async (receiptData) => {
+  try {
+    const isSuccess = receiptData.status === "success";
+    const dateStr = new Date().toLocaleString("en-IN", {
+      day: "2-digit", month: "short", year: "numeric",
+      hour: "2-digit", minute: "2-digit", hour12: false,
+    });
 
-  const [customToast, setCustomToast] = useState({ visible: false, message: "", type: "success" });
-  const toastAnim = useRef(new Animated.Value(0)).current;
+    // Primary: react-native-html-to-pdf (install it to enable PDF download)
+    let RNHTMLtoPDF;
+    try { RNHTMLtoPDF = require("react-native-html-to-pdf").default; } catch (_) { }
 
-  // 🔹 Update states from navigation params
-  useEffect(() => {
-    if (route.params?.selectedAmount) setAmount(String(route.params.selectedAmount));
-    if (route.params?.mobile) setMobile(route.params.mobile);
-    if (route.params?.operator) setOperator(route.params.operator);
-    if (route.params?.circle) setCircle(route.params.circle);
-    if (route.params?.operatorCode) setOperatorCode(route.params.operatorCode);
-  }, [route.params]);
+    if (RNHTMLtoPDF) {
+      const html = `
+        <html><head><meta charset="utf-8"/>
+        <style>
+          body{font-family:Arial,sans-serif;padding:32px;color:#1a1a1a;}
+          .header{text-align:center;margin-bottom:28px;}
+          .status{font-size:22px;font-weight:bold;color:${isSuccess ? "#22A06B" : "#E53935"};}
+          .date{font-size:13px;color:#9CA3AF;margin-top:4px;}
+          .amount{font-size:36px;font-weight:bold;margin:20px 0 4px;}
+          .operator{font-size:14px;color:#555;}
+          hr{border:none;border-top:1px solid #e5e7eb;margin:20px 0;}
+          table{width:100%;border-collapse:collapse;}
+          td{padding:10px 0;font-size:14px;border-bottom:1px solid #f3f4f6;}
+          td:last-child{text-align:right;font-weight:bold;}
+          .note{background:${isSuccess ? "#F0FDF4" : "#FFF8F0"};border:1px solid ${isSuccess ? "#BBF7D0" : "#FED7AA"};border-radius:8px;padding:12px;font-size:13px;margin-top:16px;}
+          .footer{text-align:center;font-size:11px;color:#9CA3AF;margin-top:32px;}
+        </style></head>
+        <body>
+          <div class="header">
+            <div class="status">${receiptData.message || (isSuccess ? "Recharge Successful" : "Recharge Failed")}</div>
+            <div class="date">${dateStr}</div>
+          </div>
+          <div class="amount">₹${receiptData.amount}</div>
+          <div class="operator">${receiptData.operator} (Prepaid)</div>
+          <hr/>
+          <table>
+            <tr><td>Mobile Number</td><td>${receiptData.mobile}</td></tr>
+            <tr><td>Operator</td><td>${receiptData.operator} (Prepaid)</td></tr>
+            <tr><td>Payment Mode</td><td>Main Wallet</td></tr>
+            ${receiptData.txn_ref && receiptData.txn_ref !== "N/A" ? `<tr><td>Transaction ID</td><td>${receiptData.txn_ref}</td></tr>` : ""}
+            <tr><td>Status</td><td style="color:${isSuccess ? "#22A06B" : "#E53935"}">${isSuccess ? "✓ Plan Benefits Added" : "Failed"}</td></tr>
+            <tr><td>Date &amp; Time</td><td>${dateStr}</td></tr>
+          </table>
+          <div class="note">${isSuccess ? "Plan benefits added successfully. Data and calling active." : "Commission plan not configured. Amount debited. Raise a complaint for refund."}</div>
+          <div class="footer">Generated by Mobile Recharge App</div>
+        </body></html>`;
+      const result = await RNHTMLtoPDF.convert({
+        html,
+        fileName: `Receipt_${receiptData.txn_ref || Date.now()}`,
+        directory: "Documents",
+      });
+      Alert.alert("Downloaded", `Receipt saved to:\n${result.filePath}`);
+      return;
+    }
 
-  const showCustomToast = (msg, type = "success") => {
-    setCustomToast({ visible: true, message: msg, type });
-    Animated.timing(toastAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start(() => {
-      setTimeout(() => {
-        Animated.timing(toastAnim, { toValue: 0, duration: 300, useNativeDriver: true }).start(() => {
-          setCustomToast({ visible: false, message: "", type: "success" });
-        });
-      }, 2500);
+    // Fallback: share as text
+    const text =
+      `===== RECHARGE RECEIPT =====\n` +
+      `Status  : ${receiptData.message || (isSuccess ? "Recharge Successful" : "Recharge Failed")}\n` +
+      `Date    : ${dateStr}\n` +
+      `Amount  : ₹${receiptData.amount}\n` +
+      `Mobile  : ${receiptData.mobile}\n` +
+      `Operator: ${receiptData.operator} (Prepaid)\n` +
+      `Mode    : Main Wallet\n` +
+      (receiptData.txn_ref && receiptData.txn_ref !== "N/A" ? `Txn ID  : ${receiptData.txn_ref}\n` : "") +
+      `============================`;
+    await Share.share({ message: text, title: "Recharge Receipt" });
+  } catch (err) {
+    Alert.alert("Error", "Could not download receipt. Please try again.");
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  RECEIPT MODAL
+//  Background  : Colors.homebg       (your Color file key)
+//  Download btn: Colors.primary       (your Color file key)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function RechargeReceipt({ receiptData, onClose, navigation }) {
+  if (!receiptData) return null;
+
+  const isSuccess = receiptData.status === "success";
+  const [downloading, setDownloading] = useState(false);
+
+  const dateStr = new Date().toLocaleString("en-IN", {
+    day: "2-digit", month: "short", year: "numeric",
+    hour: "2-digit", minute: "2-digit", hour12: false,
+  });
+  const opInitial = (receiptData.operator || "?")[0].toUpperCase();
+
+  // ── Color tokens straight from the Colors file ──────────────────────────
+  const bgColor = Colors.homebg || "#F7F8FA";   // receipt sheet background
+  const primaryColor = Colors.primary || "#002E6E";   // download button
+  const accentColor = Colors.finance_accent || "#D4B06A"; // operator badge & outline buttons
+  const cardBg = Colors.white || "#FFFFFF";   // inner cards
+  const textMain = Colors.finance_text || "#111827";
+  const textMuted = Colors.finance_text_light || "#6B7280";
+
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        message: `Recharge ${isSuccess ? "Successful" : "Failed"} | ₹${receiptData.amount} | ${receiptData.operator} | Txn: ${receiptData.txn_ref || "N/A"}`,
+      });
+    } catch (_) { }
+  };
+
+  const handleDownload = async () => {
+    setDownloading(true);
+    await downloadReceipt(receiptData);
+    setDownloading(false);
+  };
+
+  const handleRaiseComplaint = () => {
+    onClose();
+    navigation.navigate("FaqSupportScreen", {
+      txn_ref: receiptData.txn_ref || "N/A",
+      mobile: receiptData.mobile,
+      operator: receiptData.operator,
+      amount: receiptData.amount,
+      status: receiptData.status,
+      message: receiptData.message,
     });
   };
 
-  /* ── Entry animations ── */
-  const slideAnim = useRef(new Animated.Value(50)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const rows = [
+    { label: "Mobile Number", value: receiptData.mobile },
+    { label: "Operator", value: `${receiptData.operator} (Prepaid)` },
+    { label: "Payment Mode", value: "Main Wallet" },
+    ...(receiptData.txn_ref && receiptData.txn_ref !== "N/A"
+      ? [{ label: "Transaction ID", value: receiptData.txn_ref, small: true }]
+      : []),
+    {
+      label: "Status",
+      value: isSuccess ? "✓ Plan Benefits Added" : "Failed",
+      valueColor: isSuccess ? "#22A06B" : "#E53935",
+      bold: true,
+    },
+  ];
 
-  const showToast = (message) => {
-    if (Platform.OS === "android") {
-      ToastAndroid.show(message, ToastAndroid.SHORT);
-    } else {
-      Alert.alert("Info", message);
-    }
-  };
-
-  /* ── Slide-to-pay ── */
-  const pan = useRef(new Animated.Value(0)).current;
-  const trackWidthRef = useRef(0);
-  const [completed, setCompleted] = useState(false);
-  const THUMB_WIDTH = 50;
-
-  const handleRecharge = async () => {
-    try {
-      setLoading(true);
-      const headerToken = await AsyncStorage.getItem("header_token");
-      const config = {
-        amount: Number(amount),
-        operatorCode: operatorCode,
-        number: mobile,
-        billerMode: "prepaidrecharge"
-      };
-
-      const response = await processRecharge({ ...config, headerToken });
-
-      const isSuccess = response?.success === true || response?.status === "SUCCESS" || response?.data?.status === "SUCCESS";
-      const resData = response?.data || {};
-
-      if (isSuccess) {
-        setReceiptData({
-          status: "success",
-          amount: amount,
-          txn_ref: resData.txn_ref || response.txn_ref || "",
-          message: resData.message || response.message || "Recharge Successful",
-          mobile: mobile,
-          operator: operator
-        });
-      } else {
-        setReceiptData({
-          status: "error",
-          amount: amount,
-          txn_ref: resData.txn_ref || response?.txn_ref || "N/A",
-          message: resData.message || response?.message || response?.error || "Recharge Failed",
-          mobile: mobile,
-          operator: operator
-        });
-      }
-    } catch (error) {
-      setReceiptData({
-        status: "error",
-        amount: amount,
-        txn_ref: "N/A",
-        message: "Something went wrong during recharge",
-        mobile: mobile,
-        operator: operator
-      });
-    } finally {
-      setLoading(false);
-      setCompleted(false);
-      pan.setValue(0);
-    }
-  };
-
-  const panResponder = React.useMemo(
-    () => PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {
-        pan.setOffset(0);
-        pan.setValue(0);
-      },
-      onPanResponderMove: (_, g) => {
-        const w = trackWidthRef.current;
-        if (w > 0 && g.dx >= 0 && g.dx <= w - THUMB_WIDTH) pan.setValue(g.dx);
-      },
-      onPanResponderRelease: (_, g) => {
-        const w = trackWidthRef.current;
-        if (w > 0 && g.dx >= (w - THUMB_WIDTH) * 0.8) {
-          // 🔹 Validation checks
-          if (mobile.length !== 10) { showCustomToast("Enter 10-digit mobile number", "error"); Animated.spring(pan, { toValue: 0, useNativeDriver: false }).start(); return; }
-          if (!operator) { showCustomToast("Select Operator", "error"); Animated.spring(pan, { toValue: 0, useNativeDriver: false }).start(); return; }
-          if (!circle) { showCustomToast("Select Circle", "error"); Animated.spring(pan, { toValue: 0, useNativeDriver: false }).start(); return; }
-          if (!amount || Number(amount) <= 0) { showCustomToast("Enter valid amount", "error"); Animated.spring(pan, { toValue: 0, useNativeDriver: false }).start(); return; }
-
-          Animated.timing(pan, { toValue: w - THUMB_WIDTH, duration: 200, useNativeDriver: false }).start(() => {
-            setCompleted(true);
-            handleRecharge();
-          });
-        } else {
-          Animated.spring(pan, { toValue: 0, useNativeDriver: false }).start();
-        }
-      },
-    }),
-    [mobile, operator, circle, amount, operatorCode]
-  );
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(slideAnim, { toValue: 0, duration: 800, useNativeDriver: true, easing: Easing.out(Easing.exp) }),
-      Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
-    ]).start();
-    fetchOperatorCircle();
-  }, []);
-
-  useEffect(() => {
-    const backAction = () => {
-      if (showOperatorModal) { setShowOperatorModal(false); return true; }
-      if (showCircleModal) { setShowCircleModal(false); return true; }
-      return false;
-    };
-    const handler = BackHandler.addEventListener("hardwareBackPress", backAction);
-    return () => handler.remove();
-  }, [showOperatorModal, showCircleModal]);
-
-  const fetchOperatorCircle = async () => {
-    try {
-      setLoading(true);
-
-      const headerToken = await AsyncStorage.getItem("header_token");
-      if (headerToken) {
-        const opResult = await getRechargeOperatorList({ headerToken });
-        if (opResult?.success) {
-          setOperators(opResult.data || []);
-        }
-
-        const cirResult = await getRechargeCircleList({ headerToken });
-        if (cirResult?.success) {
-          setCircles(cirResult.data || []);
-        }
-      }
-    } catch (e) {
-      console.log("Operator/Circle API error", e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleMobileChange = async (value) => {
-    const num = value.replace(/\D/g, "");
-    setMobile(num);
-    if (num.length < 10) { setOperator(""); setCircle(""); return; }
-    if (num.length === 10) {
-      try {
-        setLoading(true);
-        const headerToken = await AsyncStorage.getItem("header_token");
-        const result = await verifyRechargeMobile({ mobile: num, headerToken });
-
-        if (result?.success) {
-          const fetchedData = result.data || {};
-          let currentOps = operators;
-          if (currentOps.length === 0) {
-            const opsData = await getRechargeOperatorList({ headerToken });
-            if (opsData?.success) {
-              currentOps = opsData.data || [];
-              setOperators(currentOps);
-            }
-          }
-
-          const matchedOp = currentOps.find(op =>
-            (op.label && fetchedData.operator && op.label.toLowerCase() === fetchedData.operator.toLowerCase()) ||
-            (op.rechargeValue && fetchedData.operatorCode && op.rechargeValue.toLowerCase() === fetchedData.operatorCode.toLowerCase()) ||
-            (op.planFetchValue && fetchedData.operatorCode && op.planFetchValue.toLowerCase() === fetchedData.operatorCode.toLowerCase())
-          );
-
-          const matchedCir = circles.find(c =>
-            String(c.circleCode) === String(fetchedData.circle) ||
-            String(c.circlecode) === String(fetchedData.circle)
-          );
-          const opName = matchedOp?.label || matchedOp?.name || fetchedData.operator || "";
-          const cirName = matchedCir?.circleName || matchedCir?.circlename || fetchedData.state || "";
-          const opCode = matchedOp?.rechargeValue || fetchedData.operatorCode || "";
-
-          setOperatorCode(opCode);
-          setOperator(opName);
-          setCircle(cirName);
-
-          navigation.navigate("StorePlans", {
-            mobile: num,
-            operator: opName,
-            circle: cirName,
-            plans: fetchedData.plans || [],
-            operatorCode: opCode,
-          });
-        } else {
-          setOperator(""); setCircle("");
-          showCustomToast(result?.message || "Unable to detect operator", "error");
-        }
-      } catch (err) {
-        console.log("Fetch operator error:", err);
-        setOperator(""); setCircle("");
-        showToast("Something went wrong");
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
-  // ─────────────────────────────────────────────────────────────────────────
   return (
-    <SafeAreaView
-      style={[styles.safeArea, { backgroundColor: Colors.finance_bg_1 }]}
-      edges={["bottom"]}
+    <Modal
+      visible={!!receiptData}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
     >
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor={Colors.finance_bg_1}
-        translucent={false}
-      />
+      <View style={[rc.overlay, { backgroundColor: "rgba(0,0,0,0.52)" }]}>
+        <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose} />
 
-      <View style={styles.container}>
+        {/* Sheet background = Colors.homebg */}
+        <View style={[rc.sheet, { backgroundColor: bgColor }]}>
 
-        {/* Header */}
-        <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
-          <HeaderBar
-            title="Mobile Recharge"
-            onBack={() => navigation.goBack()}
-          />
-        </View>
-
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          style={{ flex: 1 }}
-          keyboardVerticalOffset={insets.top + 56}
-        >
-          <ScrollView
-            contentContainerStyle={{ paddingBottom: 100, paddingTop: 20 }}
-            showsVerticalScrollIndicator={false}
+          {/* ── Gradient banner (green/red based on status) ── */}
+          <LinearGradient
+            colors={isSuccess ? ["#16A34A", "#22A06B"] : ["#DC2626", "#E53935"]}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            style={rc.banner}
           >
-            <Animated.View
-              style={[
-                styles.mainContent,
-                { transform: [{ translateY: slideAnim }], opacity: fadeAnim },
-              ]}
-            >
-
-              {/* ══ SECTION 1: MOBILE ══ */}
-              <View style={styles.modernCard}>
-                <View style={styles.modernCardHeader}>
-                  <Text style={styles.modernCardTitle}>Personal Details</Text>
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>MOBILE</Text>
-                  </View>
-                </View>
-                <View style={styles.modernInputWrapper}>
-                  <Text style={styles.floatingLabel}>Mobile Number</Text>
-                  <View style={styles.rowCenter}>
-                    <Text style={styles.prefixText}>+91</Text>
-                    <TextInput
-                      value={mobile}
-                      onChangeText={handleMobileChange}
-                      placeholder="00000 00000"
-                      placeholderTextColor="#AAA"
-                      keyboardType="number-pad"
-                      maxLength={10}
-                      style={styles.bigInput}
-                    />
-                    <TouchableOpacity style={styles.contactBtnRound}>
-                      <Icon name="account-search-outline" size={18} color={Colors.white} />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-
-              {/* ══ SECTION 2: CONNECTION ══ */}
-              <View style={styles.modernCard}>
-                <Text style={styles.modernCardTitle}>Connection Details</Text>
-                <View style={styles.connectionContainer}>
-                  <TouchableOpacity
-                    style={styles.connectionRow}
-                    activeOpacity={1}
-                    onPress={() => operators.length && setShowOperatorModal(true)}
-                  >
-                    <View style={styles.iconBox}>
-                      <Icon name="sim" size={18} color={Colors.finance_accent} />
-                    </View>
-                    <View style={{ flex: 1, marginLeft: 12 }}>
-                      <Text style={styles.connectionLabel}>Operator</Text>
-                      <Text style={[styles.connectionValues, showOperatorModal && { color: Colors.finance_accent }]}>
-                        {operator || "Select Provider"}
-                      </Text>
-                    </View>
-                    <Icon name={showOperatorModal ? "chevron-up" : "chevron-down"} size={20} color={showOperatorModal ? Colors.finance_accent : Colors.finance_text} />
-                  </TouchableOpacity>
-
-                  <View style={styles.dividerLine} />
-
-                  <TouchableOpacity
-                    style={styles.connectionRow}
-                    activeOpacity={1}
-                    onPress={() => circles.length && setShowCircleModal(true)}
-                  >
-                    <View style={styles.iconBox}>
-                      <Icon name="map-marker-radius" size={18} color={Colors.finance_accent} />
-                    </View>
-                    <View style={{ flex: 1, marginLeft: 12 }}>
-                      <Text style={styles.connectionLabel}>Circle</Text>
-                      <Text style={[styles.connectionValues, showCircleModal && { color: Colors.finance_accent }]}>
-                        {circle || "Select Circle"}
-                      </Text>
-                    </View>
-                    <Icon name={showCircleModal ? "chevron-up" : "chevron-down"} size={20} color={showCircleModal ? Colors.finance_accent : Colors.finance_text} />
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* ══ PREMIUM AMOUNT ══ */}
-              <View style={styles.premiumAmountCard}>
-                <View style={styles.typeSelector}>
-                  {["airtime", "special"].map((t) => (
-                    <TouchableOpacity
-                      key={t}
-                      style={[styles.typeBtn, type === t && styles.typeBtnActive]}
-                      onPress={() => setType(t)}
-                    >
-                      <Text style={[styles.typeText, type === t && styles.typeTextActive]}>
-                        {t === "airtime" ? "Topup" : "Special Plans"}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                <Text style={styles.amountHeader}>Pick or Enter Amount</Text>
-
-                <View style={styles.amountInputRow}>
-                  <Text style={styles.currencySymbol}>₹</Text>
-                  <TextInput
-                    value={amount}
-                    onChangeText={setAmount}
-                    placeholder="0"
-                    placeholderTextColor="rgba(212, 176, 106, 0.3)"
-                    keyboardType="numeric"
-                    style={styles.hugeInput}
-                  />
-                </View>
-
-                <View style={styles.suggestionsWrapper}>
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.suggestionsContainer}
-                  >
-                    {["199", "299", "499", "666", "849"].map((val) => (
-                      <TouchableOpacity
-                        key={val}
-                        style={[styles.suggestionChip, amount === val && styles.suggestionChipActive]}
-                        onPress={() => setAmount(val)}
-                      >
-                        <Text style={[styles.suggestionText, amount === val && styles.suggestionTextActive]}>
-                          ₹{val}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
-
-                <TouchableOpacity
-                  style={styles.viewPlansBtn}
-                  onPress={async () => {
-                    if (mobile.length !== 10) { showCustomToast("Enter 10-digit mobile number", "error"); return; }
-                    if (!operator) { showCustomToast("Select Operator", "error"); return; }
-                    if (!circle) { showCustomToast("Select Circle", "error"); return; }
-
-                    try {
-                      setLoading(true);
-                      const headerToken = await AsyncStorage.getItem("header_token");
-                      const result = await verifyRechargeMobile({ mobile: mobile, headerToken });
-
-                      if (result?.success) {
-                        const fetchedData = result.data || {};
-                        navigation.navigate("StorePlans", {
-                          mobile: mobile,
-                          operator: operator,
-                          circle: circle,
-                          plans: fetchedData.plans || [],
-                          operatorCode: operatorCode,
-                        });
-                      } else {
-                        showCustomToast(result?.message || "Unable to load plans", "error");
-                      }
-                    } catch (err) {
-                      showCustomToast("Something went wrong", "error");
-                    } finally {
-                      setLoading(false);
-                    }
-                  }}
-                >
-                  <LinearGradient
-                    colors={[Colors.finance_accent, "#E0C38C"]}
-                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                    style={styles.viewPlansGradient}
-                  >
-                    <Text style={styles.viewPlansText}>Explore All Plans</Text>
-                    <Icon name="notebook-outline" size={18} color={Colors.black} />
-                  </LinearGradient>
-                </TouchableOpacity>
-              </View>
-            </Animated.View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-
-        {/* ══ SLIDER ACTION (Fixed at Bottom) ══ */}
-        <View style={styles.actionContainer}>
-          {!completed ? (
-            <View
-              style={styles.sliderWrapper}
-              onLayout={(e) => { trackWidthRef.current = e.nativeEvent.layout.width; }}
-            >
-              <Animated.View style={[styles.sliderBackground, {
-                opacity: pan.interpolate({ inputRange: [0, 100], outputRange: [1, 0.5], extrapolate: "clamp" }),
-              }]}>
-                <Text style={styles.swipeText}>SWIPE TO RECHARGE</Text>
-              </Animated.View>
-              <Animated.View
-                style={[styles.sliderThumb, { transform: [{ translateX: pan }] }]}
-                {...panResponder.panHandlers}
-              >
-                <LinearGradient colors={[Colors.finance_accent, "#b8944d"]} style={styles.thumbGrad}>
-                  <Icon name="chevron-right" size={28} color={Colors.white} />
-                </LinearGradient>
-              </Animated.View>
+            <View style={rc.blob1} />
+            <View style={rc.blob2} />
+            <View style={rc.iconRing}>
+              <Icon
+                name={isSuccess ? "check-circle-outline" : "close-circle-outline"}
+                size={36} color="#FFF"
+              />
             </View>
-          ) : (
-            <LinearGradient
-              colors={[Colors.finance_accent, "#b8944d"]}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-              style={styles.processingBtn}
-            >
-              <ActivityIndicator size="small" color={Colors.white} style={{ marginRight: 10 }} />
-              <Text style={styles.processingText}>PROCESSING...</Text>
-            </LinearGradient>
-          )}
-        </View>
-      </View>
-
-      {/* ══ OPERATOR MODAL ══ */}
-      <BottomSheetModal
-        visible={showOperatorModal}
-        onClose={() => { setShowOperatorModal(false); setSearchText(""); }}
-        title="Select Provider"
-        searchText={searchText}
-        onSearch={setSearchText}
-        searchPlaceholder="Search Operator..."
-        items={operators.filter(op => (op.label || op.name || "").toLowerCase().includes(searchText.toLowerCase()))}
-        selectedValue={operator}
-        iconName="sim"
-        getLabel={op => op.label || op.name}
-        onSelect={(op) => { setOperator(op.label || op.name); setOperatorCode(op.rechargeValue || ""); setShowOperatorModal(false); setSearchText(""); }}
-      />
-
-      {/* ══ CIRCLE MODAL ══ */}
-      <BottomSheetModal
-        visible={showCircleModal}
-        onClose={() => { setShowCircleModal(false); setSearchText(""); }}
-        title="Select Circle"
-        searchText={searchText}
-        onSearch={setSearchText}
-        searchPlaceholder="Search Circle..."
-        items={circles.filter(c => (c.circleName || c.circlename || "").toLowerCase().includes(searchText.toLowerCase()))}
-        selectedValue={circle}
-        iconName="map-marker-radius"
-        getLabel={c => c.circleName || c.circlename}
-        onSelect={(c) => { setCircle(c.circleName || c.circlename); setShowCircleModal(false); setSearchText(""); }}
-      />
-
-      {/* ══ FULL SCREEN LOADER ══ */}
-      {loading && (
-        <View style={styles.fullLoader}>
-          <ActivityIndicator size="large" color={Colors.finance_accent} />
-        </View>
-      )}
-
-      {/* ══ CUSTOM TOAST ══ */}
-      {customToast.visible && (
-        <Animated.View style={[styles.customToastBox, { opacity: toastAnim, transform: [{ translateY: toastAnim.interpolate({ inputRange: [0, 1], outputRange: [-40, 0] }) }] }]}>
-          <LinearGradient colors={customToast.type === "success" ? ["#4CAF50", "#2E7D32"] : ["#F44336", "#C62828"]} style={styles.customToastGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-            <Icon name={customToast.type === "success" ? "check-circle" : "alert-circle"} size={20} color={Colors.white} />
-            <Text style={styles.customToastText}>{customToast.message}</Text>
+            <Text style={rc.bannerTitle}>
+              {receiptData.message || (isSuccess ? "Recharge Successful" : "Recharge Failed")}
+            </Text>
+            <Text style={rc.bannerDate}>{dateStr}</Text>
           </LinearGradient>
-        </Animated.View>
-      )}
 
-      {/* ══ RECHARGE RECEIPT MODAL ══ */}
-      <Modal visible={!!receiptData} transparent animationType="slide" onRequestClose={() => setReceiptData(null)}>
-        <View style={styles.receiptOverlay}>
-          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setReceiptData(null)} />
-          <View style={styles.receiptContent}>
-            <View style={styles.receiptHeader}>
-              <LinearGradient
-                colors={receiptData?.status === "success" ? ["#4CAF50", "#388E3C"] : ["#E53935", "#B71C1C"]}
-                style={[styles.successBadge, receiptData?.status === "error" && { backgroundColor: '#E53935' }]}
-              >
-                <Icon name={receiptData?.status === "success" ? "check" : "close"} size={24} color="#FFF" />
-              </LinearGradient>
-              <Text style={[styles.receiptStatusText, receiptData?.status === "error" && { color: '#E53935' }]}>
-                {receiptData?.message}
-              </Text>
-              <Text style={styles.receiptAmountText}>₹{receiptData?.amount}</Text>
-              <Text style={styles.receiptInfo}>For {receiptData?.mobile} ({receiptData?.operator})</Text>
-              {receiptData?.status === "success" && receiptData?.txn_ref && receiptData.txn_ref !== "N/A" && (
-                <Text style={[styles.receiptInfo, { marginTop: 4, fontFamily: Fonts.Bold, color: '#333' }]}>
-                  Txn ID: {receiptData?.txn_ref}
-                </Text>
-              )}
+          {/* ── Amount + operator badge ── */}
+          <View style={[rc.amountCard, { backgroundColor: cardBg }]}>
+            <View>
+              <Text style={[rc.amountLbl, { color: textMuted }]}>AMOUNT PAID</Text>
+              <Text style={[rc.amountVal, { color: textMain }]}>₹{receiptData.amount}</Text>
             </View>
-
-            <View style={styles.dashedLine} />
-
-            {receiptData?.status === "success" && receiptData?.txn_ref && (
-              <View style={styles.detailsRow}>
-                <Text style={styles.detailsLabel}>Transaction ID</Text>
-                <Text style={styles.detailsValue}>{receiptData?.txn_ref}</Text>
+            <View style={[rc.opBadge, { backgroundColor: accentColor + "18", borderColor: accentColor + "45" }]}>
+              <View style={[rc.opCircle, { backgroundColor: accentColor }]}>
+                <Text style={rc.opInitial}>{opInitial}</Text>
               </View>
-            )}
-
-            <View style={styles.detailsRow}>
-              <Text style={styles.detailsLabel}>Date & Time</Text>
-              <Text style={styles.detailsValue}>{new Date().toLocaleString()}</Text>
+              <Text style={[rc.opName, { color: textMain }]}>{receiptData.operator}</Text>
             </View>
+          </View>
 
-            <View style={styles.detailsRow}>
-              <Text style={styles.detailsLabel}>Payment Mode</Text>
-              <Text style={styles.detailsValue}>Main Wallet</Text>
-            </View>
+          {/* ── Detail rows ── */}
+          <View style={[rc.detailCard, { backgroundColor: cardBg }]}>
+            {rows.map((row, i) => (
+              <View key={i} style={[rc.row, i < rows.length - 1 && rc.rowBorder]}>
+                <Text style={[rc.rowLbl, { color: textMuted }]}>{row.label}</Text>
+                <Text
+                  style={[
+                    rc.rowVal, { color: textMain },
+                    row.small && { fontSize: 11 },
+                    row.valueColor && { color: row.valueColor },
+                    row.bold && { fontFamily: Fonts.Bold },
+                  ]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                >
+                  {row.value}
+                </Text>
+              </View>
+            ))}
+          </View>
 
-            <View style={styles.dashedLine} />
+          {/* ── Note strip ── */}
+          <View style={[
+            rc.note,
+            isSuccess
+              ? { backgroundColor: "#F0FDF4", borderColor: "#BBF7D0" }
+              : { backgroundColor: "#FFF8F0", borderColor: "#FED7AA" },
+          ]}>
+            <View style={[rc.noteDot, { backgroundColor: isSuccess ? "#22A06B" : "#E53935" }]} />
+            <Text style={[rc.noteTxt, { color: textMain }]} numberOfLines={2}>
+              {isSuccess
+                ? "Plan benefits added successfully. Data and calling active."
+                : "Amount debited. Commission plan not configured. Raise a complaint for refund."}
+            </Text>
+          </View>
 
-            <TouchableOpacity style={styles.doneBtn} onPress={() => setReceiptData(null)}>
-              <Text style={styles.doneText}>Download Receipt</Text>
+          {/* ── ACTIONS divider ── */}
+          <View style={rc.actRow}>
+            <View style={[rc.actLine, { backgroundColor: "rgba(0,0,0,0.08)" }]} />
+            <Text style={[rc.actLbl, { color: textMuted }]}>ACTIONS</Text>
+            <View style={[rc.actLine, { backgroundColor: "rgba(0,0,0,0.08)" }]} />
+          </View>
+
+          {/* ── Download + Share row ── */}
+          <View style={rc.btnRow}>
+
+            {/* Download — Colors.primary background */}
+            <TouchableOpacity
+              style={[rc.dlBtn, { backgroundColor: primaryColor }]}
+              activeOpacity={0.85}
+              onPress={handleDownload}
+              disabled={downloading}
+            >
+              {downloading
+                ? <ActivityIndicator size="small" color="#FFF" style={{ marginRight: 7 }} />
+                : <Icon name="download" size={17} color="#FFF" style={{ marginRight: 7 }} />
+              }
+              <Text style={rc.dlTxt}>{downloading ? "Saving..." : "Download"}</Text>
+            </TouchableOpacity>
+
+            {/* Share — outline style */}
+            <TouchableOpacity
+              style={[rc.shareBtn, { borderColor: accentColor + "60", backgroundColor: Colors.bg }]}
+              activeOpacity={0.85}
+              onPress={handleShare}
+            >
+              <Icon name="share-variant" size={17} color={accentColor} style={{ marginRight: 7 }} />
+              <Text style={[rc.shareTxt, { color: accentColor }]}>Share</Text>
             </TouchableOpacity>
           </View>
+
+          {/* ── Raise Complaint — outline, navigates to RaiseComplaint screen ── */}
+          <TouchableOpacity
+            style={[rc.complBtn, { borderColor: accentColor + "60", backgroundColor: Colors.bg }]}
+            activeOpacity={0.85}
+            onPress={handleRaiseComplaint}
+          >
+            <Icon name="message-alert-outline" size={15} color={accentColor} style={{ marginRight: 7 }} />
+            <Text style={[rc.complTxt, { color: accentColor }]}>Raise Complaint</Text>
+          </TouchableOpacity>
+
         </View>
-      </Modal>
-    </SafeAreaView>
+      </View>
+    </Modal>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// BottomSheetModal — fixed shadow + swipe-down-to-close
-// ─────────────────────────────────────────────────────────────────────────────
-function BottomSheetModal({
-  visible,
-  onClose,
-  title,
-  searchText,
-  onSearch,
-  searchPlaceholder,
-  items,
-  selectedValue,
-  iconName,
-  getLabel,
-  onSelect,
-}) {
-  // Animated translateY for the sheet panel
-  const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
-  // Animated opacity for the backdrop
-  const backdropOpacity = useRef(new Animated.Value(0)).current;
+// Receipt styles
+const rc = StyleSheet.create({
+  overlay: { flex: 1, justifyContent: "flex-end" },
+  sheet: {
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    overflow: "hidden",
+    paddingBottom: 20,
+  },
 
-  // Open / close visibility driven by `visible`
+  // banner
+  banner: {
+    alignItems: "center",
+    paddingTop: 26, paddingBottom: 22, paddingHorizontal: 20,
+    overflow: "hidden",
+  },
+  blob1: {
+    position: "absolute", width: 160, height: 160, borderRadius: 80,
+    backgroundColor: "rgba(255,255,255,0.07)", top: -55, right: -45,
+  },
+  blob2: {
+    position: "absolute", width: 110, height: 110, borderRadius: 55,
+    backgroundColor: "rgba(255,255,255,0.07)", top: 10, left: -35,
+  },
+  iconRing: {
+    width: 64, height: 64, borderRadius: 32,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    alignItems: "center", justifyContent: "center",
+    marginBottom: 10,
+  },
+  bannerTitle: { fontSize: 16, fontFamily: Fonts.Bold, color: "#FFF", textAlign: "center", marginBottom: 3 },
+  bannerDate: { fontSize: 11, fontFamily: Fonts.Medium, color: "rgba(255,255,255,0.72)", textAlign: "center" },
+
+  // amount card
+  amountCard: {
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    marginHorizontal: 14, marginTop: 14, borderRadius: 14, padding: 14,
+    elevation: 2, shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4,
+  },
+  amountLbl: { fontSize: 9, fontFamily: Fonts.Bold, letterSpacing: 0.8, marginBottom: 3 },
+  amountVal: { fontSize: 30, fontFamily: Fonts.Bold },
+  opBadge: {
+    flexDirection: "row", alignItems: "center",
+    borderRadius: 20, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1,
+  },
+  opCircle: { width: 26, height: 26, borderRadius: 13, alignItems: "center", justifyContent: "center", marginRight: 7 },
+  opInitial: { fontSize: 13, fontFamily: Fonts.Bold, color: "#FFF" },
+  opName: { fontSize: 12, fontFamily: Fonts.Bold },
+
+  // detail card
+  detailCard: {
+    marginHorizontal: 14, marginTop: 10, borderRadius: 14,
+    paddingHorizontal: 14, paddingVertical: 2,
+    elevation: 2, shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4,
+  },
+  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 9 },
+  rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#F3F4F6" },
+  rowLbl: { fontSize: 12, fontFamily: Fonts.Medium, flex: 1 },
+  rowVal: { fontSize: 12, fontFamily: Fonts.Medium, flex: 1.4, textAlign: "right" },
+
+  // note
+  note: {
+    flexDirection: "row", alignItems: "center",
+    marginHorizontal: 14, marginTop: 10,
+    borderRadius: 10, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 9,
+  },
+  noteDot: { width: 6, height: 6, borderRadius: 3, marginRight: 8, flexShrink: 0 },
+  noteTxt: { flex: 1, fontSize: 11, fontFamily: Fonts.Medium, lineHeight: 16 },
+
+  // actions divider
+  actRow: { flexDirection: "row", alignItems: "center", marginHorizontal: 14, marginTop: 14, marginBottom: 10 },
+  actLine: { flex: 1, height: 1 },
+  actLbl: { fontSize: 10, fontFamily: Fonts.Bold, letterSpacing: 1.1, marginHorizontal: 10 },
+
+  // buttons
+  btnRow: { flexDirection: "row", gap: 10, marginHorizontal: 14, marginBottom: 9 },
+
+  // Download — solid, uses Colors.primary
+  dlBtn: {
+    flex: 1, flexDirection: "row", alignItems: "center",
+    justifyContent: "center", borderRadius: 12, paddingVertical: 13,
+  },
+  dlTxt: { fontSize: 13, fontFamily: Fonts.Bold, color: "#FFF" },
+
+  // Share — outline
+  shareBtn: {
+    flex: 1, flexDirection: "row", alignItems: "center",
+    justifyContent: "center", borderRadius: 12, paddingVertical: 13, borderWidth: 1,
+  },
+  shareTxt: { fontSize: 13, fontFamily: Fonts.Bold },
+
+  // Raise Complaint — outline
+  complBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center",
+    marginHorizontal: 14, borderRadius: 12, paddingVertical: 13, borderWidth: 1,
+  },
+  complTxt: { fontSize: 13, fontFamily: Fonts.Bold },
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  BottomSheetModal
+// ─────────────────────────────────────────────────────────────────────────────
+
+function BottomSheetModal({
+  visible, onClose, title,
+  searchText, onSearch, searchPlaceholder,
+  items, selectedValue, iconName, getLabel, onSelect,
+}) {
+  const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
+  const swipePan = useRef(new Animated.Value(0)).current;
+  const isClosing = useRef(false);
+
   useEffect(() => {
     if (visible) {
-      translateY.setValue(0);
-      backdropOpacity.setValue(1);
-    } else {
+      isClosing.current = false;
+      swipePan.setValue(0);
       translateY.setValue(SCREEN_HEIGHT);
-      backdropOpacity.setValue(0);
+      Animated.parallel([
+        Animated.spring(translateY, { toValue: 0, useNativeDriver: true, bounciness: 4, speed: 14 }),
+        Animated.timing(backdropOpacity, { toValue: 1, duration: 260, useNativeDriver: true }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(translateY, { toValue: SCREEN_HEIGHT, duration: 260, useNativeDriver: true }),
+        Animated.timing(backdropOpacity, { toValue: 0, duration: 260, useNativeDriver: true }),
+      ]).start();
     }
   }, [visible]);
-
-  // Swipe-down-to-close pan responder (handle bar only)
-  const swipePan = useRef(new Animated.Value(0)).current;
 
   const swipeResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, g) => g.dy > 4, // only downward
-      onPanResponderMove: (_, g) => {
-        if (g.dy > 0) swipePan.setValue(g.dy);
-      },
+      onMoveShouldSetPanResponder: (_, g) => g.dy > 5,
+      onPanResponderMove: (_, g) => { if (g.dy > 0) swipePan.setValue(g.dy); },
       onPanResponderRelease: (_, g) => {
-        if (g.dy > 80 || g.vy > 0.5) {
-          // Snap down and close
-          Animated.timing(swipePan, {
-            toValue: SCREEN_HEIGHT,
-            duration: 220,
-            useNativeDriver: true,
-          }).start(() => {
-            onClose();
-            // Reset swipePan only after a slight delay or on next mount
-            setTimeout(() => swipePan.setValue(0), 100);
-          });
+        if ((g.dy > 80 || g.vy > 0.5) && !isClosing.current) {
+          isClosing.current = true;
+          Animated.parallel([
+            Animated.timing(swipePan, { toValue: SCREEN_HEIGHT, duration: 240, useNativeDriver: true }),
+            Animated.timing(backdropOpacity, { toValue: 0, duration: 220, useNativeDriver: true }),
+          ]).start(() => { swipePan.setValue(0); onClose(); });
         } else {
-          // Snap back
-          Animated.spring(swipePan, {
-            toValue: 0,
-            useNativeDriver: true,
-          }).start();
+          Animated.spring(swipePan, { toValue: 0, useNativeDriver: true, bounciness: 6, speed: 14 }).start();
         }
       },
     })
   ).current;
 
-  // Combined translateY = sheet open/close + swipe
-  const combinedTranslateY = Animated.add(translateY, swipePan);
-
-  // Interpolate backdrop opacity based on swipe position
-  const interpolatedBackdropOpacity = Animated.multiply(
-    backdropOpacity,
-    swipePan.interpolate({
-      inputRange: [0, SCREEN_HEIGHT * 0.5],
-      outputRange: [1, 0],
-      extrapolate: "clamp",
-    })
-  );
-
-  if (!visible) return null;
+  const combinedY = Animated.add(translateY, swipePan);
 
   return (
-    /*
-     *  KEY FIX:
-     *  ─────────
-     *  We NO LONGER use <Modal> here.  Instead the sheet is rendered
-     *  directly into the component tree as an absolute-positioned View
-     *  that covers the full screen.  This prevents the RN Modal's own
-     *  shadow/elevation from leaking through the backdrop.
-     *
-     *  The backdrop and the sheet are siblings inside the same absolute
-     *  container so the shadow is perfectly clipped.
-     */
-    <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-      {/* ── Backdrop ── */}
-      <Animated.View
-        style={[styles.sheetBackdrop, { opacity: interpolatedBackdropOpacity }]}
-        pointerEvents="auto"
-      >
+    <View style={StyleSheet.absoluteFill} pointerEvents={visible ? "box-none" : "none"}>
+      <Animated.View style={[styles.sheetBackdrop, { opacity: backdropOpacity }]} pointerEvents={visible ? "auto" : "none"}>
         <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose} />
       </Animated.View>
 
-      {/* ── Sheet panel ── */}
-      <Animated.View
-        style={[
-          styles.bottomSheet,
-          { transform: [{ translateY: combinedTranslateY }] },
-        ]}
-        pointerEvents="auto"
-      >
-        {/* Header (drag handle lives here — pan responder attached) */}
+      <Animated.View style={[styles.bottomSheet, { transform: [{ translateY: combinedY }] }]} pointerEvents="auto">
         <View style={styles.sheetHeader} {...swipeResponder.panHandlers}>
           <View style={styles.handleBar} />
           <View style={styles.sheetTitleRow}>
@@ -747,12 +500,7 @@ function BottomSheetModal({
           </View>
         </View>
 
-        {/* List */}
-        <ScrollView
-          contentContainerStyle={{ paddingBottom: 20 }}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
+        <ScrollView contentContainerStyle={{ paddingBottom: 20 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           {items.length > 0 ? (
             items.map((item, idx) => {
               const label = getLabel(item);
@@ -762,7 +510,7 @@ function BottomSheetModal({
                   key={idx}
                   style={[styles.sheetListItem, isSel && styles.sheetListItemSel]}
                   onPress={() => onSelect(item)}
-                  activeOpacity={1}
+                  activeOpacity={0.75}
                 >
                   <View style={[styles.sheetListIconBox, isSel && styles.sheetListIconBoxSel]}>
                     <Icon name={iconName} size={20} color={isSel ? Colors.finance_accent : "#666"} />
@@ -788,67 +536,399 @@ function BottomSheetModal({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// STYLES
+//  TopUpScreen
+// ─────────────────────────────────────────────────────────────────────────────
+
+export default function TopUpScreen({ navigation, route }) {
+  const insets = useSafeAreaInsets();
+
+  const [type, setType] = useState("airtime");
+  const [mobile, setMobile] = useState("");
+  const [operator, setOperator] = useState("");
+  const [circle, setCircle] = useState("");
+  const [operators, setOperators] = useState([]);
+  const [circles, setCircles] = useState([]);
+  const [showOperatorModal, setShowOperatorModal] = useState(false);
+  const [showCircleModal, setShowCircleModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [searchText, setSearchText] = useState("");
+  const [amount, setAmount] = useState("199");
+  const [operatorCode, setOperatorCode] = useState("");
+  const [receiptData, setReceiptData] = useState(null);
+  const [completed, setCompleted] = useState(false);
+
+  const [customToast, setCustomToast] = useState({ visible: false, message: "", type: "success" });
+  const toastAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const pan = useRef(new Animated.Value(0)).current;
+  const trackWidthRef = useRef(0);
+  const THUMB_WIDTH = 50;
+
+  useEffect(() => {
+    if (route.params?.selectedAmount) setAmount(String(route.params.selectedAmount));
+    if (route.params?.mobile) setMobile(route.params.mobile);
+    if (route.params?.operator) setOperator(route.params.operator);
+    if (route.params?.circle) setCircle(route.params.circle);
+    if (route.params?.operatorCode) setOperatorCode(route.params.operatorCode);
+  }, [route.params]);
+
+  const showCustomToast = (msg, type = "success") => {
+    setCustomToast({ visible: true, message: msg, type });
+    Animated.timing(toastAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start(() => {
+      setTimeout(() => {
+        Animated.timing(toastAnim, { toValue: 0, duration: 300, useNativeDriver: true }).start(() => {
+          setCustomToast({ visible: false, message: "", type: "success" });
+        });
+      }, 2500);
+    });
+  };
+
+  const showToast = (msg) => {
+    if (Platform.OS === "android") ToastAndroid.show(msg, ToastAndroid.SHORT);
+    else Alert.alert("Info", msg);
+  };
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(slideAnim, { toValue: 0, duration: 800, useNativeDriver: true, easing: Easing.out(Easing.exp) }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+    ]).start();
+    fetchOperatorCircle();
+  }, []);
+
+  useEffect(() => {
+    const backAction = () => {
+      if (showOperatorModal) { setShowOperatorModal(false); return true; }
+      if (showCircleModal) { setShowCircleModal(false); return true; }
+      navigation.navigate("FinanceHome");
+      return true;
+    };
+    const handler = BackHandler.addEventListener("hardwareBackPress", backAction);
+    return () => handler.remove();
+  }, [showOperatorModal, showCircleModal]);
+
+  const fetchOperatorCircle = async () => {
+    try {
+      setLoading(true);
+      const headerToken = await AsyncStorage.getItem("header_token");
+      if (headerToken) {
+        const opResult = await getRechargeOperatorList({ headerToken });
+        if (opResult?.success) setOperators(opResult.data || []);
+        const cirResult = await getRechargeCircleList({ headerToken });
+        if (cirResult?.success) setCircles(cirResult.data || []);
+      }
+    } catch (e) { console.log("Operator/Circle API error", e); }
+    finally { setLoading(false); }
+  };
+
+  const handleRecharge = async () => {
+    try {
+      setLoading(true);
+      const headerToken = await AsyncStorage.getItem("header_token");
+      const response = await processRecharge({
+        amount: Number(amount), operatorCode, number: mobile,
+        billerMode: "prepaidrecharge", headerToken,
+      });
+      const isSuccess = response?.success === true || response?.status === "SUCCESS" || response?.data?.status === "SUCCESS";
+      const resData = response?.data || {};
+      setReceiptData(isSuccess ? {
+        status: "success", amount,
+        txn_ref: resData.txn_ref || response.txn_ref || "",
+        message: resData.message || response.message || "Recharge Successful",
+        mobile, operator,
+      } : {
+        status: "error", amount,
+        txn_ref: resData.txn_ref || response?.txn_ref || "N/A",
+        message: resData.message || response?.message || response?.error || "Recharge Failed",
+        mobile, operator,
+      });
+    } catch {
+      setReceiptData({ status: "error", amount, txn_ref: "N/A", message: "Something went wrong during recharge", mobile, operator });
+    } finally { setLoading(false); setCompleted(false); pan.setValue(0); }
+  };
+
+  const panResponder = React.useMemo(
+    () => PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => { pan.setOffset(0); pan.setValue(0); },
+      onPanResponderMove: (_, g) => {
+        const w = trackWidthRef.current;
+        if (w > 0 && g.dx >= 0 && g.dx <= w - THUMB_WIDTH) pan.setValue(g.dx);
+      },
+      onPanResponderRelease: (_, g) => {
+        const w = trackWidthRef.current;
+        const snap = () => Animated.spring(pan, { toValue: 0, useNativeDriver: false }).start();
+        if (w > 0 && g.dx >= (w - THUMB_WIDTH) * 0.8) {
+          if (mobile.length !== 10) { showCustomToast("Enter 10-digit mobile number", "error"); snap(); return; }
+          if (!operator) { showCustomToast("Select Operator", "error"); snap(); return; }
+          if (!circle) { showCustomToast("Select Circle", "error"); snap(); return; }
+          if (!amount || Number(amount) <= 0) { showCustomToast("Enter valid amount", "error"); snap(); return; }
+          Animated.timing(pan, { toValue: w - THUMB_WIDTH, duration: 200, useNativeDriver: false })
+            .start(() => { setCompleted(true); handleRecharge(); });
+        } else { snap(); }
+      },
+    }),
+    [mobile, operator, circle, amount, operatorCode]
+  );
+
+  const handleMobileChange = async (value) => {
+    const num = value.replace(/\D/g, "");
+    setMobile(num);
+    if (num.length < 10) { setOperator(""); setCircle(""); return; }
+    if (num.length === 10) {
+      try {
+        setLoading(true);
+        const headerToken = await AsyncStorage.getItem("header_token");
+        const result = await verifyRechargeMobile({ mobile: num, headerToken });
+        if (result?.success) {
+          const fetchedData = result.data || {};
+          let currentOps = operators;
+          if (currentOps.length === 0) {
+            const opsData = await getRechargeOperatorList({ headerToken });
+            if (opsData?.success) { currentOps = opsData.data || []; setOperators(currentOps); }
+          }
+          const matchedOp = currentOps.find(op =>
+            (op.label && fetchedData.operator && op.label.toLowerCase() === fetchedData.operator.toLowerCase()) ||
+            (op.rechargeValue && fetchedData.operatorCode && op.rechargeValue.toLowerCase() === fetchedData.operatorCode.toLowerCase()) ||
+            (op.planFetchValue && fetchedData.operatorCode && op.planFetchValue.toLowerCase() === fetchedData.operatorCode.toLowerCase())
+          );
+          const matchedCir = circles.find(c =>
+            String(c.circleCode) === String(fetchedData.circle) ||
+            String(c.circlecode) === String(fetchedData.circle)
+          );
+          const opName = matchedOp?.label || matchedOp?.name || fetchedData.operator || "";
+          const cirName = matchedCir?.circleName || matchedCir?.circlename || fetchedData.state || "";
+          const opCode = matchedOp?.rechargeValue || fetchedData.operatorCode || "";
+          setOperatorCode(opCode); setOperator(opName); setCircle(cirName);
+          navigation.navigate("StorePlans", { mobile: num, operator: opName, circle: cirName, plans: fetchedData.plans || [], operatorCode: opCode });
+        } else {
+          setOperator(""); setCircle("");
+          showCustomToast(result?.message || "Unable to detect operator", "error");
+        }
+      } catch { setOperator(""); setCircle(""); showToast("Something went wrong"); }
+      finally { setLoading(false); }
+    }
+  };
+
+  return (
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: Colors.finance_bg_1 }]} edges={["bottom"]}>
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.finance_bg_1} translucent={false} />
+
+      <View style={styles.container}>
+
+        {/* Header */}
+        <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
+          <HeaderBar title="Mobile Recharge" onBack={() => navigation.navigate("FinanceHome")} />
+        </View>
+
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={{ flex: 1 }}
+          keyboardVerticalOffset={insets.top + 56}
+        >
+          <ScrollView contentContainerStyle={{ paddingBottom: 100, paddingTop: 20 }} showsVerticalScrollIndicator={false}>
+            <Animated.View style={[styles.mainContent, { transform: [{ translateY: slideAnim }], opacity: fadeAnim }]}>
+
+              {/* MOBILE */}
+              <View style={styles.modernCard}>
+                <View style={styles.modernCardHeader}>
+                  <Text style={styles.modernCardTitle}>Personal Details</Text>
+                  <View style={styles.badge}><Text style={styles.badgeText}>MOBILE</Text></View>
+                </View>
+                <View style={styles.modernInputWrapper}>
+                  <Text style={styles.floatingLabel}>Mobile Number</Text>
+                  <View style={styles.rowCenter}>
+                    <Text style={styles.prefixText}>+91</Text>
+                    <TextInput
+                      value={mobile} onChangeText={handleMobileChange}
+                      placeholder="00000 00000" placeholderTextColor="#AAA"
+                      keyboardType="number-pad" maxLength={10} style={styles.bigInput}
+                    />
+                    <TouchableOpacity style={styles.contactBtnRound}>
+                      <Icon name="account-search-outline" size={18} color={Colors.white} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+
+              {/* CONNECTION */}
+              <View style={styles.modernCard}>
+                <Text style={styles.modernCardTitle}>Connection Details</Text>
+                <View style={styles.connectionContainer}>
+                  <TouchableOpacity style={styles.connectionRow} activeOpacity={1} onPress={() => operators.length && setShowOperatorModal(true)}>
+                    <View style={styles.iconBox}><Icon name="sim" size={18} color={Colors.finance_accent} /></View>
+                    <View style={{ flex: 1, marginLeft: 12 }}>
+                      <Text style={styles.connectionLabel}>Operator</Text>
+                      <Text style={[styles.connectionValues, showOperatorModal && { color: Colors.finance_accent }]}>{operator || "Select Provider"}</Text>
+                    </View>
+                    <Icon name={showOperatorModal ? "chevron-up" : "chevron-down"} size={20} color={showOperatorModal ? Colors.finance_accent : Colors.finance_text} />
+                  </TouchableOpacity>
+                  <View style={styles.dividerLine} />
+                  <TouchableOpacity style={styles.connectionRow} activeOpacity={1} onPress={() => circles.length && setShowCircleModal(true)}>
+                    <View style={styles.iconBox}><Icon name="map-marker-radius" size={18} color={Colors.finance_accent} /></View>
+                    <View style={{ flex: 1, marginLeft: 12 }}>
+                      <Text style={styles.connectionLabel}>Circle</Text>
+                      <Text style={[styles.connectionValues, showCircleModal && { color: Colors.finance_accent }]}>{circle || "Select Circle"}</Text>
+                    </View>
+                    <Icon name={showCircleModal ? "chevron-up" : "chevron-down"} size={20} color={showCircleModal ? Colors.finance_accent : Colors.finance_text} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* AMOUNT */}
+              <View style={styles.premiumAmountCard}>
+                <View style={styles.typeSelector}>
+                  {["airtime", "special"].map(t => (
+                    <TouchableOpacity key={t} style={[styles.typeBtn, type === t && styles.typeBtnActive]} onPress={() => setType(t)}>
+                      <Text style={[styles.typeText, type === t && styles.typeTextActive]}>{t === "airtime" ? "Topup" : "Special Plans"}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                <Text style={styles.amountHeader}>Pick or Enter Amount</Text>
+                <View style={styles.amountInputRow}>
+                  <Text style={styles.currencySymbol}>₹</Text>
+                  <TextInput
+                    value={amount} onChangeText={setAmount} placeholder="0"
+                    placeholderTextColor="rgba(212,176,106,0.3)"
+                    keyboardType="numeric" style={styles.hugeInput}
+                  />
+                </View>
+                <View style={styles.suggestionsWrapper}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.suggestionsContainer}>
+                    {["199", "299", "499", "666", "849"].map(val => (
+                      <TouchableOpacity key={val} style={[styles.suggestionChip, amount === val && styles.suggestionChipActive]} onPress={() => setAmount(val)}>
+                        <Text style={[styles.suggestionText, amount === val && styles.suggestionTextActive]}>₹{val}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+                <TouchableOpacity style={styles.viewPlansBtn} onPress={async () => {
+                  if (mobile.length !== 10) { showCustomToast("Enter 10-digit mobile number", "error"); return; }
+                  if (!operator) { showCustomToast("Select Operator", "error"); return; }
+                  if (!circle) { showCustomToast("Select Circle", "error"); return; }
+                  try {
+                    setLoading(true);
+                    const headerToken = await AsyncStorage.getItem("header_token");
+                    const result = await verifyRechargeMobile({ mobile, headerToken });
+                    if (result?.success) {
+                      navigation.navigate("StorePlans", { mobile, operator, circle, plans: result.data?.plans || [], operatorCode });
+                    } else { showCustomToast(result?.message || "Unable to load plans", "error"); }
+                  } catch { showCustomToast("Something went wrong", "error"); }
+                  finally { setLoading(false); }
+                }}>
+                  <LinearGradient colors={[Colors.finance_accent, "#E0C38C"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.viewPlansGradient}>
+                    <Text style={styles.viewPlansText}>Explore All Plans</Text>
+                    <Icon name="notebook-outline" size={18} color={Colors.black} />
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </Animated.View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+
+        {/* SWIPE TO RECHARGE */}
+        <View style={styles.actionContainer}>
+          {!completed ? (
+            <View style={styles.sliderWrapper} onLayout={e => { trackWidthRef.current = e.nativeEvent.layout.width; }}>
+              <Animated.View style={[styles.sliderBackground, { opacity: pan.interpolate({ inputRange: [0, 100], outputRange: [1, 0.5], extrapolate: "clamp" }) }]}>
+                <Text style={styles.swipeText}>SWIPE TO RECHARGE</Text>
+              </Animated.View>
+              <Animated.View style={[styles.sliderThumb, { transform: [{ translateX: pan }] }]} {...panResponder.panHandlers}>
+                <LinearGradient colors={[Colors.finance_accent, "#b8944d"]} style={styles.thumbGrad}>
+                  <Icon name="chevron-right" size={28} color={Colors.white} />
+                </LinearGradient>
+              </Animated.View>
+            </View>
+          ) : (
+            <LinearGradient colors={[Colors.finance_accent, "#b8944d"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.processingBtn}>
+              <ActivityIndicator size="small" color={Colors.white} style={{ marginRight: 10 }} />
+              <Text style={styles.processingText}>PROCESSING...</Text>
+            </LinearGradient>
+          )}
+        </View>
+      </View>
+
+      {/* OPERATOR SHEET */}
+      <BottomSheetModal
+        visible={showOperatorModal}
+        onClose={() => { setShowOperatorModal(false); setSearchText(""); }}
+        title="Select Provider" searchText={searchText} onSearch={setSearchText}
+        searchPlaceholder="Search Operator..."
+        items={operators.filter(op => (op.label || op.name || "").toLowerCase().includes(searchText.toLowerCase()))}
+        selectedValue={operator} iconName="sim"
+        getLabel={op => op.label || op.name}
+        onSelect={op => { setOperator(op.label || op.name); setOperatorCode(op.rechargeValue || ""); setShowOperatorModal(false); setSearchText(""); }}
+      />
+
+      {/* CIRCLE SHEET */}
+      <BottomSheetModal
+        visible={showCircleModal}
+        onClose={() => { setShowCircleModal(false); setSearchText(""); }}
+        title="Select Circle" searchText={searchText} onSearch={setSearchText}
+        searchPlaceholder="Search Circle..."
+        items={circles.filter(c => (c.circleName || c.circlename || "").toLowerCase().includes(searchText.toLowerCase()))}
+        selectedValue={circle} iconName="map-marker-radius"
+        getLabel={c => c.circleName || c.circlename}
+        onSelect={c => { setCircle(c.circleName || c.circlename); setShowCircleModal(false); setSearchText(""); }}
+      />
+
+      {/* LOADER */}
+      {loading && (
+        <View style={styles.fullLoader}>
+          <ActivityIndicator size="large" color={Colors.finance_accent} />
+        </View>
+      )}
+
+      {/* TOAST */}
+      {customToast.visible && (
+        <Animated.View style={[styles.customToastBox, { opacity: toastAnim, transform: [{ translateY: toastAnim.interpolate({ inputRange: [0, 1], outputRange: [-40, 0] }) }] }]}>
+          <LinearGradient
+            colors={customToast.type === "success" ? ["#4CAF50", "#2E7D32"] : ["#F44336", "#C62828"]}
+            style={styles.customToastGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+          >
+            <Icon name={customToast.type === "success" ? "check-circle" : "alert-circle"} size={20} color={Colors.white} />
+            <Text style={styles.customToastText}>{customToast.message}</Text>
+          </LinearGradient>
+        </Animated.View>
+      )}
+
+      {/* RECEIPT */}
+      <RechargeReceipt
+        receiptData={receiptData}
+        onClose={() => setReceiptData(null)}
+        navigation={navigation}
+      />
+    </SafeAreaView>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  STYLES
 // ─────────────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  // ── Root ──────────────────────────────────────────────────────────────────
-  safeArea: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-  },
+  safeArea: { flex: 1 },
+  container: { flex: 1 },
+  headerWrapper: { backgroundColor: Colors.finance_bg_1 ?? "#F7F8FA" },
+  mainContent: { paddingHorizontal: 12, paddingBottom: 14 },
 
-  // ── Header wrapper ────────────────────────────────────────────────────────
-  headerWrapper: {
-    backgroundColor: Colors.finance_bg_1 ?? "#F7F8FA",
-  },
-
-  // ── Body ──────────────────────────────────────────────────────────────────
-  mainContent: {
-    paddingHorizontal: 12,
-    paddingBottom: 14,
-  },
-
-  // ── Cards ─────────────────────────────────────────────────────────────────
   modernCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "rgba(212, 176, 106, 0.15)",
+    backgroundColor: Colors.white, borderRadius: 16, padding: 12, marginBottom: 12,
+    borderWidth: 1, borderColor: "rgba(212,176,106,0.15)",
   },
-  modernCardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10,
-  },
+  modernCardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
   modernCardTitle: { fontSize: 12, fontFamily: Fonts.Bold, color: "#333" },
-  badge: {
-    backgroundColor: Colors.finance_bg_2,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: Colors.finance_accent,
-  },
+  badge: { backgroundColor: Colors.finance_bg_2, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: Colors.finance_accent },
   badgeText: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.finance_accent },
 
-  // ── Mobile input ──────────────────────────────────────────────────────────
-  modernInputWrapper: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
-    paddingBottom: 4,
-  },
+  modernInputWrapper: { borderBottomWidth: 1, borderBottomColor: "#F0F0F0", paddingBottom: 4 },
   floatingLabel: { fontSize: 10, color: "#999", fontFamily: Fonts.Medium, marginBottom: 2 },
   rowCenter: { flexDirection: "row", alignItems: "center" },
   prefixText: { fontSize: 16, fontFamily: Fonts.Medium, color: "#AAA", marginRight: 8 },
   bigInput: { flex: 1, fontSize: 18, fontFamily: Fonts.Bold, color: Colors.finance_text, padding: 0, height: 34 },
-  contactBtnRound: { width: 30, height: 30, borderRadius: 15, backgroundColor: Colors.finance_accent, alignItems: "center", justifyContent: "center", elevation: 4 },
+  contactBtnRound: { width: 30, height: 30, borderRadius: 15, backgroundColor: Colors.finance_accent, alignItems: "center", justifyContent: "center" },
 
-  // ── Connection ────────────────────────────────────────────────────────────
   connectionContainer: { backgroundColor: "#F9F9F9", borderRadius: 14, borderWidth: 1, borderColor: "#EEE", overflow: "hidden" },
   connectionRow: { flexDirection: "row", alignItems: "center", padding: 10 },
   iconBox: { width: 30, height: 30, borderRadius: 8, backgroundColor: Colors.white, alignItems: "center", justifyContent: "center" },
@@ -856,18 +936,13 @@ const styles = StyleSheet.create({
   connectionValues: { fontSize: 12, fontFamily: Fonts.Medium, color: "#000", marginTop: 2 },
   dividerLine: { height: 1, backgroundColor: "#EEE", marginHorizontal: 14 },
 
-  // ── Amount card ───────────────────────────────────────────────────────────
   premiumAmountCard: {
-    backgroundColor: "#1A1A1A",
-    borderRadius: 20,
-    padding: 14,
-    marginBottom: 14,
-    borderWidth: 1.5,
-    borderColor: "rgba(212, 176, 106, 0.4)",
+    backgroundColor: "#1A1A1A", borderRadius: 20, padding: 14, marginBottom: 14,
+    borderWidth: 1.5, borderColor: "rgba(212,176,106,0.4)",
   },
   typeSelector: { flexDirection: "row", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: 12, padding: 3, marginBottom: 12 },
   typeBtn: { flex: 1, paddingVertical: 8, alignItems: "center", borderRadius: 10 },
-  typeBtnActive: { backgroundColor: "rgba(212, 176, 106, 0.2)", borderWidth: 1, borderColor: "rgba(212, 176, 106, 0.5)" },
+  typeBtnActive: { backgroundColor: "rgba(212,176,106,0.2)", borderWidth: 1, borderColor: "rgba(212,176,106,0.5)" },
   typeText: { fontSize: 11, fontFamily: Fonts.Medium, color: "rgba(255,255,255,0.4)" },
   typeTextActive: { color: Colors.finance_accent, fontFamily: Fonts.Bold },
   amountHeader: { fontSize: 10, color: "rgba(255,255,255,0.6)", fontFamily: Fonts.Medium, textTransform: "uppercase", letterSpacing: 1, textAlign: "center", marginBottom: 8 },
@@ -877,15 +952,14 @@ const styles = StyleSheet.create({
   suggestionsWrapper: { marginBottom: 12 },
   suggestionsContainer: { flexDirection: "row", alignItems: "center", gap: 8 },
   suggestionChip: { backgroundColor: "rgba(255,255,255,0.05)", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
-  suggestionChipActive: { backgroundColor: "rgba(212, 176, 106, 0.2)", borderColor: Colors.finance_accent },
+  suggestionChipActive: { backgroundColor: "rgba(212,176,106,0.2)", borderColor: Colors.finance_accent },
   suggestionText: { color: "rgba(255,255,255,0.7)", fontSize: 12, fontFamily: Fonts.Medium },
   suggestionTextActive: { color: Colors.finance_accent, fontFamily: Fonts.Bold },
   viewPlansBtn: { borderRadius: 14, overflow: "hidden" },
   viewPlansGradient: { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 14, gap: 10 },
   viewPlansText: { color: Colors.black, fontFamily: Fonts.Bold, fontSize: 14 },
 
-  // ── Slider ────────────────────────────────────────────────────────────────
-  actionContainer: { padding: 12, backgroundColor: Colors.finance_bg_1, borderTopWidth: 1, borderTopColor: 'rgba(212, 176, 106, 0.1)' },
+  actionContainer: { padding: 12, backgroundColor: Colors.finance_bg_1, borderTopWidth: 1, borderTopColor: "rgba(212,176,106,0.1)" },
   sliderWrapper: { height: 60, backgroundColor: Colors.white, borderRadius: 30, borderWidth: 1.5, borderColor: Colors.finance_accent, justifyContent: "center", overflow: "hidden" },
   sliderBackground: { ...StyleSheet.absoluteFillObject, justifyContent: "center", alignItems: "center" },
   swipeText: { color: Colors.finance_accent, fontSize: 14, fontFamily: Fonts.Bold, letterSpacing: 2 },
@@ -894,47 +968,14 @@ const styles = StyleSheet.create({
   processingBtn: { height: 60, borderRadius: 30, flexDirection: "row", alignItems: "center", justifyContent: "center" },
   processingText: { color: Colors.white, fontFamily: Fonts.Bold, fontSize: 14, letterSpacing: 1 },
 
-  // ── Bottom sheet ──────────────────────────────────────────────────────────
-  // Backdrop: full screen dark overlay — NO elevation/shadow here
-  sheetBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.48)",
-  },
-  // Sheet panel: NO elevation at all — avoids Android shadow bleeding
-  // through the backdrop. Visual depth is provided by the borderTop + 
-  // the sheetTopShadow strip rendered as the first child.
+  sheetBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.48)" },
   bottomSheet: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: "75%",
-    // ✅ No elevation / no shadowColor — prevents bleed-through on Android & iOS
-    borderTopWidth: 1,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderColor: "rgba(0,0,0,0.08)",
-    overflow: "hidden",
+    position: "absolute", bottom: 0, left: 0, right: 0,
+    backgroundColor: "#fff", borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: "75%",
+    borderTopWidth: 1, borderLeftWidth: 1, borderRightWidth: 1, borderColor: "rgba(0,0,0,0.08)", overflow: "hidden",
   },
-  sheetHeader: {
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
-    paddingTop: 4,
-  },
-  handleBar: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "#E0E0E0",
-    alignSelf: "center",
-    marginTop: 10,
-    marginBottom: 10,
-  },
+  sheetHeader: { paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: "#F0F0F0", paddingTop: 4 },
+  handleBar: { width: 40, height: 4, borderRadius: 2, backgroundColor: "#E0E0E0", alignSelf: "center", marginTop: 10, marginBottom: 10 },
   sheetTitleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 },
   sheetTitle: { fontSize: 15, fontFamily: Fonts.Bold, color: "#333" },
   closeBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: "#F4F4F4", alignItems: "center", justifyContent: "center" },
@@ -950,26 +991,9 @@ const styles = StyleSheet.create({
   emptyWrap: { alignItems: "center", paddingVertical: 30 },
   emptyTxt: { color: "#BDBDBD", fontSize: 13, fontFamily: Fonts.Medium },
 
-  // ── Toast ──────────────────────────────────────────────────────────────────
-  customToastBox: { position: 'absolute', top: 60, left: 20, right: 20, zIndex: 9999 },
-  customToastGrad: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, gap: 10 },
-  customToastText: { color: '#FFF', fontFamily: Fonts.Bold, fontSize: 13, flex: 1 },
+  customToastBox: { position: "absolute", top: 60, left: 20, right: 20, zIndex: 9999 },
+  customToastGrad: { flexDirection: "row", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, gap: 10 },
+  customToastText: { color: "#FFF", fontFamily: Fonts.Bold, fontSize: 13, flex: 1 },
 
-  // ── Receipt ────────────────────────────────────────────────────────────────
-  receiptOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  receiptContent: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 30 },
-  receiptHeader: { alignItems: 'center', marginBottom: 15 },
-  successBadge: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
-  receiptStatusText: { fontSize: 16, fontFamily: Fonts.Bold, color: '#2E7D32' },
-  receiptAmountText: { fontSize: 32, fontFamily: Fonts.Bold, color: '#111', marginVertical: 6 },
-  receiptInfo: { fontSize: 13, fontFamily: Fonts.Medium, color: '#666' },
-  dashedLine: { borderWidth: 1, borderColor: '#EEE', borderStyle: 'dashed', marginVertical: 18, borderRadius: 1 },
-  detailsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14, alignItems: 'center' },
-  detailsLabel: { fontSize: 13, fontFamily: Fonts.Medium, color: '#777' },
-  detailsValue: { fontSize: 13, fontFamily: Fonts.Bold, color: '#333', flex: 1, textAlign: 'right' },
-  doneBtn: { backgroundColor: '#002E6E', paddingVertical: 14, borderRadius: 12, alignItems: 'center', marginTop: 12 },
-  doneText: { color: '#FFF', fontFamily: Fonts.Bold, fontSize: 14, letterSpacing: 1 },
-
-  // ── Loader ────────────────────────────────────────────────────────────────
   fullLoader: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(255,255,255,0.7)", justifyContent: "center", alignItems: "center", zIndex: 1000 },
 });

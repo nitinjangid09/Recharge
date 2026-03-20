@@ -1074,8 +1074,8 @@ const styles = StyleSheet.create({
   retryTxt: { color: "#FFF", fontSize: 13, fontWeight: "600" },
 
   payBtn: {
-    marginTop: 8, backgroundColor: Colors.accent || Colors.primary,
-    paddingVertical: 17, borderRadius: 16, alignItems: "center", elevation: 5,
+    marginTop: 8, backgroundColor: Colors.finance_accent || Colors.primary,
+    paddingVertical: 12, borderRadius: 16, alignItems: "center", elevation: 5,
   },
   payBtnTxt: { color: Colors.white || "#FFF", fontSize: 16, fontWeight: "700", letterSpacing: 0.3 },
   payBtnSub: { color: "rgba(255,255,255,0.7)", fontSize: 11, marginTop: 3 },
