@@ -210,12 +210,16 @@ const CalendarModal = ({ visible, initialDate, title, onConfirm, onCancel }) => 
             {Array.from({ length: totalCells }).map((_, i) => {
               const day = i - firstDay + 1; const valid = day >= 1 && day <= daysInMonth;
               const sel = valid && day === selDay; const tod = valid && isToday(day); const isWE = valid && isWeekend(day);
+              const cellDate = new Date(viewYear, viewMonth, day);
+              const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+              const isFuture = valid && cellDate > todayDate;
+              const selectable = valid && !isFuture;
               return (
                 <View key={i} style={cal.cellOuter}>
-                  <TouchableOpacity style={cal.cellInner} onPress={() => valid && setSelDay(day)} activeOpacity={valid ? 0.7 : 1} disabled={!valid}>
+                  <TouchableOpacity style={cal.cellInner} onPress={() => selectable && setSelDay(day)} activeOpacity={selectable ? 0.7 : 1} disabled={!selectable}>
                     {sel && <View style={cal.selCircle} />}
                     {tod && !sel && <View style={cal.todayRing} />}
-                    <Text style={[cal.dayTxt, !valid && cal.dayEmpty, isWE && !sel && cal.dayWeekendTxt, sel && cal.daySelTxt, tod && !sel && cal.dayTodayTxt]}>
+                    <Text style={[cal.dayTxt, !valid && cal.dayEmpty, isFuture && { color: '#D1D5DB' }, isWE && !sel && !isFuture && cal.dayWeekendTxt, sel && cal.daySelTxt, tod && !sel && cal.dayTodayTxt]}>
                       {valid ? day : ''}
                     </Text>
                   </TouchableOpacity>

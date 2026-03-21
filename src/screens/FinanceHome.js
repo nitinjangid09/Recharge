@@ -24,6 +24,9 @@ import Fonts from "../constants/Fonts";
 import Colors from "../constants/Colors";
 import { getWalletBalance, fetchUserProfile } from "../api/AuthApi";
 
+import BBPSIconSVG from "../assets/Icons/BBPS.svg";
+import RechargeIconSVG from "../assets/Icons/Recharge.svg";
+
 // ─────────────────────────────────────────────────────────────────────────────
 // WHY Colors.bg IS APPLIED INLINE (not in StyleSheet.create)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -640,13 +643,12 @@ export default function FinanceHome({ navigation }) {
                       }}
                     >
                       <View style={S.svcIconCircle}>
-                        <Icon
-                          name={
-                            item.name?.toLowerCase() === "bbps" ? "lightning-bolt" :
-                              item.name?.toLowerCase() === "recharge" ? "cellphone-wireless" : "apps"
-                          }
-                          size={rs(26)} color={Colors.finance_accent}
-                        />
+                        {(() => {
+                          const n = item.name?.toLowerCase();
+                          if (n === "bbps") return <BBPSIconSVG width={rs(32)} height={rs(32)} />;
+                          if (n === "recharge") return <RechargeIconSVG width={rs(32)} height={rs(32)} />;
+                          return <Icon name="apps" size={rs(26)} color={Colors.finance_accent} />;
+                        })()}
                       </View>
                       <Text style={S.svcGridLabel}>{item.name.toUpperCase()}</Text>
                     </TouchableOpacity>
@@ -968,7 +970,7 @@ const S = StyleSheet.create({
   svcGrid: { flexDirection: "row", flexWrap: "wrap", marginBottom: rs(8) },
   svcGridItem: { width: "25%", alignItems: "center", paddingVertical: rs(10) },
   svcIconCircle: {
-    width: rs(60), height: rs(60), borderRadius: rs(15),
+    width: rs(50), height: rs(50), borderRadius: rs(12),
     backgroundColor: Colors.white,
     justifyContent: "center", alignItems: "center",
     marginBottom: rs(6),
