@@ -13,7 +13,6 @@ import Address from '../screens/Address';
 import FinanceHome from '../screens/FinanceHome';
 import test from '../screens/test';
 import Login from '../screens/Login';
-import SignupScreen from '../screens/Account/CreateAccount';
 import Otp from '../screens/Otp';
 import PaymentsScreen from '../screens/PaymentsScreen';
 import StorePlans from '../screens/StorePlans';
@@ -176,7 +175,6 @@ const AppNavigator = () => {
       <Stack.Screen name="SupportScreen" component={SupportScreen} />
       <Stack.Screen name="FaqSupportScreen" component={FaqSupportScreen} />
       <Stack.Screen name="Signup" component={Signup} />
-      <Stack.Screen name="SignupScreen" component={SignupScreen} />
       <Stack.Screen name="Offlinekyc" component={Offlinekyc} />
       <Stack.Screen name="KycSubmitted" component={KycSubmitted} />
       <Stack.Screen name="OfflineTopup" component={OfflineTopup} />

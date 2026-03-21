@@ -106,6 +106,12 @@ export default function Signup({ navigation }) {
             return;
         }
 
+        if (phone.length !== 10) {
+            triggerShake();
+            showAlert("Error", "Please enter a valid 10-digit mobile number");
+            return;
+        }
+
         const payload = {
             firstName: firstName.trim(),
             lastName: lastName.trim(),
@@ -146,7 +152,7 @@ export default function Signup({ navigation }) {
     const pageTranslateY = pageAnim.interpolate({ inputRange: [0, 1], outputRange: [50, 0] });
     const pageOpacity = pageAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
 
-    const renderInput = (label, icon, value, setValue, keyName, keyboardType = 'default') => {
+    const renderInput = (label, icon, value, setValue, keyName, keyboardType = 'default', extraProps = {}) => {
         const isFocused = focusedInput === keyName;
         return (
             <View style={styles.inputContainer}>
@@ -172,6 +178,7 @@ export default function Signup({ navigation }) {
                         onBlur={() => setFocusedInput(null)}
                         style={styles.input}
                         selectionColor={Colors.accent}
+                        {...extraProps}
                     />
                 </Animated.View>
             </View>
@@ -211,7 +218,7 @@ export default function Signup({ navigation }) {
 
                         {renderInput("First Name", "account", firstName, setFirstName, "firstName")}
                         {renderInput("Last Name", "account-outline", lastName, setLastName, "lastName")}
-                        {renderInput("Mobile Number", "phone", phone, setPhone, "phone", "phone-pad")}
+                        {renderInput("Mobile Number", "phone", phone, (text) => setPhone(text.replace(/[^0-9]/g, "")), "phone", "phone-pad", { maxLength: 10 })}
                         {renderInput("Email Address", "email", email, setEmail, "email", "email-address")}
 
                         <View style={[styles.inputContainer, { zIndex: 1000 }]}>
