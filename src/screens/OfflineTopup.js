@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -6,10 +6,10 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Alert,
   ActivityIndicator,
   Modal,
   Image,
+  Animated,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -21,25 +21,35 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { getAllTopupBanks, addOfflineTopupRequest } from "../api/AuthApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
-const InputBox = ({ label, value, setValue, icon, placeholder, keyboardType }) => {
-  return (
-    <View style={styles.fieldWrapper}>
-      <Text style={styles.boxLabel}>{label}</Text>
-      <View style={styles.inputContainer}>
-        <TextInput
-          value={value}
-          onChangeText={setValue}
-          keyboardType={keyboardType || "default"}
-          placeholder={placeholder}
-          placeholderTextColor="#9E9E9E"
-          style={styles.boxInput}
-        />
-        <Icon name={icon} size={22} color={Colors.finance_accent} />
-      </View>
-    </View>
-  );
-};
+import CustomAlert from "../componets/CustomAlert";
 
+// ─── Reusable input field ─────────────────────────────────────────────────
+const InputBox = ({ label, value, setValue, icon, placeholder, keyboardType }) => (
+  <View style={styles.fieldWrapper}>
+    <Text style={styles.boxLabel}>{label}</Text>
+    <View style={styles.inputContainer}>
+      <TextInput
+        value={value}
+        onChangeText={(val) =>
+          setValue(
+            keyboardType === "numeric" || keyboardType === "number-pad"
+              ? val.replace(/[^0-9]/g, "")
+              : val
+          )
+        }
+        keyboardType={keyboardType || "default"}
+        placeholder={placeholder}
+        placeholderTextColor="#9E9E9E"
+        style={styles.boxInput}
+      />
+      <Icon name={icon} size={22} color={Colors.finance_accent} />
+    </View>
+  </View>
+);
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  OfflineTopup
+// ═══════════════════════════════════════════════════════════════════════════
 export default function OfflineTopup({ navigation }) {
   const [amount, setAmount] = useState("");
   const [mode, setMode] = useState("upi");
@@ -53,106 +63,90 @@ export default function OfflineTopup({ navigation }) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [date, setDate] = useState(new Date());
   const [submitting, setSubmitting] = useState(false);
+
+  // CustomAlert state
   const [alertVisible, setAlertVisible] = useState(false);
+  const [alertType, setAlertType] = useState("info");
   const [alertTitle, setAlertTitle] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
-  const [alertType, setAlertType] = useState("success");
+  const [uploadVisible, setUploadVisible] = useState(false);
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+  const showAlert = (type, title, message) => {
+    setAlertType(type);
+    setAlertTitle(title);
+    setAlertMessage(message);
+    setAlertVisible(true);
+  };
 
   const onDateChange = (event, selectedDate) => {
     setShowDatePicker(false);
     if (selectedDate) {
       setDate(selectedDate);
-      const year = selectedDate.getFullYear();
-      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-      const day = String(selectedDate.getDate()).padStart(2, '0');
-      setPaymentDate(`${year}-${month}-${day}`);
+      const y = selectedDate.getFullYear();
+      const m = String(selectedDate.getMonth() + 1).padStart(2, "0");
+      const d = String(selectedDate.getDate()).padStart(2, "0");
+      setPaymentDate(`${y}-${m}-${d}`);
     }
   };
 
+  // ── Fetch banks ───────────────────────────────────────────────────────────
   useEffect(() => {
-    const fetchBanks = async () => {
+    (async () => {
       setBanksLoading(true);
       try {
         const headerToken = await AsyncStorage.getItem("header_token");
         const result = await getAllTopupBanks({ headerToken });
-        console.log("[DEBUG] Banks Result:", result);
-        if (result?.success) {
-          setBanks(result.data || []);
-        }
+        if (result?.success) setBanks(result.data || []);
       } catch (e) {
         console.log("Fetch banks error:", e);
       } finally {
         setBanksLoading(false);
       }
-    };
-    fetchBanks();
+    })();
   }, []);
 
-  const pickImage = () => {
-    Alert.alert("Upload Proof", "Choose an option", [
-      {
-        text: "Camera",
-        onPress: () => {
-          launchCamera({ mediaType: "photo", quality: 0.7 }, (res) => {
-            if (!res.didCancel && res.assets?.length) setPaymentProof(res.assets[0].uri);
-          });
-        },
-      },
-      {
-        text: "Gallery",
-        onPress: () => {
-          launchImageLibrary({ mediaType: "photo", quality: 0.7 }, (res) => {
-            if (!res.didCancel && res.assets?.length) setPaymentProof(res.assets[0].uri);
-          });
-        },
-      },
-      { text: "Cancel", style: "cancel" },
-    ]);
-  };
+  // ── Image picker handlers ─────────────────────────────────────────────────
+  const handleCamera = () =>
+    launchCamera({ mediaType: "photo", quality: 0.7 }, (res) => {
+      if (!res.didCancel && res.assets?.length) setPaymentProof(res.assets[0].uri);
+    });
 
+  const handleGallery = () =>
+    launchImageLibrary({ mediaType: "photo", quality: 0.7 }, (res) => {
+      if (!res.didCancel && res.assets?.length) setPaymentProof(res.assets[0].uri);
+    });
+
+  const handleFile = () =>
+    launchImageLibrary({ mediaType: "photo", quality: 0.7 }, (res) => {
+      if (!res.didCancel && res.assets?.length) setPaymentProof(res.assets[0].uri);
+    });
+
+  // ── Submit ────────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
     if (!amount || !receiverBank || !utrNumber) {
-      setAlertType("error");
-      setAlertTitle("Validation Error");
-      setAlertMessage("Please fill in all mandatory fields (Amount, Bank, UTR)");
-      setAlertVisible(true);
+      showAlert("error", "Validation Error", "Please fill in all mandatory fields (Amount, Bank, UTR).");
       return;
     }
-
     setSubmitting(true);
     try {
       const headerToken = await AsyncStorage.getItem("header_token");
       const result = await addOfflineTopupRequest({
-        amount,
-        mode,
-        receiverBank,
-        utrNumber,
-        paymentDate,
-        paymentProof,
-        headerToken
+        amount, mode, receiverBank, utrNumber, paymentDate, paymentProof, headerToken,
       });
-
       if (result?.success) {
-        setAlertType("success");
-        setAlertTitle("Success");
-        setAlertMessage("Topup request submitted successfully!");
-        setAlertVisible(true);
+        showAlert("success", "Request Submitted!", "Your topup request has been submitted successfully.");
       } else {
-        setAlertType("error");
-        setAlertTitle("Failed");
-        setAlertMessage(result?.message || "Failed to submit request");
-        setAlertVisible(true);
+        showAlert("error", "Submission Failed", result?.message || "Unable to submit request. Please try again.");
       }
     } catch (e) {
-      console.log("Submit Error:", e);
-      setAlertType("error");
-      setAlertTitle("Error");
-      setAlertMessage("Something went wrong during submission");
-      setAlertVisible(true);
+      showAlert("error", "Unexpected Error", "Something went wrong. Please try again later.");
     } finally {
       setSubmitting(false);
     }
   };
+
+  const selectedBankName = banks.find((b) => b._id === receiverBank)?.bankName;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -162,32 +156,30 @@ export default function OfflineTopup({ navigation }) {
         <View style={styles.formCard}>
           <Text style={styles.cardHeader}>Submit Topup Request</Text>
 
+          {/* Amount */}
           <InputBox
             label="Amount (₹)"
-            placeholder="Enter amount (e.g., 10)"
+            placeholder="Enter amount (e.g., 500)"
             value={amount}
             setValue={setAmount}
             icon="currency-inr"
             keyboardType="numeric"
           />
 
-
+          {/* Bank picker */}
           <View style={styles.fieldWrapper}>
-            <Text style={styles.boxLabel}>Select Receiver Bank</Text>
-            <TouchableOpacity
-              style={styles.inputContainer}
-              onPress={() => setBankModalVisible(true)}
-              activeOpacity={0.7}
-            >
+            <Text style={styles.boxLabel}>Receiver Bank</Text>
+            <TouchableOpacity style={styles.inputContainer} onPress={() => setBankModalVisible(true)} activeOpacity={0.7}>
               <View style={{ flex: 1, height: 40, justifyContent: "center" }}>
                 <Text style={{ color: receiverBank ? Colors.finance_text : "#9E9E9E", fontFamily: Fonts.Medium, fontSize: 14 }}>
-                  {receiverBank ? banks.find(b => b._id === receiverBank)?.bankName || "Select Bank" : "Choose a Bank"}
+                  {selectedBankName || "Choose a Bank"}
                 </Text>
               </View>
               <Icon name="chevron-down" size={22} color={Colors.finance_accent} />
             </TouchableOpacity>
           </View>
 
+          {/* UTR */}
           <InputBox
             label="UTR / Ref Number"
             placeholder="e.g., 6545654323"
@@ -196,6 +188,7 @@ export default function OfflineTopup({ navigation }) {
             icon="text-box-search-outline"
           />
 
+          {/* Date */}
           <View style={styles.fieldWrapper}>
             <Text style={styles.boxLabel}>Payment Date</Text>
             <TouchableOpacity style={styles.inputContainer} onPress={() => setShowDatePicker(true)} activeOpacity={0.7}>
@@ -207,119 +200,128 @@ export default function OfflineTopup({ navigation }) {
               <Icon name="calendar" size={22} color={Colors.finance_accent} />
             </TouchableOpacity>
           </View>
-
           {showDatePicker && (
-            <DateTimePicker
-              value={date}
-              mode="date"
-              display="default"
-              maximumDate={new Date()}
-              onChange={onDateChange}
-            />
+            <DateTimePicker value={date} mode="date" display="default" maximumDate={new Date()} onChange={onDateChange} />
           )}
 
+          {/* Payment proof */}
           <View style={styles.fieldWrapper}>
             <Text style={styles.boxLabel}>Payment Proof</Text>
-            <TouchableOpacity style={styles.inputContainer} onPress={pickImage} activeOpacity={0.7}>
+            <TouchableOpacity
+              style={[styles.inputContainer, paymentProof && styles.inputProofActive]}
+              onPress={() => setUploadVisible(true)}
+              activeOpacity={0.7}
+            >
               <View style={{ flex: 1, height: 40, justifyContent: "center" }}>
-                <Text style={{ color: paymentProof ? Colors.finance_text : "#9E9E9E", fontFamily: Fonts.Medium, fontSize: 13 }}>
-                  {paymentProof ? "Proof Selected" : "Upload Payment Screenshot"}
+                <Text style={{ color: paymentProof ? "#22C55E" : "#9E9E9E", fontFamily: Fonts.Medium, fontSize: 13, fontWeight: paymentProof ? "700" : "400" }}>
+                  {paymentProof ? "✓  Proof Attached" : "Upload Payment Screenshot"}
                 </Text>
               </View>
-              <Icon name="camera-plus-outline" size={22} color={Colors.finance_accent} />
+              <Icon
+                name={paymentProof ? "check-circle" : "camera-plus-outline"}
+                size={22}
+                color={paymentProof ? "#22C55E" : Colors.finance_accent}
+              />
             </TouchableOpacity>
+
             {paymentProof ? (
-              <Image source={{ uri: paymentProof }} style={{ width: "100%", height: 180, borderRadius: 12, marginTop: 10, resizeMode: "cover", borderWidth: 1, borderColor: "rgba(0,0,0,0.1)" }} />
+              <View style={styles.previewBox}>
+                <Image source={{ uri: paymentProof }} style={styles.previewImg} />
+                <TouchableOpacity style={styles.changeOverlay} onPress={() => setUploadVisible(true)}>
+                  <Icon name="pencil" size={13} color="#fff" />
+                  <Text style={styles.changeTxt}>Change</Text>
+                </TouchableOpacity>
+              </View>
             ) : null}
           </View>
 
-          <TouchableOpacity onPress={handleSubmit} style={{ marginTop: 25 }}>
-            <LinearGradient
-              colors={[Colors.finance_accent, "#C29A47"]}
-              style={styles.btnGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <Text style={styles.btnText}>Submit Request</Text>
+          {/* Submit */}
+          <TouchableOpacity onPress={handleSubmit} style={{ marginTop: 26 }} disabled={submitting} activeOpacity={0.85}>
+            <LinearGradient colors={[Colors.finance_accent, "#C29A47"]} style={styles.btnGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+              {submitting
+                ? <ActivityIndicator size="small" color="#000" />
+                : <><Icon name="send" size={16} color="#000" style={{ marginRight: 8 }} /><Text style={styles.btnText}>Submit Request</Text></>
+              }
             </LinearGradient>
           </TouchableOpacity>
         </View>
       </ScrollView>
 
-      {/* ─── Bank Selection Dialog ─── */}
+      {/* ─── Bank selection modal ─── */}
       <Modal visible={bankModalVisible} transparent animationType="fade" onRequestClose={() => setBankModalVisible(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Choose Receiver Bank</Text>
+        <View style={styles.bankOverlay}>
+          <View style={styles.bankModal}>
+            <Text style={styles.bankModalTitle}>Choose Receiver Bank</Text>
             {banksLoading && <ActivityIndicator size="small" color={Colors.finance_accent} style={{ marginBottom: 10 }} />}
-            {banks.length === 0 && !banksLoading && <Text style={{ color: "#999", marginVertical: 10 }}>No bank items details found.</Text>}
+            {!banksLoading && banks.length === 0 && (
+              <Text style={{ color: "#999", marginVertical: 10, fontFamily: Fonts.Medium }}>No banks found.</Text>
+            )}
             <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 250, width: "100%" }} contentContainerStyle={{ paddingBottom: 10 }}>
               {banks.map((b) => (
-                <TouchableOpacity key={b._id} style={[styles.modalBankCard, receiverBank === b._id && styles.modalBankCardActive]} onPress={() => { setReceiverBank(b._id); setBankModalVisible(false); }}>
+                <TouchableOpacity
+                  key={b._id}
+                  style={[styles.bankItem, receiverBank === b._id && styles.bankItemActive]}
+                  onPress={() => { setReceiverBank(b._id); setBankModalVisible(false); }}
+                >
                   <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                    <Text style={[styles.modalBankName, receiverBank === b._id && styles.modalBankNameActive]} numberOfLines={1}>{b.bankName}</Text>
-                    {receiverBank === b._id && <Icon name="check-circle" size={16} color={Colors.finance_accent} style={{ marginLeft: 5 }} />}
+                    <Text style={[styles.bankName, receiverBank === b._id && { color: Colors.finance_accent }]} numberOfLines={1}>{b.bankName}</Text>
+                    {receiverBank === b._id && <Icon name="check-circle" size={16} color={Colors.finance_accent} />}
                   </View>
-                  <Text style={styles.modalBankSub} numberOfLines={1}>Acc Holder: {b.accountHolderName}</Text>
-                  <Text style={styles.modalBankSub} numberOfLines={1}>Acc No: {b.accountNumber}</Text>
+                  <Text style={styles.bankSub}>Acc Holder: {b.accountHolderName}</Text>
+                  <Text style={styles.bankSub}>Acc No: {b.accountNumber}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
-            <TouchableOpacity style={styles.closeBtn} onPress={() => setBankModalVisible(false)}>
-              <Text style={styles.closeBtnText}>Close</Text>
+            <TouchableOpacity style={styles.bankCloseBtn} onPress={() => setBankModalVisible(false)}>
+              <Text style={styles.bankCloseTxt}>Close</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
+      {/* ─── Full-screen loader ─── */}
       {submitting && (
         <View style={styles.loaderOverlay}>
           <ActivityIndicator size="large" color={Colors.finance_accent} />
-          <Text style={styles.loaderText}>Submitting request...</Text>
+          <Text style={styles.loaderTxt}>Submitting request...</Text>
         </View>
       )}
 
-      {/* ─── Response Custom Alert ─── */}
-      <Modal visible={alertVisible} transparent animationType="slide">
-        <View style={styles.alertOverlay}>
-          <View style={styles.alertContent}>
-            <View style={[styles.alertIconCircle, { backgroundColor: alertType === 'success' ? '#22C55E' : '#EF4444' }]}>
-              <Icon name={alertType === 'success' ? 'check' : 'close'} size={32} color="#fff" />
-            </View>
-            <Text style={styles.alertTitle}>{alertTitle}</Text>
-            <Text style={styles.alertMessage}>{alertMessage}</Text>
+      {/* ─── Standard Custom Alert (success / error / warning) ─── */}
+      <CustomAlert
+        visible={alertVisible}
+        type={alertType}
+        title={alertTitle}
+        message={alertMessage}
+        onClose={() => {
+          setAlertVisible(false);
+          if (alertType === "success") setTimeout(() => navigation.goBack(), 120);
+        }}
+      />
 
-            <TouchableOpacity
-              style={{ width: "100%", marginTop: 10 }}
-              onPress={() => {
-                setAlertVisible(false);
-                if (alertType === 'success') {
-                  setTimeout(() => navigation.goBack(), 100);
-                }
-              }}
-            >
-              <LinearGradient
-                colors={[Colors.finance_accent, "#C29A47"]}
-                style={styles.alertBtn}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <Text style={{ color: "#000", fontFamily: Fonts.Bold, fontSize: 14 }}>Done</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      {/* ─── Image Upload Custom Alert ─── */}
+      <CustomAlert
+        visible={uploadVisible}
+        type="upload"
+        title="Upload Payment Proof"
+        message="Select how you'd like to add your screenshot"
+        onClose={() => setUploadVisible(false)}
+        onCamera={handleCamera}
+        onGallery={handleGallery}
+        onFile={handleFile}
+      />
     </SafeAreaView>
   );
 }
 
+// ─── Styles ───────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.finance_bg_1 },
+  container: { flex: 1, backgroundColor: Colors.homeSecondry },
   innerContent: { alignItems: "center", paddingBottom: 40 },
+
   formCard: {
     width: "92%",
-    backgroundColor: "#fff",
+    backgroundColor: Colors.bg,
     borderRadius: 20,
     padding: 20,
     marginTop: 20,
@@ -347,13 +349,17 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     borderWidth: 1,
-    borderColor: "rgba(212, 176, 106, 0.4)",
+    borderColor: "rgba(212,176,106,0.4)",
     borderRadius: 12,
     backgroundColor: "#fff",
     paddingHorizontal: 12,
     paddingVertical: 4,
     flexDirection: "row",
     alignItems: "center",
+  },
+  inputProofActive: {
+    borderColor: "#22C55E",
+    backgroundColor: "#F0FDF4",
   },
   boxInput: {
     flex: 1,
@@ -362,51 +368,52 @@ const styles = StyleSheet.create({
     color: Colors.finance_text,
     fontFamily: Fonts.Medium,
   },
-  modeContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 5,
-  },
-  modeItem: {
-    flex: 1,
-    paddingVertical: 10,
+
+  // Proof preview
+  previewBox: {
+    marginTop: 10,
+    borderRadius: 12,
+    overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(212, 176, 106, 0.4)",
-    borderRadius: 10,
+    borderColor: "rgba(0,0,0,0.08)",
+  },
+  previewImg: { width: "100%", height: 180, resizeMode: "cover" },
+  changeOverlay: {
+    position: "absolute",
+    top: 10, right: 10,
+    flexDirection: "row",
     alignItems: "center",
-    marginHorizontal: 3,
-    backgroundColor: "#F9F9F9",
+    gap: 4,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
   },
-  modeItemActive: {
-    backgroundColor: Colors.finance_accent + "22",
-    borderColor: Colors.finance_accent,
-  },
-  modeText: { fontSize: 11, fontFamily: Fonts.Bold, color: "#666" },
-  modeTextActive: { color: Colors.finance_accent },
+  changeTxt: { color: "#fff", fontSize: 12, fontFamily: Fonts.Medium },
+
+  // Submit button
   btnGradient: {
     borderRadius: 12,
     paddingVertical: 14,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     elevation: 3,
   },
   btnText: { color: "#000", fontFamily: Fonts.Bold, fontSize: 15, letterSpacing: 0.5 },
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
-  modalContent: { width: "88%", backgroundColor: "#fff", borderRadius: 20, padding: 18, alignItems: "center", elevation: 10 },
-  modalTitle: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.finance_text, marginBottom: 15 },
-  modalBankCard: { width: "100%", paddingVertical: 12, paddingHorizontal: 4, borderBottomWidth: 1, borderColor: "rgba(0,0,0,0.04)" },
-  modalBankCardActive: { backgroundColor: Colors.finance_accent + "11" },
-  modalBankName: { fontSize: 13, fontFamily: Fonts.Bold, color: "#333", flex: 1 },
-  modalBankNameActive: { color: Colors.finance_accent },
-  modalBankSub: { fontSize: 10, color: "#666", marginTop: 2, fontFamily: Fonts.Medium },
-  closeBtn: { marginTop: 15, paddingVertical: 10, width: "100%", alignItems: "center", backgroundColor: "#F5F5F5", borderRadius: 10 },
-  closeBtnText: { fontFamily: Fonts.Bold, color: "#333", fontSize: 13 },
+
+  // Bank modal
+  bankOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
+  bankModal: { width: "88%", backgroundColor: "#fff", borderRadius: 20, padding: 18, alignItems: "center", elevation: 10 },
+  bankModalTitle: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.finance_text, marginBottom: 15 },
+  bankItem: { width: "100%", paddingVertical: 12, paddingHorizontal: 4, borderBottomWidth: 1, borderColor: "rgba(0,0,0,0.04)" },
+  bankItemActive: { backgroundColor: Colors.finance_accent + "11" },
+  bankName: { fontSize: 13, fontFamily: Fonts.Bold, color: "#333", flex: 1 },
+  bankSub: { fontSize: 10, color: "#666", marginTop: 2, fontFamily: Fonts.Medium },
+  bankCloseBtn: { marginTop: 15, paddingVertical: 10, width: "100%", alignItems: "center", backgroundColor: "#F5F5F5", borderRadius: 10 },
+  bankCloseTxt: { fontFamily: Fonts.Bold, color: "#333", fontSize: 13 },
+
+  // Loader
   loaderOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", alignItems: "center", zIndex: 999 },
-  loaderText: { color: "#FFF", fontFamily: Fonts.Medium, fontSize: 14, marginTop: 8 },
-  alertOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", zIndex: 1000 },
-  alertContent: { width: "84%", backgroundColor: "#fff", borderRadius: 24, padding: 25, alignItems: "center", elevation: 12 },
-  alertIconCircle: { width: 56, height: 56, borderRadius: 28, justifyContent: "center", alignItems: "center", marginBottom: 15 },
-  alertTitle: { fontSize: 18, fontFamily: Fonts.Bold, color: Colors.finance_text, marginBottom: 8 },
-  alertMessage: { fontSize: 13, color: "#666", textAlign: "center", marginBottom: 20, fontFamily: Fonts.Medium, lineHeight: 18 },
-  alertBtn: { width: "100%", paddingVertical: 12, borderRadius: 12, alignItems: "center", elevation: 2 },
+  loaderTxt: { color: "#FFF", fontFamily: Fonts.Medium, fontSize: 14, marginTop: 8 },
 });
