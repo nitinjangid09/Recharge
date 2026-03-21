@@ -144,7 +144,7 @@ export default function OTP({ navigation, route }) {
   };
 
   /* ── Fade out → navigate ────────────────────────────────────────────────── */
-  const navigateTo = (screenName) => {
+  const navigateTo = (screenName, params = {}) => {
     Animated.timing(fadeAnim, {
       toValue: 0,
       duration: 300,
@@ -152,7 +152,7 @@ export default function OTP({ navigation, route }) {
     }).start(() => {
       navigation.reset({
         index: 0,
-        routes: [{ name: screenName }],
+        routes: [{ name: screenName, params }],
       });
     });
   };
@@ -202,10 +202,8 @@ export default function OTP({ navigation, route }) {
           navigateTo("KycSubmitted");
         } else if (kycStatus === "approved") {
           navigateTo("FinanceHome");
-        } else if (kycStatus === "pending" || kycStatus === "rejected") {
-          navigateTo("Offlinekyc");
         } else {
-          navigateTo("Offlinekyc");
+          navigateTo("Offlinekyc", { user: result.user });
         }
       } else {
         triggerShake();
