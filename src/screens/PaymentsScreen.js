@@ -157,10 +157,10 @@ export default function PaymentsScreen({ navigation }) {
             >
               <View>
                 <Text style={styles.bannerText}>
-                  pay your recharge,{"\n"}electricity, credit card &
+                  Pay your recharge,{"\n"}electricity, credit card &
                   {"\n"}other bills using
                 </Text>
-                <Text style={styles.postpe}>postpe...</Text>
+                <Text style={styles.postpe}>Pay bill...</Text>
               </View>
 
               <Image

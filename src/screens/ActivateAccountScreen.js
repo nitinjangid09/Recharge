@@ -14,6 +14,8 @@ import {
     Clipboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { redeemCoupon } from '../api/AuthApi';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -109,17 +111,26 @@ function CouponPanel({ onSuccess }) {
     const [loading, setLoad] = useState(false);
     const float = useFloat();
 
-    const apply = () => {
+    const apply = async () => {
         if (!code.trim()) {
             setErr('Coupon code is required');
             return;
         }
         setErr('');
         setLoad(true);
-        setTimeout(() => {
+        try {
+            const headerToken = await AsyncStorage.getItem("header_token");
+            const res = await redeemCoupon({ couponCode: code.trim(), headerToken });
             setLoad(false);
-            onSuccess('Account activated! 🎉');
-        }, 1800);
+            if (res && res.success) {
+                onSuccess(res.message || 'Account activated! 🎉');
+            } else {
+                setErr(res.message || 'Coupon not applicable, contact admin');
+            }
+        } catch (e) {
+            setLoad(false);
+            setErr('Something went wrong. Please try again.');
+        }
     };
 
     return (
@@ -484,6 +495,16 @@ export default function ActivateAccountScreen({ navigation }) {
         setTimeout(() => setToast(t => ({ ...t, visible: false })), 2800);
     };
 
+    const handleSuccess = (msg) => {
+        showToast(msg, 'success');
+        setTimeout(() => {
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Offlinekyc' }],
+            });
+        }, 1500);
+    };
+
     const TABS = [
         { key: 'coupon', label: 'Coupon', icon: '🎟️' },
         { key: 'online', label: 'Online', icon: '💳' },
@@ -564,14 +585,14 @@ export default function ActivateAccountScreen({ navigation }) {
                 {/* ── Panel Content ── */}
                 <View style={styles.panelWrap}>
                     {activeTab === 'coupon' && (
-                        <CouponPanel onSuccess={msg => showToast(msg, 'success')} />
+                        <CouponPanel onSuccess={handleSuccess} />
                     )}
                     {activeTab === 'online' && (
-                        <OnlinePanel onSuccess={msg => showToast(msg, 'success')} />
+                        <OnlinePanel onSuccess={handleSuccess} />
                     )}
                     {activeTab === 'bank' && (
                         <BankPanel
-                            onSuccess={msg => showToast(msg, 'success')}
+                            onSuccess={handleSuccess}
                             onError={msg => showToast(msg, 'error')}
                         />
                     )}

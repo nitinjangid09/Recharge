@@ -865,4 +865,23 @@ export const validateBbpsBill = async ({ billerId, customerParams, headerToken }
     return { success: false, message: error.message || "Network error" };
   }
 };
+
+/**
+ * redeemCoupon
+ * @param {{ couponCode: string, headerToken: string }} params
+ */
+export const redeemCoupon = async ({ couponCode, headerToken }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/coupon/redeem-coupon`, { couponCode }, {
+      headers: { 
+        Authorization: `Bearer ${headerToken}`,
+        "Content-Type": "application/json"
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Redeem Coupon Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Coupon verification failed" };
+  }
+};
 

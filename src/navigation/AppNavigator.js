@@ -14,6 +14,7 @@ import FinanceHome from '../screens/FinanceHome';
 import test from '../screens/test';
 import Login from '../screens/Login';
 import Otp from '../screens/Otp';
+import ActivateAccountScreen from '../screens/ActivateAccountScreen';
 import PaymentsScreen from '../screens/PaymentsScreen';
 import StorePlans from '../screens/StorePlans';
 import FlexiPlan from '../screens/FlexiPlan';
@@ -179,7 +180,7 @@ const AppNavigator = () => {
       <Stack.Screen name="KycSubmitted" component={KycSubmitted} />
       <Stack.Screen name="OfflineTopup" component={OfflineTopup} />
       <Stack.Screen name="BbpsDynamicServiceScreen" component={BbpsDynamicServiceScreen} />
-
+      <Stack.Screen name="ActivateAccountScreen" component={ActivateAccountScreen} />
     </Stack.Navigator>
   );
 };

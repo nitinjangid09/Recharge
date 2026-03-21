@@ -197,13 +197,20 @@ export default function OTP({ navigation, route }) {
         // ✅ Save fresh token + full user data from this login response
         await saveSessionToStorage(result);
 
+        const isPaymentRequired = result?.isPaymentRequired;
+        const isPaymentDone = result?.user?.isPaymentDone;
         const kycStatus = result?.user?.kycStatus;
-        if (kycStatus === "submitted") {
-          navigateTo("KycSubmitted");
-        } else if (kycStatus === "approved") {
-          navigateTo("FinanceHome");
+
+        if (isPaymentRequired === true && isPaymentDone === false) {
+          navigateTo("ActivateAccountScreen");
         } else {
-          navigateTo("Offlinekyc", { user: result.user });
+          if (kycStatus === "submitted") {
+            navigateTo("KycSubmitted");
+          } else if (kycStatus === "approved") {
+            navigateTo("FinanceHome");
+          } else {
+            navigateTo("Offlinekyc", { user: result.user });
+          }
         }
       } else {
         triggerShake();
