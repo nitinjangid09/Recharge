@@ -1,12 +1,14 @@
 import React, { useState, useRef, useCallback } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   ScrollView, Animated, Dimensions, StatusBar,
   KeyboardAvoidingView, Platform, ActivityIndicator,
-  Alert, Image, PixelRatio, useWindowDimensions,
+  Alert, Image, PixelRatio, useWindowDimensions, Modal,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { launchImageLibrary, launchCamera } from "react-native-image-picker";
 import Colors from "../../constants/Colors";
@@ -83,22 +85,24 @@ const STEPS = [
 ];
 
 const RX = {
-  email:   /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  email:   /^\S+@\S+\.\S+$/,
   phone:   /^[6-9]\d{9}$/,
   pincode: /^\d{6}$/,
   dob:     /^(0[1-9]|[12]\d|3[01])-(0[1-9]|1[0-2])-\d{4}$/,
-  pan:     /^[A-Z]{5}[0-9]{4}[A-Z]$/,
+  pan:     /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
   aadhaar: /^\d{12}$/,
   ifsc:    /^[A-Z]{4}0[A-Z0-9]{6}$/,
-  gst:     /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/,
+  gst:     /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
   name:    /^[a-zA-Z\s]{2,50}$/,
-  accNum:  /^\d{9,18}$/,
+  accNum:  /^[0-9]{9,20}$/,
+  accountHolderName: /^[A-Za-z\s.]+$/,
+  bankName: /^[A-Za-z\s.&]+$/,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MAIN COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
-export default function Offlinekyc({ navigation }) {
+export default function Offlinekyc({ navigation, route }) {
   const C      = resolveColors();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions(); // reactive to orientation changes
@@ -115,15 +119,56 @@ export default function Offlinekyc({ navigation }) {
   const [ifscOk,   setIfscOk]   = useState(false);
   const [showAcc,  setShowAcc]  = useState(false);
   const [errors,   setErrors]   = useState({});
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const slideAnim = useRef(new Animated.Value(0)).current;
+  const scrollViewRef = useRef(null);
+  const fieldCoords = useRef({});
+
+  const scrollToError = (errs) => {
+    const firstErrorKey = Object.keys(errs)[0];
+    if (firstErrorKey && fieldCoords.current[firstErrorKey] !== undefined) {
+      scrollViewRef.current?.scrollTo({
+        y: Math.max(0, fieldCoords.current[firstErrorKey] - 20),
+        animated: true,
+      });
+    }
+  };
 
   // ── Form state ────────────────────────────────────────────────────────────
   const [personal, setPersonal] = useState({
-    firstName: "", lastName: "", fatherName: "", gender: "Male",
-    email: "", phone: "", dob: "",
+    firstName: route?.params?.user?.firstName || "",
+    lastName: route?.params?.user?.lastName || "",
+    fatherName: "", gender: "",
+    email: route?.params?.user?.email || "",
+    phone: route?.params?.user?.phone || "",
+    dob: "",
     personalAddress: "", personalCity: "", personalState: "", personalPincode: "",
   });
+
+  React.useEffect(() => {
+    if (!route?.params?.user) {
+      const loadUserData = async () => {
+        try {
+          const uStr = await AsyncStorage.getItem("user_profile");
+          if (uStr) {
+            const u = JSON.parse(uStr);
+            setPersonal(p => ({
+              ...p,
+              firstName: p.firstName || u.firstName || "",
+              lastName: p.lastName || u.lastName || "",
+              email: p.email || u.email || "",
+              phone: p.phone || u.phone || "",
+            }));
+          }
+        } catch (err) {
+          console.error("Offlinekyc loadUserData error:", err);
+        }
+      };
+      loadUserData();
+    }
+  }, [route?.params?.user]);
 
   const [business, setBusiness] = useState({
     shopName: "", businessPanNumber: "", gstNumber: "",
@@ -135,7 +180,7 @@ export default function Offlinekyc({ navigation }) {
 
   const [banking, setBanking] = useState({
     accountHolderName: "", bankName: "", accountNumber: "",
-    confirmAccountNumber: "", branchName: "", ifscCode: "",
+    confirmAccountNumber: "", ifscCode: "",
     _bankAddress: "", _bankCity: "", _bankState: "",
   });
 
@@ -154,79 +199,94 @@ export default function Offlinekyc({ navigation }) {
   // ── Validators ────────────────────────────────────────────────────────────
   const validatePersonal = () => {
     const e = {};
+    if (!personal.gender) e.gender = "Required";
+    else if (!["male", "female", "other"].includes(personal.gender.toLowerCase())) e.gender = "Invalid gender";
     if (!personal.firstName.trim()) e.firstName = "Required";
-    else if (!RX.name.test(personal.firstName.trim())) e.firstName = "Letters only, 2–50 chars";
+    else if (personal.firstName.trim().length < 3 || personal.firstName.trim().length > 30) e.firstName = "Min 3, Max 30 chars";
     if (!personal.lastName.trim()) e.lastName = "Required";
-    else if (!RX.name.test(personal.lastName.trim())) e.lastName = "Letters only, 2–50 chars";
+    else if (personal.lastName.trim().length < 3 || personal.lastName.trim().length > 30) e.lastName = "Min 3, Max 30 chars";
     if (!personal.fatherName.trim()) e.fatherName = "Required";
-    else if (!RX.name.test(personal.fatherName.trim())) e.fatherName = "Letters only";
+    else if (personal.fatherName.trim().length < 3 || personal.fatherName.trim().length > 50) e.fatherName = "Min 3, Max 50 chars";
     if (!personal.email.trim()) e.email = "Required";
-    else if (!RX.email.test(personal.email.trim())) e.email = "Invalid email";
+    else if (!RX.email.test(personal.email.trim())) e.email = "Invalid email format";
     if (!personal.phone.trim()) e.phone = "Required";
-    else if (!RX.phone.test(personal.phone.trim())) e.phone = "Valid 10-digit mobile";
+    else if (!RX.phone.test(personal.phone.trim())) e.phone = "Invalid Indian phone number";
     if (!personal.dob.trim()) e.dob = "Required";
     else if (!RX.dob.test(personal.dob.trim())) e.dob = "DD-MM-YYYY";
     else {
       const [dd, mm, yyyy] = personal.dob.split("-").map(Number);
-      const age = new Date().getFullYear() - yyyy -
-        (new Date() < new Date(new Date().getFullYear(), mm - 1, dd) ? 1 : 0);
-      if (age < 18) e.dob = "Must be ≥ 18 years";
+      const dobDate = new Date(yyyy, mm - 1, dd);
+      const today = new Date();
+      if (dobDate > today) e.dob = "User must be at least 18 years old and DOB cannot be in the future";
+      else {
+        const ageDiff = today.getFullYear() - dobDate.getFullYear();
+        const m = today.getMonth() - dobDate.getMonth();
+        const age = m < 0 || (m === 0 && today.getDate() < dobDate.getDate()) ? ageDiff - 1 : ageDiff;
+        if (age < 18) e.dob = "User must be at least 18 years old and DOB cannot be in the future";
+      }
     }
     if (!personal.personalAddress.trim()) e.personalAddress = "Required";
-    else if (personal.personalAddress.trim().length < 10) e.personalAddress = "Min 10 characters";
+    else if (personal.personalAddress.trim().length < 5 || personal.personalAddress.trim().length > 100) e.personalAddress = "Min 5, Max 100 chars";
     if (!personal.personalPincode.trim()) e.personalPincode = "Required";
-    else if (!RX.pincode.test(personal.personalPincode.trim())) e.personalPincode = "6-digit pincode";
+    else if (!RX.pincode.test(personal.personalPincode.trim())) e.personalPincode = "Invalid pincode";
     if (!personal.personalState.trim()) e.personalState = "Required";
     if (!personal.personalCity.trim()) e.personalCity = "Required";
     setErrors(e);
-    return Object.keys(e).length === 0;
+    return e;
   };
 
   const validateBusiness = () => {
     const e = {};
     if (!business.shopName.trim()) e.shopName = "Required";
     if (!business.businessAddress.trim()) e.businessAddress = "Required";
-    else if (business.businessAddress.trim().length < 10) e.businessAddress = "Min 10 characters";
+    else if (business.businessAddress.trim().length < 5 || business.businessAddress.trim().length > 100) e.businessAddress = "Min 5, Max 100 chars";
     if (!business.businessPincode.trim()) e.businessPincode = "Required";
-    else if (!RX.pincode.test(business.businessPincode.trim())) e.businessPincode = "6-digit pincode";
+    else if (!RX.pincode.test(business.businessPincode.trim())) e.businessPincode = "Invalid pincode";
     if (!business.businessState.trim()) e.businessState = "Required";
     if (!business.businessCity.trim()) e.businessCity = "Required";
     if (!business.panNumber.trim()) e.panNumber = "Required";
-    else if (!RX.pan.test(business.panNumber.trim())) e.panNumber = "Format: ABCDE1234F";
+    else if (!RX.pan.test(business.panNumber.trim())) e.panNumber = "Invalid PAN number";
     if (!business.aadharNumber.trim()) e.aadharNumber = "Required";
-    else if (!RX.aadhaar.test(business.aadharNumber.trim())) e.aadharNumber = "12-digit Aadhaar";
+    else if (!RX.aadhaar.test(business.aadharNumber.trim())) e.aadharNumber = "Invalid Aadhaar number";
     if (business.businessPanNumber?.trim() && !RX.pan.test(business.businessPanNumber.trim()))
-      e.businessPanNumber = "Format: ABCDE1234F";
+      e.businessPanNumber = "Invalid Business PAN";
     if (business.gstNumber?.trim() && !RX.gst.test(business.gstNumber.trim()))
-      e.gstNumber = "15-char GST number";
+      e.gstNumber = "Invalid GST number";
     if (!files.aadharFile) e.aadharFile = "Aadhaar photo required";
     if (!files.panFile)    e.panFile    = "PAN card photo required";
     if (!files.shopImage)  e.shopImage  = "Shop photo required";
     setErrors(e);
-    return Object.keys(e).length === 0;
+    return e;
   };
 
   const validateBanking = () => {
     const e = {};
     if (!banking.accountHolderName.trim()) e.accountHolderName = "Required";
-    else if (!RX.name.test(banking.accountHolderName.trim())) e.accountHolderName = "Letters only";
+    else if (banking.accountHolderName.trim().length < 2 || banking.accountHolderName.trim().length > 60) e.accountHolderName = "Min 2, Max 60 chars";
+    else if (!RX.accountHolderName.test(banking.accountHolderName.trim())) e.accountHolderName = "Account holder name can contain only letters";
     if (!banking.bankName.trim()) e.bankName = "Required";
+    else if (banking.bankName.trim().length < 2 || banking.bankName.trim().length > 80) e.bankName = "Min 2, Max 80 chars";
+    else if (!RX.bankName.test(banking.bankName.trim())) e.bankName = "Invalid bank name";
     if (!banking.accountNumber.trim()) e.accountNumber = "Required";
-    else if (!RX.accNum.test(banking.accountNumber.trim())) e.accountNumber = "9–18 digit number";
+    else if (!RX.accNum.test(banking.accountNumber.trim())) e.accountNumber = "Account number must be 9–20 digits";
     if (!banking.confirmAccountNumber.trim()) e.confirmAccountNumber = "Please confirm";
     else if (banking.accountNumber !== banking.confirmAccountNumber)
       e.confirmAccountNumber = "Numbers don't match";
-    if (!banking.branchName.trim()) e.branchName = "Required";
     if (!banking.ifscCode.trim()) e.ifscCode = "Required";
-    else if (!RX.ifsc.test(banking.ifscCode.trim())) e.ifscCode = "Format: HDFC0001234";
+    else if (!RX.ifsc.test(banking.ifscCode.trim())) e.ifscCode = banking.ifscCode + " is not a valid IFSC code";
     setErrors(e);
-    return Object.keys(e).length === 0;
+    return e;
   };
 
   // ── Navigation ────────────────────────────────────────────────────────────
   const handleNext = () => {
-    if (step === 0 && !validatePersonal()) return;
-    if (step === 1 && !validateBusiness()) return;
+    let errs = {};
+    if (step === 0) errs = validatePersonal();
+    if (step === 1) errs = validateBusiness();
+    if (Object.keys(errs).length > 0) {
+      scrollToError(errs);
+      return;
+    }
     setErrors({});
     slide("fwd", () => setStep(p => p + 1));
   };
@@ -247,7 +307,6 @@ export default function Offlinekyc({ navigation }) {
         setBanking(b => ({
           ...b,
           bankName,
-          branchName:   d.branch  || d.BRANCH  || b.branchName,
           _bankAddress: d.address || d.ADDRESS || "",
           _bankCity:    d.city    || d.CITY    || "",
           _bankState:   d.state   || d.STATE   || "",
@@ -287,7 +346,11 @@ export default function Offlinekyc({ navigation }) {
 
   // ── Submit ────────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
-    if (!validateBanking()) return;
+    const errs = validateBanking();
+    if (Object.keys(errs).length > 0) {
+      scrollToError(errs);
+      return;
+    }
     setLoading(true);
     const result = await submitOfflineKyc({ personal, business, files, banking });
     setLoading(false);
@@ -295,9 +358,7 @@ export default function Offlinekyc({ navigation }) {
     const ok = result.success === true || result.status === "success" ||
                result.status === 1 || result.statusCode === 200;
     if (ok) {
-      Alert.alert("✓ KYC Submitted",
-        result.message || "Your KYC is under review. We'll notify you once approved.",
-        [{ text: "OK", onPress: () => navigation.replace("FinanceHome") }]);
+      setShowSuccessModal(true);
     } else {
       if (result.errors && typeof result.errors === "object") setErrors(result.errors);
       Alert.alert("Submission Failed", result.message || "Check your details and try again.");
@@ -392,6 +453,7 @@ export default function Offlinekyc({ navigation }) {
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <Animated.View style={[{ flex: 1 }, { transform: [{ translateX: slideAnim }] }]}>
           <ScrollView
+            ref={scrollViewRef}
             contentContainerStyle={[S.scrollContent, {
               paddingHorizontal: hs(16),
               paddingBottom: vs(40),
@@ -406,7 +468,7 @@ export default function Offlinekyc({ navigation }) {
                 <SectionBanner icon="account-circle-outline" title="Personal Details"
                   sub="Your identity & contact information" />
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}>
+                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap} onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.firstName = y; fieldCoords.current.lastName = y; }}>
                   <Field label="First Name" value={personal.firstName}
                     onChange={v => setPersonal(p => ({ ...p, firstName: v }))}
                     error={errors.firstName} placeholder="First name" maxLength={50} />
@@ -415,15 +477,16 @@ export default function Offlinekyc({ navigation }) {
                     error={errors.lastName} placeholder="Last name" maxLength={50} />
                 </TwoCol>
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}>
+                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap} onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.fatherName = y; fieldCoords.current.gender = y; }}>
                   <Field label="Father's Name" value={personal.fatherName}
                     onChange={v => setPersonal(p => ({ ...p, fatherName: v }))}
                     error={errors.fatherName} placeholder="Father's full name" maxLength={50} />
                   <GenderSelect value={personal.gender}
-                    onChange={v => setPersonal(p => ({ ...p, gender: v }))} />
+                    onChange={v => setPersonal(p => ({ ...p, gender: v }))}
+                    error={errors.gender} />
                 </TwoCol>
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}>
+                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap} onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.email = y; fieldCoords.current.phone = y; }}>
                   <Field label="Email Address" value={personal.email}
                     onChange={v => setPersonal(p => ({ ...p, email: v.toLowerCase() }))}
                     error={errors.email} placeholder="you@email.com"
@@ -434,22 +497,44 @@ export default function Offlinekyc({ navigation }) {
                     keyboardType="number-pad" maxLength={10} hint="Starts with 6–9" />
                 </TwoCol>
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}>
-                  <Field label="Date of Birth" value={personal.dob}
-                    onChange={v => {
-                      let c = v.replace(/\D/g, "");
-                      if (c.length > 2) c = c.slice(0, 2) + "-" + c.slice(2);
-                      if (c.length > 5) c = c.slice(0, 5) + "-" + c.slice(5);
-                      setPersonal(p => ({ ...p, dob: c.slice(0, 10) }));
-                    }}
-                    error={errors.dob} placeholder="DD-MM-YYYY"
-                    keyboardType="number-pad" maxLength={10} hint="Min age: 18 years" />
+                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap} onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.dob = y; fieldCoords.current.personalState = y; }}>
+                  <View>
+                    <TouchableOpacity onPress={() => setShowDatePicker(true)} activeOpacity={0.8}>
+                      <View pointerEvents="none">
+                        <Field label="Date of Birth" value={personal.dob}
+                          onChange={() => {}}
+                          error={errors.dob} placeholder="DD-MM-YYYY"
+                          hint="Min age: 18 years" />
+                      </View>
+                    </TouchableOpacity>
+                    {showDatePicker && (
+                      <DateTimePicker
+                        value={
+                          personal.dob && RX.dob.test(personal.dob)
+                            ? (() => { const [d, m, y] = personal.dob.split('-'); return new Date(y, m - 1, d); })()
+                            : new Date()
+                        }
+                        mode="date"
+                        display="default"
+                        maximumDate={new Date()}
+                        onChange={(event, selectedDate) => {
+                          setShowDatePicker(Platform.OS === 'ios');
+                          if (selectedDate) {
+                            const d = String(selectedDate.getDate()).padStart(2, '0');
+                            const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
+                            const y = selectedDate.getFullYear();
+                            setPersonal(p => ({ ...p, dob: `${d}-${m}-${y}` }));
+                          }
+                        }}
+                      />
+                    )}
+                  </View>
                   <Field label="State" value={personal.personalState}
                     onChange={v => setPersonal(p => ({ ...p, personalState: v }))}
                     error={errors.personalState} placeholder="e.g. Rajasthan" />
                 </TwoCol>
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}>
+                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap} onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.personalPincode = y; fieldCoords.current.personalCity = y; }}>
                   <Field label="Pincode" value={personal.personalPincode}
                     onChange={v => { if (/^\d*$/.test(v) && v.length <= 6) setPersonal(p => ({ ...p, personalPincode: v })); }}
                     error={errors.personalPincode} placeholder="6-digit pincode"
@@ -459,7 +544,7 @@ export default function Offlinekyc({ navigation }) {
                     error={errors.personalCity} placeholder="e.g. Jaipur" />
                 </TwoCol>
 
-                <Field label="Full Address" value={personal.personalAddress}
+                <Field onLayout={e => fieldCoords.current.personalAddress = e.nativeEvent.layout.y} label="Full Address" value={personal.personalAddress}
                   onChange={v => setPersonal(p => ({ ...p, personalAddress: v }))}
                   error={errors.personalAddress} multiline
                   placeholder="House no., Street, Area, Landmark"
@@ -473,11 +558,11 @@ export default function Offlinekyc({ navigation }) {
                 <SectionBanner icon="store-outline" title="Business Information"
                   sub="Shop details & owner identification" />
 
-                <Field label="Shop / Business Name" value={business.shopName}
+                <Field onLayout={e => fieldCoords.current.shopName = e.nativeEvent.layout.y} label="Shop / Business Name" value={business.shopName}
                   onChange={v => setBusiness(b => ({ ...b, shopName: v }))}
                   error={errors.shopName} placeholder="Your shop name" maxLength={100} />
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}>
+                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap} onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.businessPanNumber = y; fieldCoords.current.gstNumber = y; }}>
                   <Field label="Business PAN" value={business.businessPanNumber}
                     onChange={v => setBusiness(b => ({ ...b, businessPanNumber: v.toUpperCase() }))}
                     placeholder="ABCDE1234F" maxLength={10}
@@ -488,12 +573,12 @@ export default function Offlinekyc({ navigation }) {
                     error={errors.gstNumber} required={false} />
                 </TwoCol>
 
-                <Field label="Shop Address" value={business.businessAddress}
+                <Field onLayout={e => fieldCoords.current.businessAddress = e.nativeEvent.layout.y} label="Shop Address" value={business.businessAddress}
                   onChange={v => setBusiness(b => ({ ...b, businessAddress: v }))}
                   error={errors.businessAddress} multiline
                   placeholder="Full shop address with landmark" hint="Minimum 10 characters" />
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}>
+                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap} onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.businessPincode = y; fieldCoords.current.businessState = y; }}>
                   <Field label="Pincode" value={business.businessPincode}
                     onChange={v => { if (/^\d*$/.test(v) && v.length <= 6) setBusiness(b => ({ ...b, businessPincode: v })); }}
                     error={errors.businessPincode} placeholder="6-digit pincode"
@@ -503,13 +588,13 @@ export default function Offlinekyc({ navigation }) {
                     error={errors.businessState} placeholder="e.g. Rajasthan" />
                 </TwoCol>
 
-                <Field label="City" value={business.businessCity}
+                <Field onLayout={e => fieldCoords.current.businessCity = e.nativeEvent.layout.y} label="City" value={business.businessCity}
                   onChange={v => setBusiness(b => ({ ...b, businessCity: v }))}
                   error={errors.businessCity} placeholder="e.g. Jaipur" />
 
                 <Divider label="OWNER IDENTIFICATION" />
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}>
+                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap} onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.panNumber = y; fieldCoords.current.aadharNumber = y; }}>
                   <Field label="Personal PAN" value={business.panNumber}
                     onChange={v => setBusiness(b => ({ ...b, panNumber: v.toUpperCase() }))}
                     error={errors.panNumber} placeholder="ABCDE1234F"
@@ -527,7 +612,7 @@ export default function Offlinekyc({ navigation }) {
                 </Text>
 
                 {/* Document slots — 2-col on wide, 1-col on narrow */}
-                <View style={[S.docGrid, isWide && { flexDirection: "row", flexWrap: "wrap", gap: colGap }]}>
+                <View style={[S.docGrid, isWide && { flexDirection: "row", flexWrap: "wrap", gap: colGap }]} onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.aadharFile = y; fieldCoords.current.panFile = y; fieldCoords.current.shopImage = y; }}>
                   {[
                     { key: "aadharFile", label: "Aadhaar Card",  sub: "Front side",      icon: "card-account-details",         color: "#3B82F6" },
                     { key: "panFile",    label: "PAN Card",      sub: "Clear photo",      icon: "card-account-details-outline", color: "#8B5CF6" },
@@ -607,7 +692,7 @@ export default function Offlinekyc({ navigation }) {
                 <SectionBanner icon="bank-outline" title="Banking Details"
                   sub="For settlements and commissions" />
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}>
+                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap} onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.accountHolderName = y; fieldCoords.current.bankName = y; }}>
                   <Field label="Account Holder Name" value={banking.accountHolderName}
                     onChange={v => setBanking(b => ({ ...b, accountHolderName: v }))}
                     error={errors.accountHolderName} placeholder="As per bank records" maxLength={50} />
@@ -617,7 +702,7 @@ export default function Offlinekyc({ navigation }) {
                 </TwoCol>
 
                 {/* Account number with eye toggle */}
-                <FieldWrap label="Account Number" required error={errors.accountNumber}>
+                <FieldWrap onLayout={e => fieldCoords.current.accountNumber = e.nativeEvent.layout.y} label="Account Number" required error={errors.accountNumber}>
                   <View style={[S.inputRow,
                     errors.accountNumber && { borderColor: T.error, backgroundColor: T.error + "06" }
                   ]}>
@@ -640,7 +725,7 @@ export default function Offlinekyc({ navigation }) {
                   </View>
                 </FieldWrap>
 
-                <Field label="Confirm Account Number" value={banking.confirmAccountNumber}
+                <Field onLayout={e => fieldCoords.current.confirmAccountNumber = e.nativeEvent.layout.y} label="Confirm Account Number" value={banking.confirmAccountNumber}
                   onChange={v => {
                     if (/^\d*$/.test(v) && v.length <= 18)
                       setBanking(b => ({ ...b, confirmAccountNumber: v }));
@@ -651,7 +736,7 @@ export default function Offlinekyc({ navigation }) {
                   hint="Both numbers must match" />
 
                 {/* IFSC with inline badge */}
-                <FieldWrap label="IFSC Code" required error={errors.ifscCode}
+                <FieldWrap onLayout={e => fieldCoords.current.ifscCode = e.nativeEvent.layout.y} label="IFSC Code" required error={errors.ifscCode}
                   hint={!errors.ifscCode ? "Type 11-char IFSC to auto-fill bank & branch" : undefined}
                 >
                   <View style={[S.inputRow,
@@ -686,15 +771,6 @@ export default function Offlinekyc({ navigation }) {
                     </View>
                   </View>
                 </FieldWrap>
-
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}>
-                  <Field label="Branch Name" value={banking.branchName}
-                    onChange={v => setBanking(b => ({ ...b, branchName: v }))}
-                    error={errors.branchName} placeholder="Branch name" />
-                  <Field label="Bank Name" value={banking.bankName}
-                    onChange={v => setBanking(b => ({ ...b, bankName: v }))}
-                    placeholder="Auto-filled from IFSC" required={false} />
-                </TwoCol>
 
                 {/* IFSC auto-fill info box */}
                 {(!!banking._bankAddress || !!banking._bankCity) && (
@@ -784,6 +860,34 @@ export default function Offlinekyc({ navigation }) {
           </ScrollView>
         </Animated.View>
       </KeyboardAvoidingView>
+
+      {/* ── Custom Success Modal ── */}
+      <Modal transparent visible={showSuccessModal} animationType="fade" onRequestClose={() => {}}>
+        <View style={S.modalOverlay}>
+          <View style={S.modalCard}>
+            <View style={S.modalIconWrap}>
+              <Icon name="check-decagram" size={rs(44)} color={T.success} />
+            </View>
+            <Text style={S.modalTitle}>KYC Submitted Successfully</Text>
+            <Text style={S.modalSub}>
+              Your KYC details have been safely received and are currently under review. We'll notify you once approved!
+            </Text>
+            <TouchableOpacity
+              style={S.modalBtn}
+              activeOpacity={0.8}
+              onPress={() => {
+                setShowSuccessModal(false);
+                navigation.replace("FinanceHome");
+              }}
+            >
+              <LinearGradient colors={[T.accent, T.accentDark]} style={S.modalBtnGrad}>
+                <Text style={S.modalBtnText}>Continue to Home</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 }
@@ -793,13 +897,13 @@ export default function Offlinekyc({ navigation }) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Responsive two-column row: side-by-side on wide screens, stacked on narrow */
-function TwoCol({ children, isWide, halfWidth, gap }) {
+function TwoCol({ children, isWide, halfWidth, gap, onLayout }) {
   const kids = React.Children.toArray(children);
   if (!isWide) {
-    return <>{kids}</>;
+    return <View onLayout={onLayout} style={{ flex: 1 }}>{kids}</View>;
   }
   return (
-    <View style={{ flexDirection: "row", gap, marginBottom: 0 }}>
+    <View style={{ flexDirection: "row", gap, marginBottom: 0 }} onLayout={onLayout}>
       {kids.map((child, i) => (
         <View key={i} style={{ width: halfWidth }}>
           {child}
@@ -810,9 +914,9 @@ function TwoCol({ children, isWide, halfWidth, gap }) {
 }
 
 /** Generic field wrapper (label + slot + hint/error) */
-function FieldWrap({ label, required = true, error, hint, children }) {
+function FieldWrap({ label, required = true, error, hint, children, onLayout }) {
   return (
-    <View style={S.fieldWrap}>
+    <View style={S.fieldWrap} onLayout={onLayout}>
       <Text style={[S.fieldLabel, { fontSize: rs(10) }]}>
         {label}
         {required
@@ -830,10 +934,10 @@ function FieldWrap({ label, required = true, error, hint, children }) {
 /** Standard text input field */
 function Field({
   label, value, onChange, placeholder, error, keyboardType,
-  multiline, required = true, maxLength, hint, secureTextEntry,
+  multiline, required = true, maxLength, hint, secureTextEntry, onLayout,
 }) {
   return (
-    <FieldWrap label={label} required={required} error={error} hint={hint}>
+    <FieldWrap label={label} required={required} error={error} hint={hint} onLayout={onLayout}>
       <View style={[
         S.inputRow,
         error    && { borderColor: T.error,        backgroundColor: T.error   + "06" },
@@ -861,9 +965,9 @@ function Field({
 }
 
 /** Gender selector */
-function GenderSelect({ value, onChange }) {
+function GenderSelect({ value, onChange, error, onLayout }) {
   return (
-    <View style={S.fieldWrap}>
+    <View style={S.fieldWrap} onLayout={onLayout}>
       <Text style={[S.fieldLabel, { fontSize: rs(10) }]}>
         Gender <Text style={{ color: T.error }}>*</Text>
       </Text>
@@ -895,6 +999,7 @@ function GenderSelect({ value, onChange }) {
           </TouchableOpacity>
         ))}
       </View>
+      {!!error && <ErrLabel msg={error} />}
     </View>
   );
 }
@@ -1038,4 +1143,14 @@ const S = StyleSheet.create({
   nextBtnOuter:{ borderRadius: hs(14), overflow: "hidden", elevation: 5, shadowColor: T.accent, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
   nextBtnGrad: { flexDirection: "row", alignItems: "center", paddingVertical: vs(14), paddingHorizontal: hs(26) },
   nextBtnText: {},
+
+  // Modal
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", paddingHorizontal: hs(24) },
+  modalCard:    { backgroundColor: T.surface, width: "100%", borderRadius: hs(24), padding: hs(24), alignItems: "center", elevation: 10, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12 },
+  modalIconWrap:{ width: rs(72), height: rs(72), borderRadius: rs(36), backgroundColor: T.success + "15", justifyContent: "center", alignItems: "center", marginBottom: vs(16) },
+  modalTitle:   { color: T.text, fontSize: rs(18), fontFamily: Fonts.Bold, textAlign: "center", marginBottom: vs(8) },
+  modalSub:     { color: T.textSub, fontSize: rs(12), fontFamily: Fonts.Regular, textAlign: "center", lineHeight: rs(18), marginBottom: vs(24) },
+  modalBtn:     { width: "100%", borderRadius: hs(12), overflow: "hidden" },
+  modalBtnGrad: { paddingVertical: vs(14), alignItems: "center", justifyContent: "center" },
+  modalBtnText: { color: T.surface, fontFamily: Fonts.Bold, fontSize: rs(14) },
 });
