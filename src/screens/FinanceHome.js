@@ -362,7 +362,13 @@ export default function FinanceHome({ navigation }) {
 
   // ── Derived ────────────────────────────────────────────────────────────────
   const kyc = KYC_COLOR[kycStatus] || KYC_COLOR.pending;
-  const balance = isAeps ? aepsBalance : mainBalance;
+  const formatBalance = (val) => {
+    if (val === "...") return val;
+    const num = parseFloat(val);
+    if (isNaN(num) || num === 0) return "0.00";
+    return num.toFixed(2);
+  };
+  const balance = formatBalance(isAeps ? aepsBalance : mainBalance);
   const avatar = userName ? userName.charAt(0).toUpperCase() : "U";
   const RESULTS_TOP = insets.top + rs(10) + TOP_ROW_H + rs(6);
 
