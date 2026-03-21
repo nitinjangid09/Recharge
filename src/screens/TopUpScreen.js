@@ -911,29 +911,29 @@ export default function TopUpScreen({ navigation, route }) {
 //  STYLES
 // ─────────────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  safeArea: { flex: 1 },
-  container: { flex: 1 },
-  headerWrapper: { backgroundColor: Colors.finance_bg_1 ?? "#F7F8FA" },
-  mainContent: { paddingHorizontal: 12, paddingBottom: 14 },
+  safeArea: { flex: 1, backgroundColor: Colors.homebg },
+  container: { flex: 1, backgroundColor: Colors.homebg },
+  headerWrapper: { backgroundColor: Colors.homebg },
+  mainContent: { paddingHorizontal: 12, paddingBottom: 14, },
 
   modernCard: {
-    backgroundColor: Colors.white, borderRadius: 16, padding: 12, marginBottom: 12,
+    backgroundColor: Colors.bg, borderRadius: 16, padding: 12, marginBottom: 12,
     borderWidth: 1, borderColor: "rgba(212,176,106,0.15)",
   },
   modernCardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
-  modernCardTitle: { fontSize: 12, fontFamily: Fonts.Bold, color: "#333" },
+  modernCardTitle: { fontSize: 12, fontFamily: Fonts.Bold, color: Colors.primary },
   badge: { backgroundColor: Colors.finance_bg_2, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: Colors.finance_accent },
   badgeText: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.finance_accent },
 
-  modernInputWrapper: { borderBottomWidth: 1, borderBottomColor: "#F0F0F0", paddingBottom: 4 },
-  floatingLabel: { fontSize: 10, color: "#999", fontFamily: Fonts.Medium, marginBottom: 2 },
+  modernInputWrapper: { borderBottomWidth: 1, borderBottomColor: Colors.primary, paddingBottom: 4 },
+  floatingLabel: { fontSize: 10, color: Colors.primary, fontFamily: Fonts.Medium, marginBottom: 2 },
   rowCenter: { flexDirection: "row", alignItems: "center" },
   prefixText: { fontSize: 16, fontFamily: Fonts.Medium, color: "#AAA", marginRight: 8 },
   bigInput: { flex: 1, fontSize: 18, fontFamily: Fonts.Bold, color: Colors.finance_text, padding: 0, height: 34 },
   contactBtnRound: { width: 30, height: 30, borderRadius: 15, backgroundColor: Colors.finance_accent, alignItems: "center", justifyContent: "center" },
 
-  connectionContainer: { backgroundColor: "#F9F9F9", borderRadius: 14, borderWidth: 1, borderColor: "#EEE", overflow: "hidden" },
-  connectionRow: { flexDirection: "row", alignItems: "center", padding: 10 },
+  connectionContainer: { backgroundColor: Colors.white, borderRadius: 14, borderWidth: 1, borderColor: Colors.lightGray, marginTop: 5, overflow: "hidden" },
+  connectionRow: { flexDirection: "row", alignItems: "center", padding: 10, color: "#777" },
   iconBox: { width: 30, height: 30, borderRadius: 8, backgroundColor: Colors.white, alignItems: "center", justifyContent: "center" },
   connectionLabel: { fontSize: 9, fontFamily: Fonts.Bold, color: "#777", textTransform: "uppercase" },
   connectionValues: { fontSize: 12, fontFamily: Fonts.Medium, color: "#000", marginTop: 2 },
@@ -962,7 +962,7 @@ const styles = StyleSheet.create({
   viewPlansGradient: { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 14, gap: 10 },
   viewPlansText: { color: Colors.black, fontFamily: Fonts.Bold, fontSize: 14 },
 
-  actionContainer: { padding: 12, backgroundColor: Colors.finance_bg_1, borderTopWidth: 1, borderTopColor: "rgba(212,176,106,0.1)" },
+  actionContainer: { padding: 12, backgroundColor: Colors.homebg, borderTopWidth: 1, borderTopColor: "rgba(212,176,106,0.1)" },
   sliderWrapper: { height: 60, backgroundColor: Colors.white, borderRadius: 30, borderWidth: 1.5, borderColor: Colors.finance_accent, justifyContent: "center", overflow: "hidden" },
   sliderBackground: { ...StyleSheet.absoluteFillObject, justifyContent: "center", alignItems: "center" },
   swipeText: { color: Colors.finance_accent, fontSize: 14, fontFamily: Fonts.Bold, letterSpacing: 2 },
