@@ -128,7 +128,8 @@ export default function FinanceIntro({ navigation }) {
 
         {/* Button */}
         <Animated.View style={{ opacity: btnAnim }}>
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity onPress={() => navigation.navigate("Signup")}
+            style={styles.button}>
             <Text style={styles.buttonText}>Create new account</Text>
             <Icon
               name="chevron-right"
