@@ -109,6 +109,8 @@ export default function Offlinekyc({ navigation, route }) {
   const [errors, setErrors] = useState({});
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showFailModal, setShowFailModal] = useState(false);
+  const [failMsg, setFailMsg] = useState("");
 
   const [stateList, setStateList] = useState([]);
   const [showStateModal, setShowStateModal] = useState(false);
@@ -411,14 +413,19 @@ export default function Offlinekyc({ navigation, route }) {
     setLoading(true);
     const result = await submitOfflineKyc({ personal, business, files, banking });
     setLoading(false);
-    if (!result) { Alert.alert("Error", "No response. Please try again."); return; }
+    if (!result) {
+      setFailMsg("No response. Please try again.");
+      setShowFailModal(true);
+      return;
+    }
     const ok = result.success === true || result.status === "success" ||
       result.status === 1 || result.statusCode === 200;
     if (ok) {
       setShowSuccessModal(true);
     } else {
       if (result.errors && typeof result.errors === "object") setErrors(result.errors);
-      Alert.alert("Submission Failed", result.message || "Check your details and try again.");
+      setFailMsg(result.message || "Check your details and try again.");
+      setShowFailModal(true);
     }
   };
 
@@ -930,6 +937,28 @@ export default function Offlinekyc({ navigation, route }) {
             >
               <LinearGradient colors={[T.accent, T.accentDark]} style={S.modalBtnGrad}>
                 <Text style={S.modalBtnText}>Continue to Home</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── Custom Failure Modal ── */}
+      <Modal transparent visible={showFailModal} animationType="fade" onRequestClose={() => { setShowFailModal(false); }}>
+        <View style={S.modalOverlay}>
+          <View style={S.modalCard}>
+            <View style={[S.modalIconWrap, { backgroundColor: T.error + "15" }]}>
+              <Icon name="alert-circle-outline" size={rs(44)} color={T.error} />
+            </View>
+            <Text style={S.modalTitle}>Submission Failed</Text>
+            <Text style={S.modalSub}>{failMsg || "Something went wrong. Please check your details and try again."}</Text>
+            <TouchableOpacity
+              style={S.modalBtn}
+              activeOpacity={0.8}
+              onPress={() => setShowFailModal(false)}
+            >
+              <LinearGradient colors={[T.error, "#BE123C"]} style={S.modalBtnGrad}>
+                <Text style={S.modalBtnText}>Try Again</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>

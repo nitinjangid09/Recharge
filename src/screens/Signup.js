@@ -66,10 +66,9 @@ export default function Signup({ navigation }) {
     const fetchRoles = async () => {
         const result = await getRoleList();
         if (result?.success && result?.data) {
-            setRolesList([
-                { label: "Role: 698ef03714f23da91959cf41", value: "698ef03714f23da91959cf41" },
-                ...result.data.map((r) => ({ label: r.name, value: r._id }))
-            ]);
+            setRolesList(
+                result.data.map((r) => ({ label: r.name, value: r._id }))
+            );
         }
     };
 
@@ -109,6 +108,13 @@ export default function Signup({ navigation }) {
         if (phone.length !== 10) {
             triggerShake();
             showAlert("Error", "Please enter a valid 10-digit mobile number");
+            return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email.trim())) {
+            triggerShake();
+            showAlert("Error", "Please enter a valid email address");
             return;
         }
 
@@ -221,44 +227,54 @@ export default function Signup({ navigation }) {
                         {renderInput("Mobile Number", "phone", phone, (text) => setPhone(text.replace(/[^0-9]/g, "")), "phone", "phone-pad", { maxLength: 10 })}
                         {renderInput("Email Address", "email", email, setEmail, "email", "email-address")}
 
-                        <View style={[styles.inputContainer, { zIndex: 1000 }]}>
+                        <View style={[styles.inputContainer, { zIndex: 10 }]}>
                             <Text style={styles.label}>Select Role</Text>
-                            <DropDownPicker
-                                open={roleOpen}
-                                value={role}
-                                items={rolesList}
-                                setOpen={setRoleOpen}
-                                setValue={setRole}
-                                setItems={setRolesList}
-                                theme="DARK"
-                                placeholder="Select Role..."
-                                style={{
-                                    backgroundColor: Colors.button_bg, // dark bg
-                                    borderRadius: 30 * scale,
-                                    borderColor: Colors.button_bg,
-                                    borderWidth: 0,
-                                    height: 50 * scale,
-                                    paddingHorizontal: 20 * scale,
-                                    elevation: 2,
-                                }}
-                                textStyle={{
-                                    color: Colors.white, // white text
-                                    fontFamily: Fonts.Bold,
-                                    fontSize: 14 * scale,
-                                }}
-                                dropDownContainerStyle={{
-                                    backgroundColor: Colors.button_bg,
-                                    borderColor: Colors.button_bg,
-                                    borderRadius: 15 * scale,
-                                    elevation: 5,
-                                    shadowColor: Colors.black,
-                                    shadowOffset: { width: 0, height: 4 },
-                                    shadowOpacity: 0.3,
-                                    shadowRadius: 5,
-                                }}
-                                arrowIconStyle={{ tintColor: Colors.white }}
-                                tickIconStyle={{ tintColor: Colors.white }}
-                            />
+                            <TouchableOpacity
+                                style={[
+                                    styles.inputBox, 
+                                    { 
+                                        height: 50 * scale, 
+                                        justifyContent: 'space-between', 
+                                        paddingHorizontal: 16 * scale,
+                                        backgroundColor: roleOpen ? Colors.white : Colors.input_bg,
+                                        borderColor: roleOpen ? Colors.input_border_focus : Colors.input_border
+                                    }
+                                ]}
+                                onPress={() => setRoleOpen(!roleOpen)}
+                                activeOpacity={0.85}
+                            >
+                                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                                    <MaterialCommunityIcons name="account-group-outline" size={20} color={role ? Colors.icon_primary : Colors.icon_secondary} style={styles.inputIcon} />
+                                    <Text style={[styles.input, { color: role ? Colors.black : Colors.text_placeholder }]}>
+                                        {rolesList.find(r => r.value === role)?.label || "Select Role..."}
+                                    </Text>
+                                </View>
+                                <MaterialCommunityIcons name="chevron-down" size={20} color={Colors.icon_secondary} />
+                            </TouchableOpacity>
+
+                            {roleOpen && (
+                                <View style={styles.customDropContainer}>
+                                    <ScrollView nestedScrollEnabled style={{ maxHeight: 180 * scale }}>
+                                        {rolesList.map((r, index) => (
+                                            <TouchableOpacity
+                                                key={r.value}
+                                                style={[
+                                                    styles.customDropItem,
+                                                    index === rolesList.length - 1 && { borderBottomWidth: 0 },
+                                                    role === r.value && { backgroundColor: "rgba(255,255,255,0.12)" }
+                                                ]}
+                                                onPress={() => {
+                                                    setRole(r.value);
+                                                    setRoleOpen(false);
+                                                }}
+                                            >
+                                                <Text style={[styles.customDropText, role === r.value && { color: Colors.accent }]}>{r.label}</Text>
+                                                {role === r.value && <MaterialCommunityIcons name="check" size={16} color={Colors.accent} />}
+                                            </TouchableOpacity>
+                                        ))}
+                                    </ScrollView>
+                                </View>
+                            )}
                         </View>
 
                         <Animated.View style={{ transform: [{ scale: btnScale }] }}>
@@ -340,5 +356,30 @@ const styles = StyleSheet.create({
     circle2: {
         position: 'absolute', width: 200 * scale, height: 200 * scale, borderRadius: 100 * scale,
         backgroundColor: Colors.circle_bg, bottom: -40 * scale, left: -40 * scale,
-    }
+    },
+    customDropContainer: {
+        backgroundColor: Colors.button_bg || "#1A1A2E",
+        borderRadius: 16 * scale,
+        marginTop: 6 * scale,
+        elevation: 6,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 8,
+        overflow: 'hidden',
+    },
+    customDropItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 14 * scale,
+        paddingHorizontal: 16 * scale,
+        borderBottomWidth: 1,
+        borderBottomColor: "rgba(255,255,255,0.12)",
+    },
+    customDropText: {
+        fontSize: 14 * scale,
+        fontFamily: Fonts.Medium,
+        color: Colors.white,
+    },
 });

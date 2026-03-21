@@ -97,7 +97,12 @@ export default function OfflineTopup({ navigation }) {
       try {
         const headerToken = await AsyncStorage.getItem("header_token");
         const result = await getAllTopupBanks({ headerToken });
-        if (result?.success) setBanks(result.data || []);
+        const ok = result?.success === true || result?.status === "success" || result?.status === 1 || result?.statusCode === 200;
+        if (ok) {
+          setBanks(result.data || []);
+        } else {
+          console.log("[OfflineTopup] Fetch banks request not successful:", result);
+        }
       } catch (e) {
         console.log("Fetch banks error:", e);
       } finally {
