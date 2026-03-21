@@ -215,6 +215,7 @@ export default function FinanceHome({ navigation }) {
   const [servicesLoading, setServicesLoading] = useState(false);
   const [isAeps, setIsAeps] = useState(true);
   const [showBalance, setShowBalance] = useState(true);
+  const [statusMessage, setStatusMessage] = useState("");
 
   const hasService = (n) =>
     assignedServices.some((s) => s.name?.toLowerCase() === n.toLowerCase());
@@ -284,13 +285,16 @@ export default function FinanceHome({ navigation }) {
             const p = res.data;
             setUserName(`${p.firstName ?? ""} ${p.lastName ?? ""}`.trim() || s.user_name?.trim() || "User");
             setAssignedServices(Array.isArray(p.assignedServices) ? p.assignedServices : []);
+            setStatusMessage(res?.message || "");
           } else {
             setUserName(s.user_name?.trim() || "User");
             setAssignedServices([]);
+            setStatusMessage(res?.message || "Unable to fetch status");
           }
         } catch {
           setUserName(s.user_name?.trim() || "User");
           setAssignedServices([]);
+          setStatusMessage("Connection error");
         } finally { setServicesLoading(false); }
       })();
 
@@ -554,7 +558,6 @@ export default function FinanceHome({ navigation }) {
                   <TouchableOpacity
                     style={[S.kycBadge, { borderColor: kyc }]}
                     activeOpacity={0.75}
-                    onPress={() => navigation.navigate("Offlinekyc")}
                   >
                     <View style={[S.kycDotSm, { backgroundColor: kyc }]} />
                     <Text style={[S.kycBadgeTxt, { color: kyc }]}>KYC {kycStatus.toUpperCase()}</Text>
@@ -650,18 +653,10 @@ export default function FinanceHome({ navigation }) {
                   <View style={S.msgIconBox}>
                     <Icon name="shield-lock-outline" size={rs(32)} color={Colors.finance_accent} />
                   </View>
-                  <Text style={S.msgTitle}>KYC Verification Required</Text>
+                  <Text style={S.msgTitle}>KYC Status: {kycStatus.toUpperCase()}</Text>
                   <Text style={S.msgSub}>
-                    Current Status: <Text style={{ color: kyc, fontFamily: Fonts.Bold }}>{kycStatus.toUpperCase()}</Text>
-                    {"\n"}Please complete your KYC to access financial services.
+                    {statusMessage || `Your KYC status is currently ${kycStatus.toLowerCase()}.`}
                   </Text>
-                  <TouchableOpacity
-                    style={S.msgBtn}
-                    onPress={() => navigation.navigate("Offlinekyc")}
-                  >
-                    <Text style={S.msgBtnTxt}>Complete KYC</Text>
-                    <Icon name="chevron-right" size={rs(16)} color="#000" />
-                  </TouchableOpacity>
                 </LinearGradient>
               </View>
             ) : assignedServices.length === 0 ? (
@@ -670,9 +665,9 @@ export default function FinanceHome({ navigation }) {
                   <View style={S.msgIconBox}>
                     <Icon name="alert-circle-outline" size={rs(32)} color={Colors.finance_accent} />
                   </View>
-                  <Text style={S.msgTitle}>Services Not Assigned</Text>
+                  <Text style={S.msgTitle}>Services Status</Text>
                   <Text style={S.msgSub}>
-                    We couldn't find any active services for your account. Please contact support.
+                    {"No services are allowed for your account at this moment."}
                   </Text>
                 </LinearGradient>
               </View>
