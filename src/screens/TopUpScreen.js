@@ -790,9 +790,12 @@ export default function TopUpScreen({ navigation, route }) {
                 <View style={styles.amountInputRow}>
                   <Text style={styles.currencySymbol}>₹</Text>
                   <TextInput
-                    value={amount} onChangeText={setAmount} placeholder="0"
+                    value={amount}
+                    onChangeText={(val) => setAmount(val.replace(/[^0-9]/g, ""))}
+                    placeholder="0"
                     placeholderTextColor="rgba(212,176,106,0.3)"
-                    keyboardType="numeric" style={styles.hugeInput}
+                    keyboardType="numeric"
+                    style={styles.hugeInput}
                   />
                 </View>
                 <View style={styles.suggestionsWrapper}>
