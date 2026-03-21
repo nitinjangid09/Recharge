@@ -651,8 +651,20 @@ export default function FinanceHome({ navigation }) {
                       <View style={S.svcIconCircle}>
                         {(() => {
                           const n = item.name?.toLowerCase();
-                          if (n === "bbps") return <BBPSIconSVG width={rs(32)} height={rs(32)} />;
-                          if (n === "recharge") return <RechargeIconSVG width={rs(32)} height={rs(32)} />;
+                          if (n === "bbps") {
+                            return typeof BBPSIconSVG === "function" ? (
+                              <BBPSIconSVG width={rs(32)} height={rs(32)} />
+                            ) : (
+                              <Icon name="apps" size={rs(26)} color={Colors.finance_accent} />
+                            );
+                          }
+                          if (n === "recharge") {
+                            return typeof RechargeIconSVG === "function" ? (
+                              <RechargeIconSVG width={rs(32)} height={rs(32)} />
+                            ) : (
+                              <Icon name="apps" size={rs(26)} color={Colors.finance_accent} />
+                            );
+                          }
                           return <Icon name="apps" size={rs(26)} color={Colors.finance_accent} />;
                         })()}
                       </View>

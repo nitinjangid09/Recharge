@@ -764,9 +764,10 @@ export const fetchBbpsBill = async ({ billerId, customerParams, headerToken }) =
   try {
     const url = `${BASE_URL}/user/bbps/fetch-bill`;
     
-    // Extract first param
-    const paramName = Object.keys(customerParams || {})[0] || "";
-    const paramValue = paramName ? customerParams[paramName] : "";
+    const inputParams = Object.keys(customerParams || {}).map(key => ({
+      paramName: key,
+      paramValue: customerParams[key]
+    }));
 
     const response = await fetch(url, {
       method: "POST",
@@ -774,7 +775,7 @@ export const fetchBbpsBill = async ({ billerId, customerParams, headerToken }) =
         "Content-Type": "application/json",
         Authorization: `Bearer ${headerToken}`,
       },
-      body: JSON.stringify({ billerId, paramName, paramValue }),
+      body: JSON.stringify({ billerId, inputParams }),
     });
     const text = await response.text();
     if (text.trimStart().startsWith("<")) {
@@ -794,9 +795,10 @@ export const validateBbpsBill = async ({ billerId, customerParams, headerToken }
   try {
     const url = `${BASE_URL}/user/bbps/validate-bill`;
 
-    // Extract first param
-    const paramName = Object.keys(customerParams || {})[0] || "";
-    const paramValue = paramName ? customerParams[paramName] : "";
+    const inputParams = Object.keys(customerParams || {}).map(key => ({
+      paramName: key,
+      paramValue: customerParams[key]
+    }));
 
     const response = await fetch(url, {
       method: "POST",
@@ -804,7 +806,7 @@ export const validateBbpsBill = async ({ billerId, customerParams, headerToken }
         "Content-Type": "application/json",
         Authorization: `Bearer ${headerToken}`,
       },
-      body: JSON.stringify({ billerId, paramName, paramValue }),
+      body: JSON.stringify({ billerId, inputParams }),
     });
     const text = await response.text();
     if (text.trimStart().startsWith("<")) {

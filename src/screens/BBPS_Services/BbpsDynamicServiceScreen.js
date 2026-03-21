@@ -466,6 +466,9 @@ const BbpsDynamicServiceScreen = () => {
   const showAlert = (title, message, type = "error") => setAlert({ visible: true, title, message, type });
   const hideAlert = () => setAlert(prev => ({ ...prev, visible: false }));
 
+  // Fetched bill details state
+  const [fetchedBill, setFetchedBill] = useState(null);
+
   useEffect(() => {
     if (serviceType) {
       loadBillers(serviceType);
@@ -493,6 +496,7 @@ const BbpsDynamicServiceScreen = () => {
     setDetailsError(null);
     setFormData({});
     setDobErrors({});
+    setFetchedBill(null);
 
     try {
       const token = await AsyncStorage.getItem("header_token");
@@ -526,6 +530,7 @@ const BbpsDynamicServiceScreen = () => {
     setBillerDetail(null);
     setFormData({});
     setDobErrors({});
+    setFetchedBill(null);
 
     const bId = biller.billerId || biller.biller_id || biller.id;
     if (!bId) {
@@ -578,6 +583,7 @@ const BbpsDynamicServiceScreen = () => {
 
   const handleFieldChange = useCallback((name, text) => {
     setFormData((prev) => ({ ...prev, [name]: text }));
+    setFetchedBill(null); // Reset when user types again
   }, []);
 
   const handleOpenCalendar = useCallback((field) => {
@@ -608,6 +614,11 @@ const BbpsDynamicServiceScreen = () => {
   };
 
   const handleSubmit = () => {
+    if (fetchedBill) {
+      navigateToReceipt(fetchedBill);
+      return;
+    }
+
     if (!selectedService || !selectedBiller) return;
 
     const newDobErrors = {};
@@ -697,7 +708,7 @@ const BbpsDynamicServiceScreen = () => {
       });
 
       if (res?.success) {
-        navigateToReceipt(res.data);
+        setFetchedBill(res.data);
       } else {
         const msg = res?.message || "";
         if (msg.toLowerCase().includes("no bill due")) {
@@ -746,11 +757,15 @@ const BbpsDynamicServiceScreen = () => {
     const svc = selectedService?.name || "";
     const validation = billerDetail?.billerSupportBillValidation;
 
+    if (fetchedBill) {
+      return { buttonLabel: "Proceed to Pay", buttonSub: svc ? `Pay for ${svc}` : "" };
+    }
+
     if (validation === "MANDATORY") {
       return { buttonLabel: "Validate", buttonSub: svc };
     }
     return { buttonLabel: "Fetch Bill", buttonSub: svc ? `Fetch bill for ${svc}` : "" };
-  }, [selectedService, billerDetail]);
+  }, [selectedService, billerDetail, fetchedBill]);
 
   const billerDisplayName =
     selectedBiller?.biller_name ||
@@ -874,6 +889,40 @@ const BbpsDynamicServiceScreen = () => {
 
           {!detailsLoading && !detailsError && selectedBiller && dynamicFields.length === 0 && (
             <Text style={styles.infoTxt}>No input fields required for this biller.</Text>
+          )}
+
+          {/* Bill Details Summary */}
+          {!detailsLoading && !detailsError && fetchedBill && (
+            <View style={styles.billDetailsCard}>
+              <Text style={styles.billTitle}>Bill Summary</Text>
+              
+              <View style={styles.billRow}>
+                <Text style={styles.billLabel}>Customer Name</Text>
+                <Text style={styles.billValue}>{fetchedBill.customerName || "N/A"}</Text>
+              </View>
+              
+              <View style={styles.billRow}>
+                <Text style={styles.billLabel}>Bill Date</Text>
+                <Text style={styles.billValue}>{fetchedBill.billDate || "N/A"}</Text>
+              </View>
+              
+              <View style={styles.billRow}>
+                <Text style={styles.billLabel}>Due Date</Text>
+                <Text style={styles.billValue}>{fetchedBill.dueDate || "N/A"}</Text>
+              </View>
+
+              <View style={styles.billRow}>
+                <Text style={styles.billLabel}>Ref ID</Text>
+                <Text style={[styles.billValue, { fontSize: 11, color: '#6B7280' }]} numberOfLines={1}>
+                  {fetchedBill.refid || "N/A"}
+                </Text>
+              </View>
+
+              <View style={[styles.billRow, styles.billAmountRow]}>
+                <Text style={styles.billAmountLabel}>Payable Amount</Text>
+                <Text style={styles.billAmountValue}>₹ {(Number(fetchedBill.billAmount || 0) / 100).toFixed(2)}</Text>
+              </View>
+            </View>
           )}
 
           {/* Submit */}
@@ -1184,6 +1233,63 @@ const styles = StyleSheet.create({
   },
   payBtnTxt: { color: Colors.white || "#FFF", fontSize: 16, fontWeight: "700", letterSpacing: 0.3 },
   payBtnSub: { color: "rgba(255,255,255,0.7)", fontSize: 11, marginTop: 3 },
+
+  billDetailsCard: {
+    backgroundColor: Colors.white || "#FFF",
+    padding: 18,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    marginTop: 18,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  billTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: Colors.black || "#1A1A2E",
+    marginBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+    paddingBottom: 8,
+  },
+  billRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 7,
+  },
+  billLabel: {
+    fontSize: 13,
+    color: "#6B7280",
+  },
+  billValue: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1A1A2E",
+    flex: 1,
+    textAlign: "right",
+    marginLeft: 10,
+  },
+  billAmountRow: {
+    marginTop: 8,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#F3F4F6",
+  },
+  billAmountLabel: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1A1A2E",
+  },
+  billAmountValue: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#10B981", // Emerald green
+  },
 
   modalWrap: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "flex-end" },
   sheet: {
