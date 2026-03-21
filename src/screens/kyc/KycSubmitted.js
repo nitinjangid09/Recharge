@@ -42,7 +42,7 @@ export default function KycSubmitted({ navigation }) {
   const handleRefresh = () => {
     navigation.reset({
       index: 0,
-      routes: [{ name: "FinanceIntro" }],
+      routes: [{ name: "FinanceHome" }],
     });
   };
 
@@ -63,7 +63,7 @@ export default function KycSubmitted({ navigation }) {
         {/* Icon Container */}
         <Animated.View style={[styles.iconContainer, { transform: [{ scale: scaleAnim }] }]}>
           <View style={styles.iconBackground}>
-            <Icon name="check-decagram-outline" size={80} color={Colors.accent} />
+            <Icon name="check-decagram-outline" size={80} color={Colors.primary} />
           </View>
         </Animated.View>
 
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     marginBottom: 40,
-    shadowColor: Colors.accent,
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.2,
     shadowRadius: 15,
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
-    borderColor: Colors.accent + "50",
+    borderColor: Colors.primary,
   },
   title: {
     fontSize: 28,
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     fontFamily: Fonts.SemiBold,
-    color: Colors.accent,
+    color: Colors.text_primary,
     textAlign: "center",
     marginBottom: 15,
     lineHeight: 22,

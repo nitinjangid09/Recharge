@@ -15,6 +15,7 @@ import {
   TextInput,
   FlatList,
   Keyboard,
+  RefreshControl,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import LinearGradient from "react-native-linear-gradient";
@@ -299,6 +300,13 @@ export default function FinanceHome({ navigation }) {
       setUserName("User");
     } finally { setReady(true); }
   }, [navigation, loadBalances]);
+
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadSession();
+    setRefreshing(false);
+  }, [loadSession]);
 
   // ── AEPS press ─────────────────────────────────────────────────────────────
   const handleAepsService = (item) => {
@@ -619,6 +627,16 @@ export default function FinanceHome({ navigation }) {
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              progressViewOffset={HEADER_MAX}
+              tintColor={Colors.finance_accent}
+              colors={[Colors.finance_accent]}
+              progressBackgroundColor="#2C2C2C"
+            />
+          }
         >
           {/* body View — inline backgroundColor so Colors.bg is applied
               at render time, not at StyleSheet.create() time              */}
@@ -626,10 +644,37 @@ export default function FinanceHome({ navigation }) {
 
             {servicesLoading ? (
               <ActivityIndicator size="small" color={Colors.finance_accent} style={{ marginTop: rs(20) }} />
+            ) : kycStatus !== "approved" ? (
+              <View style={S.msgCardOuter}>
+                <LinearGradient colors={["#2C2C2C", "#111111"]} style={S.msgCardInner}>
+                  <View style={S.msgIconBox}>
+                    <Icon name="shield-lock-outline" size={rs(32)} color={Colors.finance_accent} />
+                  </View>
+                  <Text style={S.msgTitle}>KYC Verification Required</Text>
+                  <Text style={S.msgSub}>
+                    Current Status: <Text style={{ color: kyc, fontFamily: Fonts.Bold }}>{kycStatus.toUpperCase()}</Text>
+                    {"\n"}Please complete your KYC to access financial services.
+                  </Text>
+                  <TouchableOpacity
+                    style={S.msgBtn}
+                    onPress={() => navigation.navigate("Offlinekyc")}
+                  >
+                    <Text style={S.msgBtnTxt}>Complete KYC</Text>
+                    <Icon name="chevron-right" size={rs(16)} color="#000" />
+                  </TouchableOpacity>
+                </LinearGradient>
+              </View>
             ) : assignedServices.length === 0 ? (
-              <View style={{ alignItems: "center", marginTop: rs(40), padding: rs(20) }}>
-                <Icon name="alert-circle-outline" size={rs(40)} color="#999" />
-                <Text style={S.emptyServiceTxt}>No service allowed at this moment.</Text>
+              <View style={S.msgCardOuter}>
+                <LinearGradient colors={["#2C2C2C", "#111111"]} style={S.msgCardInner}>
+                  <View style={S.msgIconBox}>
+                    <Icon name="alert-circle-outline" size={rs(32)} color={Colors.finance_accent} />
+                  </View>
+                  <Text style={S.msgTitle}>Services Not Assigned</Text>
+                  <Text style={S.msgSub}>
+                    We couldn't find any active services for your account. Please contact support.
+                  </Text>
+                </LinearGradient>
               </View>
             ) : (
               <>
@@ -858,6 +903,14 @@ const S = StyleSheet.create({
   splash: { flex: 1, justifyContent: "center", alignItems: "center" },
   splashTxt: { marginTop: rs(12), color: "#888", fontFamily: Fonts.Medium, fontSize: rs(14) },
   emptyServiceTxt: { color: "#666", fontFamily: Fonts.Medium, marginTop: rs(10), fontSize: rs(13), textAlign: "center" },
+
+  msgCardOuter: { paddingVertical: rs(20), paddingHorizontal: rs(2) },
+  msgCardInner: { borderRadius: rs(22), padding: rs(24), alignItems: "center", borderWidth: 1, borderColor: "rgba(212,176,106,0.18)" },
+  msgIconBox: { width: rs(64), height: rs(64), borderRadius: rs(32), backgroundColor: "rgba(212,176,106,0.1)", alignItems: "center", justifyContent: "center", marginBottom: rs(16) },
+  msgTitle: { color: "#FFF", fontSize: rs(18), fontFamily: Fonts.Bold, marginBottom: rs(8), textAlign: "center" },
+  msgSub: { color: "rgba(255,255,255,0.6)", fontSize: rs(13), fontFamily: Fonts.Medium, textAlign: "center", lineHeight: rs(19), marginBottom: rs(20) },
+  msgBtn: { flexDirection: "row", alignItems: "center", backgroundColor: Colors.finance_accent, paddingHorizontal: rs(20), paddingVertical: rs(12), borderRadius: rs(12), elevation: 4 },
+  msgBtnTxt: { color: "#000", fontSize: rs(14), fontFamily: Fonts.Bold, marginRight: rs(6) },
 
   searchOverlay: { position: "absolute", zIndex: 90, top: 0, left: 0, right: 0, bottom: 0 },
 

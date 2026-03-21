@@ -78,17 +78,17 @@ export default function OTP({ navigation, route }) {
   const triggerShake = () => {
     shakeAnim.setValue(0);
     Animated.sequence([
-      Animated.timing(shakeAnim, { toValue: 10,  duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 10, duration: 50, useNativeDriver: true }),
       Animated.timing(shakeAnim, { toValue: -10, duration: 50, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: 8,   duration: 50, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: 0,   duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 8, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 0, duration: 50, useNativeDriver: true }),
     ]).start();
   };
 
   const animateButtonPress = () => {
     Animated.sequence([
       Animated.timing(buttonScale, { toValue: 0.95, duration: 100, useNativeDriver: true }),
-      Animated.timing(buttonScale, { toValue: 1,    duration: 100, useNativeDriver: true }),
+      Animated.timing(buttonScale, { toValue: 1, duration: 100, useNativeDriver: true }),
     ]).start();
   };
 
@@ -120,21 +120,21 @@ export default function OTP({ navigation, route }) {
     const { token, user, isKycOnline } = result;
     const pairs = [
       ["token", JSON.stringify(result)],
-      ["header_token",  token],
+      ["header_token", token],
       ["is_kyc_online", JSON.stringify(isKycOnline ?? false)],
     ];
 
     if (user) {
       pairs.push(
-        ["user_profile",  JSON.stringify(user)],
-        ["user_id",       user._id         ?? ""],
-        ["user_email",    user.email        ?? ""],
-        ["user_name",     `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()],
-        ["user_username", user.userName     ?? ""],
-        ["user_phone",    user.phone        ?? ""],
-        ["kyc_status",    user.kycStatus    ?? ""],
-        ["user_level",    String(user.level ?? "")],
-        ["role_id",       user.roleId       ?? ""],
+        ["user_profile", JSON.stringify(user)],
+        ["user_id", user._id ?? ""],
+        ["user_email", user.email ?? ""],
+        ["user_name", `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()],
+        ["user_username", user.userName ?? ""],
+        ["user_phone", user.phone ?? ""],
+        ["kyc_status", user.kycStatus ?? ""],
+        ["user_level", String(user.level ?? "")],
+        ["role_id", user.roleId ?? ""],
       );
     }
 
@@ -196,7 +196,7 @@ export default function OTP({ navigation, route }) {
       if (result?.success && result?.token) {
         // ✅ Save fresh token + full user data from this login response
         await saveSessionToStorage(result);
-        
+
         const kycStatus = result?.user?.kycStatus;
         if (kycStatus === "submitted") {
           navigateTo("KycSubmitted");
@@ -210,8 +210,7 @@ export default function OTP({ navigation, route }) {
       } else {
         triggerShake();
         showAlert(
-          "Invalid PIN",
-          result?.message || "Verification failed. Please try again."
+          result?.message, "The OTP you entered is incorrect. Please try again."
         );
       }
     } catch (err) {
@@ -302,7 +301,7 @@ export default function OTP({ navigation, route }) {
             {otp.map((v, i) => {
               const borderColor = inputAnims[i].interpolate({
                 inputRange: [0, 1],
-                outputRange: [Colors.input_border, Colors.accent],
+                outputRange: [Colors.input_border, Colors.primary],
               });
               const scale = inputAnims[i].interpolate({
                 inputRange: [0, 1],

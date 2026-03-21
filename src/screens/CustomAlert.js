@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   },
   alertBox: {
     width: width * 0.85,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.bg,
     borderRadius: 24 * scale,
     paddingHorizontal: 24 * scale,
     paddingVertical: 32 * scale,
@@ -129,11 +129,11 @@ const styles = StyleSheet.create({
     width: 64 * scale,
     height: 64 * scale,
     borderRadius: 32 * scale,
-    backgroundColor: Colors.accent,
+    backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20 * scale,
-    shadowColor: Colors.accent,
+    shadowColor: Colors.primary,
     shadowOpacity: 0.4,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10 * scale
   },
   button: {
-    backgroundColor: Colors.accent,
+    backgroundColor: Colors.primary,
     paddingVertical: 14 * scale,
     width: '100%',
     borderRadius: 16 * scale,
