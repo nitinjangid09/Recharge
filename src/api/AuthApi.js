@@ -757,6 +757,54 @@ export const getRechargeReport = async ({ from, to, headerToken }) => {
 };
 
 /**
+ * fetchStateList
+ * Fetches all available states for KYC / Address.
+ */
+export const fetchStateList = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/stateCity/all-state-list`, {
+      headers: { Authorization: `Bearer ${headerToken}` }
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Fetch State List Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch states" };
+  }
+};
+
+/**
+ * fetchCityList
+ * Fetches cities for a given state code.
+ */
+export const fetchCityList = async ({ stateCode, headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/stateCity/state-wise-city-list/?code=${stateCode}`, {
+      headers: { Authorization: `Bearer ${headerToken}` }
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Fetch City List Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch cities" };
+  }
+};
+
+/**
+ * fetchGlobalBankList
+ * Fetches the global list of banks.
+ */
+export const fetchGlobalBankList = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/globalBank/global-banks-list`, {
+      headers: { Authorization: `Bearer ${headerToken}` }
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Fetch Global Banks Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch banks list" };
+  }
+};
+
+/**
  * fetchBbpsBill
  * @param {{ billerId: string, customerParams: object, headerToken: string }} params
  */

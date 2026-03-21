@@ -4,17 +4,16 @@ import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   ScrollView, Animated, Dimensions, StatusBar,
   KeyboardAvoidingView, Platform, ActivityIndicator,
-  Alert, Image, PixelRatio, useWindowDimensions, Modal,
+  Alert, Image, PixelRatio, useWindowDimensions, Modal, ToastAndroid,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { launchImageLibrary, launchCamera } from "react-native-image-picker";
-import Colors from "../../constants/Colors";
+import { submitOfflineKyc, fetchStateList, fetchCityList, fetchGlobalBankList } from "../../api/AuthApi";
 import Fonts from "../../constants/Fonts";
-import { submitOfflineKyc } from "../../api/AuthApi";
-
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import Colors from "../../constants/Colors";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 // ─────────────────────────────────────────────────────────────────────────────
 // RESPONSIVE SCALE HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
@@ -38,41 +37,32 @@ const vs = (size) => Math.round(PixelRatio.roundToNearestPixel(size * (Math.min(
 const isTablet = SCREEN_W >= 600;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// IFSC APIs — tried in order, first success wins
-// ─────────────────────────────────────────────────────────────────────────────
-const IFSC_APIS = [
-  (ifsc) => `https://bank-apis.in/api/ifsc/${ifsc}`,
-  (ifsc) => `https://api.techm.in/bank/v1/${ifsc}`,
-  (ifsc) => `https://ifscapi.com/${ifsc}`,
-];
-
-// ─────────────────────────────────────────────────────────────────────────────
 // DESIGN TOKENS — plain hex only at module level
 // ─────────────────────────────────────────────────────────────────────────────
 const T = {
-  accent:       "#C9A84C",
-  accentLight:  "#F5E7C6",
-  accentDark:   "#7A6020",
-  success:      "#16A34A",
-  error:        "#DC2626",
-  warning:      "#D97706",
-  text:         "#111827",
-  textSub:      "#6B7280",
-  textMuted:    "#9CA3AF",
-  bg:           "#F4F5F7",
-  surface:      "#FFFFFF",
-  border:       "#E5E7EB",
-  borderFocus:  "#C9A84C",
-  inputBg:      "#FAFAFA",
+  accent: "#C9A84C",
+  accentLight: "#F5E7C6",
+  accentDark: "#7A6020",
+  success: "#16A34A",
+  error: "#DC2626",
+  warning: "#D97706",
+  text: "#111827",
+  textSub: "#6B7280",
+  textMuted: "#9CA3AF",
+  bg: "#F4F5F7",
+  surface: "#FFFFFF",
+  border: "#E5E7EB",
+  borderFocus: "#C9A84C",
+  inputBg: "#FAFAFA",
 };
 
 const resolveColors = () => ({
-  accent:      typeof Colors.finance_accent  === "string" && Colors.finance_accent.length  > 2 ? Colors.finance_accent  : T.accent,
-  success:     typeof Colors.finance_success === "string" && Colors.finance_success.length > 2 ? Colors.finance_success : T.success,
-  error:       typeof Colors.finance_error   === "string" && Colors.finance_error.length   > 2 ? Colors.finance_error   : T.error,
-  text:        typeof Colors.finance_text    === "string" && Colors.finance_text.length    > 2 ? Colors.finance_text    : T.text,
-  bg:          typeof Colors.finance_bg_1    === "string" && Colors.finance_bg_1.length    > 2 ? Colors.finance_bg_1    : T.bg,
-  white:       typeof Colors.white           === "string" && Colors.white.length           > 2 ? Colors.white           : T.surface,
+  accent: typeof Colors.finance_accent === "string" && Colors.finance_accent.length > 2 ? Colors.finance_accent : T.accent,
+  success: typeof Colors.finance_success === "string" && Colors.finance_success.length > 2 ? Colors.finance_success : T.success,
+  error: typeof Colors.finance_error === "string" && Colors.finance_error.length > 2 ? Colors.finance_error : T.error,
+  text: typeof Colors.finance_text === "string" && Colors.finance_text.length > 2 ? Colors.finance_text : T.text,
+  bg: typeof Colors.finance_bg_1 === "string" && Colors.finance_bg_1.length > 2 ? Colors.finance_bg_1 : T.bg,
+  white: typeof Colors.white === "string" && Colors.white.length > 2 ? Colors.white : T.surface,
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -81,20 +71,20 @@ const resolveColors = () => ({
 const STEPS = [
   { key: "personal", label: "Personal", icon: "account-circle-outline" },
   { key: "business", label: "Business", icon: "store-outline" },
-  { key: "banking",  label: "Banking",  icon: "bank-outline" },
+  { key: "banking", label: "Banking", icon: "bank-outline" },
 ];
 
 const RX = {
-  email:   /^\S+@\S+\.\S+$/,
-  phone:   /^[6-9]\d{9}$/,
+  email: /^\S+@\S+\.\S+$/,
+  phone: /^[6-9]\d{9}$/,
   pincode: /^\d{6}$/,
-  dob:     /^(0[1-9]|[12]\d|3[01])-(0[1-9]|1[0-2])-\d{4}$/,
-  pan:     /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
+  dob: /^(0[1-9]|[12]\d|3[01])-(0[1-9]|1[0-2])-\d{4}$/,
+  pan: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
   aadhaar: /^\d{12}$/,
-  ifsc:    /^[A-Z]{4}0[A-Z0-9]{6}$/,
-  gst:     /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
-  name:    /^[a-zA-Z\s]{2,50}$/,
-  accNum:  /^[0-9]{9,20}$/,
+  ifsc: /^[A-Z]{4}0[A-Z0-9]{6}$/,
+  gst: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
+  name: /^[a-zA-Z\s]{2,50}$/,
+  accNum: /^[0-9]{9,20}$/,
   accountHolderName: /^[A-Za-z\s.]+$/,
   bankName: /^[A-Za-z\s.&]+$/,
 };
@@ -103,24 +93,89 @@ const RX = {
 // MAIN COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
 export default function Offlinekyc({ navigation, route }) {
-  const C      = resolveColors();
+  const C = resolveColors();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions(); // reactive to orientation changes
 
   // Column layout on wide screens
-  const isWide        = width >= 600;
-  const contentWidth  = isWide ? Math.min(width - hs(32), 680) : width - hs(32);
-  const colGap        = hs(12);
-  const halfWidth     = (contentWidth - colGap) / 2;
+  const isWide = width >= 600;
+  const contentWidth = isWide ? Math.min(width - hs(32), 680) : width - hs(32);
+  const colGap = hs(12);
+  const halfWidth = (contentWidth - colGap) / 2;
 
-  const [step,     setStep]     = useState(0);
-  const [loading,  setLoading]  = useState(false);
-  const [ifscLoad, setIfscLoad] = useState(false);
-  const [ifscOk,   setIfscOk]   = useState(false);
-  const [showAcc,  setShowAcc]  = useState(false);
-  const [errors,   setErrors]   = useState({});
+  const [step, setStep] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [showAcc, setShowAcc] = useState(false);
+  const [errors, setErrors] = useState({});
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const [stateList, setStateList] = useState([]);
+  const [showStateModal, setShowStateModal] = useState(false);
+  const [stateTarget, setStateTarget] = useState(null);
+  const [stateLoading, setStateLoading] = useState(false);
+  const [stateSearch, setStateSearch] = useState("");
+
+  const [cityList, setCityList] = useState([]);
+  const [showCityModal, setShowCityModal] = useState(false);
+  const [cityTarget, setCityTarget] = useState(null);
+  const [cityLoading, setCityLoading] = useState(false);
+  const [citySearch, setCitySearch] = useState("");
+
+  const [bankList, setBankList] = useState([]);
+  const [showBankModal, setShowBankModal] = useState(false);
+  const [bankLoading, setBankLoading] = useState(false);
+  const [bankSearch, setBankSearch] = useState("");
+
+  const handleOpenCity = async (target) => {
+    let stateName = target === "personal" ? personal.personalState : business.businessState;
+    if (!stateName) {
+      if (Platform.OS === 'android') ToastAndroid.show("Please select a State first", ToastAndroid.SHORT);
+      else Alert.alert("Action Required", "Please select a State first");
+      return;
+    }
+    const stateObj = stateList.find(s => s.stateName === stateName);
+    if (!stateObj) {
+      if (Platform.OS === 'android') ToastAndroid.show("Please select a valid State from the list", ToastAndroid.SHORT);
+      else Alert.alert("Action Required", "Please select a valid State from the list");
+      return;
+    }
+    setCityTarget(target);
+    setShowCityModal(true);
+    setCityLoading(true);
+    setCityList([]);
+    try {
+      const headerToken = await AsyncStorage.getItem("header_token");
+      const res = await fetchCityList({ stateCode: stateObj.stateCode, headerToken });
+      if (res && res.success && res.data) {
+        setCityList(res.data);
+      }
+    } catch (e) {
+      console.log('City fetch error', e);
+    } finally {
+      setCityLoading(false);
+    }
+  };
+
+  const handleFetchBanks = async () => {
+    setBankLoading(true);
+    try {
+      const headerToken = await AsyncStorage.getItem("header_token");
+      const res = await fetchGlobalBankList({ headerToken });
+      if (res && res.success && res.data) {
+        setBankList(res.data);
+      }
+    } catch (err) {
+      console.log('Bank list fetch error:', err);
+    } finally {
+      setBankLoading(false);
+    }
+  };
+
+  const handleOpenBank = () => {
+    setShowBankModal(true);
+    if (bankList.length === 0) handleFetchBanks();
+  };
 
   const slideAnim = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef(null);
@@ -170,6 +225,31 @@ export default function Offlinekyc({ navigation, route }) {
     }
   }, [route?.params?.user]);
 
+  const handleFetchStates = async () => {
+    setStateLoading(true);
+    try {
+      const headerToken = await AsyncStorage.getItem("header_token");
+      const res = await fetchStateList({ headerToken });
+      if (res && res.success && res.data) {
+        setStateList(res.data);
+      }
+    } catch (err) {
+      console.log('State fetch error:', err);
+    } finally {
+      setStateLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    handleFetchStates();
+  }, []);
+
+  const handleOpenState = (target) => {
+    setStateTarget(target);
+    setShowStateModal(true);
+    if (stateList.length === 0) handleFetchStates();
+  };
+
   const [business, setBusiness] = useState({
     shopName: "", businessPanNumber: "", gstNumber: "",
     businessAddress: "", businessCity: "", businessState: "", businessPincode: "",
@@ -180,8 +260,7 @@ export default function Offlinekyc({ navigation, route }) {
 
   const [banking, setBanking] = useState({
     accountHolderName: "", bankName: "", accountNumber: "",
-    confirmAccountNumber: "", ifscCode: "",
-    _bankAddress: "", _bankCity: "", _bankState: "",
+    confirmAccountNumber: "", ifscCode: "", branchName: "",
   });
 
   // ── Slide animation ───────────────────────────────────────────────────────
@@ -253,8 +332,8 @@ export default function Offlinekyc({ navigation, route }) {
     if (business.gstNumber?.trim() && !RX.gst.test(business.gstNumber.trim()))
       e.gstNumber = "Invalid GST number";
     if (!files.aadharFile) e.aadharFile = "Aadhaar photo required";
-    if (!files.panFile)    e.panFile    = "PAN card photo required";
-    if (!files.shopImage)  e.shopImage  = "Shop photo required";
+    if (!files.panFile) e.panFile = "PAN card photo required";
+    if (!files.shopImage) e.shopImage = "Shop photo required";
     setErrors(e);
     return e;
   };
@@ -274,6 +353,7 @@ export default function Offlinekyc({ navigation, route }) {
       e.confirmAccountNumber = "Numbers don't match";
     if (!banking.ifscCode.trim()) e.ifscCode = "Required";
     else if (!RX.ifsc.test(banking.ifscCode.trim())) e.ifscCode = banking.ifscCode + " is not a valid IFSC code";
+    if (!banking.branchName.trim()) e.branchName = "Required";
     setErrors(e);
     return e;
   };
@@ -292,35 +372,11 @@ export default function Offlinekyc({ navigation, route }) {
   };
   const handlePrev = () => { setErrors({}); slide("bwd", () => setStep(p => p - 1)); };
 
-  // ── IFSC lookup ───────────────────────────────────────────────────────────
-  const lookupIfsc = useCallback(async (ifsc) => {
-    if (!RX.ifsc.test(ifsc)) return;
-    setIfscLoad(true); setIfscOk(false);
-    for (const buildUrl of IFSC_APIS) {
-      try {
-        const res  = await fetch(buildUrl(ifsc));
-        const text = await res.text();
-        if (!text || text.trimStart().startsWith("<")) continue;
-        const d       = JSON.parse(text);
-        const bankName = d.bank || d.BANK || d.bank_name || "";
-        if (!bankName) continue;
-        setBanking(b => ({
-          ...b,
-          bankName,
-          _bankAddress: d.address || d.ADDRESS || "",
-          _bankCity:    d.city    || d.CITY    || "",
-          _bankState:   d.state   || d.STATE   || "",
-        }));
-        setIfscOk(true); setIfscLoad(false); return;
-      } catch (_) {}
-    }
-    setIfscLoad(false);
-  }, []);
-
   // ── Image picker ──────────────────────────────────────────────────────────
   const pickImage = (fileKey) => {
     Alert.alert("Upload Photo", "Choose source", [
-      { text: "📷 Camera", onPress: () =>
+      {
+        text: "📷 Camera", onPress: () =>
           launchCamera({ mediaType: "photo", quality: 0.85, saveToPhotos: false }, (r) => {
             if (!r.didCancel && !r.errorCode && r.assets?.[0]) {
               const a = r.assets[0];
@@ -329,7 +385,8 @@ export default function Offlinekyc({ navigation, route }) {
             }
           })
       },
-      { text: "🖼️ Gallery", onPress: () =>
+      {
+        text: "🖼️ Gallery", onPress: () =>
           launchImageLibrary({ mediaType: "photo", quality: 0.85 }, (r) => {
             if (!r.didCancel && !r.errorCode && r.assets?.[0]) {
               const a = r.assets[0];
@@ -356,7 +413,7 @@ export default function Offlinekyc({ navigation, route }) {
     setLoading(false);
     if (!result) { Alert.alert("Error", "No response. Please try again."); return; }
     const ok = result.success === true || result.status === "success" ||
-               result.status === 1 || result.statusCode === 200;
+      result.status === 1 || result.statusCode === 200;
     if (ok) {
       setShowSuccessModal(true);
     } else {
@@ -421,7 +478,7 @@ export default function Offlinekyc({ navigation, route }) {
         {/* Step dots */}
         <View style={S.stepDots}>
           {STEPS.map((s, i) => {
-            const done   = i < step;
+            const done = i < step;
             const active = i === step;
             return (
               <View key={s.key} style={S.stepDotItem}>
@@ -438,7 +495,7 @@ export default function Offlinekyc({ navigation, route }) {
                 <Text style={[
                   S.stepDotLabel,
                   { fontSize: rs(9), fontFamily: active ? Fonts.Bold : Fonts.Medium },
-                  done   && { color: T.success },
+                  done && { color: T.success },
                   active && { color: T.accent },
                 ]}>
                   {s.label}
@@ -502,7 +559,7 @@ export default function Offlinekyc({ navigation, route }) {
                     <TouchableOpacity onPress={() => setShowDatePicker(true)} activeOpacity={0.8}>
                       <View pointerEvents="none">
                         <Field label="Date of Birth" value={personal.dob}
-                          onChange={() => {}}
+                          onChange={() => { }}
                           error={errors.dob} placeholder="DD-MM-YYYY"
                           hint="Min age: 18 years" />
                       </View>
@@ -529,9 +586,15 @@ export default function Offlinekyc({ navigation, route }) {
                       />
                     )}
                   </View>
-                  <Field label="State" value={personal.personalState}
-                    onChange={v => setPersonal(p => ({ ...p, personalState: v }))}
-                    error={errors.personalState} placeholder="e.g. Rajasthan" />
+                  <View>
+                    <TouchableOpacity onPress={() => handleOpenState("personal")} activeOpacity={0.8}>
+                      <View pointerEvents="none">
+                        <Field label="State" value={personal.personalState}
+                          onChange={() => { }}
+                          error={errors.personalState} placeholder="Select State" />
+                      </View>
+                    </TouchableOpacity>
+                  </View>
                 </TwoCol>
 
                 <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap} onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.personalPincode = y; fieldCoords.current.personalCity = y; }}>
@@ -539,9 +602,15 @@ export default function Offlinekyc({ navigation, route }) {
                     onChange={v => { if (/^\d*$/.test(v) && v.length <= 6) setPersonal(p => ({ ...p, personalPincode: v })); }}
                     error={errors.personalPincode} placeholder="6-digit pincode"
                     keyboardType="number-pad" maxLength={6} />
-                  <Field label="City" value={personal.personalCity}
-                    onChange={v => setPersonal(p => ({ ...p, personalCity: v }))}
-                    error={errors.personalCity} placeholder="e.g. Jaipur" />
+                  <View>
+                    <TouchableOpacity onPress={() => handleOpenCity("personal")} activeOpacity={0.8}>
+                      <View pointerEvents="none">
+                        <Field label="City" value={personal.personalCity}
+                          onChange={() => { }}
+                          error={errors.personalCity} placeholder="Select City" />
+                      </View>
+                    </TouchableOpacity>
+                  </View>
                 </TwoCol>
 
                 <Field onLayout={e => fieldCoords.current.personalAddress = e.nativeEvent.layout.y} label="Full Address" value={personal.personalAddress}
@@ -583,14 +652,26 @@ export default function Offlinekyc({ navigation, route }) {
                     onChange={v => { if (/^\d*$/.test(v) && v.length <= 6) setBusiness(b => ({ ...b, businessPincode: v })); }}
                     error={errors.businessPincode} placeholder="6-digit pincode"
                     keyboardType="number-pad" maxLength={6} />
-                  <Field label="State" value={business.businessState}
-                    onChange={v => setBusiness(b => ({ ...b, businessState: v }))}
-                    error={errors.businessState} placeholder="e.g. Rajasthan" />
+                  <View>
+                    <TouchableOpacity onPress={() => handleOpenState("business")} activeOpacity={0.8}>
+                      <View pointerEvents="none">
+                        <Field label="State" value={business.businessState}
+                          onChange={() => { }}
+                          error={errors.businessState} placeholder="Select State" />
+                      </View>
+                    </TouchableOpacity>
+                  </View>
                 </TwoCol>
 
-                <Field onLayout={e => fieldCoords.current.businessCity = e.nativeEvent.layout.y} label="City" value={business.businessCity}
-                  onChange={v => setBusiness(b => ({ ...b, businessCity: v }))}
-                  error={errors.businessCity} placeholder="e.g. Jaipur" />
+                <View onLayout={e => fieldCoords.current.businessCity = e.nativeEvent.layout.y}>
+                  <TouchableOpacity onPress={() => handleOpenCity("business")} activeOpacity={0.8}>
+                    <View pointerEvents="none">
+                      <Field label="City" value={business.businessCity}
+                        onChange={() => { }}
+                        error={errors.businessCity} placeholder="Select City" />
+                    </View>
+                  </TouchableOpacity>
+                </View>
 
                 <Divider label="OWNER IDENTIFICATION" />
 
@@ -614,11 +695,11 @@ export default function Offlinekyc({ navigation, route }) {
                 {/* Document slots — 2-col on wide, 1-col on narrow */}
                 <View style={[S.docGrid, isWide && { flexDirection: "row", flexWrap: "wrap", gap: colGap }]} onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.aadharFile = y; fieldCoords.current.panFile = y; fieldCoords.current.shopImage = y; }}>
                   {[
-                    { key: "aadharFile", label: "Aadhaar Card",  sub: "Front side",      icon: "card-account-details",         color: "#3B82F6" },
-                    { key: "panFile",    label: "PAN Card",      sub: "Clear photo",      icon: "card-account-details-outline", color: "#8B5CF6" },
-                    { key: "shopImage",  label: "Shop Photo",    sub: "Front view",       icon: "store-outline",                color: "#F59E0B" },
+                    { key: "aadharFile", label: "Aadhaar Card", sub: "Front side", icon: "card-account-details", color: "#3B82F6" },
+                    { key: "panFile", label: "PAN Card", sub: "Clear photo", icon: "card-account-details-outline", color: "#8B5CF6" },
+                    { key: "shopImage", label: "Shop Photo", sub: "Front view", icon: "store-outline", color: "#F59E0B" },
                   ].map((slot) => {
-                    const img    = files[slot.key];
+                    const img = files[slot.key];
                     const hasErr = !!errors[slot.key];
                     return (
                       <View key={slot.key}
@@ -627,8 +708,8 @@ export default function Offlinekyc({ navigation, route }) {
                         <TouchableOpacity
                           style={[
                             S.docBox,
-                            img    && { borderStyle: "solid", borderColor: T.success, backgroundColor: T.success + "08" },
-                            hasErr && { borderStyle: "solid", borderColor: T.error,   backgroundColor: T.error   + "06" },
+                            img && { borderStyle: "solid", borderColor: T.success, backgroundColor: T.success + "08" },
+                            hasErr && { borderStyle: "solid", borderColor: T.error, backgroundColor: T.error + "06" },
                           ]}
                           onPress={() => pickImage(slot.key)}
                           activeOpacity={0.75}
@@ -692,19 +773,36 @@ export default function Offlinekyc({ navigation, route }) {
                 <SectionBanner icon="bank-outline" title="Banking Details"
                   sub="For settlements and commissions" />
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap} onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.accountHolderName = y; fieldCoords.current.bankName = y; }}>
-                  <Field label="Account Holder Name" value={banking.accountHolderName}
-                    onChange={v => setBanking(b => ({ ...b, accountHolderName: v }))}
-                    error={errors.accountHolderName} placeholder="As per bank records" maxLength={50} />
-                  <Field label="Bank Name" value={banking.bankName}
-                    onChange={v => setBanking(b => ({ ...b, bankName: v }))}
-                    error={errors.bankName} placeholder="e.g. State Bank of India" />
-                </TwoCol>
+                <TouchableOpacity onPress={handleOpenBank} activeOpacity={0.8}>
+                  <View pointerEvents="none">
+                    <Field onLayout={e => fieldCoords.current.bankName = e.nativeEvent.layout.y} label="Bank Name" value={banking.bankName}
+                      error={errors.bankName} placeholder="Select your Bank" />
+                  </View>
+                </TouchableOpacity>
+
+                <FieldWrap onLayout={e => fieldCoords.current.ifscCode = e.nativeEvent.layout.y} label="IFSC Code" required error={errors.ifscCode}>
+                  <View style={[S.inputRow,
+                  errors.ifscCode && { borderColor: T.error, backgroundColor: T.error + "06" }
+                  ]}>
+                    <TextInput
+                      style={[S.input, { letterSpacing: 1 }]}
+                      value={banking.ifscCode}
+                      onChangeText={v => {
+                        const val = v.toUpperCase().replace(/[^A-Z0-9]/g, "");
+                        setBanking(b => ({ ...b, ifscCode: val }));
+                      }}
+                      placeholder="SBIN0001234"
+                      placeholderTextColor={T.textMuted}
+                      maxLength={11}
+                      autoCapitalize="characters"
+                    />
+                  </View>
+                </FieldWrap>
 
                 {/* Account number with eye toggle */}
                 <FieldWrap onLayout={e => fieldCoords.current.accountNumber = e.nativeEvent.layout.y} label="Account Number" required error={errors.accountNumber}>
                   <View style={[S.inputRow,
-                    errors.accountNumber && { borderColor: T.error, backgroundColor: T.error + "06" }
+                  errors.accountNumber && { borderColor: T.error, backgroundColor: T.error + "06" }
                   ]}>
                     <TextInput
                       style={[S.input, { paddingRight: hs(44) }]}
@@ -735,64 +833,14 @@ export default function Offlinekyc({ navigation, route }) {
                   keyboardType="number-pad" maxLength={18}
                   hint="Both numbers must match" />
 
-                {/* IFSC with inline badge */}
-                <FieldWrap onLayout={e => fieldCoords.current.ifscCode = e.nativeEvent.layout.y} label="IFSC Code" required error={errors.ifscCode}
-                  hint={!errors.ifscCode ? "Type 11-char IFSC to auto-fill bank & branch" : undefined}
-                >
-                  <View style={[S.inputRow,
-                    errors.ifscCode && { borderColor: T.error, backgroundColor: T.error + "06" }
-                  ]}>
-                    <TextInput
-                      style={[S.input, { paddingRight: hs(70), letterSpacing: 1 }]}
-                      value={banking.ifscCode}
-                      onChangeText={v => {
-                        const val = v.toUpperCase().replace(/[^A-Z0-9]/g, "");
-                        setBanking(b => ({ ...b, ifscCode: val }));
-                        setIfscOk(false);
-                        if (RX.ifsc.test(val)) lookupIfsc(val);
-                      }}
-                      placeholder="SBIN0001234"
-                      placeholderTextColor={T.textMuted}
-                      maxLength={11}
-                      autoCapitalize="characters"
-                    />
-                    <View style={[S.ifscBadge, {
-                      backgroundColor: ifscOk ? T.success + "20" : T.bg,
-                    }]}>
-                      {ifscLoad
-                        ? <ActivityIndicator size="small" color={T.accent} />
-                        : <Text style={[S.ifscBadgeText, {
-                            color: ifscOk ? T.success : T.textMuted,
-                            fontFamily: Fonts.Bold, fontSize: rs(10),
-                          }]}>
-                            {ifscOk ? "✓ OK" : "AUTO"}
-                          </Text>
-                      }
-                    </View>
-                  </View>
-                </FieldWrap>
-
-                {/* IFSC auto-fill info box */}
-                {(!!banking._bankAddress || !!banking._bankCity) && (
-                  <View style={[S.autofillBox, {
-                    borderColor: T.success + "55",
-                    backgroundColor: T.success + "0C",
-                  }]}>
-                    <Icon name="check-circle-outline" size={rs(14)} color={T.success} />
-                    <View style={{ flex: 1 }}>
-                      {!!banking._bankAddress && (
-                        <Text style={[S.autofillText, { color: T.success, fontSize: rs(11) }]}>
-                          {banking._bankAddress}
-                        </Text>
-                      )}
-                      {!!banking._bankCity && (
-                        <Text style={[S.autofillText, { color: T.success, fontSize: rs(11), marginTop: 2 }]}>
-                          {[banking._bankCity, banking._bankState].filter(Boolean).join(", ")}
-                        </Text>
-                      )}
-                    </View>
-                  </View>
-                )}
+                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap} onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.accountHolderName = y; fieldCoords.current.branchName = y; }}>
+                  <Field label="Account Holder Name" value={banking.accountHolderName}
+                    onChange={v => setBanking(b => ({ ...b, accountHolderName: v }))}
+                    error={errors.accountHolderName} placeholder="As per bank records" maxLength={50} />
+                  <Field label="Branch Name" value={banking.branchName}
+                    onChange={v => setBanking(b => ({ ...b, branchName: v }))}
+                    error={errors.branchName} placeholder="e.g. Main Branch" />
+                </TwoCol>
 
                 {/* Security banner */}
                 <LinearGradient colors={[T.accent + "1A", T.accent + "08"]} style={S.securityBanner}>
@@ -824,7 +872,7 @@ export default function Offlinekyc({ navigation, route }) {
               {step > 0 ? (
                 <TouchableOpacity style={S.prevBtn} onPress={handlePrev} activeOpacity={0.75}>
                   <Icon name="arrow-left" size={rs(17)} color={T.text} />
-                  <Text style={[S.prevBtnText, { fontFamily: Fonts.SemiBold, fontSize: rs(14) }]}>
+                  <Text style={[S.prevBtnText, { fontFamily: Fonts.Medium, fontSize: rs(14) }]}>
                     Back
                   </Text>
                 </TouchableOpacity>
@@ -844,14 +892,14 @@ export default function Offlinekyc({ navigation, route }) {
                   {loading
                     ? <ActivityIndicator color={T.surface} size="small" />
                     : <>
-                        <Text style={[S.nextBtnText, { color: T.surface, fontFamily: Fonts.Bold, fontSize: rs(14) }]}>
-                          {step < 2 ? "Next" : "Submit KYC"}
-                        </Text>
-                        <Icon
-                          name={step < 2 ? "arrow-right" : "check-circle-outline"}
-                          size={rs(17)} color={T.surface} style={{ marginLeft: hs(6) }}
-                        />
-                      </>
+                      <Text style={[S.nextBtnText, { color: T.surface, fontFamily: Fonts.Bold, fontSize: rs(14) }]}>
+                        {step < 2 ? "Next" : "Submit KYC"}
+                      </Text>
+                      <Icon
+                        name={step < 2 ? "arrow-right" : "check-circle-outline"}
+                        size={rs(17)} color={T.surface} style={{ marginLeft: hs(6) }}
+                      />
+                    </>
                   }
                 </LinearGradient>
               </TouchableOpacity>
@@ -862,7 +910,7 @@ export default function Offlinekyc({ navigation, route }) {
       </KeyboardAvoidingView>
 
       {/* ── Custom Success Modal ── */}
-      <Modal transparent visible={showSuccessModal} animationType="fade" onRequestClose={() => {}}>
+      <Modal transparent visible={showSuccessModal} animationType="fade" onRequestClose={() => { }}>
         <View style={S.modalOverlay}>
           <View style={S.modalCard}>
             <View style={S.modalIconWrap}>
@@ -886,6 +934,140 @@ export default function Offlinekyc({ navigation, route }) {
             </TouchableOpacity>
           </View>
         </View>
+      </Modal>
+
+      {/* ── City Selection Modal ── */}
+      <Modal visible={showCityModal} animationType="slide" transparent={true} onRequestClose={() => { setShowCityModal(false); setCitySearch(""); }}>
+        <TouchableOpacity style={S.modalOverlay} activeOpacity={1} onPress={() => { setShowCityModal(false); setCitySearch(""); }}>
+          <View style={[S.modalCard, { height: "70%", paddingTop: vs(16), paddingBottom: 0, justifyContent: "flex-start", alignItems: "flex-start" }]}>
+            <View style={{ width: "100%", flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: vs(12) }}>
+              <Text style={[S.modalTitle, { marginBottom: 0 }]}>Select City</Text>
+              <TouchableOpacity onPress={() => handleOpenCity(cityTarget)} disabled={cityLoading}>
+                <Icon name="refresh" size={rs(22)} color={cityLoading ? T.textMuted : T.accent} />
+              </TouchableOpacity>
+            </View>
+            <View style={{ width: "100%", paddingBottom: vs(12), borderBottomWidth: 1, borderBottomColor: T.border, marginBottom: vs(8) }}>
+              <TextInput
+                style={{ borderWidth: 1, borderColor: T.border, borderRadius: hs(8), paddingHorizontal: hs(12), paddingVertical: Platform.OS === "ios" ? vs(12) : Math.max(8, vs(8)), color: T.text, fontSize: rs(13), fontFamily: Fonts.Regular }}
+                placeholder="Search city..."
+                placeholderTextColor={T.textMuted}
+                value={citySearch}
+                onChangeText={setCitySearch}
+              />
+            </View>
+            <ScrollView style={{ width: "100%" }} showsVerticalScrollIndicator={false}>
+              {cityList.filter(c => c.cityName?.toLowerCase().includes(citySearch.trim().toLowerCase())).map((ct, i) => (
+                <TouchableOpacity
+                  key={i}
+                  style={{ paddingVertical: vs(14), borderBottomWidth: 1, borderBottomColor: T.border }}
+                  onPress={() => {
+                    if (cityTarget === "personal") setPersonal(p => ({ ...p, personalCity: ct.cityName }));
+                    if (cityTarget === "business") setBusiness(b => ({ ...b, businessCity: ct.cityName }));
+                    setShowCityModal(false);
+                    setCitySearch("");
+                  }}
+                >
+                  <Text style={{ fontSize: rs(13), color: T.text, fontFamily: Fonts.Medium }}>{ct.cityName}</Text>
+                </TouchableOpacity>
+              ))}
+              {cityLoading && (
+                <Text style={{ textAlign: "center", marginTop: vs(40), color: T.textMuted }}>Loading cities...</Text>
+              )}
+              {!cityLoading && cityList.length === 0 && (
+                <Text style={{ textAlign: "center", marginTop: vs(40), color: T.textMuted }}>No cities found.</Text>
+              )}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* ── State Selection Modal ── */}
+      <Modal visible={showStateModal} animationType="slide" transparent={true} onRequestClose={() => { setShowStateModal(false); setStateSearch(""); }}>
+        <TouchableOpacity style={S.modalOverlay} activeOpacity={1} onPress={() => { setShowStateModal(false); setStateSearch(""); }}>
+          <View style={[S.modalCard, { height: "70%", paddingTop: vs(16), paddingBottom: 0, justifyContent: "flex-start", alignItems: "flex-start" }]}>
+            <View style={{ width: "100%", flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: vs(12) }}>
+              <Text style={[S.modalTitle, { marginBottom: 0 }]}>Select State</Text>
+              <TouchableOpacity onPress={handleFetchStates} disabled={stateLoading}>
+                <Icon name="refresh" size={rs(22)} color={stateLoading ? T.textMuted : T.accent} />
+              </TouchableOpacity>
+            </View>
+            <View style={{ width: "100%", paddingBottom: vs(12), borderBottomWidth: 1, borderBottomColor: T.border, marginBottom: vs(8) }}>
+              <TextInput
+                style={{ borderWidth: 1, borderColor: T.border, borderRadius: hs(8), paddingHorizontal: hs(12), paddingVertical: Platform.OS === "ios" ? vs(12) : Math.max(8, vs(8)), color: T.text, fontSize: rs(13), fontFamily: Fonts.Regular }}
+                placeholder="Search state..."
+                placeholderTextColor={T.textMuted}
+                value={stateSearch}
+                onChangeText={setStateSearch}
+              />
+            </View>
+            <ScrollView style={{ width: "100%" }} showsVerticalScrollIndicator={false}>
+              {stateLoading && stateList.length === 0 && (
+                <Text style={{ textAlign: "center", marginTop: vs(40), color: T.textMuted }}>Loading states...</Text>
+              )}
+              {stateList.filter(s => s.stateName?.toLowerCase().includes(stateSearch.trim().toLowerCase())).map((st, i) => (
+                <TouchableOpacity
+                  key={i}
+                  style={{ paddingVertical: vs(14), borderBottomWidth: 1, borderBottomColor: T.border }}
+                  onPress={() => {
+                    if (stateTarget === "personal") setPersonal(p => ({ ...p, personalState: st.stateName, personalCity: "" }));
+                    if (stateTarget === "business") setBusiness(b => ({ ...b, businessState: st.stateName, businessCity: "" }));
+                    setShowStateModal(false);
+                    setStateSearch("");
+                  }}
+                >
+                  <Text style={{ fontSize: rs(13), color: T.text, fontFamily: Fonts.Medium }}>{st.stateName}</Text>
+                </TouchableOpacity>
+              ))}
+              {stateList.length === 0 && (
+                <Text style={{ textAlign: "center", marginTop: vs(40), color: T.textMuted }}>Loading states...</Text>
+              )}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* ── Bank Selection Modal ── */}
+      <Modal visible={showBankModal} animationType="slide" transparent={true} onRequestClose={() => { setShowBankModal(false); setBankSearch(""); }}>
+        <TouchableOpacity style={S.modalOverlay} activeOpacity={1} onPress={() => { setShowBankModal(false); setBankSearch(""); }}>
+          <View style={[S.modalCard, { height: "70%", paddingTop: vs(16), paddingBottom: 0, justifyContent: "flex-start", alignItems: "flex-start" }]}>
+            <View style={{ width: "100%", flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: vs(12) }}>
+              <Text style={[S.modalTitle, { marginBottom: 0 }]}>Select Bank</Text>
+              <TouchableOpacity onPress={handleFetchBanks} disabled={bankLoading}>
+                <Icon name="refresh" size={rs(22)} color={bankLoading ? T.textMuted : T.accent} />
+              </TouchableOpacity>
+            </View>
+            <View style={{ width: "100%", paddingBottom: vs(12), borderBottomWidth: 1, borderBottomColor: T.border, marginBottom: vs(8) }}>
+              <TextInput
+                style={{ borderWidth: 1, borderColor: T.border, borderRadius: hs(8), paddingHorizontal: hs(12), paddingVertical: Platform.OS === "ios" ? vs(12) : Math.max(8, vs(8)), color: T.text, fontSize: rs(13), fontFamily: Fonts.Regular }}
+                placeholder="Search bank..."
+                placeholderTextColor={T.textMuted}
+                value={bankSearch}
+                onChangeText={setBankSearch}
+              />
+            </View>
+            <ScrollView style={{ width: "100%" }} showsVerticalScrollIndicator={false}>
+              {bankLoading && bankList.length === 0 && (
+                <Text style={{ textAlign: "center", marginTop: vs(40), color: T.textMuted }}>Loading banks...</Text>
+              )}
+              {bankList.filter(b => b.bankName?.toLowerCase().includes(bankSearch.trim().toLowerCase())).map((bn, i) => (
+                <TouchableOpacity
+                  key={i}
+                  style={{ paddingVertical: vs(14), borderBottomWidth: 1, borderBottomColor: T.border }}
+                  onPress={() => {
+                    setBanking(b => ({ ...b, bankName: bn.bankName }));
+                    setShowBankModal(false);
+                    setBankSearch("");
+                  }}
+                >
+                  <Text style={{ fontSize: rs(13), color: T.text, fontFamily: Fonts.Medium }}>{bn.bankName}</Text>
+                </TouchableOpacity>
+              ))}
+              {!bankLoading && bankList.length === 0 && (
+                <Text style={{ textAlign: "center", marginTop: vs(40), color: T.textMuted }}>No banks found.</Text>
+              )}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
       </Modal>
 
     </SafeAreaView>
@@ -925,7 +1107,7 @@ function FieldWrap({ label, required = true, error, hint, children, onLayout }) 
         }
       </Text>
       {children}
-      {!!hint  && !error && <Text style={[S.fieldHint, { fontSize: rs(9) }]}>{hint}</Text>}
+      {!!hint && !error && <Text style={[S.fieldHint, { fontSize: rs(9) }]}>{hint}</Text>}
       {!!error && <ErrLabel msg={error} />}
     </View>
   );
@@ -940,7 +1122,7 @@ function Field({
     <FieldWrap label={label} required={required} error={error} hint={hint} onLayout={onLayout}>
       <View style={[
         S.inputRow,
-        error    && { borderColor: T.error,        backgroundColor: T.error   + "06" },
+        error && { borderColor: T.error, backgroundColor: T.error + "06" },
         multiline && { alignItems: "flex-start" },
       ]}>
         <TextInput
@@ -973,9 +1155,9 @@ function GenderSelect({ value, onChange, error, onLayout }) {
       </Text>
       <View style={S.genderRow}>
         {[
-          { label: "Male",   icon: "gender-male" },
+          { label: "Male", icon: "gender-male" },
           { label: "Female", icon: "gender-female" },
-          { label: "Other",  icon: "gender-non-binary" },
+          { label: "Other", icon: "gender-non-binary" },
         ].map(opt => (
           <TouchableOpacity
             key={opt.label}
@@ -1049,22 +1231,22 @@ const S = StyleSheet.create({
   safeArea: { flex: 1 },
 
   // Header
-  header:       { flexDirection: "row", alignItems: "center", paddingBottom: vs(10) },
-  backBtn:      { width: hs(38), height: hs(38), borderRadius: hs(12), backgroundColor: T.surface, alignItems: "center", justifyContent: "center", marginRight: hs(10), elevation: 2, shadowColor: "#000", shadowOpacity: 0.07, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } },
+  header: { flexDirection: "row", alignItems: "center", paddingBottom: vs(10) },
+  backBtn: { width: hs(38), height: hs(38), borderRadius: hs(12), backgroundColor: T.surface, alignItems: "center", justifyContent: "center", marginRight: hs(10), elevation: 2, shadowColor: "#000", shadowOpacity: 0.07, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } },
   headerCenter: { flex: 1, flexDirection: "row", alignItems: "center", gap: hs(10) },
-  headerLogo:   { width: hs(34), height: hs(34), borderRadius: hs(10), alignItems: "center", justifyContent: "center" },
-  headerTitle:  { color: T.text, lineHeight: rs(20) },
-  headerSub:    { color: T.textSub, marginTop: 1 },
-  stepBadge:    { paddingHorizontal: hs(10), paddingVertical: vs(4), borderRadius: hs(10) },
-  stepBadgeText:{ letterSpacing: 0.4 },
+  headerLogo: { width: hs(34), height: hs(34), borderRadius: hs(10), alignItems: "center", justifyContent: "center" },
+  headerTitle: { color: T.text, lineHeight: rs(20) },
+  headerSub: { color: T.textSub, marginTop: 1 },
+  stepBadge: { paddingHorizontal: hs(10), paddingVertical: vs(4), borderRadius: hs(10) },
+  stepBadgeText: { letterSpacing: 0.4 },
 
   // Progress
   progressWrap: { paddingBottom: vs(14) },
-  progressTrack:{ height: 3, backgroundColor: T.border, borderRadius: 2, marginBottom: vs(10), overflow: "hidden" },
+  progressTrack: { height: 3, backgroundColor: T.border, borderRadius: 2, marginBottom: vs(10), overflow: "hidden" },
   progressFill: { height: "100%", borderRadius: 2 },
-  stepDots:     { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
-  stepDotItem:  { alignItems: "center", flex: 1 },
-  stepDotCircle:{ alignItems: "center", justifyContent: "center", marginBottom: vs(4) },
+  stepDots: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  stepDotItem: { alignItems: "center", flex: 1 },
+  stepDotCircle: { alignItems: "center", justifyContent: "center", marginBottom: vs(4) },
   stepDotLabel: { color: T.textMuted, textAlign: "center", letterSpacing: 0.4 },
 
   // Scroll
@@ -1074,83 +1256,83 @@ const S = StyleSheet.create({
   card: { backgroundColor: T.surface, borderRadius: hs(20), padding: hs(18), marginBottom: vs(14), elevation: 3, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 10 },
 
   // Section banner inside card
-  sectionBanner:     { flexDirection: "row", alignItems: "center", gap: hs(12), marginBottom: vs(18), padding: hs(12), backgroundColor: T.accent + "0C", borderRadius: hs(14), borderLeftWidth: 3, borderLeftColor: T.accent },
+  sectionBanner: { flexDirection: "row", alignItems: "center", gap: hs(12), marginBottom: vs(18), padding: hs(12), backgroundColor: T.accent + "0C", borderRadius: hs(14), borderLeftWidth: 3, borderLeftColor: T.accent },
   sectionBannerIcon: { width: hs(42), height: hs(42), borderRadius: hs(12), alignItems: "center", justifyContent: "center" },
-  sectionBannerTitle:{ color: T.text },
-  sectionBannerSub:  { color: T.textSub, marginTop: 2 },
+  sectionBannerTitle: { color: T.text },
+  sectionBannerSub: { color: T.textSub, marginTop: 2 },
 
   // Field
-  fieldWrap:  { marginBottom: vs(12) },
+  fieldWrap: { marginBottom: vs(12) },
   fieldLabel: { color: T.textSub, fontFamily: Fonts.Bold, letterSpacing: 0.7, marginBottom: vs(5), textTransform: "uppercase" },
-  inputRow:   { flexDirection: "row", alignItems: "center", backgroundColor: T.inputBg, borderWidth: 1.2, borderColor: T.border, borderRadius: hs(10), paddingHorizontal: hs(12) },
-  input:      { flex: 1, paddingVertical: vs(10), color: T.text, fontFamily: Fonts.Medium },
-  fieldHint:  { color: T.textMuted, marginTop: vs(3), fontFamily: Fonts.Regular },
-  errRow:     { flexDirection: "row", alignItems: "center", marginTop: vs(3) },
-  errText:    { fontFamily: Fonts.Medium },
+  inputRow: { flexDirection: "row", alignItems: "center", backgroundColor: T.inputBg, borderWidth: 1.2, borderColor: T.border, borderRadius: hs(10), paddingHorizontal: hs(12) },
+  input: { flex: 1, paddingVertical: vs(10), color: T.text, fontFamily: Fonts.Medium },
+  fieldHint: { color: T.textMuted, marginTop: vs(3), fontFamily: Fonts.Regular },
+  errRow: { flexDirection: "row", alignItems: "center", marginTop: vs(3) },
+  errText: { fontFamily: Fonts.Medium },
 
   // Eye toggle
   eyeBtn: { padding: hs(4) },
 
   // IFSC badge
-  ifscBadge:     { position: "absolute", right: hs(8), paddingHorizontal: hs(8), paddingVertical: vs(5), borderRadius: hs(8) },
+  ifscBadge: { position: "absolute", right: hs(8), paddingHorizontal: hs(8), paddingVertical: vs(5), borderRadius: hs(8) },
   ifscBadgeText: { letterSpacing: 0.3 },
 
   // Gender
-  genderRow:      { flexDirection: "row", gap: hs(5) },
-  genderBtn:      { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: vs(9), borderRadius: hs(8), backgroundColor: T.inputBg, borderWidth: 1.2, borderColor: T.border, gap: hs(4) },
-  genderBtnText:  { color: T.textMuted },
+  genderRow: { flexDirection: "row", gap: hs(5) },
+  genderBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: vs(9), borderRadius: hs(8), backgroundColor: T.inputBg, borderWidth: 1.2, borderColor: T.border, gap: hs(4) },
+  genderBtnText: { color: T.textMuted },
 
   // Divider
-  divider:      { flexDirection: "row", alignItems: "center", marginVertical: vs(14), gap: hs(8) },
-  dividerLine:  { flex: 1, height: 1.2, backgroundColor: T.border },
+  divider: { flexDirection: "row", alignItems: "center", marginVertical: vs(14), gap: hs(8) },
+  dividerLine: { flex: 1, height: 1.2, backgroundColor: T.border },
   dividerLabel: { color: T.textMuted, letterSpacing: 1 },
 
   // Documents
-  docHintText:   { color: T.textSub, marginBottom: vs(10), fontFamily: Fonts.Regular },
-  docGrid:       {},
-  docSlotWrap:   { marginBottom: vs(10) },
-  docBox:        { height: vs(90), borderRadius: hs(14), borderWidth: 1.5, borderStyle: "dashed", borderColor: T.border, overflow: "hidden", backgroundColor: T.inputBg },
-  docThumb:      { width: "100%", height: "100%", borderRadius: hs(12) },
-  docOverlay:    { position: "absolute", bottom: 0, left: 0, right: 0, flexDirection: "row", alignItems: "center", paddingHorizontal: hs(10), paddingVertical: vs(6), gap: hs(6) },
-  docDoneLabel:  { color: T.success, fontFamily: Fonts.Bold, letterSpacing: 0.4 },
-  docFileName:   { flex: 1, color: "#FFF", fontFamily: Fonts.Regular, fontSize: rs(9) },
-  docCornerBtn:  { position: "absolute", top: vs(6), width: hs(22), height: hs(22), borderRadius: hs(11), alignItems: "center", justifyContent: "center" },
-  docEmptyContent:{ flex: 1, flexDirection: "row", alignItems: "center", paddingHorizontal: hs(14), gap: hs(12) },
+  docHintText: { color: T.textSub, marginBottom: vs(10), fontFamily: Fonts.Regular },
+  docGrid: {},
+  docSlotWrap: { marginBottom: vs(10) },
+  docBox: { height: vs(90), borderRadius: hs(14), borderWidth: 1.5, borderStyle: "dashed", borderColor: T.border, overflow: "hidden", backgroundColor: T.inputBg },
+  docThumb: { width: "100%", height: "100%", borderRadius: hs(12) },
+  docOverlay: { position: "absolute", bottom: 0, left: 0, right: 0, flexDirection: "row", alignItems: "center", paddingHorizontal: hs(10), paddingVertical: vs(6), gap: hs(6) },
+  docDoneLabel: { color: T.success, fontFamily: Fonts.Bold, letterSpacing: 0.4 },
+  docFileName: { flex: 1, color: "#FFF", fontFamily: Fonts.Regular, fontSize: rs(9) },
+  docCornerBtn: { position: "absolute", top: vs(6), width: hs(22), height: hs(22), borderRadius: hs(11), alignItems: "center", justifyContent: "center" },
+  docEmptyContent: { flex: 1, flexDirection: "row", alignItems: "center", paddingHorizontal: hs(14), gap: hs(12) },
   docIconCircle: { width: hs(42), height: hs(42), borderRadius: hs(21), alignItems: "center", justifyContent: "center" },
-  docSlotLabel:  { color: T.text },
-  docSlotSub:    { color: T.textMuted, marginTop: 2, fontFamily: Fonts.Regular },
-  docUploadTag:  { flexDirection: "row", alignItems: "center", paddingHorizontal: hs(8), paddingVertical: vs(4), borderRadius: hs(10), borderWidth: 1, gap: hs(4) },
+  docSlotLabel: { color: T.text },
+  docSlotSub: { color: T.textMuted, marginTop: 2, fontFamily: Fonts.Regular },
+  docUploadTag: { flexDirection: "row", alignItems: "center", paddingHorizontal: hs(8), paddingVertical: vs(4), borderRadius: hs(10), borderWidth: 1, gap: hs(4) },
   docUploadTagText: {},
 
   // IFSC autofill
-  autofillBox:  { flexDirection: "row", alignItems: "flex-start", borderWidth: 1, borderRadius: hs(10), padding: hs(10), marginBottom: vs(10), gap: hs(8) },
+  autofillBox: { flexDirection: "row", alignItems: "flex-start", borderWidth: 1, borderRadius: hs(10), padding: hs(10), marginBottom: vs(10), gap: hs(8) },
   autofillText: { fontFamily: Fonts.Regular },
 
   // Security banner
   securityBanner: { flexDirection: "row", alignItems: "flex-start", borderRadius: hs(12), padding: hs(12), marginTop: vs(12), gap: hs(10) },
-  securityIcon:   { width: hs(36), height: hs(36), borderRadius: hs(10), alignItems: "center", justifyContent: "center" },
-  securityTitle:  { marginBottom: vs(2) },
-  securityBody:   { color: T.textSub, lineHeight: rs(16) },
+  securityIcon: { width: hs(36), height: hs(36), borderRadius: hs(10), alignItems: "center", justifyContent: "center" },
+  securityTitle: { marginBottom: vs(2) },
+  securityBody: { color: T.textSub, lineHeight: rs(16) },
 
   // Review notice
   reviewBanner: { flexDirection: "row", alignItems: "flex-start", backgroundColor: "#EFF6FF", borderRadius: hs(10), borderLeftWidth: 3, borderLeftColor: "#3B82F6", padding: hs(10), marginTop: vs(10), gap: hs(8) },
-  reviewText:   { flex: 1, color: "#1D4ED8", lineHeight: rs(16) },
+  reviewText: { flex: 1, color: "#1D4ED8", lineHeight: rs(16) },
 
   // Action row
-  actionRow:   { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: vs(4), marginBottom: vs(8), gap: hs(12) },
-  prevBtn:     { flexDirection: "row", alignItems: "center", paddingVertical: vs(12), paddingHorizontal: hs(18), borderRadius: hs(12), borderWidth: 1.2, borderColor: T.border, backgroundColor: T.surface, gap: hs(6), elevation: 1 },
+  actionRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: vs(4), marginBottom: vs(8), gap: hs(12) },
+  prevBtn: { flexDirection: "row", alignItems: "center", paddingVertical: vs(12), paddingHorizontal: hs(18), borderRadius: hs(12), borderWidth: 1.2, borderColor: T.border, backgroundColor: T.surface, gap: hs(6), elevation: 1 },
   prevBtnText: { color: T.text },
-  nextBtnOuter:{ borderRadius: hs(14), overflow: "hidden", elevation: 5, shadowColor: T.accent, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
+  nextBtnOuter: { borderRadius: hs(14), overflow: "hidden", elevation: 5, shadowColor: T.accent, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
   nextBtnGrad: { flexDirection: "row", alignItems: "center", paddingVertical: vs(14), paddingHorizontal: hs(26) },
   nextBtnText: {},
 
   // Modal
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", paddingHorizontal: hs(24) },
-  modalCard:    { backgroundColor: T.surface, width: "100%", borderRadius: hs(24), padding: hs(24), alignItems: "center", elevation: 10, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12 },
-  modalIconWrap:{ width: rs(72), height: rs(72), borderRadius: rs(36), backgroundColor: T.success + "15", justifyContent: "center", alignItems: "center", marginBottom: vs(16) },
-  modalTitle:   { color: T.text, fontSize: rs(18), fontFamily: Fonts.Bold, textAlign: "center", marginBottom: vs(8) },
-  modalSub:     { color: T.textSub, fontSize: rs(12), fontFamily: Fonts.Regular, textAlign: "center", lineHeight: rs(18), marginBottom: vs(24) },
-  modalBtn:     { width: "100%", borderRadius: hs(12), overflow: "hidden" },
+  modalCard: { backgroundColor: T.surface, width: "100%", borderRadius: hs(24), padding: hs(24), alignItems: "center", elevation: 10, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12 },
+  modalIconWrap: { width: rs(72), height: rs(72), borderRadius: rs(36), backgroundColor: T.success + "15", justifyContent: "center", alignItems: "center", marginBottom: vs(16) },
+  modalTitle: { color: T.text, fontSize: rs(18), fontFamily: Fonts.Bold, textAlign: "center", marginBottom: vs(8) },
+  modalSub: { color: T.textSub, fontSize: rs(12), fontFamily: Fonts.Regular, textAlign: "center", lineHeight: rs(18), marginBottom: vs(24) },
+  modalBtn: { width: "100%", borderRadius: hs(12), overflow: "hidden" },
   modalBtnGrad: { paddingVertical: vs(14), alignItems: "center", justifyContent: "center" },
   modalBtnText: { color: T.surface, fontFamily: Fonts.Bold, fontSize: rs(14) },
 });
