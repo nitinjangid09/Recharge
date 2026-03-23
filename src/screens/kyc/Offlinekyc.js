@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
@@ -14,31 +14,18 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import Colors from "../../constants/Colors";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
-// ─────────────────────────────────────────────────────────────────────────────
-// RESPONSIVE SCALE HELPERS
-// ─────────────────────────────────────────────────────────────────────────────
-const BASE_WIDTH = 375; // iPhone SE / base design width
-const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 
-// Scale font sizes relative to screen width, capped so large tablets don't blow up
+// ─── Responsive helpers ───────────────────────────────────────────────────
+const BASE_WIDTH = 375;
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 const rs = (size) => {
-  const scale = SCREEN_W / BASE_WIDTH;
-  const clamped = Math.min(scale, 1.35); // cap at ~508px equivalent
+  const clamped = Math.min(SCREEN_W / BASE_WIDTH, 1.35);
   return Math.round(PixelRatio.roundToNearestPixel(size * clamped));
 };
-
-// Horizontal spacing scale
 const hs = (size) => Math.round(PixelRatio.roundToNearestPixel(size * (SCREEN_W / BASE_WIDTH)));
-
-// Vertical spacing scale (more conservative)
 const vs = (size) => Math.round(PixelRatio.roundToNearestPixel(size * (Math.min(SCREEN_H, 900) / 812)));
 
-// Is this a tablet-ish screen?
-const isTablet = SCREEN_W >= 600;
-
-// ─────────────────────────────────────────────────────────────────────────────
-// DESIGN TOKENS — plain hex only at module level
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── Design tokens ────────────────────────────────────────────────────────
 const T = {
   accent: "#C9A84C",
   accentLight: "#F5E7C6",
@@ -52,8 +39,10 @@ const T = {
   bg: "#F4F5F7",
   surface: "#FFFFFF",
   border: "#E5E7EB",
-  borderFocus: "#C9A84C",
   inputBg: "#FAFAFA",
+  lockedBg: "#F3F4F6",
+  lockedBorder: "#D1D5DB",
+  lockedText: "#6B7280",
 };
 
 const resolveColors = () => ({
@@ -65,15 +54,14 @@ const resolveColors = () => ({
   white: typeof Colors.white === "string" && Colors.white.length > 2 ? Colors.white : T.surface,
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// CONSTANTS
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── Step config ──────────────────────────────────────────────────────────
 const STEPS = [
   { key: "personal", label: "Personal", icon: "account-circle-outline" },
   { key: "business", label: "Business", icon: "store-outline" },
   { key: "banking", label: "Banking", icon: "bank-outline" },
 ];
 
+// ─── Validators ───────────────────────────────────────────────────────────
 const RX = {
   email: /^\S+@\S+\.\S+$/,
   phone: /^[6-9]\d{9}$/,
@@ -83,21 +71,19 @@ const RX = {
   aadhaar: /^\d{12}$/,
   ifsc: /^[A-Z]{4}0[A-Z0-9]{6}$/,
   gst: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
-  name: /^[a-zA-Z\s]{2,50}$/,
   accNum: /^[0-9]{9,20}$/,
   accountHolderName: /^[A-Za-z\s.]+$/,
   bankName: /^[A-Za-z\s.&]+$/,
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MAIN COMPONENT
-// ─────────────────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+//  MAIN COMPONENT
+// ═══════════════════════════════════════════════════════════════════════════
 export default function Offlinekyc({ navigation, route }) {
   const C = resolveColors();
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions(); // reactive to orientation changes
+  const { width } = useWindowDimensions();
 
-  // Column layout on wide screens
   const isWide = width >= 600;
   const contentWidth = isWide ? Math.min(width - hs(32), 680) : width - hs(32);
   const colGap = hs(12);
@@ -106,12 +92,14 @@ export default function Offlinekyc({ navigation, route }) {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [showAcc, setShowAcc] = useState(false);
+  const [showConfirmAcc, setShowConfirmAcc] = useState(false);
   const [errors, setErrors] = useState({});
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showFailModal, setShowFailModal] = useState(false);
   const [failMsg, setFailMsg] = useState("");
 
+  // State / City / Bank modals
   const [stateList, setStateList] = useState([]);
   const [showStateModal, setShowStateModal] = useState(false);
   const [stateTarget, setStateTarget] = useState(null);
@@ -129,128 +117,20 @@ export default function Offlinekyc({ navigation, route }) {
   const [bankLoading, setBankLoading] = useState(false);
   const [bankSearch, setBankSearch] = useState("");
 
-  const handleOpenCity = async (target) => {
-    let stateName = target === "personal" ? personal.personalState : business.businessState;
-    if (!stateName) {
-      if (Platform.OS === 'android') ToastAndroid.show("Please select a State first", ToastAndroid.SHORT);
-      else Alert.alert("Action Required", "Please select a State first");
-      return;
-    }
-    const stateObj = stateList.find(s => s.stateName === stateName);
-    if (!stateObj) {
-      if (Platform.OS === 'android') ToastAndroid.show("Please select a valid State from the list", ToastAndroid.SHORT);
-      else Alert.alert("Action Required", "Please select a valid State from the list");
-      return;
-    }
-    setCityTarget(target);
-    setShowCityModal(true);
-    setCityLoading(true);
-    setCityList([]);
-    try {
-      const headerToken = await AsyncStorage.getItem("header_token");
-      const res = await fetchCityList({ stateCode: stateObj.stateCode, headerToken });
-      if (res && res.success && res.data) {
-        setCityList(res.data);
-      }
-    } catch (e) {
-      console.log('City fetch error', e);
-    } finally {
-      setCityLoading(false);
-    }
-  };
-
-  const handleFetchBanks = async () => {
-    setBankLoading(true);
-    try {
-      const headerToken = await AsyncStorage.getItem("header_token");
-      const res = await fetchGlobalBankList({ headerToken });
-      if (res && res.success && res.data) {
-        setBankList(res.data);
-      }
-    } catch (err) {
-      console.log('Bank list fetch error:', err);
-    } finally {
-      setBankLoading(false);
-    }
-  };
-
-  const handleOpenBank = () => {
-    setShowBankModal(true);
-    if (bankList.length === 0) handleFetchBanks();
-  };
-
   const slideAnim = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef(null);
   const fieldCoords = useRef({});
+  const progressAnim = useRef(new Animated.Value(0)).current;
 
-  const scrollToError = (errs) => {
-    const firstErrorKey = Object.keys(errs)[0];
-    if (firstErrorKey && fieldCoords.current[firstErrorKey] !== undefined) {
-      scrollViewRef.current?.scrollTo({
-        y: Math.max(0, fieldCoords.current[firstErrorKey] - 20),
-        animated: true,
-      });
-    }
-  };
-
-  // ── Form state ────────────────────────────────────────────────────────────
+  // ── Forms ─────────────────────────────────────────────────────────────
   const [personal, setPersonal] = useState({
-    firstName: route?.params?.user?.firstName || "",
-    lastName: route?.params?.user?.lastName || "",
-    fatherName: "", gender: "",
-    email: route?.params?.user?.email || "",
-    phone: route?.params?.user?.phone || "",
-    dob: "",
+    firstName: "", lastName: "", fatherName: "", gender: "",
+    email: "", phone: "", dob: "",
     personalAddress: "", personalCity: "", personalState: "", personalPincode: "",
   });
-
-  React.useEffect(() => {
-    if (!route?.params?.user) {
-      const loadUserData = async () => {
-        try {
-          const uStr = await AsyncStorage.getItem("user_profile");
-          if (uStr) {
-            const u = JSON.parse(uStr);
-            setPersonal(p => ({
-              ...p,
-              firstName: p.firstName || u.firstName || "",
-              lastName: p.lastName || u.lastName || "",
-              email: p.email || u.email || "",
-              phone: p.phone || u.phone || "",
-            }));
-          }
-        } catch (err) {
-          console.error("Offlinekyc loadUserData error:", err);
-        }
-      };
-      loadUserData();
-    }
-  }, [route?.params?.user]);
-
-  const handleFetchStates = async () => {
-    setStateLoading(true);
-    try {
-      const headerToken = await AsyncStorage.getItem("header_token");
-      const res = await fetchStateList({ headerToken });
-      if (res && res.success && res.data) {
-        setStateList(res.data);
-      }
-    } catch (err) {
-      console.log('State fetch error:', err);
-    } finally {
-      setStateLoading(false);
-    }
-  };
-
-  React.useEffect(() => {
-    handleFetchStates();
-  }, []);
-
-  const handleOpenState = (target) => {
-    setStateTarget(target);
-    setShowStateModal(true);
-    if (stateList.length === 0) handleFetchStates();
-  };
+  const [lockedPersonal, setLockedPersonal] = useState({
+    firstName: false, lastName: false, email: false, phone: false,
+  });
 
   const [business, setBusiness] = useState({
     shopName: "", businessPanNumber: "", gstNumber: "",
@@ -265,51 +145,160 @@ export default function Offlinekyc({ navigation, route }) {
     confirmAccountNumber: "", ifscCode: "", branchName: "",
   });
 
-  // ── Slide animation ───────────────────────────────────────────────────────
-  const slide = (dir, cb) => {
-    Animated.timing(slideAnim, {
-      toValue: dir === "fwd" ? -width : width,
-      duration: 240, useNativeDriver: true,
-    }).start(() => {
-      cb();
-      slideAnim.setValue(dir === "fwd" ? width : -width);
-      Animated.spring(slideAnim, { toValue: 0, friction: 9, tension: 65, useNativeDriver: true }).start();
-    });
+  // ── Account match status (real-time) ──────────────────────────────────
+  // "idle"    — confirm field is empty
+  // "typing"  — confirm field has input but doesn't match yet (user still typing)
+  // "match"   — both numbers are identical and non-empty
+  // "mismatch"— confirm field has input but differs from accountNumber
+  const accMatchStatus = (() => {
+    const acc = banking.accountNumber.trim();
+    const conf = banking.confirmAccountNumber.trim();
+    if (!conf) return "idle";
+    if (acc === conf) return "match";
+    return "mismatch";
+  })();
+
+  const accMatchColor = {
+    idle: T.border,
+    match: T.success,
+    mismatch: T.error,
+  }[accMatchStatus];
+
+  const accMatchIcon = {
+    match: "check-circle",
+    mismatch: "close-circle",
+  }[accMatchStatus];
+
+  // ── Pre-fill from route or AsyncStorage ───────────────────────────────
+  useEffect(() => {
+    const u = route?.params?.user;
+    if (u) {
+      const locked = {};
+      setPersonal(p => {
+        const next = { ...p };
+        if (u.firstName) { next.firstName = u.firstName; locked.firstName = true; }
+        if (u.lastName) { next.lastName = u.lastName; locked.lastName = true; }
+        if (u.email) { next.email = u.email; locked.email = true; }
+        if (u.phone) { next.phone = u.phone; locked.phone = true; }
+        return next;
+      });
+      setLockedPersonal(locked);
+    } else {
+      (async () => {
+        try {
+          const uStr = await AsyncStorage.getItem("user_profile");
+          if (!uStr) return;
+          const u2 = JSON.parse(uStr);
+          const locked = {};
+          setPersonal(p => {
+            const next = { ...p };
+            if (u2.firstName && !next.firstName) { next.firstName = u2.firstName; locked.firstName = true; }
+            if (u2.lastName && !next.lastName) { next.lastName = u2.lastName; locked.lastName = true; }
+            if (u2.email && !next.email) { next.email = u2.email; locked.email = true; }
+            if (u2.phone && !next.phone) { next.phone = u2.phone; locked.phone = true; }
+            return next;
+          });
+          setLockedPersonal(locked);
+        } catch (err) { console.error("Offlinekyc loadUserData error:", err); }
+      })();
+    }
+  }, []);
+
+  useEffect(() => { handleFetchStates(); }, []);
+
+  useEffect(() => {
+    Animated.spring(progressAnim, { toValue: step / 2, friction: 8, tension: 50, useNativeDriver: false }).start();
+  }, [step]);
+
+  // ─── API helpers ──────────────────────────────────────────────────────
+  const handleFetchStates = async () => {
+    setStateLoading(true);
+    try {
+      const headerToken = await AsyncStorage.getItem("header_token");
+      const res = await fetchStateList({ headerToken });
+      if (res?.success && res.data) setStateList(res.data);
+    } catch (err) { console.log("State fetch error:", err); }
+    finally { setStateLoading(false); }
   };
 
-  // ── Validators ────────────────────────────────────────────────────────────
+  const handleOpenState = (target) => {
+    setStateTarget(target);
+    setShowStateModal(true);
+    if (stateList.length === 0) handleFetchStates();
+  };
+
+  const handleOpenCity = async (target) => {
+    const stateName = target === "personal" ? personal.personalState : business.businessState;
+    if (!stateName) {
+      Platform.OS === "android"
+        ? ToastAndroid.show("Please select a State first", ToastAndroid.SHORT)
+        : Alert.alert("Action Required", "Please select a State first");
+      return;
+    }
+    const stateObj = stateList.find(s => s.stateName === stateName);
+    if (!stateObj) {
+      Platform.OS === "android"
+        ? ToastAndroid.show("Please select a valid State from the list", ToastAndroid.SHORT)
+        : Alert.alert("Action Required", "Please select a valid State from the list");
+      return;
+    }
+    setCityTarget(target);
+    setShowCityModal(true);
+    setCityLoading(true);
+    setCityList([]);
+    try {
+      const headerToken = await AsyncStorage.getItem("header_token");
+      const res = await fetchCityList({ stateCode: stateObj.stateCode, headerToken });
+      if (res?.success && res.data) setCityList(res.data);
+    } catch (e) { console.log("City fetch error", e); }
+    finally { setCityLoading(false); }
+  };
+
+  const handleFetchBanks = async () => {
+    setBankLoading(true);
+    try {
+      const headerToken = await AsyncStorage.getItem("header_token");
+      const res = await fetchGlobalBankList({ headerToken });
+      if (res?.success && res.data) setBankList(res.data);
+    } catch (err) { console.log("Bank list fetch error:", err); }
+    finally { setBankLoading(false); }
+  };
+
+  const handleOpenBank = () => {
+    setShowBankModal(true);
+    if (bankList.length === 0) handleFetchBanks();
+  };
+
+  // ─── Scroll to first error ────────────────────────────────────────────
+  const scrollToError = (errs) => {
+    const firstKey = Object.keys(errs)[0];
+    if (firstKey && fieldCoords.current[firstKey] !== undefined) {
+      scrollViewRef.current?.scrollTo({ y: Math.max(0, fieldCoords.current[firstKey] - 20), animated: true });
+    }
+  };
+
+  // ─── Validators ───────────────────────────────────────────────────────
   const validatePersonal = () => {
     const e = {};
-    if (!personal.gender) e.gender = "Required";
-    else if (!["male", "female", "other"].includes(personal.gender.toLowerCase())) e.gender = "Invalid gender";
-    if (!personal.firstName.trim()) e.firstName = "Required";
-    else if (personal.firstName.trim().length < 3 || personal.firstName.trim().length > 30) e.firstName = "Min 3, Max 30 chars";
-    if (!personal.lastName.trim()) e.lastName = "Required";
-    else if (personal.lastName.trim().length < 3 || personal.lastName.trim().length > 30) e.lastName = "Min 3, Max 30 chars";
-    if (!personal.fatherName.trim()) e.fatherName = "Required";
-    else if (personal.fatherName.trim().length < 3 || personal.fatherName.trim().length > 50) e.fatherName = "Min 3, Max 50 chars";
-    if (!personal.email.trim()) e.email = "Required";
-    else if (!RX.email.test(personal.email.trim())) e.email = "Invalid email format";
-    if (!personal.phone.trim()) e.phone = "Required";
-    else if (!RX.phone.test(personal.phone.trim())) e.phone = "Invalid Indian phone number";
-    if (!personal.dob.trim()) e.dob = "Required";
-    else if (!RX.dob.test(personal.dob.trim())) e.dob = "DD-MM-YYYY";
-    else {
+    if (!personal.gender || !["male", "female", "other"].includes(personal.gender.toLowerCase())) e.gender = "Required";
+    if (!personal.firstName.trim() || personal.firstName.trim().length < 3) e.firstName = "Min 3 chars";
+    if (!personal.lastName.trim() || personal.lastName.trim().length < 3) e.lastName = "Min 3 chars";
+    if (!personal.fatherName.trim() || personal.fatherName.trim().length < 3) e.fatherName = "Min 3 chars";
+    if (!personal.email.trim() || !RX.email.test(personal.email.trim())) e.email = "Invalid email";
+    if (!personal.phone.trim() || !RX.phone.test(personal.phone.trim())) e.phone = "Invalid phone";
+    if (!personal.dob.trim() || !RX.dob.test(personal.dob.trim())) {
+      e.dob = "DD-MM-YYYY";
+    } else {
       const [dd, mm, yyyy] = personal.dob.split("-").map(Number);
       const dobDate = new Date(yyyy, mm - 1, dd);
       const today = new Date();
-      if (dobDate > today) e.dob = "User must be at least 18 years old and DOB cannot be in the future";
-      else {
-        const ageDiff = today.getFullYear() - dobDate.getFullYear();
-        const m = today.getMonth() - dobDate.getMonth();
-        const age = m < 0 || (m === 0 && today.getDate() < dobDate.getDate()) ? ageDiff - 1 : ageDiff;
-        if (age < 18) e.dob = "User must be at least 18 years old and DOB cannot be in the future";
-      }
+      const ageDiff = today.getFullYear() - dobDate.getFullYear();
+      const m = today.getMonth() - dobDate.getMonth();
+      const age = (m < 0 || (m === 0 && today.getDate() < dobDate.getDate())) ? ageDiff - 1 : ageDiff;
+      if (dobDate > today || age < 18) e.dob = "Must be at least 18 years old";
     }
-    if (!personal.personalAddress.trim()) e.personalAddress = "Required";
-    else if (personal.personalAddress.trim().length < 5 || personal.personalAddress.trim().length > 100) e.personalAddress = "Min 5, Max 100 chars";
-    if (!personal.personalPincode.trim()) e.personalPincode = "Required";
-    else if (!RX.pincode.test(personal.personalPincode.trim())) e.personalPincode = "Invalid pincode";
+    if (!personal.personalAddress.trim() || personal.personalAddress.trim().length < 5) e.personalAddress = "Min 5 chars";
+    if (!RX.pincode.test(personal.personalPincode.trim())) e.personalPincode = "Invalid pincode";
     if (!personal.personalState.trim()) e.personalState = "Required";
     if (!personal.personalCity.trim()) e.personalCity = "Required";
     setErrors(e);
@@ -319,20 +308,14 @@ export default function Offlinekyc({ navigation, route }) {
   const validateBusiness = () => {
     const e = {};
     if (!business.shopName.trim()) e.shopName = "Required";
-    if (!business.businessAddress.trim()) e.businessAddress = "Required";
-    else if (business.businessAddress.trim().length < 5 || business.businessAddress.trim().length > 100) e.businessAddress = "Min 5, Max 100 chars";
-    if (!business.businessPincode.trim()) e.businessPincode = "Required";
-    else if (!RX.pincode.test(business.businessPincode.trim())) e.businessPincode = "Invalid pincode";
+    if (!business.businessAddress.trim() || business.businessAddress.trim().length < 5) e.businessAddress = "Min 5 chars";
+    if (!RX.pincode.test(business.businessPincode.trim())) e.businessPincode = "Invalid pincode";
     if (!business.businessState.trim()) e.businessState = "Required";
     if (!business.businessCity.trim()) e.businessCity = "Required";
-    if (!business.panNumber.trim()) e.panNumber = "Required";
-    else if (!RX.pan.test(business.panNumber.trim())) e.panNumber = "Invalid PAN number";
-    if (!business.aadharNumber.trim()) e.aadharNumber = "Required";
-    else if (!RX.aadhaar.test(business.aadharNumber.trim())) e.aadharNumber = "Invalid Aadhaar number";
-    if (business.businessPanNumber?.trim() && !RX.pan.test(business.businessPanNumber.trim()))
-      e.businessPanNumber = "Invalid Business PAN";
-    if (business.gstNumber?.trim() && !RX.gst.test(business.gstNumber.trim()))
-      e.gstNumber = "Invalid GST number";
+    if (!business.panNumber.trim() || !RX.pan.test(business.panNumber.trim())) e.panNumber = "Invalid PAN";
+    if (!business.aadharNumber.trim() || !RX.aadhaar.test(business.aadharNumber.trim())) e.aadharNumber = "Invalid Aadhaar";
+    if (business.businessPanNumber?.trim() && !RX.pan.test(business.businessPanNumber.trim())) e.businessPanNumber = "Invalid Business PAN";
+    if (business.gstNumber?.trim() && !RX.gst.test(business.gstNumber.trim())) e.gstNumber = "Invalid GST number";
     if (!files.aadharFile) e.aadharFile = "Aadhaar photo required";
     if (!files.panFile) e.panFile = "PAN card photo required";
     if (!files.shopImage) e.shopImage = "Shop photo required";
@@ -342,39 +325,36 @@ export default function Offlinekyc({ navigation, route }) {
 
   const validateBanking = () => {
     const e = {};
-    if (!banking.accountHolderName.trim()) e.accountHolderName = "Required";
-    else if (banking.accountHolderName.trim().length < 2 || banking.accountHolderName.trim().length > 60) e.accountHolderName = "Min 2, Max 60 chars";
-    else if (!RX.accountHolderName.test(banking.accountHolderName.trim())) e.accountHolderName = "Account holder name can contain only letters";
-    if (!banking.bankName.trim()) e.bankName = "Required";
-    else if (banking.bankName.trim().length < 2 || banking.bankName.trim().length > 80) e.bankName = "Min 2, Max 80 chars";
-    else if (!RX.bankName.test(banking.bankName.trim())) e.bankName = "Invalid bank name";
-    if (!banking.accountNumber.trim()) e.accountNumber = "Required";
-    else if (!RX.accNum.test(banking.accountNumber.trim())) e.accountNumber = "Account number must be 9–20 digits";
-    if (!banking.confirmAccountNumber.trim()) e.confirmAccountNumber = "Please confirm";
-    else if (banking.accountNumber !== banking.confirmAccountNumber)
-      e.confirmAccountNumber = "Numbers don't match";
-    if (!banking.ifscCode.trim()) e.ifscCode = "Required";
-    else if (!RX.ifsc.test(banking.ifscCode.trim())) e.ifscCode = banking.ifscCode + " is not a valid IFSC code";
+    if (!banking.accountHolderName.trim() || !RX.accountHolderName.test(banking.accountHolderName.trim())) e.accountHolderName = "Letters only, min 2 chars";
+    if (!banking.bankName.trim() || !RX.bankName.test(banking.bankName.trim())) e.bankName = "Required";
+    if (!RX.accNum.test(banking.accountNumber.trim())) e.accountNumber = "9–20 digits";
+    if (banking.accountNumber !== banking.confirmAccountNumber) e.confirmAccountNumber = "Account numbers don't match";
+    if (!banking.confirmAccountNumber.trim()) e.confirmAccountNumber = "Please confirm account number";
+    if (!RX.ifsc.test(banking.ifscCode.trim())) e.ifscCode = "Invalid IFSC code";
     if (!banking.branchName.trim()) e.branchName = "Required";
     setErrors(e);
     return e;
   };
 
-  // ── Navigation ────────────────────────────────────────────────────────────
+  // ─── Step navigation ──────────────────────────────────────────────────
+  const slide = (dir, cb) => {
+    Animated.timing(slideAnim, { toValue: dir === "fwd" ? -width : width, duration: 240, useNativeDriver: true })
+      .start(() => {
+        cb();
+        slideAnim.setValue(dir === "fwd" ? width : -width);
+        Animated.spring(slideAnim, { toValue: 0, friction: 9, tension: 65, useNativeDriver: true }).start();
+      });
+  };
+
   const handleNext = () => {
-    let errs = {};
-    if (step === 0) errs = validatePersonal();
-    if (step === 1) errs = validateBusiness();
-    if (Object.keys(errs).length > 0) {
-      scrollToError(errs);
-      return;
-    }
+    const errs = step === 0 ? validatePersonal() : validateBusiness();
+    if (Object.keys(errs).length > 0) { scrollToError(errs); return; }
     setErrors({});
     slide("fwd", () => setStep(p => p + 1));
   };
   const handlePrev = () => { setErrors({}); slide("bwd", () => setStep(p => p - 1)); };
 
-  // ── Image picker ──────────────────────────────────────────────────────────
+  // ─── Image picker ─────────────────────────────────────────────────────
   const pickImage = (fileKey) => {
     Alert.alert("Upload Photo", "Choose source", [
       {
@@ -385,7 +365,7 @@ export default function Offlinekyc({ navigation, route }) {
               setFiles(f => ({ ...f, [fileKey]: { uri: a.uri, name: a.fileName || `${fileKey}.jpg`, type: a.type || "image/jpeg" } }));
               setErrors(e => ({ ...e, [fileKey]: undefined }));
             }
-          })
+          }),
       },
       {
         text: "🖼️ Gallery", onPress: () =>
@@ -395,7 +375,7 @@ export default function Offlinekyc({ navigation, route }) {
               setFiles(f => ({ ...f, [fileKey]: { uri: a.uri, name: a.fileName || `${fileKey}.jpg`, type: a.type || "image/jpeg" } }));
               setErrors(e => ({ ...e, [fileKey]: undefined }));
             }
-          })
+          }),
       },
       { text: "Cancel", style: "cancel" },
     ]);
@@ -403,23 +383,15 @@ export default function Offlinekyc({ navigation, route }) {
 
   const removeFile = (fileKey) => setFiles(f => ({ ...f, [fileKey]: null }));
 
-  // ── Submit ────────────────────────────────────────────────────────────────
+  // ─── Submit ───────────────────────────────────────────────────────────
   const handleSubmit = async () => {
     const errs = validateBanking();
-    if (Object.keys(errs).length > 0) {
-      scrollToError(errs);
-      return;
-    }
+    if (Object.keys(errs).length > 0) { scrollToError(errs); return; }
     setLoading(true);
     const result = await submitOfflineKyc({ personal, business, files, banking });
     setLoading(false);
-    if (!result) {
-      setFailMsg("No response. Please try again.");
-      setShowFailModal(true);
-      return;
-    }
-    const ok = result.success === true || result.status === "success" ||
-      result.status === 1 || result.statusCode === 200;
+    if (!result) { setFailMsg("No response. Please try again."); setShowFailModal(true); return; }
+    const ok = result.success === true || result.status === "success" || result.status === 1 || result.statusCode === 200;
     if (ok) {
       setShowSuccessModal(true);
     } else {
@@ -429,82 +401,54 @@ export default function Offlinekyc({ navigation, route }) {
     }
   };
 
-  // ── Progress ──────────────────────────────────────────────────────────────
-  const progressAnim = useRef(new Animated.Value(0)).current;
-  React.useEffect(() => {
-    Animated.spring(progressAnim, {
-      toValue: (step / 2),
-      friction: 8, tension: 50, useNativeDriver: false,
-    }).start();
-  }, [step]);
-
-  // ─────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────
   // RENDER
-  // ─────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────
   return (
-    <SafeAreaView style={[S.safeArea, { backgroundColor: T.bg }]} edges={["bottom"]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: T.bg }]} edges={["bottom"]}>
       <StatusBar barStyle="dark-content" backgroundColor={T.bg} />
 
-      {/* ── Header ── */}
-      <View style={[S.header, { paddingTop: insets.top + vs(10), paddingHorizontal: hs(16) }]}>
-        <TouchableOpacity style={S.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + vs(10), paddingHorizontal: hs(16) }]}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
           <Icon name="chevron-left" size={rs(22)} color={T.text} />
         </TouchableOpacity>
-
-        <View style={S.headerCenter}>
-          <LinearGradient colors={[T.accent, T.accentDark]} style={S.headerLogo}>
+        <View style={styles.headerCenter}>
+          <LinearGradient colors={[T.accent, T.accentDark]} style={styles.headerLogo}>
             <Icon name="shield-account-outline" size={rs(17)} color={T.surface} />
           </LinearGradient>
           <View>
-            <Text style={[S.headerTitle, { fontFamily: Fonts.Bold, fontSize: rs(16) }]}>
-              KYC Verification
-            </Text>
-            <Text style={[S.headerSub, { fontSize: rs(10) }]}>
-              {STEPS[step].label} Details — Step {step + 1} of 3
-            </Text>
+            <Text style={[styles.headerTitle, { fontFamily: Fonts.Bold, fontSize: rs(16) }]}>KYC Verification</Text>
+            <Text style={[styles.headerSub, { fontSize: rs(10) }]}>{STEPS[step].label} Details — Step {step + 1} of 3</Text>
           </View>
         </View>
-
-        <View style={[S.stepBadge, { backgroundColor: T.accent + "1A" }]}>
-          <Text style={[S.stepBadgeText, { color: T.accent, fontFamily: Fonts.Bold, fontSize: rs(11) }]}>
-            {step + 1} / 3
-          </Text>
+        <View style={[styles.stepBadge, { backgroundColor: T.accent + "1A" }]}>
+          <Text style={[styles.stepBadgeText, { color: T.accent, fontFamily: Fonts.Bold, fontSize: rs(11) }]}>{step + 1} / 3</Text>
         </View>
       </View>
 
-      {/* ── Progress bar + stepper ── */}
-      <View style={[S.progressWrap, { paddingHorizontal: hs(16) }]}>
-        {/* Track */}
-        <View style={S.progressTrack}>
-          <Animated.View style={[S.progressFill, {
+      {/* Progress */}
+      <View style={[styles.progressWrap, { paddingHorizontal: hs(16) }]}>
+        <View style={styles.progressTrack}>
+          <Animated.View style={[styles.progressFill, {
             width: progressAnim.interpolate({ inputRange: [0, 1], outputRange: ["0%", "100%"] }),
             backgroundColor: T.accent,
           }]} />
         </View>
-
-        {/* Step dots */}
-        <View style={S.stepDots}>
+        <View style={styles.stepDots}>
           {STEPS.map((s, i) => {
             const done = i < step;
             const active = i === step;
             return (
-              <View key={s.key} style={S.stepDotItem}>
+              <View key={s.key} style={styles.stepDotItem}>
                 <LinearGradient
                   colors={done ? [T.success, "#15803D"] : active ? [T.accent, T.accentDark] : [T.border, T.border]}
-                  style={[S.stepDotCircle, { width: rs(active ? 36 : 28), height: rs(active ? 36 : 28), borderRadius: rs(active ? 18 : 14) }]}
+                  style={[styles.stepDotCircle, { width: rs(active ? 36 : 28), height: rs(active ? 36 : 28), borderRadius: rs(active ? 18 : 14) }]}
                 >
-                  <Icon
-                    name={done ? "check" : s.icon}
-                    size={rs(done ? 14 : active ? 16 : 13)}
-                    color={done || active ? T.surface : T.textMuted}
-                  />
+                  <Icon name={done ? "check" : s.icon} size={rs(done ? 14 : active ? 16 : 13)} color={done || active ? T.surface : T.textMuted} />
                 </LinearGradient>
-                <Text style={[
-                  S.stepDotLabel,
-                  { fontSize: rs(9), fontFamily: active ? Fonts.Bold : Fonts.Medium },
-                  done && { color: T.success },
-                  active && { color: T.accent },
-                ]}>
+                <Text style={[styles.stepDotLabel, { fontSize: rs(9), fontFamily: active ? Fonts.Bold : Fonts.Medium },
+                done && { color: T.success }, active && { color: T.accent }]}>
                   {s.label}
                 </Text>
               </View>
@@ -513,80 +457,59 @@ export default function Offlinekyc({ navigation, route }) {
         </View>
       </View>
 
-      {/* ── Form body ── */}
+      {/* Form */}
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <Animated.View style={[{ flex: 1 }, { transform: [{ translateX: slideAnim }] }]}>
           <ScrollView
             ref={scrollViewRef}
-            contentContainerStyle={[S.scrollContent, {
-              paddingHorizontal: hs(16),
-              paddingBottom: vs(40),
-              alignItems: isWide ? "center" : undefined,
-            }]}
+            contentContainerStyle={[styles.scrollContent, { paddingHorizontal: hs(16), paddingBottom: vs(40), alignItems: isWide ? "center" : undefined }]}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            {/* ════ STEP 1 : PERSONAL ════════════════════════════════════ */}
+
+            {/* ════ STEP 1 : PERSONAL ═══════════════════════════════════ */}
             {step === 0 && (
-              <View style={[S.card, { width: isWide ? contentWidth : "100%" }]}>
-                <SectionBanner icon="account-circle-outline" title="Personal Details"
-                  sub="Your identity & contact information" />
+              <View style={[styles.card, { width: isWide ? contentWidth : "100%" }]}>
+                <SectionBanner icon="account-circle-outline" title="Personal Details" sub="Your identity & contact information" />
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap} onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.firstName = y; fieldCoords.current.lastName = y; }}>
-                  <Field label="First Name" value={personal.firstName}
-                    onChange={v => setPersonal(p => ({ ...p, firstName: v }))}
-                    error={errors.firstName} placeholder="First name" maxLength={50} />
-                  <Field label="Last Name" value={personal.lastName}
-                    onChange={v => setPersonal(p => ({ ...p, lastName: v }))}
-                    error={errors.lastName} placeholder="Last name" maxLength={50} />
+                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
+                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.firstName = y; fieldCoords.current.lastName = y; }}>
+                  <Field label="First Name" value={personal.firstName} onChange={v => setPersonal(p => ({ ...p, firstName: v }))} error={errors.firstName} placeholder="First name" maxLength={50} locked={lockedPersonal.firstName} />
+                  <Field label="Last Name" value={personal.lastName} onChange={v => setPersonal(p => ({ ...p, lastName: v }))} error={errors.lastName} placeholder="Last name" maxLength={50} locked={lockedPersonal.lastName} />
                 </TwoCol>
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap} onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.fatherName = y; fieldCoords.current.gender = y; }}>
-                  <Field label="Father's Name" value={personal.fatherName}
-                    onChange={v => setPersonal(p => ({ ...p, fatherName: v }))}
-                    error={errors.fatherName} placeholder="Father's full name" maxLength={50} />
-                  <GenderSelect value={personal.gender}
-                    onChange={v => setPersonal(p => ({ ...p, gender: v }))}
-                    error={errors.gender} />
+                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
+                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.fatherName = y; fieldCoords.current.gender = y; }}>
+                  <Field label="Father's Name" value={personal.fatherName} onChange={v => setPersonal(p => ({ ...p, fatherName: v }))} error={errors.fatherName} placeholder="Father's full name" maxLength={50} />
+                  <GenderSelect value={personal.gender} onChange={v => setPersonal(p => ({ ...p, gender: v }))} error={errors.gender} />
                 </TwoCol>
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap} onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.email = y; fieldCoords.current.phone = y; }}>
-                  <Field label="Email Address" value={personal.email}
-                    onChange={v => setPersonal(p => ({ ...p, email: v.toLowerCase() }))}
-                    error={errors.email} placeholder="you@email.com"
-                    keyboardType="email-address" hint="e.g. user@gmail.com" />
-                  <Field label="Mobile Number" value={personal.phone}
-                    onChange={v => { if (/^\d*$/.test(v) && v.length <= 10) setPersonal(p => ({ ...p, phone: v })); }}
-                    error={errors.phone} placeholder="10-digit number"
-                    keyboardType="number-pad" maxLength={10} hint="Starts with 6–9" />
+                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
+                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.email = y; fieldCoords.current.phone = y; }}>
+                  <Field label="Email Address" value={personal.email} onChange={v => setPersonal(p => ({ ...p, email: v.toLowerCase() }))} error={errors.email} placeholder="you@email.com" keyboardType="email-address" hint="e.g. user@gmail.com" locked={lockedPersonal.email} />
+                  <Field label="Mobile Number" value={personal.phone} onChange={v => { if (/^\d*$/.test(v) && v.length <= 10) setPersonal(p => ({ ...p, phone: v })); }} error={errors.phone} placeholder="10-digit number" keyboardType="number-pad" maxLength={10} hint="Starts with 6–9" locked={lockedPersonal.phone} />
                 </TwoCol>
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap} onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.dob = y; fieldCoords.current.personalState = y; }}>
+                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
+                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.dob = y; fieldCoords.current.personalState = y; }}>
                   <View>
                     <TouchableOpacity onPress={() => setShowDatePicker(true)} activeOpacity={0.8}>
                       <View pointerEvents="none">
-                        <Field label="Date of Birth" value={personal.dob}
-                          onChange={() => { }}
-                          error={errors.dob} placeholder="DD-MM-YYYY"
-                          hint="Min age: 18 years" />
+                        <Field label="Date of Birth" value={personal.dob} onChange={() => { }} error={errors.dob} placeholder="DD-MM-YYYY" hint="Min age: 18 years" />
                       </View>
                     </TouchableOpacity>
                     {showDatePicker && (
                       <DateTimePicker
-                        value={
-                          personal.dob && RX.dob.test(personal.dob)
-                            ? (() => { const [d, m, y] = personal.dob.split('-'); return new Date(y, m - 1, d); })()
-                            : new Date()
-                        }
-                        mode="date"
-                        display="default"
-                        maximumDate={new Date()}
-                        onChange={(event, selectedDate) => {
-                          setShowDatePicker(Platform.OS === 'ios');
-                          if (selectedDate) {
-                            const d = String(selectedDate.getDate()).padStart(2, '0');
-                            const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
-                            const y = selectedDate.getFullYear();
+                        value={personal.dob && RX.dob.test(personal.dob)
+                          ? (() => { const [d, m, y] = personal.dob.split("-"); return new Date(y, m - 1, d); })()
+                          : new Date()}
+                        mode="date" display="default" maximumDate={new Date()}
+                        onChange={(event, sel) => {
+                          setShowDatePicker(Platform.OS === "ios");
+                          if (sel) {
+                            const d = String(sel.getDate()).padStart(2, "0");
+                            const m = String(sel.getMonth() + 1).padStart(2, "0");
+                            const y = sel.getFullYear();
                             setPersonal(p => ({ ...p, dob: `${d}-${m}-${y}` }));
                           }
                         }}
@@ -596,75 +519,52 @@ export default function Offlinekyc({ navigation, route }) {
                   <View>
                     <TouchableOpacity onPress={() => handleOpenState("personal")} activeOpacity={0.8}>
                       <View pointerEvents="none">
-                        <Field label="State" value={personal.personalState}
-                          onChange={() => { }}
-                          error={errors.personalState} placeholder="Select State" />
+                        <Field label="State" value={personal.personalState} onChange={() => { }} error={errors.personalState} placeholder="Select State" />
                       </View>
                     </TouchableOpacity>
                   </View>
                 </TwoCol>
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap} onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.personalPincode = y; fieldCoords.current.personalCity = y; }}>
-                  <Field label="Pincode" value={personal.personalPincode}
-                    onChange={v => { if (/^\d*$/.test(v) && v.length <= 6) setPersonal(p => ({ ...p, personalPincode: v })); }}
-                    error={errors.personalPincode} placeholder="6-digit pincode"
-                    keyboardType="number-pad" maxLength={6} />
+                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
+                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.personalPincode = y; fieldCoords.current.personalCity = y; }}>
+                  <Field label="Pincode" value={personal.personalPincode} onChange={v => { if (/^\d*$/.test(v) && v.length <= 6) setPersonal(p => ({ ...p, personalPincode: v })); }} error={errors.personalPincode} placeholder="6-digit pincode" keyboardType="number-pad" maxLength={6} />
                   <View>
                     <TouchableOpacity onPress={() => handleOpenCity("personal")} activeOpacity={0.8}>
                       <View pointerEvents="none">
-                        <Field label="City" value={personal.personalCity}
-                          onChange={() => { }}
-                          error={errors.personalCity} placeholder="Select City" />
+                        <Field label="City" value={personal.personalCity} onChange={() => { }} error={errors.personalCity} placeholder="Select City" />
                       </View>
                     </TouchableOpacity>
                   </View>
                 </TwoCol>
 
-                <Field onLayout={e => fieldCoords.current.personalAddress = e.nativeEvent.layout.y} label="Full Address" value={personal.personalAddress}
-                  onChange={v => setPersonal(p => ({ ...p, personalAddress: v }))}
-                  error={errors.personalAddress} multiline
-                  placeholder="House no., Street, Area, Landmark"
-                  hint="Minimum 10 characters" />
+                <Field onLayout={e => fieldCoords.current.personalAddress = e.nativeEvent.layout.y}
+                  label="Full Address" value={personal.personalAddress} onChange={v => setPersonal(p => ({ ...p, personalAddress: v }))}
+                  error={errors.personalAddress} multiline placeholder="House no., Street, Area, Landmark" hint="Minimum 10 characters" />
               </View>
             )}
 
-            {/* ════ STEP 2 : BUSINESS ════════════════════════════════════ */}
+            {/* ════ STEP 2 : BUSINESS ═══════════════════════════════════ */}
             {step === 1 && (
-              <View style={[S.card, { width: isWide ? contentWidth : "100%" }]}>
-                <SectionBanner icon="store-outline" title="Business Information"
-                  sub="Shop details & owner identification" />
+              <View style={[styles.card, { width: isWide ? contentWidth : "100%" }]}>
+                <SectionBanner icon="store-outline" title="Business Information" sub="Shop details & owner identification" />
 
-                <Field onLayout={e => fieldCoords.current.shopName = e.nativeEvent.layout.y} label="Shop / Business Name" value={business.shopName}
-                  onChange={v => setBusiness(b => ({ ...b, shopName: v }))}
-                  error={errors.shopName} placeholder="Your shop name" maxLength={100} />
+                <Field onLayout={e => fieldCoords.current.shopName = e.nativeEvent.layout.y} label="Shop / Business Name" value={business.shopName} onChange={v => setBusiness(b => ({ ...b, shopName: v }))} error={errors.shopName} placeholder="Your shop name" maxLength={100} />
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap} onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.businessPanNumber = y; fieldCoords.current.gstNumber = y; }}>
-                  <Field label="Business PAN" value={business.businessPanNumber}
-                    onChange={v => setBusiness(b => ({ ...b, businessPanNumber: v.toUpperCase() }))}
-                    placeholder="ABCDE1234F" maxLength={10}
-                    error={errors.businessPanNumber} hint="Optional" required={false} />
-                  <Field label="GST Number" value={business.gstNumber}
-                    onChange={v => setBusiness(b => ({ ...b, gstNumber: v.toUpperCase() }))}
-                    placeholder="22AAAAA0000A1Z5" maxLength={15}
-                    error={errors.gstNumber} required={false} />
+                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
+                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.businessPanNumber = y; fieldCoords.current.gstNumber = y; }}>
+                  <Field label="Business PAN" value={business.businessPanNumber} onChange={v => setBusiness(b => ({ ...b, businessPanNumber: v.toUpperCase() }))} placeholder="ABCDE1234F" maxLength={10} error={errors.businessPanNumber} hint="Optional" required={false} />
+                  <Field label="GST Number" value={business.gstNumber} onChange={v => setBusiness(b => ({ ...b, gstNumber: v.toUpperCase() }))} placeholder="22AAAAA0000A1Z5" maxLength={15} error={errors.gstNumber} required={false} />
                 </TwoCol>
 
-                <Field onLayout={e => fieldCoords.current.businessAddress = e.nativeEvent.layout.y} label="Shop Address" value={business.businessAddress}
-                  onChange={v => setBusiness(b => ({ ...b, businessAddress: v }))}
-                  error={errors.businessAddress} multiline
-                  placeholder="Full shop address with landmark" hint="Minimum 10 characters" />
+                <Field onLayout={e => fieldCoords.current.businessAddress = e.nativeEvent.layout.y} label="Shop Address" value={business.businessAddress} onChange={v => setBusiness(b => ({ ...b, businessAddress: v }))} error={errors.businessAddress} multiline placeholder="Full shop address with landmark" hint="Minimum 10 characters" />
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap} onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.businessPincode = y; fieldCoords.current.businessState = y; }}>
-                  <Field label="Pincode" value={business.businessPincode}
-                    onChange={v => { if (/^\d*$/.test(v) && v.length <= 6) setBusiness(b => ({ ...b, businessPincode: v })); }}
-                    error={errors.businessPincode} placeholder="6-digit pincode"
-                    keyboardType="number-pad" maxLength={6} />
+                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
+                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.businessPincode = y; fieldCoords.current.businessState = y; }}>
+                  <Field label="Pincode" value={business.businessPincode} onChange={v => { if (/^\d*$/.test(v) && v.length <= 6) setBusiness(b => ({ ...b, businessPincode: v })); }} error={errors.businessPincode} placeholder="6-digit pincode" keyboardType="number-pad" maxLength={6} />
                   <View>
                     <TouchableOpacity onPress={() => handleOpenState("business")} activeOpacity={0.8}>
                       <View pointerEvents="none">
-                        <Field label="State" value={business.businessState}
-                          onChange={() => { }}
-                          error={errors.businessState} placeholder="Select State" />
+                        <Field label="State" value={business.businessState} onChange={() => { }} error={errors.businessState} placeholder="Select State" />
                       </View>
                     </TouchableOpacity>
                   </View>
@@ -673,34 +573,24 @@ export default function Offlinekyc({ navigation, route }) {
                 <View onLayout={e => fieldCoords.current.businessCity = e.nativeEvent.layout.y}>
                   <TouchableOpacity onPress={() => handleOpenCity("business")} activeOpacity={0.8}>
                     <View pointerEvents="none">
-                      <Field label="City" value={business.businessCity}
-                        onChange={() => { }}
-                        error={errors.businessCity} placeholder="Select City" />
+                      <Field label="City" value={business.businessCity} onChange={() => { }} error={errors.businessCity} placeholder="Select City" />
                     </View>
                   </TouchableOpacity>
                 </View>
 
                 <Divider label="OWNER IDENTIFICATION" />
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap} onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.panNumber = y; fieldCoords.current.aadharNumber = y; }}>
-                  <Field label="Personal PAN" value={business.panNumber}
-                    onChange={v => setBusiness(b => ({ ...b, panNumber: v.toUpperCase() }))}
-                    error={errors.panNumber} placeholder="ABCDE1234F"
-                    maxLength={10} hint="Format: AAAAA9999A" />
-                  <Field label="Aadhaar Number" value={business.aadharNumber}
-                    onChange={v => { if (/^\d*$/.test(v) && v.length <= 12) setBusiness(b => ({ ...b, aadharNumber: v })); }}
-                    error={errors.aadharNumber} placeholder="12-digit number"
-                    keyboardType="number-pad" maxLength={12} />
+                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
+                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.panNumber = y; fieldCoords.current.aadharNumber = y; }}>
+                  <Field label="Personal PAN" value={business.panNumber} onChange={v => setBusiness(b => ({ ...b, panNumber: v.toUpperCase() }))} error={errors.panNumber} placeholder="ABCDE1234F" maxLength={10} hint="Format: AAAAA9999A" />
+                  <Field label="Aadhaar Number" value={business.aadharNumber} onChange={v => { if (/^\d*$/.test(v) && v.length <= 12) setBusiness(b => ({ ...b, aadharNumber: v })); }} error={errors.aadharNumber} placeholder="12-digit number" keyboardType="number-pad" maxLength={12} />
                 </TwoCol>
 
                 <Divider label="UPLOAD DOCUMENTS" />
+                <Text style={[styles.docHintText, { fontSize: rs(11) }]}>Clear, well-lit photos only — JPG or PNG</Text>
 
-                <Text style={[S.docHintText, { fontSize: rs(11) }]}>
-                  Clear, well-lit photos only — JPG or PNG
-                </Text>
-
-                {/* Document slots — 2-col on wide, 1-col on narrow */}
-                <View style={[S.docGrid, isWide && { flexDirection: "row", flexWrap: "wrap", gap: colGap }]} onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.aadharFile = y; fieldCoords.current.panFile = y; fieldCoords.current.shopImage = y; }}>
+                <View style={[styles.docGrid, isWide && { flexDirection: "row", flexWrap: "wrap", gap: colGap }]}
+                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.aadharFile = y; fieldCoords.current.panFile = y; fieldCoords.current.shopImage = y; }}>
                   {[
                     { key: "aadharFile", label: "Aadhaar Card", sub: "Front side", icon: "card-account-details", color: "#3B82F6" },
                     { key: "panFile", label: "PAN Card", sub: "Clear photo", icon: "card-account-details-outline", color: "#8B5CF6" },
@@ -709,59 +599,38 @@ export default function Offlinekyc({ navigation, route }) {
                     const img = files[slot.key];
                     const hasErr = !!errors[slot.key];
                     return (
-                      <View key={slot.key}
-                        style={[S.docSlotWrap, isWide && { width: halfWidth }]}
-                      >
+                      <View key={slot.key} style={[styles.docSlotWrap, isWide && { width: halfWidth }]}>
                         <TouchableOpacity
-                          style={[
-                            S.docBox,
-                            img && { borderStyle: "solid", borderColor: T.success, backgroundColor: T.success + "08" },
-                            hasErr && { borderStyle: "solid", borderColor: T.error, backgroundColor: T.error + "06" },
-                          ]}
-                          onPress={() => pickImage(slot.key)}
-                          activeOpacity={0.75}
+                          style={[styles.docBox, img && { borderStyle: "solid", borderColor: T.success, backgroundColor: T.success + "08" }, hasErr && { borderStyle: "solid", borderColor: T.error, backgroundColor: T.error + "06" }]}
+                          onPress={() => pickImage(slot.key)} activeOpacity={0.75}
                         >
                           {img ? (
                             <>
-                              <Image source={{ uri: img.uri }} style={S.docThumb} resizeMode="cover" />
-                              <LinearGradient
-                                colors={["transparent", "rgba(0,0,0,0.72)"]}
-                                style={S.docOverlay}
-                              >
+                              <Image source={{ uri: img.uri }} style={styles.docThumb} resizeMode="cover" />
+                              <LinearGradient colors={["transparent", "rgba(0,0,0,0.72)"]} style={styles.docOverlay}>
                                 <Icon name="check-circle" size={rs(13)} color={T.success} />
-                                <Text style={[S.docDoneLabel, { fontSize: rs(9) }]}>UPLOADED</Text>
-                                <Text style={S.docFileName} numberOfLines={1}>{img.name}</Text>
+                                <Text style={[styles.docDoneLabel, { fontSize: rs(9) }]}>UPLOADED</Text>
+                                <Text style={styles.docFileName} numberOfLines={1}>{img.name}</Text>
                               </LinearGradient>
-                              {/* Edit / remove corner buttons */}
-                              <TouchableOpacity
-                                style={[S.docCornerBtn, { backgroundColor: T.accent, right: vs(30) }]}
-                                onPress={() => pickImage(slot.key)}
-                              >
+                              <TouchableOpacity style={[styles.docCornerBtn, { backgroundColor: T.accent, right: vs(30) }]} onPress={() => pickImage(slot.key)}>
                                 <Icon name="pencil" size={rs(10)} color="#FFF" />
                               </TouchableOpacity>
-                              <TouchableOpacity
-                                style={[S.docCornerBtn, { backgroundColor: T.error, right: vs(6) }]}
-                                onPress={() => removeFile(slot.key)}
-                              >
+                              <TouchableOpacity style={[styles.docCornerBtn, { backgroundColor: T.error, right: vs(6) }]} onPress={() => removeFile(slot.key)}>
                                 <Icon name="close" size={rs(10)} color="#FFF" />
                               </TouchableOpacity>
                             </>
                           ) : (
-                            <View style={S.docEmptyContent}>
-                              <View style={[S.docIconCircle, { backgroundColor: slot.color + "1C" }]}>
+                            <View style={styles.docEmptyContent}>
+                              <View style={[styles.docIconCircle, { backgroundColor: slot.color + "1C" }]}>
                                 <Icon name={slot.icon} size={rs(22)} color={slot.color} />
                               </View>
                               <View style={{ flex: 1 }}>
-                                <Text style={[S.docSlotLabel, { fontFamily: Fonts.Bold, fontSize: rs(12) }]}>
-                                  {slot.label}
-                                </Text>
-                                <Text style={[S.docSlotSub, { fontSize: rs(10) }]}>{slot.sub}</Text>
+                                <Text style={[styles.docSlotLabel, { fontFamily: Fonts.Bold, fontSize: rs(12) }]}>{slot.label}</Text>
+                                <Text style={[styles.docSlotSub, { fontSize: rs(10) }]}>{slot.sub}</Text>
                               </View>
-                              <View style={[S.docUploadTag, { backgroundColor: T.accent + "18", borderColor: T.accent + "40" }]}>
+                              <View style={[styles.docUploadTag, { backgroundColor: T.accent + "18", borderColor: T.accent + "40" }]}>
                                 <Icon name="camera-plus-outline" size={rs(11)} color={T.accent} />
-                                <Text style={[S.docUploadTagText, { color: T.accent, fontFamily: Fonts.Bold, fontSize: rs(9) }]}>
-                                  Upload
-                                </Text>
+                                <Text style={[styles.docUploadTagText, { color: T.accent, fontFamily: Fonts.Bold, fontSize: rs(9) }]}>Upload</Text>
                               </View>
                             </View>
                           )}
@@ -776,329 +645,198 @@ export default function Offlinekyc({ navigation, route }) {
 
             {/* ════ STEP 3 : BANKING ════════════════════════════════════ */}
             {step === 2 && (
-              <View style={[S.card, { width: isWide ? contentWidth : "100%" }]}>
-                <SectionBanner icon="bank-outline" title="Banking Details"
-                  sub="For settlements and commissions" />
+              <View style={[styles.card, { width: isWide ? contentWidth : "100%" }]}>
+                <SectionBanner icon="bank-outline" title="Banking Details" sub="For settlements and commissions" />
 
+                {/* Bank name */}
                 <TouchableOpacity onPress={handleOpenBank} activeOpacity={0.8}>
                   <View pointerEvents="none">
-                    <Field onLayout={e => fieldCoords.current.bankName = e.nativeEvent.layout.y} label="Bank Name" value={banking.bankName}
-                      error={errors.bankName} placeholder="Select your Bank" />
+                    <Field onLayout={e => fieldCoords.current.bankName = e.nativeEvent.layout.y} label="Bank Name" value={banking.bankName} error={errors.bankName} placeholder="Select your Bank" />
                   </View>
                 </TouchableOpacity>
 
+                {/* IFSC */}
                 <FieldWrap onLayout={e => fieldCoords.current.ifscCode = e.nativeEvent.layout.y} label="IFSC Code" required error={errors.ifscCode}>
-                  <View style={[S.inputRow,
-                  errors.ifscCode && { borderColor: T.error, backgroundColor: T.error + "06" }
-                  ]}>
-                    <TextInput
-                      style={[S.input, { letterSpacing: 1 }]}
-                      value={banking.ifscCode}
-                      onChangeText={v => {
-                        const val = v.toUpperCase().replace(/[^A-Z0-9]/g, "");
-                        setBanking(b => ({ ...b, ifscCode: val }));
-                      }}
-                      placeholder="SBIN0001234"
-                      placeholderTextColor={T.textMuted}
-                      maxLength={11}
-                      autoCapitalize="characters"
-                    />
+                  <View style={[styles.inputRow, errors.ifscCode && { borderColor: T.error, backgroundColor: T.error + "06" }]}>
+                    <TextInput style={[styles.input, { letterSpacing: 1 }]} value={banking.ifscCode}
+                      onChangeText={v => setBanking(b => ({ ...b, ifscCode: v.toUpperCase().replace(/[^A-Z0-9]/g, "") }))}
+                      placeholder="SBIN0001234" placeholderTextColor={T.textMuted} maxLength={11} autoCapitalize="characters" />
                   </View>
                 </FieldWrap>
 
-                {/* Account number with eye toggle */}
+                {/* ══════════════════════════════════════════════════
+                    ACCOUNT NUMBER — with eye toggle
+                ══════════════════════════════════════════════════ */}
                 <FieldWrap onLayout={e => fieldCoords.current.accountNumber = e.nativeEvent.layout.y} label="Account Number" required error={errors.accountNumber}>
-                  <View style={[S.inputRow,
-                  errors.accountNumber && { borderColor: T.error, backgroundColor: T.error + "06" }
-                  ]}>
+                  <View style={[styles.inputRow, errors.accountNumber && { borderColor: T.error, backgroundColor: T.error + "06" }]}>
                     <TextInput
-                      style={[S.input, { paddingRight: hs(44) }]}
+                      style={[styles.input, { paddingRight: hs(44) }]}
                       value={banking.accountNumber}
                       onChangeText={v => {
-                        if (/^\d*$/.test(v) && v.length <= 18)
+                        if (/^\d*$/.test(v) && v.length <= 18) {
                           setBanking(b => ({ ...b, accountNumber: v }));
+                          // Clear confirm if account changes so user must re-type
+                          if (v !== banking.accountNumber) setBanking(b => ({ ...b, accountNumber: v, confirmAccountNumber: "" }));
+                        }
                       }}
-                      placeholder="Enter account number"
-                      placeholderTextColor={T.textMuted}
-                      keyboardType="number-pad"
-                      secureTextEntry={!showAcc}
-                      maxLength={18}
+                      placeholder="Enter account number" placeholderTextColor={T.textMuted}
+                      keyboardType="number-pad" secureTextEntry={!showAcc} maxLength={18}
                     />
-                    <TouchableOpacity style={S.eyeBtn} onPress={() => setShowAcc(p => !p)}>
+                    <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowAcc(p => !p)}>
                       <Icon name={showAcc ? "eye-off-outline" : "eye-outline"} size={rs(18)} color={T.textMuted} />
                     </TouchableOpacity>
                   </View>
                 </FieldWrap>
 
-                <Field onLayout={e => fieldCoords.current.confirmAccountNumber = e.nativeEvent.layout.y} label="Confirm Account Number" value={banking.confirmAccountNumber}
-                  onChange={v => {
-                    if (/^\d*$/.test(v) && v.length <= 18)
-                      setBanking(b => ({ ...b, confirmAccountNumber: v }));
-                  }}
-                  error={errors.confirmAccountNumber}
-                  placeholder="Re-enter account number"
-                  keyboardType="number-pad" maxLength={18}
-                  hint="Both numbers must match" />
+                {/* ══════════════════════════════════════════════════
+                    CONFIRM ACCOUNT NUMBER — real-time match indicator
+                ══════════════════════════════════════════════════ */}
+                <FieldWrap
+                  onLayout={e => fieldCoords.current.confirmAccountNumber = e.nativeEvent.layout.y}
+                  label="Confirm Account Number"
+                  required
+                  error={accMatchStatus === "mismatch" && banking.confirmAccountNumber.length > 0 ? "Account numbers don't match" : errors.confirmAccountNumber}
+                >
+                  {/* Input row with dynamic border colour */}
+                  <View style={[
+                    styles.inputRow,
+                    accMatchStatus !== "idle" && { borderColor: accMatchColor, borderWidth: 1.5 },
+                  ]}>
+                    <TextInput
+                      style={[styles.input, { paddingRight: hs(44) }]}
+                      value={banking.confirmAccountNumber}
+                      onChangeText={v => {
+                        if (/^\d*$/.test(v) && v.length <= 18)
+                          setBanking(b => ({ ...b, confirmAccountNumber: v }));
+                      }}
+                      placeholder="Re-enter account number"
+                      placeholderTextColor={T.textMuted}
+                      keyboardType="number-pad"
+                      secureTextEntry={!showConfirmAcc}
+                      maxLength={18}
+                    />
+                    {/* Eye toggle */}
+                    <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowConfirmAcc(p => !p)}>
+                      <Icon name={showConfirmAcc ? "eye-off-outline" : "eye-outline"} size={rs(18)} color={T.textMuted} />
+                    </TouchableOpacity>
+                  </View>
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap} onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.accountHolderName = y; fieldCoords.current.branchName = y; }}>
-                  <Field label="Account Holder Name" value={banking.accountHolderName}
-                    onChange={v => setBanking(b => ({ ...b, accountHolderName: v }))}
-                    error={errors.accountHolderName} placeholder="As per bank records" maxLength={50} />
-                  <Field label="Branch Name" value={banking.branchName}
-                    onChange={v => setBanking(b => ({ ...b, branchName: v }))}
-                    error={errors.branchName} placeholder="e.g. Main Branch" />
+                  {/* ── Real-time match status strip ── */}
+                  {accMatchStatus !== "idle" && (
+                    <View style={[styles.accMatchStrip, { backgroundColor: accMatchColor + "12", borderColor: accMatchColor + "35" }]}>
+                      <Icon name={accMatchIcon} size={rs(13)} color={accMatchColor} />
+                      <Text style={[styles.accMatchTxt, { color: accMatchColor }]}>
+                        {accMatchStatus === "match"
+                          ? "Account numbers match ✓"
+                          : "Account numbers do not match"}
+                      </Text>
+                    </View>
+                  )}
+                </FieldWrap>
+
+                {/* Account holder + branch */}
+                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
+                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.accountHolderName = y; fieldCoords.current.branchName = y; }}>
+                  <Field label="Account Holder Name" value={banking.accountHolderName} onChange={v => setBanking(b => ({ ...b, accountHolderName: v }))} error={errors.accountHolderName} placeholder="As per bank records" maxLength={50} />
+                  <Field label="Branch Name" value={banking.branchName} onChange={v => setBanking(b => ({ ...b, branchName: v }))} error={errors.branchName} placeholder="e.g. Main Branch" />
                 </TwoCol>
 
                 {/* Security banner */}
-                <LinearGradient colors={[T.accent + "1A", T.accent + "08"]} style={S.securityBanner}>
-                  <View style={[S.securityIcon, { backgroundColor: T.accent + "25" }]}>
+                <LinearGradient colors={[T.accent + "1A", T.accent + "08"]} style={styles.securityBanner}>
+                  <View style={[styles.securityIcon, { backgroundColor: T.accent + "25" }]}>
                     <Icon name="shield-lock-outline" size={rs(20)} color={T.accent} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={[S.securityTitle, { color: T.accent, fontFamily: Fonts.Bold, fontSize: rs(12) }]}>
-                      256-bit Encrypted
-                    </Text>
-                    <Text style={[S.securityBody, { fontSize: rs(11), fontFamily: Fonts.Regular }]}>
-                      Banking details are encrypted and used only for payouts and settlements.
-                    </Text>
+                    <Text style={[styles.securityTitle, { color: T.accent, fontFamily: Fonts.Bold, fontSize: rs(12) }]}>256-bit Encrypted</Text>
+                    <Text style={[styles.securityBody, { fontSize: rs(11), fontFamily: Fonts.Regular }]}>Banking details are encrypted and used only for payouts.</Text>
                   </View>
                 </LinearGradient>
 
-                {/* Review notice */}
-                <View style={S.reviewBanner}>
+                <View style={styles.reviewBanner}>
                   <Icon name="information-outline" size={rs(13)} color="#3B82F6" />
-                  <Text style={[S.reviewText, { fontSize: rs(11), fontFamily: Fonts.Regular }]}>
-                    Review all details before submitting. Changes after submission may delay approval.
-                  </Text>
+                  <Text style={[styles.reviewText, { fontSize: rs(11), fontFamily: Fonts.Regular }]}>Review all details before submitting. Changes after submission may delay approval.</Text>
                 </View>
               </View>
             )}
 
-            {/* ── Navigation buttons ── */}
-            <View style={[S.actionRow, { width: isWide ? contentWidth : "100%" }]}>
-              {step > 0 ? (
-                <TouchableOpacity style={S.prevBtn} onPress={handlePrev} activeOpacity={0.75}>
+            {/* Nav buttons */}
+            <View style={[styles.actionRow, { width: isWide ? contentWidth : "100%" }]}>
+              {step > 0
+                ? <TouchableOpacity style={styles.prevBtn} onPress={handlePrev} activeOpacity={0.75}>
                   <Icon name="arrow-left" size={rs(17)} color={T.text} />
-                  <Text style={[S.prevBtnText, { fontFamily: Fonts.Medium, fontSize: rs(14) }]}>
-                    Back
-                  </Text>
+                  <Text style={[styles.prevBtnText, { fontFamily: Fonts.Medium, fontSize: rs(14) }]}>Back</Text>
                 </TouchableOpacity>
-              ) : <View style={{ flex: 1 }} />}
-
-              <TouchableOpacity
-                style={S.nextBtnOuter}
-                onPress={step < 2 ? handleNext : handleSubmit}
-                activeOpacity={0.85}
-                disabled={loading}
-              >
-                <LinearGradient
-                  colors={[T.accent, T.accentDark]}
-                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                  style={S.nextBtnGrad}
-                >
+                : <View style={{ flex: 1 }} />
+              }
+              <TouchableOpacity style={styles.nextBtnOuter} onPress={step < 2 ? handleNext : handleSubmit} activeOpacity={0.85} disabled={loading}>
+                <LinearGradient colors={[T.accent, T.accentDark]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.nextBtnGrad}>
                   {loading
                     ? <ActivityIndicator color={T.surface} size="small" />
                     : <>
-                      <Text style={[S.nextBtnText, { color: T.surface, fontFamily: Fonts.Bold, fontSize: rs(14) }]}>
+                      <Text style={[styles.nextBtnText, { color: T.surface, fontFamily: Fonts.Bold, fontSize: rs(14) }]}>
                         {step < 2 ? "Next" : "Submit KYC"}
                       </Text>
-                      <Icon
-                        name={step < 2 ? "arrow-right" : "check-circle-outline"}
-                        size={rs(17)} color={T.surface} style={{ marginLeft: hs(6) }}
-                      />
+                      <Icon name={step < 2 ? "arrow-right" : "check-circle-outline"} size={rs(17)} color={T.surface} style={{ marginLeft: hs(6) }} />
                     </>
                   }
                 </LinearGradient>
               </TouchableOpacity>
             </View>
-
           </ScrollView>
         </Animated.View>
       </KeyboardAvoidingView>
 
-      {/* ── Custom Success Modal ── */}
-      <Modal transparent visible={showSuccessModal} animationType="fade" onRequestClose={() => { }}>
-        <View style={S.modalOverlay}>
-          <View style={S.modalCard}>
-            <View style={S.modalIconWrap}>
+      {/* Success modal */}
+      <Modal transparent visible={showSuccessModal} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalIconWrap}>
               <Icon name="check-decagram" size={rs(44)} color={T.success} />
             </View>
-            <Text style={S.modalTitle}>KYC Submitted Successfully</Text>
-            <Text style={S.modalSub}>
-              Your KYC details have been safely received and are currently under review. We'll notify you once approved!
-            </Text>
-            <TouchableOpacity
-              style={S.modalBtn}
-              activeOpacity={0.8}
-              onPress={() => {
-                setShowSuccessModal(false);
-                navigation.replace("FinanceHome");
-              }}
-            >
-              <LinearGradient colors={[T.accent, T.accentDark]} style={S.modalBtnGrad}>
-                <Text style={S.modalBtnText}>Continue to Home</Text>
+            <Text style={styles.modalTitle}>KYC Submitted Successfully</Text>
+            <Text style={styles.modalSub}>Your KYC details are under review. We'll notify you once approved!</Text>
+            <TouchableOpacity style={styles.modalBtn} activeOpacity={0.8} onPress={() => { setShowSuccessModal(false); navigation.replace("FinanceHome"); }}>
+              <LinearGradient colors={[T.accent, T.accentDark]} style={styles.modalBtnGrad}>
+                <Text style={styles.modalBtnText}>Continue to Home</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
-      {/* ── Custom Failure Modal ── */}
-      <Modal transparent visible={showFailModal} animationType="fade" onRequestClose={() => { setShowFailModal(false); }}>
-        <View style={S.modalOverlay}>
-          <View style={S.modalCard}>
-            <View style={[S.modalIconWrap, { backgroundColor: T.error + "15" }]}>
+      {/* Fail modal */}
+      <Modal transparent visible={showFailModal} animationType="fade" onRequestClose={() => setShowFailModal(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={[styles.modalIconWrap, { backgroundColor: T.error + "15" }]}>
               <Icon name="alert-circle-outline" size={rs(44)} color={T.error} />
             </View>
-            <Text style={S.modalTitle}>Submission Failed</Text>
-            <Text style={S.modalSub}>{failMsg || "Something went wrong. Please check your details and try again."}</Text>
-            <TouchableOpacity
-              style={S.modalBtn}
-              activeOpacity={0.8}
-              onPress={() => setShowFailModal(false)}
-            >
-              <LinearGradient colors={[T.error, "#BE123C"]} style={S.modalBtnGrad}>
-                <Text style={S.modalBtnText}>Try Again</Text>
+            <Text style={styles.modalTitle}>Submission Failed</Text>
+            <Text style={styles.modalSub}>{failMsg || "Something went wrong. Please check your details and try again."}</Text>
+            <TouchableOpacity style={styles.modalBtn} activeOpacity={0.8} onPress={() => setShowFailModal(false)}>
+              <LinearGradient colors={[T.error, "#BE123C"]} style={styles.modalBtnGrad}>
+                <Text style={styles.modalBtnText}>Try Again</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
-      {/* ── City Selection Modal ── */}
-      <Modal visible={showCityModal} animationType="slide" transparent={true} onRequestClose={() => { setShowCityModal(false); setCitySearch(""); }}>
-        <TouchableOpacity style={S.modalOverlay} activeOpacity={1} onPress={() => { setShowCityModal(false); setCitySearch(""); }}>
-          <View style={[S.modalCard, { height: "70%", paddingTop: vs(16), paddingBottom: 0, justifyContent: "flex-start", alignItems: "flex-start" }]}>
-            <View style={{ width: "100%", flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: vs(12) }}>
-              <Text style={[S.modalTitle, { marginBottom: 0 }]}>Select City</Text>
-              <TouchableOpacity onPress={() => handleOpenCity(cityTarget)} disabled={cityLoading}>
-                <Icon name="refresh" size={rs(22)} color={cityLoading ? T.textMuted : T.accent} />
-              </TouchableOpacity>
-            </View>
-            <View style={{ width: "100%", paddingBottom: vs(12), borderBottomWidth: 1, borderBottomColor: T.border, marginBottom: vs(8) }}>
-              <TextInput
-                style={{ borderWidth: 1, borderColor: T.border, borderRadius: hs(8), paddingHorizontal: hs(12), paddingVertical: Platform.OS === "ios" ? vs(12) : Math.max(8, vs(8)), color: T.text, fontSize: rs(13), fontFamily: Fonts.Regular }}
-                placeholder="Search city..."
-                placeholderTextColor={T.textMuted}
-                value={citySearch}
-                onChangeText={setCitySearch}
-              />
-            </View>
-            <ScrollView style={{ width: "100%" }} showsVerticalScrollIndicator={false}>
-              {cityList.filter(c => c.cityName?.toLowerCase().includes(citySearch.trim().toLowerCase())).map((ct, i) => (
-                <TouchableOpacity
-                  key={i}
-                  style={{ paddingVertical: vs(14), borderBottomWidth: 1, borderBottomColor: T.border }}
-                  onPress={() => {
-                    if (cityTarget === "personal") setPersonal(p => ({ ...p, personalCity: ct.cityName }));
-                    if (cityTarget === "business") setBusiness(b => ({ ...b, businessCity: ct.cityName }));
-                    setShowCityModal(false);
-                    setCitySearch("");
-                  }}
-                >
-                  <Text style={{ fontSize: rs(13), color: T.text, fontFamily: Fonts.Medium }}>{ct.cityName}</Text>
-                </TouchableOpacity>
-              ))}
-              {cityLoading && (
-                <Text style={{ textAlign: "center", marginTop: vs(40), color: T.textMuted }}>Loading cities...</Text>
-              )}
-              {!cityLoading && cityList.length === 0 && (
-                <Text style={{ textAlign: "center", marginTop: vs(40), color: T.textMuted }}>No cities found.</Text>
-              )}
-            </ScrollView>
-          </View>
-        </TouchableOpacity>
-      </Modal>
+      {/* City / State / Bank search modals */}
+      <SearchModal visible={showCityModal} title="Select City" loading={cityLoading} search={citySearch} setSearch={setCitySearch}
+        items={cityList.filter(c => c.cityName?.toLowerCase().includes(citySearch.trim().toLowerCase()))} getLabel={c => c.cityName}
+        onSelect={ct => { if (cityTarget === "personal") setPersonal(p => ({ ...p, personalCity: ct.cityName })); if (cityTarget === "business") setBusiness(b => ({ ...b, businessCity: ct.cityName })); setShowCityModal(false); setCitySearch(""); }}
+        onClose={() => { setShowCityModal(false); setCitySearch(""); }} onRefresh={() => handleOpenCity(cityTarget)} />
 
-      {/* ── State Selection Modal ── */}
-      <Modal visible={showStateModal} animationType="slide" transparent={true} onRequestClose={() => { setShowStateModal(false); setStateSearch(""); }}>
-        <TouchableOpacity style={S.modalOverlay} activeOpacity={1} onPress={() => { setShowStateModal(false); setStateSearch(""); }}>
-          <View style={[S.modalCard, { height: "70%", paddingTop: vs(16), paddingBottom: 0, justifyContent: "flex-start", alignItems: "flex-start" }]}>
-            <View style={{ width: "100%", flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: vs(12) }}>
-              <Text style={[S.modalTitle, { marginBottom: 0 }]}>Select State</Text>
-              <TouchableOpacity onPress={handleFetchStates} disabled={stateLoading}>
-                <Icon name="refresh" size={rs(22)} color={stateLoading ? T.textMuted : T.accent} />
-              </TouchableOpacity>
-            </View>
-            <View style={{ width: "100%", paddingBottom: vs(12), borderBottomWidth: 1, borderBottomColor: T.border, marginBottom: vs(8) }}>
-              <TextInput
-                style={{ borderWidth: 1, borderColor: T.border, borderRadius: hs(8), paddingHorizontal: hs(12), paddingVertical: Platform.OS === "ios" ? vs(12) : Math.max(8, vs(8)), color: T.text, fontSize: rs(13), fontFamily: Fonts.Regular }}
-                placeholder="Search state..."
-                placeholderTextColor={T.textMuted}
-                value={stateSearch}
-                onChangeText={setStateSearch}
-              />
-            </View>
-            <ScrollView style={{ width: "100%" }} showsVerticalScrollIndicator={false}>
-              {stateLoading && stateList.length === 0 && (
-                <Text style={{ textAlign: "center", marginTop: vs(40), color: T.textMuted }}>Loading states...</Text>
-              )}
-              {stateList.filter(s => s.stateName?.toLowerCase().includes(stateSearch.trim().toLowerCase())).map((st, i) => (
-                <TouchableOpacity
-                  key={i}
-                  style={{ paddingVertical: vs(14), borderBottomWidth: 1, borderBottomColor: T.border }}
-                  onPress={() => {
-                    if (stateTarget === "personal") setPersonal(p => ({ ...p, personalState: st.stateName, personalCity: "" }));
-                    if (stateTarget === "business") setBusiness(b => ({ ...b, businessState: st.stateName, businessCity: "" }));
-                    setShowStateModal(false);
-                    setStateSearch("");
-                  }}
-                >
-                  <Text style={{ fontSize: rs(13), color: T.text, fontFamily: Fonts.Medium }}>{st.stateName}</Text>
-                </TouchableOpacity>
-              ))}
-              {stateList.length === 0 && (
-                <Text style={{ textAlign: "center", marginTop: vs(40), color: T.textMuted }}>Loading states...</Text>
-              )}
-            </ScrollView>
-          </View>
-        </TouchableOpacity>
-      </Modal>
+      <SearchModal visible={showStateModal} title="Select State" loading={stateLoading} search={stateSearch} setSearch={setStateSearch}
+        items={stateList.filter(s => s.stateName?.toLowerCase().includes(stateSearch.trim().toLowerCase()))} getLabel={s => s.stateName}
+        onSelect={st => { if (stateTarget === "personal") setPersonal(p => ({ ...p, personalState: st.stateName, personalCity: "" })); if (stateTarget === "business") setBusiness(b => ({ ...b, businessState: st.stateName, businessCity: "" })); setShowStateModal(false); setStateSearch(""); }}
+        onClose={() => { setShowStateModal(false); setStateSearch(""); }} onRefresh={handleFetchStates} />
 
-      {/* ── Bank Selection Modal ── */}
-      <Modal visible={showBankModal} animationType="slide" transparent={true} onRequestClose={() => { setShowBankModal(false); setBankSearch(""); }}>
-        <TouchableOpacity style={S.modalOverlay} activeOpacity={1} onPress={() => { setShowBankModal(false); setBankSearch(""); }}>
-          <View style={[S.modalCard, { height: "70%", paddingTop: vs(16), paddingBottom: 0, justifyContent: "flex-start", alignItems: "flex-start" }]}>
-            <View style={{ width: "100%", flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: vs(12) }}>
-              <Text style={[S.modalTitle, { marginBottom: 0 }]}>Select Bank</Text>
-              <TouchableOpacity onPress={handleFetchBanks} disabled={bankLoading}>
-                <Icon name="refresh" size={rs(22)} color={bankLoading ? T.textMuted : T.accent} />
-              </TouchableOpacity>
-            </View>
-            <View style={{ width: "100%", paddingBottom: vs(12), borderBottomWidth: 1, borderBottomColor: T.border, marginBottom: vs(8) }}>
-              <TextInput
-                style={{ borderWidth: 1, borderColor: T.border, borderRadius: hs(8), paddingHorizontal: hs(12), paddingVertical: Platform.OS === "ios" ? vs(12) : Math.max(8, vs(8)), color: T.text, fontSize: rs(13), fontFamily: Fonts.Regular }}
-                placeholder="Search bank..."
-                placeholderTextColor={T.textMuted}
-                value={bankSearch}
-                onChangeText={setBankSearch}
-              />
-            </View>
-            <ScrollView style={{ width: "100%" }} showsVerticalScrollIndicator={false}>
-              {bankLoading && bankList.length === 0 && (
-                <Text style={{ textAlign: "center", marginTop: vs(40), color: T.textMuted }}>Loading banks...</Text>
-              )}
-              {bankList.filter(b => b.bankName?.toLowerCase().includes(bankSearch.trim().toLowerCase())).map((bn, i) => (
-                <TouchableOpacity
-                  key={i}
-                  style={{ paddingVertical: vs(14), borderBottomWidth: 1, borderBottomColor: T.border }}
-                  onPress={() => {
-                    setBanking(b => ({ ...b, bankName: bn.bankName }));
-                    setShowBankModal(false);
-                    setBankSearch("");
-                  }}
-                >
-                  <Text style={{ fontSize: rs(13), color: T.text, fontFamily: Fonts.Medium }}>{bn.bankName}</Text>
-                </TouchableOpacity>
-              ))}
-              {!bankLoading && bankList.length === 0 && (
-                <Text style={{ textAlign: "center", marginTop: vs(40), color: T.textMuted }}>No banks found.</Text>
-              )}
-            </ScrollView>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
+      <SearchModal visible={showBankModal} title="Select Bank" loading={bankLoading} search={bankSearch} setSearch={setBankSearch}
+        items={bankList.filter(b => b.bankName?.toLowerCase().includes(bankSearch.trim().toLowerCase()))} getLabel={b => b.bankName}
+        onSelect={bn => { setBanking(b => ({ ...b, bankName: bn.bankName })); setShowBankModal(false); setBankSearch(""); }}
+        onClose={() => { setShowBankModal(false); setBankSearch(""); }} onRefresh={handleFetchBanks} />
     </SafeAreaView>
   );
 }
@@ -1106,29 +844,53 @@ export default function Offlinekyc({ navigation, route }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // ATOMS
 // ─────────────────────────────────────────────────────────────────────────────
+function SearchModal({ visible, title, loading, search, setSearch, items, getLabel, onSelect, onClose, onRefresh }) {
+  return (
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose}>
+        <View style={[styles.modalCard, { height: "70%", paddingTop: vs(16), paddingBottom: 0, justifyContent: "flex-start", alignItems: "flex-start" }]}>
+          <View style={{ width: "100%", flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: vs(12) }}>
+            <Text style={[styles.modalTitle, { marginBottom: 0 }]}>{title}</Text>
+            <TouchableOpacity onPress={onRefresh} disabled={loading}>
+              <Icon name="refresh" size={rs(22)} color={loading ? T.textMuted : T.accent} />
+            </TouchableOpacity>
+          </View>
+          <View style={{ width: "100%", paddingBottom: vs(12), borderBottomWidth: 1, borderBottomColor: T.border, marginBottom: vs(8) }}>
+            <TextInput
+              style={{ borderWidth: 1, borderColor: T.border, borderRadius: hs(8), paddingHorizontal: hs(12), paddingVertical: Platform.OS === "ios" ? vs(12) : Math.max(8, vs(8)), color: T.text, fontSize: rs(13), fontFamily: Fonts.Regular }}
+              placeholder={`Search ${title.split(" ")[1]?.toLowerCase() || ""}…`}
+              placeholderTextColor={T.textMuted} value={search} onChangeText={setSearch}
+            />
+          </View>
+          <ScrollView style={{ width: "100%" }} showsVerticalScrollIndicator={false}>
+            {loading && items.length === 0 && <Text style={styles.modalEmpty}>Loading…</Text>}
+            {!loading && items.length === 0 && <Text style={styles.modalEmpty}>No results found.</Text>}
+            {items.map((item, i) => (
+              <TouchableOpacity key={i} style={styles.modalListItem} onPress={() => onSelect(item)}>
+                <Text style={{ fontSize: rs(13), color: T.text, fontFamily: Fonts.Medium }}>{getLabel(item)}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      </TouchableOpacity>
+    </Modal>
+  );
+}
 
-/** Responsive two-column row: side-by-side on wide screens, stacked on narrow */
 function TwoCol({ children, isWide, halfWidth, gap, onLayout }) {
   const kids = React.Children.toArray(children);
-  if (!isWide) {
-    return <View onLayout={onLayout} style={{ flex: 1 }}>{kids}</View>;
-  }
+  if (!isWide) return <View onLayout={onLayout} style={{ flex: 1 }}>{kids}</View>;
   return (
     <View style={{ flexDirection: "row", gap, marginBottom: 0 }} onLayout={onLayout}>
-      {kids.map((child, i) => (
-        <View key={i} style={{ width: halfWidth }}>
-          {child}
-        </View>
-      ))}
+      {kids.map((child, i) => <View key={i} style={{ width: halfWidth }}>{child}</View>)}
     </View>
   );
 }
 
-/** Generic field wrapper (label + slot + hint/error) */
 function FieldWrap({ label, required = true, error, hint, children, onLayout }) {
   return (
-    <View style={S.fieldWrap} onLayout={onLayout}>
-      <Text style={[S.fieldLabel, { fontSize: rs(10) }]}>
+    <View style={styles.fieldWrap} onLayout={onLayout}>
+      <Text style={[styles.fieldLabel, { fontSize: rs(10) }]}>
         {label}
         {required
           ? <Text style={{ color: T.error }}> *</Text>
@@ -1136,77 +898,55 @@ function FieldWrap({ label, required = true, error, hint, children, onLayout }) 
         }
       </Text>
       {children}
-      {!!hint && !error && <Text style={[S.fieldHint, { fontSize: rs(9) }]}>{hint}</Text>}
+      {!!hint && !error && <Text style={[styles.fieldHint, { fontSize: rs(9) }]}>{hint}</Text>}
       {!!error && <ErrLabel msg={error} />}
     </View>
   );
 }
 
-/** Standard text input field */
-function Field({
-  label, value, onChange, placeholder, error, keyboardType,
-  multiline, required = true, maxLength, hint, secureTextEntry, onLayout,
-}) {
+function Field({ label, value, onChange, placeholder, error, keyboardType, multiline, required = true, maxLength, hint, secureTextEntry, onLayout, locked = false }) {
   return (
-    <FieldWrap label={label} required={required} error={error} hint={hint} onLayout={onLayout}>
+    <FieldWrap label={label} required={required} error={error} hint={locked ? undefined : hint} onLayout={onLayout}>
       <View style={[
-        S.inputRow,
-        error && { borderColor: T.error, backgroundColor: T.error + "06" },
+        styles.inputRow,
+        error && !locked && { borderColor: T.error, backgroundColor: T.error + "06" },
+        locked && styles.inputRowLocked,
         multiline && { alignItems: "flex-start" },
       ]}>
         <TextInput
-          style={[
-            S.input,
-            { fontSize: rs(13) },
-            multiline && { height: vs(72), textAlignVertical: "top", paddingTop: vs(10) },
-          ]}
-          value={value}
-          onChangeText={onChange}
-          placeholder={placeholder ?? ""}
-          placeholderTextColor={T.textMuted}
-          keyboardType={keyboardType ?? "default"}
-          multiline={multiline}
-          maxLength={maxLength}
-          secureTextEntry={secureTextEntry}
-          autoCapitalize="none"
+          style={[styles.input, { fontSize: rs(13) }, multiline && { height: vs(72), textAlignVertical: "top", paddingTop: vs(10) }, locked && styles.inputLocked]}
+          value={value} onChangeText={locked ? undefined : onChange} editable={!locked}
+          placeholder={placeholder ?? ""} placeholderTextColor={T.textMuted}
+          keyboardType={keyboardType ?? "default"} multiline={multiline} maxLength={maxLength}
+          secureTextEntry={secureTextEntry} autoCapitalize="none" pointerEvents={locked ? "none" : "auto"}
         />
+        {locked && (
+          <View style={styles.lockedBadge}>
+            <Icon name="lock-outline" size={rs(10)} color={T.accent} />
+            <Text style={[styles.lockedBadgeTxt, { fontSize: rs(9) }]}>Auto-filled</Text>
+          </View>
+        )}
       </View>
+      {locked && (
+        <View style={styles.lockedHintRow}>
+          <Icon name="shield-check-outline" size={rs(10)} color={T.success} />
+          <Text style={[styles.lockedHintTxt, { fontSize: rs(9) }]}>Verified from your account — cannot be changed</Text>
+        </View>
+      )}
     </FieldWrap>
   );
 }
 
-/** Gender selector */
 function GenderSelect({ value, onChange, error, onLayout }) {
   return (
-    <View style={S.fieldWrap} onLayout={onLayout}>
-      <Text style={[S.fieldLabel, { fontSize: rs(10) }]}>
-        Gender <Text style={{ color: T.error }}>*</Text>
-      </Text>
-      <View style={S.genderRow}>
-        {[
-          { label: "Male", icon: "gender-male" },
-          { label: "Female", icon: "gender-female" },
-          { label: "Other", icon: "gender-non-binary" },
-        ].map(opt => (
-          <TouchableOpacity
-            key={opt.label}
-            onPress={() => onChange(opt.label)}
-            style={[
-              S.genderBtn,
-              value === opt.label && {
-                backgroundColor: T.accent + "1C",
-                borderColor: T.accent,
-              },
-            ]}
-          >
+    <View style={styles.fieldWrap} onLayout={onLayout}>
+      <Text style={[styles.fieldLabel, { fontSize: rs(10) }]}>Gender <Text style={{ color: T.error }}>*</Text></Text>
+      <View style={styles.genderRow}>
+        {[{ label: "Male", icon: "gender-male" }, { label: "Female", icon: "gender-female" }, { label: "Other", icon: "gender-non-binary" }].map(opt => (
+          <TouchableOpacity key={opt.label} onPress={() => onChange(opt.label)}
+            style={[styles.genderBtn, value === opt.label && { backgroundColor: T.accent + "1C", borderColor: T.accent }]}>
             <Icon name={opt.icon} size={rs(12)} color={value === opt.label ? T.accent : T.textMuted} />
-            <Text style={[
-              S.genderBtnText,
-              { fontSize: rs(10), fontFamily: Fonts.Medium },
-              value === opt.label && { color: T.accent, fontFamily: Fonts.Bold },
-            ]}>
-              {opt.label}
-            </Text>
+            <Text style={[styles.genderBtnText, { fontSize: rs(10), fontFamily: Fonts.Medium }, value === opt.label && { color: T.accent, fontFamily: Fonts.Bold }]}>{opt.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -1215,51 +955,44 @@ function GenderSelect({ value, onChange, error, onLayout }) {
   );
 }
 
-/** Card section header */
 function SectionBanner({ icon, title, sub }) {
   return (
-    <View style={S.sectionBanner}>
-      <LinearGradient colors={[T.accent + "30", T.accent + "10"]} style={S.sectionBannerIcon}>
+    <View style={styles.sectionBanner}>
+      <LinearGradient colors={[T.accent + "30", T.accent + "10"]} style={styles.sectionBannerIcon}>
         <Icon name={icon} size={rs(20)} color={T.accent} />
       </LinearGradient>
       <View style={{ flex: 1 }}>
-        <Text style={[S.sectionBannerTitle, { fontFamily: Fonts.Bold, fontSize: rs(16) }]}>
-          {title}
-        </Text>
-        <Text style={[S.sectionBannerSub, { fontSize: rs(11) }]}>{sub}</Text>
+        <Text style={[styles.sectionBannerTitle, { fontFamily: Fonts.Bold, fontSize: rs(16) }]}>{title}</Text>
+        <Text style={[styles.sectionBannerSub, { fontSize: rs(11) }]}>{sub}</Text>
       </View>
     </View>
   );
 }
 
-/** Horizontal divider with centred label */
 function Divider({ label }) {
   return (
-    <View style={S.divider}>
-      <View style={S.dividerLine} />
-      <Text style={[S.dividerLabel, { fontFamily: Fonts.Bold, fontSize: rs(9) }]}>{label}</Text>
-      <View style={S.dividerLine} />
+    <View style={styles.divider}>
+      <View style={styles.dividerLine} />
+      <Text style={[styles.dividerLabel, { fontFamily: Fonts.Bold, fontSize: rs(9) }]}>{label}</Text>
+      <View style={styles.dividerLine} />
     </View>
   );
 }
 
-/** Inline error message */
 function ErrLabel({ msg }) {
   return (
-    <View style={S.errRow}>
+    <View style={styles.errRow}>
       <Icon name="alert-circle-outline" size={rs(11)} color={T.error} />
-      <Text style={[S.errText, { color: T.error, fontSize: rs(10) }]}> {msg}</Text>
+      <Text style={[styles.errText, { color: T.error, fontSize: rs(10) }]}> {msg}</Text>
     </View>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// STYLES — plain hex tokens only
+// STYLES
 // ─────────────────────────────────────────────────────────────────────────────
-const S = StyleSheet.create({
+const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-
-  // Header
   header: { flexDirection: "row", alignItems: "center", paddingBottom: vs(10) },
   backBtn: { width: hs(38), height: hs(38), borderRadius: hs(12), backgroundColor: T.surface, alignItems: "center", justifyContent: "center", marginRight: hs(10), elevation: 2, shadowColor: "#000", shadowOpacity: 0.07, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } },
   headerCenter: { flex: 1, flexDirection: "row", alignItems: "center", gap: hs(10) },
@@ -1268,8 +1001,6 @@ const S = StyleSheet.create({
   headerSub: { color: T.textSub, marginTop: 1 },
   stepBadge: { paddingHorizontal: hs(10), paddingVertical: vs(4), borderRadius: hs(10) },
   stepBadgeText: { letterSpacing: 0.4 },
-
-  // Progress
   progressWrap: { paddingBottom: vs(14) },
   progressTrack: { height: 3, backgroundColor: T.border, borderRadius: 2, marginBottom: vs(10), overflow: "hidden" },
   progressFill: { height: "100%", borderRadius: 2 },
@@ -1277,20 +1008,12 @@ const S = StyleSheet.create({
   stepDotItem: { alignItems: "center", flex: 1 },
   stepDotCircle: { alignItems: "center", justifyContent: "center", marginBottom: vs(4) },
   stepDotLabel: { color: T.textMuted, textAlign: "center", letterSpacing: 0.4 },
-
-  // Scroll
   scrollContent: { paddingTop: vs(4) },
-
-  // Card
   card: { backgroundColor: T.surface, borderRadius: hs(20), padding: hs(18), marginBottom: vs(14), elevation: 3, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 10 },
-
-  // Section banner inside card
   sectionBanner: { flexDirection: "row", alignItems: "center", gap: hs(12), marginBottom: vs(18), padding: hs(12), backgroundColor: T.accent + "0C", borderRadius: hs(14), borderLeftWidth: 3, borderLeftColor: T.accent },
   sectionBannerIcon: { width: hs(42), height: hs(42), borderRadius: hs(12), alignItems: "center", justifyContent: "center" },
   sectionBannerTitle: { color: T.text },
   sectionBannerSub: { color: T.textSub, marginTop: 2 },
-
-  // Field
   fieldWrap: { marginBottom: vs(12) },
   fieldLabel: { color: T.textSub, fontFamily: Fonts.Bold, letterSpacing: 0.7, marginBottom: vs(5), textTransform: "uppercase" },
   inputRow: { flexDirection: "row", alignItems: "center", backgroundColor: T.inputBg, borderWidth: 1.2, borderColor: T.border, borderRadius: hs(10), paddingHorizontal: hs(12) },
@@ -1298,25 +1021,40 @@ const S = StyleSheet.create({
   fieldHint: { color: T.textMuted, marginTop: vs(3), fontFamily: Fonts.Regular },
   errRow: { flexDirection: "row", alignItems: "center", marginTop: vs(3) },
   errText: { fontFamily: Fonts.Medium },
-
-  // Eye toggle
+  inputRowLocked: { backgroundColor: T.lockedBg, borderColor: T.lockedBorder, borderStyle: "dashed" },
+  inputLocked: { color: T.lockedText },
+  lockedBadge: { flexDirection: "row", alignItems: "center", gap: 3, backgroundColor: T.accent + "18", borderRadius: hs(6), paddingHorizontal: hs(6), paddingVertical: vs(3), marginRight: hs(2) },
+  lockedBadgeTxt: { color: T.accent, fontFamily: Fonts.Bold, letterSpacing: 0.2 },
+  lockedHintRow: { flexDirection: "row", alignItems: "center", gap: hs(4), marginTop: vs(3) },
+  lockedHintTxt: { color: T.success, fontFamily: Fonts.Regular, flex: 1 },
   eyeBtn: { padding: hs(4) },
 
-  // IFSC badge
-  ifscBadge: { position: "absolute", right: hs(8), paddingHorizontal: hs(8), paddingVertical: vs(5), borderRadius: hs(8) },
-  ifscBadgeText: { letterSpacing: 0.3 },
+  // ── Account match strip (NEW) ──────────────────────────────────────────
+  accMatchStrip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: hs(6),
+    marginTop: vs(5),
+    paddingHorizontal: hs(10),
+    paddingVertical: vs(6),
+    borderRadius: hs(8),
+    borderWidth: 1,
+  },
+  accMatchTxt: {
+    fontSize: rs(10),
+    fontFamily: Fonts.Bold,
+    flex: 1,
+    letterSpacing: 0.2,
+    includeFontPadding: false,
+    lineHeight: rs(14),
+  },
 
-  // Gender
   genderRow: { flexDirection: "row", gap: hs(5) },
   genderBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: vs(9), borderRadius: hs(8), backgroundColor: T.inputBg, borderWidth: 1.2, borderColor: T.border, gap: hs(4) },
   genderBtnText: { color: T.textMuted },
-
-  // Divider
   divider: { flexDirection: "row", alignItems: "center", marginVertical: vs(14), gap: hs(8) },
   dividerLine: { flex: 1, height: 1.2, backgroundColor: T.border },
   dividerLabel: { color: T.textMuted, letterSpacing: 1 },
-
-  // Documents
   docHintText: { color: T.textSub, marginBottom: vs(10), fontFamily: Fonts.Regular },
   docGrid: {},
   docSlotWrap: { marginBottom: vs(10) },
@@ -1332,30 +1070,18 @@ const S = StyleSheet.create({
   docSlotSub: { color: T.textMuted, marginTop: 2, fontFamily: Fonts.Regular },
   docUploadTag: { flexDirection: "row", alignItems: "center", paddingHorizontal: hs(8), paddingVertical: vs(4), borderRadius: hs(10), borderWidth: 1, gap: hs(4) },
   docUploadTagText: {},
-
-  // IFSC autofill
-  autofillBox: { flexDirection: "row", alignItems: "flex-start", borderWidth: 1, borderRadius: hs(10), padding: hs(10), marginBottom: vs(10), gap: hs(8) },
-  autofillText: { fontFamily: Fonts.Regular },
-
-  // Security banner
   securityBanner: { flexDirection: "row", alignItems: "flex-start", borderRadius: hs(12), padding: hs(12), marginTop: vs(12), gap: hs(10) },
   securityIcon: { width: hs(36), height: hs(36), borderRadius: hs(10), alignItems: "center", justifyContent: "center" },
   securityTitle: { marginBottom: vs(2) },
   securityBody: { color: T.textSub, lineHeight: rs(16) },
-
-  // Review notice
   reviewBanner: { flexDirection: "row", alignItems: "flex-start", backgroundColor: "#EFF6FF", borderRadius: hs(10), borderLeftWidth: 3, borderLeftColor: "#3B82F6", padding: hs(10), marginTop: vs(10), gap: hs(8) },
   reviewText: { flex: 1, color: "#1D4ED8", lineHeight: rs(16) },
-
-  // Action row
   actionRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: vs(4), marginBottom: vs(8), gap: hs(12) },
   prevBtn: { flexDirection: "row", alignItems: "center", paddingVertical: vs(12), paddingHorizontal: hs(18), borderRadius: hs(12), borderWidth: 1.2, borderColor: T.border, backgroundColor: T.surface, gap: hs(6), elevation: 1 },
   prevBtnText: { color: T.text },
   nextBtnOuter: { borderRadius: hs(14), overflow: "hidden", elevation: 5, shadowColor: T.accent, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
   nextBtnGrad: { flexDirection: "row", alignItems: "center", paddingVertical: vs(14), paddingHorizontal: hs(26) },
   nextBtnText: {},
-
-  // Modal
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", paddingHorizontal: hs(24) },
   modalCard: { backgroundColor: T.surface, width: "100%", borderRadius: hs(24), padding: hs(24), alignItems: "center", elevation: 10, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12 },
   modalIconWrap: { width: rs(72), height: rs(72), borderRadius: rs(36), backgroundColor: T.success + "15", justifyContent: "center", alignItems: "center", marginBottom: vs(16) },
@@ -1364,4 +1090,6 @@ const S = StyleSheet.create({
   modalBtn: { width: "100%", borderRadius: hs(12), overflow: "hidden" },
   modalBtnGrad: { paddingVertical: vs(14), alignItems: "center", justifyContent: "center" },
   modalBtnText: { color: T.surface, fontFamily: Fonts.Bold, fontSize: rs(14) },
-});
+  modalEmpty: { textAlign: "center", marginTop: vs(40), color: T.textMuted, fontFamily: Fonts.Regular, fontSize: rs(13) },
+  modalListItem: { paddingVertical: vs(14), borderBottomWidth: 1, borderBottomColor: T.border },
+}); 

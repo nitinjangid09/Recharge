@@ -16,6 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { redeemCoupon } from '../api/AuthApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Colors from '../constants/Colors';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -529,7 +530,7 @@ export default function ActivateAccountScreen({ navigation }) {
 
     return (
         <SafeAreaView style={styles.safe} edges={['top', 'bottom', 'left', 'right']}>
-            <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+            <StatusBar barStyle="dark-content" backgroundColor={Colors.bg} />
             <ScrollView
                 style={styles.scroll}
                 contentContainerStyle={styles.scrollContent}
@@ -614,7 +615,7 @@ export default function ActivateAccountScreen({ navigation }) {
 
 // ─── Styles ──────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-    safe: { flex: 1, backgroundColor: C.bg },
+    safe: { flex: 1, backgroundColor: Colors.bg },
     scroll: { flex: 1 },
     scrollContent: { paddingBottom: 60 },
 
@@ -646,7 +647,7 @@ const styles = StyleSheet.create({
     panelWrap: { paddingHorizontal: 16 },
 
     // Panel card (shared by coupon + online)
-    panelCard: { backgroundColor: C.white, borderRadius: 24, borderWidth: 1.5, borderColor: C.border, padding: 24, alignItems: 'center', gap: 14, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 3 },
+    panelCard: { backgroundColor: Colors.white, borderRadius: 24, borderWidth: 1.5, borderColor: C.border, padding: 24, alignItems: 'center', gap: 14, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 3 },
     iconBox: { width: 72, height: 72, borderRadius: 22, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
     panelTitle: { fontSize: 22, fontWeight: '700', color: C.dark, textAlign: 'center' },
     panelDesc: { fontSize: 13, color: C.slate, textAlign: 'center', lineHeight: 20, maxWidth: 270 },

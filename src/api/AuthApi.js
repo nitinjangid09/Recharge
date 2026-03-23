@@ -706,7 +706,7 @@ export const fetchBbpsCategories = async ({ headerToken }) => {
  */
 export const getWalletReport = async ({ from, to, headerToken }) => {
   try {
-    const url = `${BASE_URL}/user/wallet/wallet-report?from=${from}&to=${to}`;
+    const url = `${BASE_URL}/user/walletLedger/wallet-report?from=${from}&to=${to}`;
     const response = await fetch(url, {
       method: "GET",
       headers: {
@@ -811,7 +811,7 @@ export const fetchGlobalBankList = async ({ headerToken }) => {
 export const fetchBbpsBill = async ({ billerId, customerParams, headerToken }) => {
   try {
     const url = `${BASE_URL}/user/bbps/fetch-bill`;
-    
+
     const inputParams = Object.keys(customerParams || {}).map(key => ({
       paramName: key,
       paramValue: customerParams[key]
@@ -873,7 +873,7 @@ export const validateBbpsBill = async ({ billerId, customerParams, headerToken }
 export const redeemCoupon = async ({ couponCode, headerToken }) => {
   try {
     const response = await axios.post(`${BASE_URL}/user/coupon/redeem-coupon`, { couponCode }, {
-      headers: { 
+      headers: {
         Authorization: `Bearer ${headerToken}`,
         "Content-Type": "application/json"
       }
@@ -884,4 +884,4 @@ export const redeemCoupon = async ({ couponCode, headerToken }) => {
     return error?.response?.data || { success: false, message: "Coupon verification failed" };
   }
 };
-
+

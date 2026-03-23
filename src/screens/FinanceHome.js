@@ -848,7 +848,7 @@ export default function FinanceHome({ navigation }) {
             </TouchableOpacity>
             {[
               { icon: "file-document-outline", label: "Report", screen: "WalletTransactionScreen" },
-              { icon: "history", label: "History", screen: "InvoiceScreen", badge: true },
+              { icon: "history", label: "History", screen: "InvoiceScreen" },
               { icon: "account-outline", label: "Profile", screen: "ProfileScreen" },
             ].map((tab, i) => (
               <TouchableOpacity key={i} style={S.tabItem} onPress={() => navigation.navigate(tab.screen)}>

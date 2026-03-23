@@ -10,6 +10,8 @@ import {
   Modal,
   Image,
   Animated,
+  Dimensions,
+  PixelRatio,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -23,11 +25,100 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import CustomAlert from "../componets/CustomAlert";
 
-// ─── Reusable input field ─────────────────────────────────────────────────
+// ─── Responsive scale ─────────────────────────────────────────────────────
+const { width: W } = Dimensions.get("window");
+const S = (n) => Math.round(PixelRatio.roundToNearestPixel(n * (W / 375)));
+
+const ACCENT = Colors.finance_accent || "#D4A843";
+const FG = Colors.finance_text || "#1A1A2E";
+const SURFACE = Colors.white || "#FFFFFF";
+const BG = Colors.homeSecondry || "#F4F5F7";
+const CARD_BG = Colors.bg || "#FFFFFF";
+
+// ─── Payment mode config ──────────────────────────────────────────────────
+const PAYMENT_MODES = [
+  { key: "upi", label: "UPI", hint: "Instant transfer" },
+  { key: "imps", label: "IMPS", hint: "Real-time transfer" },
+  { key: "neft", label: "NEFT", hint: "2–4 hrs transfer" },
+  { key: "bank", label: "Bank", hint: "Bank transfer" },
+];
+
+// ─── Compact text-only pill ───────────────────────────────────────────────
+const ModePill = ({ mode, isActive, onPress }) => {
+  const scale = useRef(new Animated.Value(1)).current;
+  const pressIn = () => Animated.spring(scale, { toValue: 0.93, useNativeDriver: true }).start();
+  const pressOut = () => Animated.spring(scale, { toValue: 1, useNativeDriver: true }).start();
+
+  return (
+    <Animated.View style={[pillSt.wrap, { transform: [{ scale }] }]}>
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={onPress}
+        onPressIn={pressIn}
+        onPressOut={pressOut}
+        style={[pillSt.pill, isActive && pillSt.pillActive]}
+      >
+        {isActive && <View style={pillSt.dot} />}
+        <Text style={[pillSt.label, isActive && pillSt.labelActive]}>
+          {mode.label}
+        </Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
+
+const pillSt = StyleSheet.create({
+  wrap: { flex: 1 },
+  pill: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: S(4),
+    paddingVertical: S(9),
+    paddingHorizontal: S(6),
+    borderRadius: S(10),
+    borderWidth: 1,
+    borderColor: "rgba(212,176,106,0.28)",
+    // ── KEY: always white background ──
+    backgroundColor: SURFACE,
+  },
+  pillActive: {
+    // Tinted white — very subtle gold wash on white
+    backgroundColor: SURFACE,
+    borderColor: ACCENT,
+    borderWidth: 1.5,
+  },
+  dot: {
+    width: S(5),
+    height: S(5),
+    borderRadius: S(3),
+    backgroundColor: ACCENT,
+  },
+  label: {
+    // ── matches field label: same font, same size ──
+    fontSize: S(12),
+    fontFamily: Fonts.Bold,
+    color: "#B0B0B0",
+    letterSpacing: 0.2,
+    includeFontPadding: false,
+    lineHeight: S(16),
+  },
+  labelActive: {
+    color: ACCENT,
+  },
+});
+
+// ─── Field label — single source of truth ────────────────────────────────
+// All labels: same font (Fonts.Bold), same size (S(12)), same colour (FG)
+const FieldLabel = ({ text }) => (
+  <Text style={st.fieldLabel}>{text}</Text>
+);
+
+// ─── Reusable text input row ──────────────────────────────────────────────
 const InputBox = ({ label, value, setValue, icon, placeholder, keyboardType }) => (
-  <View style={styles.fieldWrapper}>
-    <Text style={styles.boxLabel}>{label}</Text>
-    <View style={styles.inputContainer}>
+  <View style={st.fieldWrap}>
+    <FieldLabel text={label} />
+    <View style={st.inputRow}>
       <TextInput
         value={value}
         onChangeText={(val) =>
@@ -39,10 +130,10 @@ const InputBox = ({ label, value, setValue, icon, placeholder, keyboardType }) =
         }
         keyboardType={keyboardType || "default"}
         placeholder={placeholder}
-        placeholderTextColor="#9E9E9E"
-        style={styles.boxInput}
+        placeholderTextColor="#C4C4C4"
+        style={st.inputText}
       />
-      <Icon name={icon} size={22} color={Colors.finance_accent} />
+      <Icon name={icon} size={S(18)} color={ACCENT + "90"} />
     </View>
   </View>
 );
@@ -63,20 +154,16 @@ export default function OfflineTopup({ navigation }) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [date, setDate] = useState(new Date());
   const [submitting, setSubmitting] = useState(false);
-
-  // CustomAlert state
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertType, setAlertType] = useState("info");
   const [alertTitle, setAlertTitle] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
   const [uploadVisible, setUploadVisible] = useState(false);
 
-  // ── Helpers ──────────────────────────────────────────────────────────────
+  const activeModeHint = PAYMENT_MODES.find(m => m.key === mode)?.hint || "";
+
   const showAlert = (type, title, message) => {
-    setAlertType(type);
-    setAlertTitle(title);
-    setAlertMessage(message);
-    setAlertVisible(true);
+    setAlertType(type); setAlertTitle(title); setAlertMessage(message); setAlertVisible(true);
   };
 
   const onDateChange = (event, selectedDate) => {
@@ -90,44 +177,29 @@ export default function OfflineTopup({ navigation }) {
     }
   };
 
-  // ── Fetch banks ───────────────────────────────────────────────────────────
   useEffect(() => {
     (async () => {
       setBanksLoading(true);
       try {
         const headerToken = await AsyncStorage.getItem("header_token");
         const result = await getAllTopupBanks({ headerToken });
-        const ok = result?.success === true || result?.status === "success" || result?.status === 1 || result?.statusCode === 200;
-        if (ok) {
-          setBanks(result.data || []);
-        } else {
-          console.log("[OfflineTopup] Fetch banks request not successful:", result);
-        }
-      } catch (e) {
-        console.log("Fetch banks error:", e);
-      } finally {
-        setBanksLoading(false);
-      }
+        const ok = result?.success === true || result?.status === "success" || result?.statusCode === 200;
+        if (ok) setBanks(result.data || []);
+      } catch (e) { console.log("Fetch banks error:", e); }
+      finally { setBanksLoading(false); }
     })();
   }, []);
 
-  // ── Image picker handlers ─────────────────────────────────────────────────
-  const handleCamera = () =>
-    launchCamera({ mediaType: "photo", quality: 0.7 }, (res) => {
-      if (!res.didCancel && res.assets?.length) setPaymentProof(res.assets[0].uri);
-    });
+  const handleCamera = () => launchCamera({ mediaType: "photo", quality: 0.7 }, (res) => {
+    if (!res.didCancel && res.assets?.length) setPaymentProof(res.assets[0].uri);
+  });
+  const handleGallery = () => launchImageLibrary({ mediaType: "photo", quality: 0.7 }, (res) => {
+    if (!res.didCancel && res.assets?.length) setPaymentProof(res.assets[0].uri);
+  });
+  const handleFile = () => launchImageLibrary({ mediaType: "photo", quality: 0.7 }, (res) => {
+    if (!res.didCancel && res.assets?.length) setPaymentProof(res.assets[0].uri);
+  });
 
-  const handleGallery = () =>
-    launchImageLibrary({ mediaType: "photo", quality: 0.7 }, (res) => {
-      if (!res.didCancel && res.assets?.length) setPaymentProof(res.assets[0].uri);
-    });
-
-  const handleFile = () =>
-    launchImageLibrary({ mediaType: "photo", quality: 0.7 }, (res) => {
-      if (!res.didCancel && res.assets?.length) setPaymentProof(res.assets[0].uri);
-    });
-
-  // ── Submit ────────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
     if (!amount || !receiverBank || !utrNumber) {
       showAlert("error", "Validation Error", "Please fill in all mandatory fields (Amount, Bank, UTR).");
@@ -136,55 +208,76 @@ export default function OfflineTopup({ navigation }) {
     setSubmitting(true);
     try {
       const headerToken = await AsyncStorage.getItem("header_token");
-      const result = await addOfflineTopupRequest({
-        amount, mode, receiverBank, utrNumber, paymentDate, paymentProof, headerToken,
-      });
+      const result = await addOfflineTopupRequest({ amount, mode, receiverBank, utrNumber, paymentDate, paymentProof, headerToken });
       if (result?.success) {
         showAlert("success", "Request Submitted!", "Your topup request has been submitted successfully.");
       } else {
-        showAlert("error", "Submission Failed", result?.message || "Unable to submit request. Please try again.");
+        showAlert("error", "Submission Failed", result?.message || "Unable to submit. Please try again.");
       }
     } catch (e) {
       showAlert("error", "Unexpected Error", "Something went wrong. Please try again later.");
-    } finally {
-      setSubmitting(false);
-    }
+    } finally { setSubmitting(false); }
   };
 
   const selectedBankName = banks.find((b) => b._id === receiverBank)?.bankName;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.innerContent}>
+    <SafeAreaView style={st.container}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={st.scroll}>
         <HeaderBar title="Topup Request" onBack={() => navigation.goBack()} />
 
-        <View style={styles.formCard}>
-          <Text style={styles.cardHeader}>Submit Topup Request</Text>
+        <View style={st.card}>
+          <Text style={st.cardTitle}>Submit Topup Request</Text>
 
-          {/* Amount */}
+          {/* ── Amount ── */}
           <InputBox
             label="Amount (₹)"
-            placeholder="Enter amount (e.g., 500)"
+            placeholder="Enter amount"
             value={amount}
             setValue={setAmount}
             icon="currency-inr"
             keyboardType="numeric"
           />
 
-          {/* Bank picker */}
-          <View style={styles.fieldWrapper}>
-            <Text style={styles.boxLabel}>Receiver Bank</Text>
-            <TouchableOpacity style={styles.inputContainer} onPress={() => setBankModalVisible(true)} activeOpacity={0.7}>
-              <View style={{ flex: 1, height: 40, justifyContent: "center" }}>
-                <Text style={{ color: receiverBank ? Colors.finance_text : "#9E9E9E", fontFamily: Fonts.Medium, fontSize: 14 }}>
-                  {selectedBankName || "Choose a Bank"}
-                </Text>
-              </View>
-              <Icon name="chevron-down" size={22} color={Colors.finance_accent} />
+          {/* ── Payment Mode ── */}
+          <View style={st.fieldWrap}>
+            {/* label row: same FieldLabel + inline hint */}
+            <View style={st.modeLabelRow}>
+              <FieldLabel text="Payment Mode" />
+              <Text style={st.modeHintTxt}>{activeModeHint}</Text>
+            </View>
+
+            <View style={st.pillRow}>
+              {PAYMENT_MODES.map((m) => (
+                <ModePill
+                  key={m.key}
+                  mode={m}
+                  isActive={mode === m.key}
+                  onPress={() => setMode(m.key)}
+                />
+              ))}
+            </View>
+          </View>
+
+          {/* ── Receiver Bank ── */}
+          <View style={st.fieldWrap}>
+            <FieldLabel text="Receiver Bank" />
+            <TouchableOpacity
+              style={st.inputRow}
+              onPress={() => setBankModalVisible(true)}
+              activeOpacity={0.7}
+            >
+              <Text
+                style={[st.inputText, { color: receiverBank ? FG : "#C4C4C4", paddingVertical: S(11) }]}
+                numberOfLines={1}
+              >
+                {selectedBankName || "Choose a Bank"}
+              </Text>
+              <Icon name="chevron-down" size={S(18)} color={ACCENT + "90"} />
             </TouchableOpacity>
           </View>
 
-          {/* UTR */}
+          {/* ── UTR ── */}
           <InputBox
             label="UTR / Ref Number"
             placeholder="e.g., 6545654323"
@@ -193,106 +286,126 @@ export default function OfflineTopup({ navigation }) {
             icon="text-box-search-outline"
           />
 
-          {/* Date */}
-          <View style={styles.fieldWrapper}>
-            <Text style={styles.boxLabel}>Payment Date</Text>
-            <TouchableOpacity style={styles.inputContainer} onPress={() => setShowDatePicker(true)} activeOpacity={0.7}>
-              <View style={{ flex: 1, height: 40, justifyContent: "center" }}>
-                <Text style={{ color: paymentDate ? Colors.finance_text : "#9E9E9E", fontFamily: Fonts.Medium, fontSize: 13 }}>
-                  {paymentDate || "Select Payment Date (YYYY-MM-DD)"}
-                </Text>
-              </View>
-              <Icon name="calendar" size={22} color={Colors.finance_accent} />
+          {/* ── Payment Date ── */}
+          <View style={st.fieldWrap}>
+            <FieldLabel text="Payment Date" />
+            <TouchableOpacity style={st.inputRow} onPress={() => setShowDatePicker(true)} activeOpacity={0.7}>
+              <Text style={[st.inputText, { color: paymentDate ? FG : "#C4C4C4", paddingVertical: S(11) }]}>
+                {paymentDate || "YYYY-MM-DD"}
+              </Text>
+              <Icon name="calendar" size={S(18)} color={ACCENT + "90"} />
             </TouchableOpacity>
           </View>
           {showDatePicker && (
             <DateTimePicker value={date} mode="date" display="default" maximumDate={new Date()} onChange={onDateChange} />
           )}
 
-          {/* Payment proof */}
-          <View style={styles.fieldWrapper}>
-            <Text style={styles.boxLabel}>Payment Proof</Text>
+          {/* ── Payment Proof ── */}
+          <View style={st.fieldWrap}>
+            <FieldLabel text="Payment Proof" />
             <TouchableOpacity
-              style={[styles.inputContainer, paymentProof && styles.inputProofActive]}
+              style={[st.inputRow, paymentProof && st.inputRowGreen]}
               onPress={() => setUploadVisible(true)}
               activeOpacity={0.7}
             >
-              <View style={{ flex: 1, height: 40, justifyContent: "center" }}>
-                <Text style={{ color: paymentProof ? "#22C55E" : "#9E9E9E", fontFamily: Fonts.Medium, fontSize: 13, fontWeight: paymentProof ? "700" : "400" }}>
-                  {paymentProof ? "✓  Proof Attached" : "Upload Payment Screenshot"}
-                </Text>
-              </View>
+              <Text style={[
+                st.inputText,
+                {
+                  color: paymentProof ? "#16A34A" : "#C4C4C4",
+                  fontFamily: paymentProof ? Fonts.Bold : Fonts.Medium,
+                  paddingVertical: S(11),
+                },
+              ]}>
+                {paymentProof ? "✓  Proof Attached" : "Upload Payment Screenshot"}
+              </Text>
               <Icon
                 name={paymentProof ? "check-circle" : "camera-plus-outline"}
-                size={22}
-                color={paymentProof ? "#22C55E" : Colors.finance_accent}
+                size={S(18)}
+                color={paymentProof ? "#16A34A" : ACCENT + "90"}
               />
             </TouchableOpacity>
 
-            {paymentProof ? (
-              <View style={styles.previewBox}>
-                <Image source={{ uri: paymentProof }} style={styles.previewImg} />
-                <TouchableOpacity style={styles.changeOverlay} onPress={() => setUploadVisible(true)}>
-                  <Icon name="pencil" size={13} color="#fff" />
-                  <Text style={styles.changeTxt}>Change</Text>
+            {paymentProof && (
+              <View style={st.previewBox}>
+                <Image source={{ uri: paymentProof }} style={st.previewImg} />
+                <TouchableOpacity style={st.changeChip} onPress={() => setUploadVisible(true)}>
+                  <Icon name="pencil" size={S(11)} color="#fff" />
+                  <Text style={st.changeChipTxt}>Change</Text>
                 </TouchableOpacity>
               </View>
-            ) : null}
+            )}
           </View>
 
-          {/* Submit */}
-          <TouchableOpacity onPress={handleSubmit} style={{ marginTop: 26 }} disabled={submitting} activeOpacity={0.85}>
-            <LinearGradient colors={[Colors.finance_accent, "#C29A47"]} style={styles.btnGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+          {/* ── Submit ── */}
+          <TouchableOpacity onPress={handleSubmit} style={st.submitWrap} disabled={submitting} activeOpacity={0.85}>
+            <LinearGradient
+              colors={[ACCENT, "#C29A47"]}
+              style={st.submitBtn}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
               {submitting
                 ? <ActivityIndicator size="small" color="#000" />
-                : <><Icon name="send" size={16} color="#000" style={{ marginRight: 8 }} /><Text style={styles.btnText}>Submit Request</Text></>
+                : <>
+                  <Icon name="send" size={S(15)} color="#000" />
+                  <Text style={st.submitTxt}>Submit Request</Text>
+                </>
               }
             </LinearGradient>
           </TouchableOpacity>
         </View>
       </ScrollView>
 
-      {/* ─── Bank selection modal ─── */}
-      <Modal visible={bankModalVisible} transparent animationType="fade" onRequestClose={() => setBankModalVisible(false)}>
-        <View style={styles.bankOverlay}>
-          <View style={styles.bankModal}>
-            <Text style={styles.bankModalTitle}>Choose Receiver Bank</Text>
-            {banksLoading && <ActivityIndicator size="small" color={Colors.finance_accent} style={{ marginBottom: 10 }} />}
+      {/* ─── Bank bottom sheet ─── */}
+      <Modal visible={bankModalVisible} transparent animationType="slide" onRequestClose={() => setBankModalVisible(false)}>
+        <View style={st.overlay}>
+          <View style={st.sheetCard}>
+            <View style={st.sheetHandle} />
+            <Text style={st.sheetTitle}>Choose Receiver Bank</Text>
+
+            {banksLoading && <ActivityIndicator size="small" color={ACCENT} style={{ marginBottom: S(10) }} />}
             {!banksLoading && banks.length === 0 && (
-              <Text style={{ color: "#999", marginVertical: 10, fontFamily: Fonts.Medium }}>No banks found.</Text>
+              <Text style={st.sheetEmpty}>No banks found.</Text>
             )}
-            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 250, width: "100%" }} contentContainerStyle={{ paddingBottom: 10 }}>
+
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              style={{ maxHeight: S(260), width: "100%" }}
+              contentContainerStyle={{ paddingBottom: S(10) }}
+            >
               {banks.map((b) => (
                 <TouchableOpacity
                   key={b._id}
-                  style={[styles.bankItem, receiverBank === b._id && styles.bankItemActive]}
+                  style={[st.bankRow, receiverBank === b._id && st.bankRowActive]}
                   onPress={() => { setReceiverBank(b._id); setBankModalVisible(false); }}
                 >
-                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                    <Text style={[styles.bankName, receiverBank === b._id && { color: Colors.finance_accent }]} numberOfLines={1}>{b.bankName}</Text>
-                    {receiverBank === b._id && <Icon name="check-circle" size={16} color={Colors.finance_accent} />}
+                  <View style={{ flex: 1 }}>
+                    <Text style={[st.bankName, receiverBank === b._id && { color: ACCENT }]} numberOfLines={1}>
+                      {b.bankName}
+                    </Text>
+                    <Text style={st.bankSub}>{b.accountHolderName}  ·  {b.accountNumber}</Text>
                   </View>
-                  <Text style={styles.bankSub}>Acc Holder: {b.accountHolderName}</Text>
-                  <Text style={styles.bankSub}>Acc No: {b.accountNumber}</Text>
+                  {receiverBank === b._id && <Icon name="check-circle" size={S(16)} color={ACCENT} />}
                 </TouchableOpacity>
               ))}
             </ScrollView>
-            <TouchableOpacity style={styles.bankCloseBtn} onPress={() => setBankModalVisible(false)}>
-              <Text style={styles.bankCloseTxt}>Close</Text>
+
+            <TouchableOpacity style={st.sheetCloseBtn} onPress={() => setBankModalVisible(false)}>
+              <Text style={st.sheetCloseTxt}>Close</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
-      {/* ─── Full-screen loader ─── */}
+      {/* ─── Loader ─── */}
       {submitting && (
-        <View style={styles.loaderOverlay}>
-          <ActivityIndicator size="large" color={Colors.finance_accent} />
-          <Text style={styles.loaderTxt}>Submitting request...</Text>
+        <View style={st.loaderOverlay}>
+          <ActivityIndicator size="large" color={ACCENT} />
+          <Text style={st.loaderTxt}>Submitting request…</Text>
         </View>
       )}
 
-      {/* ─── Standard Custom Alert (success / error / warning) ─── */}
+      {/* ─── Alerts ─── */}
       <CustomAlert
         visible={alertVisible}
         type={alertType}
@@ -303,8 +416,6 @@ export default function OfflineTopup({ navigation }) {
           if (alertType === "success") setTimeout(() => navigation.goBack(), 120);
         }}
       />
-
-      {/* ─── Image Upload Custom Alert ─── */}
       <CustomAlert
         visible={uploadVisible}
         type="upload"
@@ -319,106 +430,195 @@ export default function OfflineTopup({ navigation }) {
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.homeSecondry },
-  innerContent: { alignItems: "center", paddingBottom: 40 },
+// ─── Unified stylesheet ───────────────────────────────────────────────────
+const st = StyleSheet.create({
+  container: { flex: 1, backgroundColor: BG },
+  scroll: { alignItems: "center", paddingBottom: S(40) },
 
-  formCard: {
+  // ── Card ─────────────────────────────────────────────────────────────
+  card: {
     width: "92%",
-    backgroundColor: Colors.bg,
-    borderRadius: 20,
-    padding: 20,
-    marginTop: 20,
-    elevation: 4,
+    backgroundColor: CARD_BG,
+    borderRadius: S(18),
+    padding: S(18),
+    marginTop: S(16),
+    elevation: 3,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
+    shadowOpacity: 0.07,
+    shadowRadius: S(10),
   },
-  cardHeader: {
-    fontSize: 16,
+  cardTitle: {
+    fontSize: S(15),
     fontFamily: Fonts.Bold,
-    color: Colors.finance_text,
-    marginBottom: 15,
+    color: FG,
     textAlign: "center",
-    letterSpacing: 0.5,
+    letterSpacing: 0.4,
+    marginBottom: S(4),
   },
-  fieldWrapper: { width: "100%", marginTop: 15 },
-  boxLabel: {
-    color: Colors.finance_text,
-    fontSize: 13,
-    fontFamily: Fonts.Bold,
-    marginBottom: 6,
-    marginLeft: 4,
+
+  // ── Field wrapper ─────────────────────────────────────────────────────
+  fieldWrap: { width: "100%", marginTop: S(16) },
+
+  // ── UNIFIED field label ───────────────────────────────────────────────
+  // Amount label, Payment Mode label, Receiver Bank label, UTR label,
+  // Payment Date label, Payment Proof label — all share this one style.
+  fieldLabel: {
+    fontSize: S(12),          // same size everywhere
+    fontFamily: Fonts.Bold,   // same weight everywhere
+    color: FG,                // same colour everywhere
+    marginBottom: S(7),
+    letterSpacing: 0.2,
+    includeFontPadding: false,
+    lineHeight: S(16),
   },
-  inputContainer: {
-    borderWidth: 1,
-    borderColor: "rgba(212,176,106,0.4)",
-    borderRadius: 12,
-    backgroundColor: "#fff",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+
+  // ── Payment mode ──────────────────────────────────────────────────────
+  modeLabelRow: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: S(8),       // overrides the fieldLabel marginBottom
   },
-  inputProofActive: {
-    borderColor: "#22C55E",
+  modeHintTxt: {
+    fontSize: S(10),
+    fontFamily: Fonts.Medium,
+    color: ACCENT,
+    includeFontPadding: false,
+    lineHeight: S(14),
+  },
+  pillRow: {
+    flexDirection: "row",
+    gap: S(7),
+  },
+
+  // ── Input row ─────────────────────────────────────────────────────────
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(212,176,106,0.32)",
+    borderRadius: S(11),
+    backgroundColor: SURFACE,  // always white
+    paddingHorizontal: S(12),
+  },
+  inputRowGreen: {
+    borderColor: "#16A34A",
     backgroundColor: "#F0FDF4",
   },
-  boxInput: {
+  inputText: {
     flex: 1,
-    height: 40,
-    fontSize: 14,
-    color: Colors.finance_text,
+    fontSize: S(13),
+    color: FG,
     fontFamily: Fonts.Medium,
+    paddingVertical: S(11),
+    includeFontPadding: false,
   },
 
-  // Proof preview
+  // ── Proof preview ─────────────────────────────────────────────────────
   previewBox: {
-    marginTop: 10,
-    borderRadius: 12,
+    marginTop: S(10),
+    borderRadius: S(12),
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.08)",
+    borderColor: "rgba(0,0,0,0.07)",
   },
-  previewImg: { width: "100%", height: 180, resizeMode: "cover" },
-  changeOverlay: {
+  previewImg: { width: "100%", height: S(170), resizeMode: "cover" },
+  changeChip: {
     position: "absolute",
-    top: 10, right: 10,
+    top: S(10), right: S(10),
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    backgroundColor: "rgba(0,0,0,0.55)",
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    gap: S(4),
+    backgroundColor: "rgba(0,0,0,0.52)",
+    borderRadius: S(20),
+    paddingHorizontal: S(10),
+    paddingVertical: S(5),
   },
-  changeTxt: { color: "#fff", fontSize: 12, fontFamily: Fonts.Medium },
+  changeChipTxt: { color: "#fff", fontSize: S(11), fontFamily: Fonts.Medium },
 
-  // Submit button
-  btnGradient: {
-    borderRadius: 12,
-    paddingVertical: 14,
+  // ── Submit ────────────────────────────────────────────────────────────
+  submitWrap: { marginTop: S(22) },
+  submitBtn: {
+    borderRadius: S(12),
+    paddingVertical: S(14),
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    gap: S(7),
     elevation: 3,
+    shadowColor: ACCENT,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: S(8),
   },
-  btnText: { color: "#000", fontFamily: Fonts.Bold, fontSize: 15, letterSpacing: 0.5 },
+  submitTxt: {
+    color: "#000",
+    fontFamily: Fonts.Bold,
+    fontSize: S(14),
+    letterSpacing: 0.4,
+  },
 
-  // Bank modal
-  bankOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
-  bankModal: { width: "88%", backgroundColor: "#fff", borderRadius: 20, padding: 18, alignItems: "center", elevation: 10 },
-  bankModalTitle: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.finance_text, marginBottom: 15 },
-  bankItem: { width: "100%", paddingVertical: 12, paddingHorizontal: 4, borderBottomWidth: 1, borderColor: "rgba(0,0,0,0.04)" },
-  bankItemActive: { backgroundColor: Colors.finance_accent + "11" },
-  bankName: { fontSize: 13, fontFamily: Fonts.Bold, color: "#333", flex: 1 },
-  bankSub: { fontSize: 10, color: "#666", marginTop: 2, fontFamily: Fonts.Medium },
-  bankCloseBtn: { marginTop: 15, paddingVertical: 10, width: "100%", alignItems: "center", backgroundColor: "#F5F5F5", borderRadius: 10 },
-  bankCloseTxt: { fontFamily: Fonts.Bold, color: "#333", fontSize: 13 },
+  // ── Bank bottom sheet ─────────────────────────────────────────────────
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "flex-end" },
+  sheetCard: {
+    backgroundColor: SURFACE,
+    borderTopLeftRadius: S(22),
+    borderTopRightRadius: S(22),
+    padding: S(18),
+    paddingTop: S(10),
+    alignItems: "center",
+    elevation: 12,
+  },
+  sheetHandle: {
+    width: S(36), height: S(4),
+    borderRadius: S(2),
+    backgroundColor: "#E5E7EB",
+    marginBottom: S(14),
+  },
+  sheetTitle: {
+    fontSize: S(15),
+    fontFamily: Fonts.Bold,
+    color: FG,
+    marginBottom: S(14),
+    alignSelf: "flex-start",
+  },
+  sheetEmpty: {
+    color: "#999",
+    marginVertical: S(10),
+    fontFamily: Fonts.Medium,
+    fontSize: S(13),
+  },
+  bankRow: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: S(12),
+    paddingHorizontal: S(4),
+    borderBottomWidth: 1,
+    borderColor: "rgba(0,0,0,0.04)",
+    gap: S(8),
+  },
+  bankRowActive: { backgroundColor: ACCENT + "0E", borderRadius: S(8) },
+  bankName: { fontSize: S(13), fontFamily: Fonts.Bold, color: FG },
+  bankSub: { fontSize: S(10), fontFamily: Fonts.Medium, color: "#9CA3AF", marginTop: S(2) },
+  sheetCloseBtn: {
+    marginTop: S(14),
+    paddingVertical: S(12),
+    width: "100%",
+    alignItems: "center",
+    backgroundColor: "#F5F5F7",
+    borderRadius: S(12),
+  },
+  sheetCloseTxt: { fontFamily: Fonts.Bold, color: FG, fontSize: S(13) },
 
-  // Loader
-  loaderOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", alignItems: "center", zIndex: 999 },
-  loaderTxt: { color: "#FFF", fontFamily: Fonts.Medium, fontSize: 14, marginTop: 8 },
+  // ── Loader ────────────────────────────────────────────────────────────
+  loaderOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 999,
+  },
+  loaderTxt: { color: "#FFF", fontFamily: Fonts.Medium, fontSize: S(13), marginTop: S(8) },
 });
