@@ -17,7 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Colors from "../../constants/Colors";
-import { fetchBbpsBill, validateBbpsBill, payBbpsBill } from "../../api/AuthApi";
+import { fetchBbpsBill, validateBbpsBill, payBbpsBill, fetchParticularCategoryBillers, fetchBillerInfo } from "../../api/AuthApi";
 /*
 import {
   getServices,
@@ -492,15 +492,7 @@ const BbpsDynamicServiceScreen = () => {
 
     try {
       const token = await AsyncStorage.getItem("header_token");
-      const response = await fetch(
-        `http://192.168.1.5:8000/user/bbps/fetch-particular-category-billers?category=${encodeURIComponent(cat_key)}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      const res = await response.json();
+      const res = await fetchParticularCategoryBillers({ category: cat_key, headerToken: token });
       if (res?.success && res.data) {
         setBillers(res.data);
         if (res.data.length > 0) setBillerModal(true);
@@ -534,15 +526,7 @@ const BbpsDynamicServiceScreen = () => {
 
     try {
       const token = await AsyncStorage.getItem("header_token");
-      const response = await fetch(
-        `http://192.168.1.5:8000/user/bbps/fetch-biller-info?billerId=${encodeURIComponent(bId)}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      const res = await response.json();
+      const res = await fetchBillerInfo({ billerId: bId, headerToken: token });
 
       if (res?.success && res.data?.biller) {
         setBillerDetail(res.data.biller);

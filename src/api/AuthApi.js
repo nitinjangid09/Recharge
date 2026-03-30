@@ -1,7 +1,7 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const BASE_URL = "http://192.168.1.5:8000";
+const BASE_URL = "http://192.168.1.16:8000";
 
 
 const safeTransform = (raw) => {
@@ -175,6 +175,40 @@ export const registerUser = async (userData) => {
       error?.response?.data || {
         success: false,
         message: "Registration failed. Please try again.",
+      }
+    );
+  }
+};
+
+export const createNewUser = async (userData, headerToken) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/user/create-user`, userData, {
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Create User API Error:", error?.response?.data || error);
+    return (
+      error?.response?.data || {
+        success: false,
+        message: "User creation failed. Please try again.",
+      }
+    );
+  }
+};
+
+export const getDownlineUsers = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/user/get-downline-users`, {
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get Downline Users API Error:", error?.response?.data || error);
+    return (
+      error?.response?.data || {
+        success: false,
+        message: "Unable to fetch downline users",
       }
     );
   }
@@ -702,6 +736,32 @@ export const fetchBbpsCategories = async ({ headerToken }) => {
   } catch (error) {
     console.log("Fetch BBPS Categories Error:", error?.response?.data || error);
     return error?.response?.data || { success: false, message: "Unable to fetch categories" };
+  }
+};
+
+export const fetchParticularCategoryBillers = async ({ category, headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/bbps/fetch-particular-category-billers`, {
+      params: { category },
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Fetch Particular Category Billers Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch billers" };
+  }
+};
+
+export const fetchBillerInfo = async ({ billerId, headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/bbps/fetch-biller-info`, {
+      params: { billerId },
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Fetch Biller Info Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch biller info" };
   }
 };
 

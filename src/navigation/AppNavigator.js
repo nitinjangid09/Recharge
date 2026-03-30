@@ -20,6 +20,7 @@ import StorePlans from '../screens/StorePlans';
 import FlexiPlan from '../screens/FlexiPlan';
 import InvoiceScreen from '../screens/InvoiceScreen';
 import Signup from '../screens/Signup';
+import CreateUser from '../screens/CreateUser';
 import OrderHistoryScreen from '../screens/OrderHistoryScreen';
 import FinanceIntro from '../screens/FinanceIntro';
 import TopUpScreen from '../screens/TopUpScreen';
@@ -29,6 +30,7 @@ import Transaction from '../screens/Transaction';
 import BBPSServices from '../screens/BBPSServices';
 import ElectricityScreen from '../screens/ElectricityScreen';
 import Electricity from '../screens/Electricity';
+import UserListScreen from '../screens/UserListScreen';
 
 import Home from '../screens/HomeScreen/Home';
 
@@ -181,6 +183,8 @@ const AppNavigator = () => {
       <Stack.Screen name="OfflineTopup" component={OfflineTopup} />
       <Stack.Screen name="BbpsDynamicServiceScreen" component={BbpsDynamicServiceScreen} />
       <Stack.Screen name="ActivateAccountScreen" component={ActivateAccountScreen} />
+      <Stack.Screen name="CreateUser" component={CreateUser} />
+      <Stack.Screen name="UserListScreen" component={UserListScreen} />
     </Stack.Navigator>
   );
 };

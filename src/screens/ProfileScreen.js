@@ -198,6 +198,25 @@ export default function ProfileScreen({ navigation }) {
             }
           />
 
+          {[
+            "698ef03714f23da91959cf41", // STATE HEAD
+            "698ef04e14f23da91959cf45", // MASTER DISTRIBUTOR
+            "698ef05714f23da91959cf48", // DISTRIBUTOR
+          ].includes(profileData?.roleId?._id) && (
+              <>
+                <Item
+                  icon="account-plus-outline"
+                  text="Create User"
+                  onPress={() => navigation.navigate("CreateUser")}
+                />
+                <Item
+                  icon="account-group-outline"
+                  text="User Downline"
+                  onPress={() => navigation.navigate("UserListScreen")}
+                />
+              </>
+            )}
+
           <Item
             icon="map-marker-outline"
             text="Address Management"
