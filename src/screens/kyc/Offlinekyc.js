@@ -395,8 +395,51 @@ export default function Offlinekyc({ navigation, route }) {
     if (ok) {
       setShowSuccessModal(true);
     } else {
-      if (result.errors && typeof result.errors === "object") setErrors(result.errors);
-      setFailMsg(result.message || "Check your details and try again.");
+      let finalErrors = {};
+      let bulletErrors = "";
+
+      if (result.errors && Array.isArray(result.errors)) {
+        // Handle array of error strings
+        bulletErrors = result.errors.join("\n• ");
+      } else if (result.errors && typeof result.errors === "object") {
+        // Handle field-level object errors
+        finalErrors = result.errors;
+      } else if (result.missingFields && Array.isArray(result.missingFields)) {
+        // Map missing fields back to the UI
+        result.missingFields.forEach(f => {
+          finalErrors[f] = "Required";
+        });
+      }
+
+      if (Object.keys(finalErrors).length > 0) {
+        setErrors(finalErrors);
+        // Determine which step has the first error
+        const firstErrField = Object.keys(finalErrors)[0];
+        const s0 = ["firstName", "lastName", "fatherName", "gender", "email", "phone", "dob", "personalAddress", "personalCity", "personalState", "personalPincode"];
+        const s1 = ["shopName", "businessAddress", "businessPincode", "businessState", "businessCity", "panNumber", "aadharNumber", "aadharFile", "panFile", "shopImage"];
+        
+        let targetStep = 2;
+        if (s0.includes(firstErrField)) targetStep = 0;
+        else if (s1.includes(firstErrField)) targetStep = 1;
+
+        if (targetStep !== step) {
+          setStep(targetStep);
+          // Small delay to allow step transition before scrolling
+          setTimeout(() => scrollToError(finalErrors), 300);
+        } else {
+          scrollToError(finalErrors);
+        }
+      }
+
+      // Build a comprehensive, readable failure message
+      let displayMsg = result.message || "Check your details and try again.";
+      if (bulletErrors) {
+        displayMsg = `${displayMsg}\n\nErrors:\n• ${bulletErrors}`;
+      } else if (result.missingFields && Array.isArray(result.missingFields) && result.missingFields.length > 0) {
+        displayMsg = `${displayMsg}\n\nRequired fields missing:\n• ${result.missingFields.join("\n• ")}`;
+      }
+
+      setFailMsg(displayMsg);
       setShowFailModal(true);
     }
   };

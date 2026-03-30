@@ -194,7 +194,7 @@ function CouponPanel({ onSuccess }) {
 }
 
 // ─── Online Panel ────────────────────────────────────────────────
-function OnlinePanel({ onSuccess }) {
+function OnlinePanel({ onSuccess, feeAmount }) {
     const [loading, setLoad] = useState(false);
     const float = useFloat();
     const methods = ['UPI', 'Credit Card', 'Debit Card', 'Netbanking'];
@@ -244,7 +244,7 @@ function OnlinePanel({ onSuccess }) {
                     <Text style={styles.ctaBtnLabel}>Processing…</Text>
                 ) : (
                     <>
-                        <Text style={styles.ctaBtnLabel}>Pay ₹999 Securely</Text>
+                        <Text style={styles.ctaBtnLabel}>Pay ₹{feeAmount || '999'} Securely</Text>
                         <Text style={styles.ctaArrow}> →</Text>
                     </>
                 )}
@@ -254,7 +254,7 @@ function OnlinePanel({ onSuccess }) {
 }
 
 // ─── Bank Panel ──────────────────────────────────────────────────
-function BankPanel({ onSuccess, onError }) {
+function BankPanel({ onSuccess, onError, feeAmount }) {
     const [selected, setSelected] = useState(null);
     const [showQR, setShowQR] = useState(false);
     const [payMode, setPayMode] = useState('');
@@ -394,7 +394,7 @@ function BankPanel({ onSuccess, onError }) {
                             <View style={[styles.formField, { flex: 1 }]}>
                                 <Text style={styles.fieldLabel}>FEE AMOUNT</Text>
                                 <View style={[styles.fieldWrap, { backgroundColor: C.orangeSoft, borderColor: C.orangeBorder }]}>
-                                    <Text style={[styles.fieldInput, { color: C.orange, fontWeight: '800' }]}>₹ 999</Text>
+                                    <Text style={[styles.fieldInput, { color: C.orange, fontWeight: '800' }]}>₹ {feeAmount || '999'}</Text>
                                 </View>
                             </View>
                             <View style={[styles.formField, { flex: 1 }]}>
@@ -489,7 +489,22 @@ function BankPanel({ onSuccess, onError }) {
 export default function ActivateAccountScreen({ navigation }) {
     const [activeTab, setActiveTab] = useState('coupon');
     const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
+    const [feeAmount, setFeeAmount] = useState('999');
     const tabAnim = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        const fetchFeeAmount = async () => {
+            try {
+                const amount = await AsyncStorage.getItem("on_board_charge");
+                if (amount) {
+                    setFeeAmount(amount);
+                }
+            } catch (error) {
+                console.log("Error fetching on_board_charge:", error);
+            }
+        };
+        fetchFeeAmount();
+    }, []);
 
     const showToast = (msg, type = 'success') => {
         setToast({ visible: true, message: msg, type });
@@ -543,7 +558,7 @@ export default function ActivateAccountScreen({ navigation }) {
                     <View style={styles.heroGlowBottom} />
                     <Text style={styles.heroBadge}>⬤  ONBOARDING CHARGES</Text>
                     <Text style={styles.heroAmount}>
-                        <Text style={styles.heroCurrency}>₹</Text>999
+                        <Text style={styles.heroCurrency}>₹</Text>{feeAmount}
                     </Text>
                     <Text style={styles.heroSub}>One-time account activation fee</Text>
                     <View style={styles.heroPills}>
@@ -589,12 +604,13 @@ export default function ActivateAccountScreen({ navigation }) {
                         <CouponPanel onSuccess={handleSuccess} />
                     )}
                     {activeTab === 'online' && (
-                        <OnlinePanel onSuccess={handleSuccess} />
+                        <OnlinePanel onSuccess={handleSuccess} feeAmount={feeAmount} />
                     )}
                     {activeTab === 'bank' && (
                         <BankPanel
                             onSuccess={handleSuccess}
                             onError={msg => showToast(msg, 'error')}
+                            feeAmount={feeAmount}
                         />
                     )}
                 </View>

@@ -56,6 +56,7 @@ import Offlinekyc from '../screens/kyc/Offlinekyc';
 import KycSubmitted from '../screens/kyc/KycSubmitted';
 import OfflineTopup from '../screens/OfflineTopup';
 import BbpsDynamicServiceScreen from '../screens/BBPS_Services/BbpsDynamicServiceScreen';
+import WalletTransfer from '../screens/WalletTransfer';
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
@@ -185,6 +186,7 @@ const AppNavigator = () => {
       <Stack.Screen name="ActivateAccountScreen" component={ActivateAccountScreen} />
       <Stack.Screen name="CreateUser" component={CreateUser} />
       <Stack.Screen name="UserListScreen" component={UserListScreen} />
+      <Stack.Screen name="WalletTransfer" component={WalletTransfer} />
     </Stack.Navigator>
   );
 };

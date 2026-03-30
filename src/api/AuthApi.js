@@ -1012,3 +1012,69 @@ export const redeemCoupon = async ({ couponCode, headerToken }) => {
   }
 };
 
+/**
+ * transferAepsToMainWallet
+ * Transfers amount from AEPS wallet to Main wallet (PATCH)
+ */
+export const transferAepsToMainWallet = async ({ amount, headerToken }) => {
+  const generateIdempotencyKey = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = 'A2M_';
+    for (let i = 0; i < 8; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
+  try {
+    const url = `${BASE_URL}/user/wallet/aeps-to-main`;
+    const idempotencyKey = generateIdempotencyKey();
+
+    const response = await fetch(url, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey
+      },
+      body: JSON.stringify({ amount: Number(amount) }),
+    });
+
+    const text = await response.text();
+    if (text.trim().startsWith("<")) {
+      return { success: false, message: "Server error. Please try again." };
+    }
+    
+    return JSON.parse(text);
+  } catch (error) {
+    return { success: false, message: error.message || "Network error" };
+  }
+};
+
+/**
+ * getWalletHistory
+ * Fetches the user's wallet transfer and ledger history
+ */
+export const getWalletHistory = async ({ headerToken, page = 1, limit = 10, search = '', from = '', to = '' }) => {
+  try {
+    const query = `page=${page}&limit=${limit}&search=${encodeURIComponent(search)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
+    const url = `${BASE_URL}/user/walletLedger/wallet-history?${query}`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${headerToken}`,
+      },
+    });
+
+    const text = await response.text();
+    if (text.trim().startsWith("<")) {
+      return { success: false, message: "Server error. Please try again." };
+    }
+    
+    return JSON.parse(text);
+  } catch (error) {
+    return { success: false, message: error.message || "Network error" };
+  }
+};

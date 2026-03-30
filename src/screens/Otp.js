@@ -122,6 +122,7 @@ export default function OTP({ navigation, route }) {
       ["token", JSON.stringify(result)],
       ["header_token", token],
       ["is_kyc_online", JSON.stringify(isKycOnline ?? false)],
+      ["on_board_charge", String(result?.onBoardCharge ?? "")],
     ];
 
     if (user) {

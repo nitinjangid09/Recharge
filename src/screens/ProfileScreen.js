@@ -228,7 +228,11 @@ export default function ProfileScreen({ navigation }) {
             text="Change Password"
             onPress={() => navigation.navigate("ChangePassword")}
           />
-
+          <Item
+            icon="lock-reset"
+            text="Wallet Transfer"
+            onPress={() => navigation.navigate("WalletTransfer")}
+          />
           <Item
             icon="dialpad"
             text="Change PIN"
