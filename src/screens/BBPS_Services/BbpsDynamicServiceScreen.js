@@ -1,13 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-//  BbpsDynamicServiceScreen.jsx
-//
-//  NEW: DOB / Date field support
-//   • Auto-detects DOB/date fields by name or type
-//   • Opens a custom calendar modal (no native dependency needed)
-//   • Formats as DD/MM/YYYY and validates age (min 1, max 120 years)
-//   • All other fields unchanged
-// ─────────────────────────────────────────────────────────────────────────────
-
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   View,
@@ -27,7 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Colors from "../../constants/Colors";
-import { fetchBbpsBill, validateBbpsBill } from "../../api/AuthApi";
+import { fetchBbpsBill, validateBbpsBill, payBbpsBill } from "../../api/AuthApi";
 /*
 import {
   getServices,
@@ -468,6 +458,7 @@ const BbpsDynamicServiceScreen = () => {
 
   // Fetched bill details state
   const [fetchedBill, setFetchedBill] = useState(null);
+  const [selectedPayAmount, setSelectedPayAmount] = useState(null);
 
   useEffect(() => {
     if (serviceType) {
@@ -497,6 +488,7 @@ const BbpsDynamicServiceScreen = () => {
     setFormData({});
     setDobErrors({});
     setFetchedBill(null);
+    setSelectedPayAmount(null);
 
     try {
       const token = await AsyncStorage.getItem("header_token");
@@ -531,6 +523,7 @@ const BbpsDynamicServiceScreen = () => {
     setFormData({});
     setDobErrors({});
     setFetchedBill(null);
+    setSelectedPayAmount(null);
 
     const bId = biller.billerId || biller.biller_id || biller.id;
     if (!bId) {
@@ -584,6 +577,7 @@ const BbpsDynamicServiceScreen = () => {
   const handleFieldChange = useCallback((name, text) => {
     setFormData((prev) => ({ ...prev, [name]: text }));
     setFetchedBill(null); // Reset when user types again
+    setSelectedPayAmount(null);
   }, []);
 
   const handleOpenCalendar = useCallback((field) => {
@@ -615,7 +609,7 @@ const BbpsDynamicServiceScreen = () => {
 
   const handleSubmit = () => {
     if (fetchedBill) {
-      navigateToReceipt(fetchedBill);
+      performPayBill();
       return;
     }
 
@@ -675,7 +669,7 @@ const BbpsDynamicServiceScreen = () => {
     try {
       const token = await AsyncStorage.getItem("header_token");
       const bId = selectedBiller.billerId || selectedBiller.biller_id || selectedBiller.id;
-      
+
       const res = await validateBbpsBill({
         billerId: bId,
         customerParams: formData,
@@ -695,12 +689,85 @@ const BbpsDynamicServiceScreen = () => {
     }
   };
 
+  const performPayBill = async () => {
+    setDetailsLoading(true);
+    try {
+      const token = await AsyncStorage.getItem("header_token");
+      const bId = selectedBiller.billerId || selectedBiller.biller_id || selectedBiller.id;
+
+      const billerData = fetchedBill.data?.billerResponse || fetchedBill;
+      const fetchedInputs = fetchedBill.data?.inputParams?.input || [];
+
+      let cMobile = "9999999999";
+      let pName = "";
+      let pVal = "";
+
+      // Prioritize fetching params from backend response
+      if (fetchedInputs.length > 0) {
+        pName = fetchedInputs[0].paramName || "";
+        pVal = fetchedInputs[0].paramValue || "";
+
+        for (const input of fetchedInputs) {
+          const name = (input.paramName || "").toLowerCase();
+          if (name.includes("mobile") || name.includes("phone")) {
+            cMobile = input.paramValue;
+            break;
+          }
+        }
+      }
+
+      // Fallback to local formData
+      if (!pName) {
+        const paramKeys = Object.keys(formData);
+        pName = dynamicFields.length > 0 ? dynamicFields[0].label : (paramKeys.length > 0 ? paramKeys[0] : "");
+        pVal = paramKeys.length > 0 ? formData[paramKeys[0]] : "";
+      }
+
+      if (cMobile === "9999999999") {
+        for (const key of Object.keys(formData)) {
+          if (key.toLowerCase().includes("mobile") || key.toLowerCase().includes("phone")) {
+            cMobile = formData[key];
+            break;
+          }
+        }
+      }
+
+      const payload = {
+        billerId: String(bId),
+        customerMobile: cMobile,
+        placeholderValue: pName,
+        paramValue: pVal,
+        ...billerData,
+        refid: fetchedBill.refid || fetchedBill.data?.refid || "",
+        refId: fetchedBill.refid || fetchedBill.data?.refid || "",
+        billAmount: selectedPayAmount,
+        billamount: selectedPayAmount,
+        billNumber: billerData.billNumber || "0",
+        billPeriod: billerData.billPeriod || billerData.billDate || "NA",
+        billperiod: billerData.billPeriod || billerData.billDate || "NA",
+        headerToken: token
+      };
+
+      const res = await payBbpsBill(payload);
+
+      if (res?.success) {
+        navigateToReceipt(fetchedBill, res);
+      } else {
+        showAlert("Failed", res?.message, "error");
+      }
+    } catch (err) {
+      showAlert("Error", "Network error while processing payment.", "error");
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+
   const performFetchBill = async () => {
     setDetailsLoading(true);
     try {
       const token = await AsyncStorage.getItem("header_token");
       const bId = selectedBiller.billerId || selectedBiller.biller_id || selectedBiller.id;
-      
+
       const res = await fetchBbpsBill({
         billerId: bId,
         customerParams: formData,
@@ -709,6 +776,8 @@ const BbpsDynamicServiceScreen = () => {
 
       if (res?.success) {
         setFetchedBill(res.data);
+        const amt = (Number((res.data.data?.billerResponse?.billAmount || res.data.billAmount) || 0) / 100).toFixed(2);
+        setSelectedPayAmount(amt);
       } else {
         const msg = res?.message || "";
         if (msg.toLowerCase().includes("no bill due")) {
@@ -724,7 +793,7 @@ const BbpsDynamicServiceScreen = () => {
     }
   };
 
-  const navigateToReceipt = (fetchedData = null) => {
+  const navigateToReceipt = (fetchedData = null, paymentRes = null) => {
     navigation.navigate("BBPSReceipt", {
       serviceName: selectedService.name,
       billerName: selectedBiller.biller_name || selectedBiller.billerName || selectedBiller.name,
@@ -732,7 +801,8 @@ const BbpsDynamicServiceScreen = () => {
       billerDetail,
       formData,
       fetchedData,
-      transactionId: "TXN" + Date.now(),
+      transactionId: paymentRes?.data?.transactionId || paymentRes?.transactionId || "TXN" + Date.now(),
+      amount: selectedPayAmount,
     });
   };
 
@@ -895,20 +965,20 @@ const BbpsDynamicServiceScreen = () => {
           {!detailsLoading && !detailsError && fetchedBill && (
             <View style={styles.billDetailsCard}>
               <Text style={styles.billTitle}>Bill Summary</Text>
-              
+
               <View style={styles.billRow}>
                 <Text style={styles.billLabel}>Customer Name</Text>
-                <Text style={styles.billValue}>{fetchedBill.customerName || "N/A"}</Text>
+                <Text style={styles.billValue}>{(fetchedBill.data?.billerResponse?.customerName || fetchedBill.customerName) || "N/A"}</Text>
               </View>
-              
+
               <View style={styles.billRow}>
                 <Text style={styles.billLabel}>Bill Date</Text>
-                <Text style={styles.billValue}>{fetchedBill.billDate || "N/A"}</Text>
+                <Text style={styles.billValue}>{(fetchedBill.data?.billerResponse?.billDate || fetchedBill.billDate) || "N/A"}</Text>
               </View>
-              
+
               <View style={styles.billRow}>
                 <Text style={styles.billLabel}>Due Date</Text>
-                <Text style={styles.billValue}>{fetchedBill.dueDate || "N/A"}</Text>
+                <Text style={styles.billValue}>{(fetchedBill.data?.billerResponse?.dueDate || fetchedBill.dueDate) || "N/A"}</Text>
               </View>
 
               <View style={styles.billRow}>
@@ -918,9 +988,69 @@ const BbpsDynamicServiceScreen = () => {
                 </Text>
               </View>
 
+              {/* Select Amount to Pay */}
+              <Text style={[styles.billTitle, { marginTop: 12, borderBottomWidth: 0, paddingBottom: 0 }]}>Select Amount to Pay</Text>
+
+              {/* Option 1: Default Bill Amount */}
+              {(() => {
+                const defaultAmt = (Number((fetchedBill.data?.billerResponse?.billAmount || fetchedBill.billAmount) || 0) / 100).toFixed(2);
+                const isSelected = selectedPayAmount === defaultAmt;
+                return (
+                  <TouchableOpacity
+                    style={[styles.payOption, isSelected && styles.payOptionSelected]}
+                    onPress={() => setSelectedPayAmount(defaultAmt)}
+                    activeOpacity={0.8}
+                  >
+                    <View style={[styles.radioOut, isSelected && styles.radioOutSelected]}>
+                      {isSelected && <View style={styles.radioIn} />}
+                    </View>
+                    <View style={styles.payOptionContent}>
+                      <Text style={[styles.payOptionLabel, isSelected && styles.payOptionLabelSelected]}>Total Bill Amount</Text>
+                      <Text style={[styles.payOptionValue, isSelected && styles.payOptionValueSelected]}>₹ {defaultAmt}</Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })()}
+
+              {/* Additional Amounts */}
+              {(() => {
+                const infoArray = fetchedBill.data?.additionalInfo?.info || fetchedBill.additionalInfo?.info || [];
+                return infoArray.map((info, idx) => {
+                  const isNumberLike = !isNaN(Number(info.infoValue)) && info.infoValue.trim() !== "";
+
+                  if (!isNumberLike) {
+                    return (
+                      <View key={`info_${idx}`} style={[styles.billRow, { paddingHorizontal: 14 }]}>
+                        <Text style={styles.billLabel}>{info.infoName}</Text>
+                        <Text style={styles.billValue}>{info.infoValue}</Text>
+                      </View>
+                    );
+                  }
+
+                  const amt = Number(info.infoValue).toFixed(2);
+                  const isSelected = selectedPayAmount === amt;
+                  return (
+                    <TouchableOpacity
+                      key={`info_${idx}`}
+                      style={[styles.payOption, isSelected && styles.payOptionSelected]}
+                      onPress={() => setSelectedPayAmount(amt)}
+                      activeOpacity={0.8}
+                    >
+                      <View style={[styles.radioOut, isSelected && styles.radioOutSelected]}>
+                        {isSelected && <View style={styles.radioIn} />}
+                      </View>
+                      <View style={styles.payOptionContent}>
+                        <Text style={[styles.payOptionLabel, isSelected && styles.payOptionLabelSelected]}>{info.infoName}</Text>
+                        <Text style={[styles.payOptionValue, isSelected && styles.payOptionValueSelected]}>₹ {amt}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                });
+              })()}
+
               <View style={[styles.billRow, styles.billAmountRow]}>
                 <Text style={styles.billAmountLabel}>Payable Amount</Text>
-                <Text style={styles.billAmountValue}>₹ {(Number(fetchedBill.billAmount || 0) / 100).toFixed(2)}</Text>
+                <Text style={styles.billAmountValue}>₹ {selectedPayAmount || "0.00"}</Text>
               </View>
             </View>
           )}
@@ -1291,6 +1421,62 @@ const styles = StyleSheet.create({
     color: "#10B981", // Emerald green
   },
 
+  payOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+    backgroundColor: "transparent",
+    marginBottom: 4,
+  },
+  payOptionSelected: {
+    backgroundColor: "transparent",
+  },
+  radioOut: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: "#D1D5DB",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  radioOutSelected: {
+    borderColor: Colors.primary,
+  },
+  radioIn: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: Colors.primary,
+  },
+  payOptionContent: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  payOptionLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#6B7280",
+    flex: 1,
+    paddingRight: 8,
+  },
+  payOptionLabelSelected: {
+    color: Colors.primary,
+  },
+  payOptionValue: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1A1A2E",
+  },
+  payOptionValueSelected: {
+    color: Colors.primary,
+  },
+
   modalWrap: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "flex-end" },
   sheet: {
     backgroundColor: Colors.white || "#FFF", borderTopLeftRadius: 26,
@@ -1343,4 +1529,4 @@ const alertStyles = StyleSheet.create({
     elevation: 4,
   },
   btnTxt: { color: "#FFF", fontSize: 15, fontWeight: "700" },
-});
+});

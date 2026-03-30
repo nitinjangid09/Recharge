@@ -12,7 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Colors from '../constants/Colors';
 import Fonts from '../constants/Fonts';
-import { getWalletReport } from '../api/AuthApi';
+import { getWalletReport, getWalletBalance } from '../api/AuthApi';
 import { fadeIn, slideUp, buttonPress, FadeSlideUp } from '../utils/ScreenAnimations';
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
@@ -570,14 +570,6 @@ const TransactionCard = ({ item, index, onPressDetail }) => {
   const heightAnim = useRef(new Animated.Value(0)).current;
   const isAnimating = useRef(false);
 
-  const cardOp = useRef(new Animated.Value(0)).current;
-  const cardTY = useRef(new Animated.Value(vs(18))).current;
-  useEffect(() => {
-    setTimeout(() => {
-      Animated.parallel([fadeIn(cardOp, 280), slideUp(cardTY, 280)]).start();
-    }, index * 55);
-  }, []);
-
   const isDebit = item.type === 'debit';
   const barColor = isDebit ? D.debit : D.green;    // left bar
   const badgeBg = isDebit ? D.debitDim : D.greenDim; // badge bg
@@ -606,43 +598,49 @@ const TransactionCard = ({ item, index, onPressDetail }) => {
   };
 
   return (
-    <Animated.View style={[TC.card, { opacity: cardOp, transform: [{ translateY: cardTY }] }]}>
+    <View style={TC.card}>
       {/* Coloured left bar */}
       <View style={[TC.leftBar, { backgroundColor: barColor }]} />
-
       <View style={TC.body}>
-        {/* Row 1: badge + amount */}
         <View style={TC.row1}>
-          <View style={[TC.badge, { backgroundColor: badgeBg }]}>
-            <Text style={[TC.badgeTxt, { color: badgeTxt }]}>{typeLabel}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+             <View style={[TC.iconCircle, { backgroundColor: `${barColor}12`, borderColor: `${barColor}25`, borderWidth: 1 }]}>
+               <Icon name={isDebit ? "arrow-up-thin" : "arrow-down-thin"} size={rs(20)} color={barColor} />
+             </View>
+             <View style={{ marginLeft: sc(10) }}>
+                <Text style={TC.metaKey}>{(item.category || 'Transaction').toUpperCase()}</Text>
+                <View style={[TC.badge, { backgroundColor: badgeBg, marginTop: vs(2) }]}>
+                  <Text style={[TC.badgeTxt, { color: badgeTxt }]}>{typeLabel}</Text>
+                </View>
+             </View>
           </View>
           <Text style={[TC.amount, { color: amtTextColor }]}>{amtDisplay}</Text>
         </View>
 
         {/* Title */}
-        <Text style={TC.title} numberOfLines={2}>{item.description}</Text>
+        <Text style={TC.title} numberOfLines={1}>{item.description}</Text>
 
-        {/* Meta: REF ID + DATE & TIME in two columns */}
-        <View style={TC.metaRow}>
-          <View style={TC.metaCol}>
-            <Text style={TC.metaKey}>REF ID</Text>
-            <Text style={TC.metaVal} numberOfLines={1} ellipsizeMode="tail">{item.referenceId}</Text>
+        {/* Audit Strip */}
+        <View style={TC.auditStrip}>
+          <View style={TC.auditCol}>
+            <Icon name="identifier" size={rs(10)} color={D.textMuted} style={{ marginRight: sc(4) }} />
+            <Text style={TC.metaVal} numberOfLines={1} ellipsizeMode="middle">{item.referenceId}</Text>
           </View>
-          <View style={[TC.metaCol, { alignItems: 'flex-end' }]}>
-            <Text style={TC.metaKey}>DATE & TIME</Text>
+          <View style={TC.auditDivider} />
+          <View style={[TC.auditCol, { justifyContent: 'flex-end' }]}>
+            <Icon name="calendar-clock" size={rs(10)} color={D.textMuted} style={{ marginRight: sc(4) }} />
             <Text style={TC.metaVal}>{formatApiDate(item.createdAt)}</Text>
           </View>
         </View>
 
-        {/* View Details toggle — centred with down arrow icon */}
-        <TouchableOpacity style={TC.toggleRow} onPress={toggle} activeOpacity={0.7}>
-          <Icon
-            name={expanded ? 'chevron-up' : 'chevron-down'}
-            size={rs(13)}
-            color={barColor}
-            style={{ marginRight: sc(4) }}
-          />
-          <Text style={[TC.toggleTxt, { color: barColor }]}>
+        {/* Decorative BG Icon */}
+        <View style={TC.bgIconWrap}>
+          <Icon name={isDebit ? "bank-transfer-out" : "bank-transfer-in"} size={rs(70)} color={`${barColor}08`} />
+        </View>
+
+        <TouchableOpacity style={[TC.actionBtn, { backgroundColor: barColor }]} onPress={toggle} activeOpacity={0.85}>
+          <Icon name={expanded ? "chevron-up" : "eye-outline"} size={rs(13)} color="#FFF" style={{ marginRight: sc(6) }} />
+          <Text style={TC.actionTxt}>
             {expanded ? 'Hide Details' : 'View Details'}
           </Text>
         </TouchableOpacity>
@@ -658,7 +656,7 @@ const TransactionCard = ({ item, index, onPressDetail }) => {
           </View>
         )}
       </View>
-    </Animated.View>
+    </View>
   );
 };
 
@@ -670,31 +668,35 @@ const TC = StyleSheet.create({
     elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 5,
   },
   leftBar: { width: sc(4) },
-  body: { flex: 1, paddingHorizontal: sc(14), paddingTop: vs(13), paddingBottom: vs(4) },
+  body: { flex: 1, paddingHorizontal: sc(14), paddingTop: vs(14), paddingBottom: vs(12) },
 
-  // Row 1: badge + amount
-  row1: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: vs(8) },
-  badge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: sc(8), paddingVertical: vs(3), borderRadius: sc(20) },
-  badgeTxt: { fontSize: rs(10), fontFamily: Fonts.Bold, letterSpacing: 0.3, textTransform: 'uppercase' },
-  amount: { fontSize: rs(17), fontFamily: Fonts.Bold, letterSpacing: -0.3 },
+  iconCircle: { width: sc(36), height: sc(36), borderRadius: sc(12), alignItems: 'center', justifyContent: 'center' },
+  row1: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: vs(12) },
+  badge: { paddingHorizontal: sc(6), paddingVertical: vs(2), borderRadius: sc(4), alignSelf: 'flex-start' },
+  badgeTxt: { fontSize: rs(8), fontFamily: Fonts.Bold, letterSpacing: 0.6 },
+  amount: { fontSize: rs(19), fontFamily: Fonts.Bold, letterSpacing: -0.5 },
 
-  // Title
-  title: { fontSize: rs(15), fontFamily: Fonts.Bold, color: D.textPri, marginBottom: vs(9), lineHeight: rs(20) },
+  title: { fontSize: rs(13), fontFamily: Fonts.Bold, color: D.textPri, marginBottom: vs(12), opacity: 0.9 },
 
-  // Meta
-  metaRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: vs(4) },
-  metaCol: { flex: 1 },
-  metaKey: { fontSize: rs(8), fontFamily: Fonts.Bold, color: D.textMuted, letterSpacing: 0.7, textTransform: 'uppercase', marginBottom: vs(2) },
-  metaVal: { fontSize: rs(11), fontFamily: Fonts.Medium, color: D.textSec },
-
-  // Toggle
-  toggleRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    paddingVertical: vs(10),
-    borderTopWidth: 1, borderTopColor: D.border,
-    marginTop: vs(4),
+  auditStrip: { 
+    flexDirection: 'row', alignItems: 'center', 
+    backgroundColor: '#F8F9FC', paddingVertical: vs(8), paddingHorizontal: sc(10), borderRadius: sc(10),
+    borderWidth: 1, borderColor: '#EDF0F5', marginBottom: vs(14) 
   },
-  toggleTxt: { fontSize: rs(12), fontFamily: Fonts.Bold, letterSpacing: 0.1 },
+  auditCol: { flex: 1, flexDirection: 'row', alignItems: 'center' },
+  auditDivider: { width: 1, height: vs(12), backgroundColor: '#E2E8F0', marginHorizontal: sc(10) },
+  
+  metaKey: { fontSize: rs(8), fontFamily: Fonts.Bold, color: D.textMuted, letterSpacing: 0.8 },
+  metaVal: { fontSize: rs(10), fontFamily: Fonts.Medium, color: D.textSec, letterSpacing: 0.1 },
+
+  bgIconWrap: { position: 'absolute', right: -10, top: -5, opacity: 0.8, zIndex: -1 },
+
+  actionBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    paddingVertical: vs(9), borderRadius: sc(12),
+    elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 3,
+  },
+  actionTxt: { fontSize: rs(11), fontFamily: Fonts.Bold, letterSpacing: 0.3, color: '#FFF' },
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -715,6 +717,10 @@ const WalletTransactionScreen = ({ navigation }) => {
   const [searched, setSearched] = useState(false);
   const [loadedFrom, setLoadedFrom] = useState(defaultFrom);
   const [loadedTo, setLoadedTo] = useState(defaultTo);
+  const [aepsBalance, setAepsBalance] = useState('0.00');
+  const [mainBalance, setMainBalance] = useState('0.00');
+  const [balanceLoading, setBalanceLoading] = useState(false);
+  const [isAeps, setIsAeps] = useState(false); // Default to Main as it's the "Wallet Ledger"
 
   // Detail sheet
   const [detailItem, setDetailItem] = useState(null);
@@ -722,19 +728,30 @@ const WalletTransactionScreen = ({ navigation }) => {
 
   const startDateRef = useRef(defaultFrom);
   const endDateRef = useRef(defaultTo);
-  const headerOp = useRef(new Animated.Value(0)).current;
-  const headerTY = useRef(new Animated.Value(vs(-24))).current;
-
   useEffect(() => {
-    Animated.parallel([fadeIn(headerOp, 400), slideUp(headerTY, 400)]).start();
+    loadBalances();
     doFetch(startDateRef.current, endDateRef.current);
   }, []);
+
+  const loadBalances = async () => {
+    setBalanceLoading(true);
+    try {
+      const headerToken = await AsyncStorage.getItem('header_token');
+      const r = await getWalletBalance({ headerToken });
+      if (r?.success && r?.data) {
+        setAepsBalance(String(r.data.aepsWallet ?? '0.00'));
+        setMainBalance(String(r.data.mainWallet ?? '0.00'));
+      }
+    } catch (e) { console.log('[WalletLedger] bal error:', e); }
+    finally { setBalanceLoading(false); }
+  };
 
   // ── CORE FETCH — logic unchanged ─────────────────────────────────────────
   const doFetch = async (from, to) => {
     const fromStr = toQueryDate(from);
     const toStr = toQueryDate(to);
     console.log(`[WalletLedger] API call → from=${fromStr} to=${toStr}`);
+    setTransactions([]); // Clear list so old data doesn't flicker
     setLoading(true); setError(null); setSearched(true);
     try {
       const headerToken = await AsyncStorage.getItem('header_token');
@@ -772,27 +789,46 @@ const WalletTransactionScreen = ({ navigation }) => {
     return itemStr >= startStr && itemStr <= endStr;
   });
 
-  // Mock live balance derived from data (replace with real API field if available)
-  const totalCredit = filteredTransactions.filter(t => t.type === 'credit').reduce((s, t) => s + t.amount, 0);
-  const totalDebit = filteredTransactions.filter(t => t.type === 'debit').reduce((s, t) => s + t.amount, 0);
-  const liveBalance = totalCredit - totalDebit;
+  const liveBalance = isAeps ? aepsBalance : mainBalance;
 
   const ListHeader = () => (
-    <FadeSlideUp duration={400}>
+    <View>
 
-      {/* ── Balance Hero Card — screenshot 2 ── */}
+      {/* ── Balance Hero Card — synced with FinanceHome balance ── */}
       <View style={S.heroCard}>
         <View style={S.heroTopRow}>
-          <Text style={S.heroLabel}>AVAILABLE WALLET BALANCE</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableOpacity
+              onPress={() => setIsAeps(!isAeps)}
+              style={S.walletToggleBtn}
+              activeOpacity={0.7}
+            >
+              <Text style={S.heroLabel}>{isAeps ? 'AEPS WALLET' : 'MAIN WALLET'}</Text>
+              <Icon name="chevron-down" size={rs(12)} color="rgba(255,255,255,0.5)" style={{ marginLeft: sc(4) }} />
+            </TouchableOpacity>
+          </View>
           <View style={S.livePill}>
             <Text style={S.livePillTxt}>LIVE BALANCE</Text>
           </View>
         </View>
-        <Text style={S.heroAmount}>
+
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Text style={S.heroRupee}>₹</Text>
-          {liveBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        </Text>
-        <Text style={S.heroSub}>Last updated: {formatApiDate(new Date().toISOString())}</Text>
+          {balanceLoading ? (
+            <ActivityIndicator size="small" color={D.gold} style={{ marginLeft: sc(10) }} />
+          ) : (
+            <Text style={S.heroAmount}>
+              {parseFloat(liveBalance).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </Text>
+          )}
+        </View>
+
+        <View style={S.heroFooter}>
+          <Text style={S.heroSub}>Last sync: {formatApiDate(new Date().toISOString())}</Text>
+          <TouchableOpacity onPress={loadBalances} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Icon name="refresh" size={rs(14)} color={D.gold} />
+          </TouchableOpacity>
+        </View>
       </View>
 
 
@@ -827,15 +863,15 @@ const WalletTransactionScreen = ({ navigation }) => {
           </View>
         </View>
       )}
-    </FadeSlideUp>
+    </View>
   );
 
   return (
     <SafeAreaView style={S.safe} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor={D.headerBg} />
 
-      {/* ── Header — screenshot 2 & 3: back arrow + "Wallet Ledger" + download + expand ── */}
-      <Animated.View style={[S.header, { opacity: headerOp, transform: [{ translateY: headerTY }] }]}>
+      {/* ── Header ── */}
+      <View style={S.header}>
         <TouchableOpacity onPress={() => navigation?.goBack()} style={S.headerIconBtn} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Icon name="arrow-left" size={rs(18)} color="#fff" />
         </TouchableOpacity>
@@ -850,7 +886,7 @@ const WalletTransactionScreen = ({ navigation }) => {
             <Icon name="arrow-expand" size={rs(14)} color="rgba(255,255,255,0.75)" />
           </TouchableOpacity>
         </View>
-      </Animated.View>
+      </View>
 
       {/* Error banner */}
       {!!error && (
@@ -930,13 +966,15 @@ const S = StyleSheet.create({
     backgroundColor: D.heroBg, borderRadius: sc(18), padding: sc(18),
     elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 10,
   },
-  heroTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: vs(6) },
-  heroLabel: { color: 'rgba(255,255,255,0.5)', fontSize: rs(9), fontFamily: Fonts.Bold, letterSpacing: 0.8, textTransform: 'uppercase' },
+  heroTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: vs(12) },
+  walletToggleBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.08)', paddingHorizontal: sc(10), paddingVertical: vs(4), borderRadius: sc(12), borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  heroLabel: { color: 'rgba(255,255,255,0.7)', fontSize: rs(10), fontFamily: Fonts.Bold, letterSpacing: 0.5, textTransform: 'uppercase' },
   livePill: { backgroundColor: D.goldDim, borderWidth: 1, borderColor: `${D.gold}45`, borderRadius: sc(20), paddingHorizontal: sc(10), paddingVertical: vs(3) },
   livePillTxt: { color: D.gold, fontSize: rs(9), fontFamily: Fonts.Bold, letterSpacing: 0.4 },
-  heroAmount: { color: '#fff', fontSize: rs(34), fontFamily: Fonts.Bold, letterSpacing: -0.5, marginBottom: vs(4) },
-  heroRupee: { fontSize: rs(22) },
-  heroSub: { color: 'rgba(255,255,255,0.38)', fontSize: rs(11), fontFamily: Fonts.Medium },
+  heroAmount: { color: '#fff', fontSize: rs(35), fontFamily: Fonts.Bold, letterSpacing: -0.5 },
+  heroRupee: { color: D.gold, fontSize: rs(24), fontFamily: Fonts.Bold, marginRight: sc(4) },
+  heroFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: vs(12), paddingTop: vs(12), borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' },
+  heroSub: { color: 'rgba(255,255,255,0.38)', fontSize: rs(10), fontFamily: Fonts.Medium },
 
   // Filter card
   filterCard: {

@@ -162,6 +162,13 @@ export default function ProfileScreen({ navigation }) {
             {profileData?.email || "—"}
           </Text>
 
+          {profileData?.userName && (
+            <View style={styles.userIdBadge}>
+              <MaterialCommunityIcons name="identifier" size={14} color={Colors.finance_accent} />
+              <Text style={styles.userIdTxt}>{profileData.userName}</Text>
+            </View>
+          )}
+
           <View style={styles.rowMenu}>
             <View style={styles.rowItem}>
               <MaterialCommunityIcons name="bell-outline" size={22} color={Colors.finance_accent} />
@@ -366,5 +373,23 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     color: Colors.finance_text,
     fontFamily: Fonts.Medium, // Lufga Medium
+  },
+  userIdBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(212,176,106,0.1)",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    marginTop: 5,
+    borderWidth: 1,
+    borderColor: "rgba(212,176,106,0.2)",
+  },
+  userIdTxt: {
+    color: Colors.finance_accent,
+    fontSize: 12,
+    fontFamily: Fonts.Bold,
+    marginLeft: 6,
+    letterSpacing: 0.5,
   },
 });

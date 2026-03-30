@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import Colors from "../../constants/Colors";
 import CustomAlert from "../../componets/CustomAlert";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { FadeSlideUp } from "../../utils/ScreenAnimations";
 
 const { width } = Dimensions.get("window");
@@ -22,7 +23,9 @@ const ChangePasswordScreen = () => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [secure, setSecure] = useState(true);
+  const [showOld, setShowOld] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertData, setAlertData] = useState({
@@ -83,11 +86,21 @@ const ChangePasswordScreen = () => {
                 <TextInput
                   placeholder="Enter old password"
                   placeholderTextColor={Colors.gray}
-                  secureTextEntry={secure}
+                  secureTextEntry={!showOld}
                   style={styles.input}
                   value={oldPassword}
                   onChangeText={setOldPassword}
                 />
+                <TouchableOpacity
+                  style={styles.eyeBtn}
+                  onPress={() => setShowOld(!showOld)}
+                >
+                  <Icon
+                    name={showOld ? "eye" : "eye-off"}
+                    size={22}
+                    color={Colors.primary}
+                  />
+                </TouchableOpacity>
               </View>
 
               {/* New Password */}
@@ -96,11 +109,21 @@ const ChangePasswordScreen = () => {
                 <TextInput
                   placeholder="Enter new password"
                   placeholderTextColor={Colors.gray}
-                  secureTextEntry={secure}
+                  secureTextEntry={!showNew}
                   style={styles.input}
                   value={newPassword}
                   onChangeText={setNewPassword}
                 />
+                <TouchableOpacity
+                  style={styles.eyeBtn}
+                  onPress={() => setShowNew(!showNew)}
+                >
+                  <Icon
+                    name={showNew ? "eye" : "eye-off"}
+                    size={22}
+                    color={Colors.primary}
+                  />
+                </TouchableOpacity>
               </View>
 
               {/* Confirm Password */}
@@ -109,22 +132,24 @@ const ChangePasswordScreen = () => {
                 <TextInput
                   placeholder="Confirm new password"
                   placeholderTextColor={Colors.gray}
-                  secureTextEntry={secure}
+                  secureTextEntry={!showConfirm}
                   style={styles.input}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
                 />
+                <TouchableOpacity
+                  style={styles.eyeBtn}
+                  onPress={() => setShowConfirm(!showConfirm)}
+                >
+                  <Icon
+                    name={showConfirm ? "eye" : "eye-off"}
+                    size={22}
+                    color={Colors.primary}
+                  />
+                </TouchableOpacity>
               </View>
 
-              {/* Toggle */}
-              <TouchableOpacity
-                style={styles.toggleBtn}
-                onPress={() => setSecure(!secure)}
-              >
-                <Text style={styles.toggleText}>
-                  {secure ? "Show Passwords" : "Hide Passwords"}
-                </Text>
-              </TouchableOpacity>
+
 
               {/* Button */}
               <TouchableOpacity
@@ -208,28 +233,24 @@ const styles = StyleSheet.create({
     borderColor: "#E6E8F0",
     marginBottom: 20,
     elevation: 3,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: isTablet ? 4 : 0, 
+  },
+  eyeBtn: {
+    paddingHorizontal: 12,
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   input: {
+    flex: 1,
     paddingHorizontal: 16,
-    paddingVertical: isTablet ? 18 : 14,
+    paddingVertical: isTablet ? 14 : 10,
     fontSize: isTablet ? 16 : 14,
     color: Colors.black,
   },
 
-  /* ---------------- TOGGLE ---------------- */
-  toggleBtn: {
-    alignSelf: "flex-end",
-    marginBottom: 30,
-  },
-
-  toggleText: {
-    color: Colors.primary,
-    fontSize: 13,
-    fontWeight: "600",
-  },
-
-  /* ---------------- BUTTON ---------------- */
   button: {
     backgroundColor: Colors.accent,
     paddingVertical: isTablet ? 18 : 16,

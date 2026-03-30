@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import Colors from "../../constants/Colors";
 import CustomAlert from "../../componets/CustomAlert";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { FadeSlideUp } from "../../utils/ScreenAnimations";
 
 const { width } = Dimensions.get("window");
@@ -22,7 +23,9 @@ const ChangePinScreen = () => {
   const [oldPin, setOldPin] = useState("");
   const [newPin, setNewPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
-  const [secure, setSecure] = useState(true);
+  const [showOld, setShowOld] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertData, setAlertData] = useState({
@@ -91,13 +94,23 @@ const ChangePinScreen = () => {
                 <TextInput
                   placeholder="Enter old PIN"
                   placeholderTextColor={Colors.gray}
-                  secureTextEntry={secure}
+                  secureTextEntry={!showOld}
                   keyboardType="number-pad"
                   maxLength={4}
                   style={styles.input}
                   value={oldPin}
                   onChangeText={setOldPin}
                 />
+                <TouchableOpacity
+                  style={styles.eyeBtn}
+                  onPress={() => setShowOld(!showOld)}
+                >
+                  <Icon
+                    name={showOld ? "eye" : "eye-off"}
+                    size={22}
+                    color={Colors.primary}
+                  />
+                </TouchableOpacity>
               </View>
 
               {/* New PIN */}
@@ -106,13 +119,23 @@ const ChangePinScreen = () => {
                 <TextInput
                   placeholder="Enter new PIN"
                   placeholderTextColor={Colors.gray}
-                  secureTextEntry={secure}
+                  secureTextEntry={!showNew}
                   keyboardType="number-pad"
                   maxLength={4}
                   style={styles.input}
                   value={newPin}
                   onChangeText={setNewPin}
                 />
+                <TouchableOpacity
+                  style={styles.eyeBtn}
+                  onPress={() => setShowNew(!showNew)}
+                >
+                  <Icon
+                    name={showNew ? "eye" : "eye-off"}
+                    size={22}
+                    color={Colors.primary}
+                  />
+                </TouchableOpacity>
               </View>
 
               {/* Confirm PIN */}
@@ -121,24 +144,26 @@ const ChangePinScreen = () => {
                 <TextInput
                   placeholder="Confirm new PIN"
                   placeholderTextColor={Colors.gray}
-                  secureTextEntry={secure}
+                  secureTextEntry={!showConfirm}
                   keyboardType="number-pad"
                   maxLength={4}
                   style={styles.input}
                   value={confirmPin}
                   onChangeText={setConfirmPin}
                 />
+                <TouchableOpacity
+                  style={styles.eyeBtn}
+                  onPress={() => setShowConfirm(!showConfirm)}
+                >
+                  <Icon
+                    name={showConfirm ? "eye" : "eye-off"}
+                    size={22}
+                    color={Colors.primary}
+                  />
+                </TouchableOpacity>
               </View>
 
-              {/* Show/Hide Toggle */}
-              <TouchableOpacity
-                style={styles.toggleBtn}
-                onPress={() => setSecure(!secure)}
-              >
-                <Text style={styles.toggleText}>
-                  {secure ? "Show PIN" : "Hide PIN"}
-                </Text>
-              </TouchableOpacity>
+
 
               {/* Submit Button */}
               <TouchableOpacity
@@ -223,26 +248,25 @@ const styles = StyleSheet.create({
     borderColor: "#E6E8F0",
     marginBottom: 20,
     elevation: 3,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: isTablet ? 4 : 0,
+  },
+  eyeBtn: {
+    paddingHorizontal: 12,
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   input: {
+    flex: 1,
     paddingHorizontal: 16,
-    paddingVertical: isTablet ? 18 : 14,
+    paddingVertical: isTablet ? 14 : 10,
     fontSize: isTablet ? 16 : 15,
     color: Colors.black,
   },
 
-  /* ---------------- TOGGLE ---------------- */
-  toggleBtn: {
-    alignSelf: "flex-end",
-    marginBottom: 30,
-  },
 
-  toggleText: {
-    color: Colors.primary,
-    fontSize: 13,
-    fontWeight: "600",
-  },
 
   /* ---------------- BUTTON ---------------- */
   button: {

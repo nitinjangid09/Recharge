@@ -637,6 +637,17 @@ export const getAllTopupBanks = async ({ headerToken }) => {
 };
 
 export const addOfflineTopupRequest = async ({ amount, mode, receiverBank, utrNumber, paymentDate, paymentProof, headerToken }) => {
+  const generateIdempotencyKey = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = 'IDES';
+    for (let i = 0; i < 8; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
+  const idempotencyKey = generateIdempotencyKey();
+
   try {
     let formData = new FormData();
     formData.append("amount", amount);
@@ -660,6 +671,7 @@ export const addOfflineTopupRequest = async ({ amount, mode, receiverBank, utrNu
       headers: {
         "Content-Type": "multipart/form-data",
         "Authorization": `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey
       },
     });
     return response.data;
@@ -829,7 +841,10 @@ export const fetchBbpsBill = async ({ billerId, customerParams, headerToken }) =
     if (text.trimStart().startsWith("<")) {
       return { success: false, message: "Server error. Please try again." };
     }
-    return JSON.parse(text);
+    const json = JSON.parse(text);
+    const isSuccess = json?.success === true || json?.data?.status === 'SUCCESS';
+    const message = json?.data?.message || json?.message || (isSuccess ? "Payment successful" : "Payment failed");
+    return { ...json, success: isSuccess, message };
   } catch (error) {
     return { success: false, message: error.message || "Network error" };
   }
@@ -860,7 +875,59 @@ export const validateBbpsBill = async ({ billerId, customerParams, headerToken }
     if (text.trimStart().startsWith("<")) {
       return { success: false, message: "Server error. Please try again." };
     }
-    return JSON.parse(text);
+    const json = JSON.parse(text);
+    const isSuccess = json?.success === true || json?.data?.status === 'SUCCESS';
+    const message = json?.data?.message || json?.message || (isSuccess ? "Payment successful" : "Payment failed");
+    return { ...json, success: isSuccess, message };
+  } catch (error) {
+    return { success: false, message: error.message || "Network error" };
+  }
+};
+
+/**
+ * payBbpsBill
+ * @param {object} params
+ */
+export const payBbpsBill = async (payload) => {
+  const generateIdempotencyKey = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = 'IDES';
+    for (let i = 0; i < 8; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
+  const idempotencyKey = generateIdempotencyKey();
+
+  try {
+    const url = `${BASE_URL}/user/bbps/bill-pay`;
+
+    const { headerToken, ...bodyObj } = payload;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey
+      },
+      body: JSON.stringify(bodyObj),
+    });
+    const text = await response.text();
+    if (text.trimStart().startsWith("<")) {
+      return { success: false, message: "Server error. Please try again." };
+    }
+    const json = JSON.parse(text);
+    const apiSuccess = json?.success === true || json?.data?.status === 'SUCCESS';
+    const apiMessage = json?.data?.message || json?.message || (apiSuccess ? "Payment successful" : "Payment failed");
+
+    // Return a unified structure that the UI can rely on
+    return {
+      ...json,
+      success: apiSuccess,
+      message: apiMessage
+    };
   } catch (error) {
     return { success: false, message: error.message || "Network error" };
   }
