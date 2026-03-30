@@ -6,7 +6,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator, View } from 'react-native';
 
 // Screens
-import Splash from '../screens/Splash';
 import ProfileScreen from '../screens/ProfileScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import Address from '../screens/Address';
@@ -17,7 +16,6 @@ import Otp from '../screens/Otp';
 import ActivateAccountScreen from '../screens/ActivateAccountScreen';
 import PaymentsScreen from '../screens/PaymentsScreen';
 import StorePlans from '../screens/StorePlans';
-import FlexiPlan from '../screens/FlexiPlan';
 import InvoiceScreen from '../screens/InvoiceScreen';
 import Signup from '../screens/Signup';
 import CreateUser from '../screens/CreateUser';
@@ -28,11 +26,7 @@ import RechargeScreen from '../screens/RechargeScreen';
 import PaymentDetails from '../screens/PaymentDetails';
 import Transaction from '../screens/Transaction';
 import BBPSServices from '../screens/BBPSServices';
-import ElectricityScreen from '../screens/ElectricityScreen';
-import Electricity from '../screens/Electricity';
 import UserListScreen from '../screens/UserListScreen';
-
-import Home from '../screens/HomeScreen/Home';
 
 import WalletTransactionScreen from '../screens/WalletTranscation'
 import BalanceEnquiry from "../screens/AEPS_Services/BalanceEnquiry";
@@ -72,7 +66,7 @@ const AppNavigator = () => {
           console.log("🔐 Token Found → Fetching Profile Status");
 
           try {
-            const response = await fetch('http://192.168.1.5:8000/fetch-user-profile', {
+            const response = await fetch('http://192.168.1.16:8000/fetch-user-profile', {
               method: 'GET',
               headers: { Authorization: `Bearer ${token}` },
             });
@@ -139,7 +133,6 @@ const AppNavigator = () => {
       initialRouteName={initialRoute}
       screenOptions={{ headerShown: false }}
     >
-      <Stack.Screen name="Splash" component={Splash} />
       <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
       <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
       <Stack.Screen name="Address" component={Address} />
@@ -149,7 +142,6 @@ const AppNavigator = () => {
       <Stack.Screen name="test" component={test} />
       <Stack.Screen name="PaymentsScreen" component={PaymentsScreen} />
       <Stack.Screen name="StorePlans" component={StorePlans} />
-      <Stack.Screen name="FlexiPlan" component={FlexiPlan} />
       <Stack.Screen name="InvoiceScreen" component={InvoiceScreen} />
       <Stack.Screen name="OrderHistoryScreen" component={OrderHistoryScreen} />
       <Stack.Screen name="FinanceIntro" component={FinanceIntro} />
@@ -158,9 +150,6 @@ const AppNavigator = () => {
       <Stack.Screen name="PaymentDetails" component={PaymentDetails} />
       <Stack.Screen name="Transaction" component={Transaction} />
       <Stack.Screen name="BBPSServices" component={BBPSServices} />
-      <Stack.Screen name="ElectricityScreen" component={ElectricityScreen} />
-      <Stack.Screen name="Electricity" component={Electricity} />
-      <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="WalletTransactionScreen" component={WalletTransactionScreen} />
       <Stack.Screen name="LoginActivity" component={LoginActivity} />
       <Stack.Screen name="AEPSServiceCard" component={AEPSServiceCard} />
