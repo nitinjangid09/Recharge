@@ -577,7 +577,7 @@ const TxnDetailSheet = ({ visible, item, onClose }) => {
       </Animated.View>
       <Animated.View style={[DET.sheet, { transform: [{ translateY: slideA }] }]}>
         <View style={DET.handle} />
-        
+
         {/* Status Hero */}
         <View style={{ alignItems: 'center', marginTop: vs(24), marginBottom: vs(16) }}>
           <Icon name={statusIcon} size={rs(52)} color={statusColor} />
@@ -736,7 +736,7 @@ const DateChips = ({ value, onChange }) => (
   </ScrollView>
 );
 const DCH = StyleSheet.create({
-  container: { marginVertical: vs(8) },
+  container: { padding: 15 },
   row: { paddingHorizontal: sc(16), paddingVertical: vs(2), gap: sc(8), alignItems: 'center' },
   chip: { height: sc(32), flexDirection: 'row', alignItems: 'center', paddingHorizontal: sc(13), borderRadius: sc(16), borderWidth: 1, borderColor: T.border, backgroundColor: T.cardBg },
   chipActive: { backgroundColor: T.headerBg, borderColor: 'transparent' },
