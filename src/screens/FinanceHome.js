@@ -572,13 +572,7 @@ export default function FinanceHome({ navigation }) {
                       </View>
                     </View>
 
-                    <TouchableOpacity
-                      style={S.addBtn}
-                      onPress={(e) => { e.stopPropagation(); navigation.navigate("OfflineTopup"); }}
-                    >
-                      <Icon name="plus" size={rs(12)} color="#000" />
-                      <Text style={S.addBtnTxt}>Add Cash</Text>
-                    </TouchableOpacity>
+
 
                     <View style={S.cardFooter}>
                       <TouchableOpacity
