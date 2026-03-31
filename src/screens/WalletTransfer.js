@@ -50,7 +50,7 @@ const WalletTransfer = ({ navigation }) => {
       setIsLoading(true);
       const token = await AsyncStorage.getItem("header_token");
       if (!token) return;
-      
+
       const response = await getWalletBalance({ headerToken: token });
       if (response && response.success && response.data) {
         setAepsBalance(response.data.aepsWallet?.toString() || '0');
@@ -102,7 +102,7 @@ const WalletTransfer = ({ navigation }) => {
       }
 
       const response = await transferAepsToMainWallet({ amount, headerToken: token });
-      
+
       if (response && response.success) {
         showAlert("Success", response.message || "AEPS to main wallet transfer successful.");
         setAmount('');
@@ -143,11 +143,7 @@ const WalletTransfer = ({ navigation }) => {
           <View style={styles.titleRow}>
             <Text style={[styles.mainTitle, { color: Colors.finance_text }]}>Wallet Transfer</Text>
             {/* Minimal Date Range Picker Button (Mock) */}
-            <TouchableOpacity style={styles.datePickerBtn}>
-              <Icon name="calendar-outline" size={16} color={Colors.primary} />
-              <Text style={styles.datePickerText}>Pick a date range</Text>
-              <Icon name="chevron-down" size={16} color={Colors.primary} />
-            </TouchableOpacity>
+
           </View>
           <Text style={styles.subTitle}>
             Seamlessly move funds from AEPS Wallet to Main Wallet
@@ -157,63 +153,7 @@ const WalletTransfer = ({ navigation }) => {
         {/* Responsive Content Row/Col */}
         <View style={styles.cardsContainer}>
 
-          {/* LEFT/TOP CARD: Transfer Funds */}
-          <LinearGradient
-            colors={["#2C2C2C", "#111111"]}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-            style={styles.cardWrapper}
-          >
-            <View style={styles.cardHeaderRow}>
-              <View>
-                <Text style={styles.cardTitle}>Transfer Funds</Text>
-                <Text style={styles.cardSubtitle}>AEPS → MAIN WALLET</Text>
-              </View>
-              <TouchableOpacity style={styles.iconCircleButton}>
-                <Icon name="swap-horizontal" size={20} color={Colors.finance_accent} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>AMOUNT (₹)</Text>
-              <View style={styles.inputWrapper}>
-                <View style={styles.currencyBox}>
-                  <Text style={styles.currencySymbol}>₹</Text>
-                </View>
-                <TextInput
-                  style={styles.amountInput}
-                  placeholder="0.00"
-                  placeholderTextColor="rgba(255,255,255,0.3)"
-                  keyboardType="numeric"
-                  value={amount}
-                  onChangeText={setAmount}
-                />
-              </View>
-            </View>
-
-            <TouchableOpacity 
-              activeOpacity={0.85} 
-              style={styles.executeBtnWrap}
-              onPress={handleTransfer}
-              disabled={isTransferring}
-            >
-              <LinearGradient
-                colors={isTransferring ? ['#9CA3AF', '#6B7280'] : ['#E5C37A', '#C79A3F']}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                style={styles.executeButton}
-              >
-                {isTransferring ? (
-                  <ActivityIndicator color="#111827" size="small" style={styles.boltIcon} />
-                ) : (
-                  <Icon name="lightning-bolt" size={16} color="#111827" style={styles.boltIcon} />
-                )}
-                <Text style={styles.executeButtonText}>
-                  {isTransferring ? "PROCESSING..." : "EXECUTE TRANSFER"}
-                </Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </LinearGradient>
-
-          {/* RIGHT/BOTTOM CARD: Transfer Flow */}
+          {/* TOP CARD: Transfer Flow */}
           <LinearGradient
             colors={["#2C2C2C", "#111111"]}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
@@ -288,6 +228,62 @@ const WalletTransfer = ({ navigation }) => {
             </View>
           </LinearGradient>
 
+          {/* BOTTOM CARD: Transfer Funds */}
+          <LinearGradient
+            colors={["#2C2C2C", "#111111"]}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            style={styles.cardWrapper}
+          >
+            <View style={styles.cardHeaderRow}>
+              <View>
+                <Text style={styles.cardTitle}>Transfer Funds</Text>
+                <Text style={styles.cardSubtitle}>AEPS → MAIN WALLET</Text>
+              </View>
+              <TouchableOpacity style={styles.iconCircleButton}>
+                <Icon name="swap-horizontal" size={20} color={Colors.finance_accent} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.inputSection}>
+              <Text style={styles.inputLabel}>AMOUNT (₹)</Text>
+              <View style={styles.inputWrapper}>
+                <View style={styles.currencyBox}>
+                  <Text style={styles.currencySymbol}>₹</Text>
+                </View>
+                <TextInput
+                  style={styles.amountInput}
+                  placeholder="0.00"
+                  placeholderTextColor="rgba(255,255,255,0.3)"
+                  keyboardType="numeric"
+                  value={amount}
+                  onChangeText={setAmount}
+                />
+              </View>
+            </View>
+
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={styles.executeBtnWrap}
+              onPress={handleTransfer}
+              disabled={isTransferring}
+            >
+              <LinearGradient
+                colors={isTransferring ? ['#9CA3AF', '#6B7280'] : ['#E5C37A', '#C79A3F']}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                style={styles.executeButton}
+              >
+                {isTransferring ? (
+                  <ActivityIndicator color="#111827" size="small" style={styles.boltIcon} />
+                ) : (
+                  <Icon name="lightning-bolt" size={16} color="#111827" style={styles.boltIcon} />
+                )}
+                <Text style={styles.executeButtonText}>
+                  {isTransferring ? "PROCESSING..." : "EXECUTE TRANSFER"}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </LinearGradient>
+
           {/* RECENT TRANSFERS SECTION */}
           <View style={styles.historyContainer}>
             <View style={styles.historyHeader}>
@@ -310,10 +306,10 @@ const WalletTransfer = ({ navigation }) => {
                 return (
                   <View key={item._id || index.toString()} style={styles.historyCard}>
                     <View style={styles.historyIconBox}>
-                      <Icon 
-                        name={isCredit ? "arrow-bottom-left-thick" : "arrow-top-right-thick"} 
-                        size={16} 
-                        color={isCredit ? Colors.finance_success : "#EF4444"} 
+                      <Icon
+                        name={isCredit ? "arrow-bottom-left-thick" : "arrow-top-right-thick"}
+                        size={16}
+                        color={isCredit ? Colors.finance_success : "#EF4444"}
                       />
                     </View>
                     <View style={styles.historyDetails}>
