@@ -420,9 +420,9 @@ export default function Login({ navigation }) {
               <TextInput
                 placeholder="Enter User Name"
                 placeholderTextColor={Colors.text_placeholder}
-                autoCapitalize="none"
+                autoCapitalize="characters"
                 value={userName}
-                onChangeText={setUserName}
+                onChangeText={(text) => setUserName(text.toUpperCase())}
                 onFocus={() => handleInputFocus("userName")}
                 onBlur={() => handleInputBlur("userName")}
                 style={styles.input}

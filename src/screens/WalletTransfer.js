@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: Colors.black,
+    backgroundColor: "#0F172A",
     paddingHorizontal: scale(16),
     paddingVertical: scale(12),
     paddingTop: Platform.OS === 'android' ? scale(16) : scale(10),
