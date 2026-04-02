@@ -11,41 +11,46 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '../constants/Colors';
 import Fonts from '../constants/Fonts';
-import { getRechargeReport } from '../api/AuthApi';
+import { getRechargeReport, getDownlineUsers } from '../api/AuthApi';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { height: SH, width: SW } = Dimensions.get('window');
 
 const D = {
-  pageBg: '#F1F5F9', // Slightly darker to make card pop
-  cardBg: '#FFFFFF',
-  headerBg: '#0F172A',
+  // Page / structural
+  pageBg: '#F2EDE4',          // warm cream bg
+  headerBg: '#1C1C1E',          // very dark header bar
+  cardBg: '#FFFFFF',          // white cards
+  heroBg: '#1C1C1E',
+  surfaceMid: '#F8FAFC',
 
-  brand: '#6366F1', // Indigo pop
-  brandSoft: '#EEF2FF',
-  brandBorder: '#C7D2FE',
+  // Brand accent — gold/amber
+  gold: Colors.finance_accent || '#D4A843',
+  goldDim: 'rgba(212,168,67,0.14)',
+  goldLight: '#FEF3C7',
 
-  green: '#10B981', // Emerald
-  greenSoft: '#D1FAE5',
-  greenDeep: '#065F46',
+  // Type colours (Success)
+  green: '#16A34A',
+  greenLight: '#22C55E',
+  greenDim: 'rgba(22,163,74,0.13)',
+  greenBg: '#F0FDF4',
 
-  red: '#F43F5E', // Rose-Red
-  redSoft: '#FFE4E6',
-  redDeep: '#9F1239',
+  // Failed / Negative colours
+  red: '#DC2626',
+  redSoft: '#FEF2F2',
+  redDim: 'rgba(220, 38, 38, 0.13)',
 
-  amber: '#F59E0B', 
-  amberSoft: '#FEF3C7',
-  amberDeep: '#92400E',
+  // Amber / Pending 
+  amber: '#D97706',
+  amberDim: 'rgba(217, 119, 6, 0.13)',
+  amberSoft: '#FFFBEB',
 
-  blue: '#3B82F6', 
-  blueSoft: '#DBEAFE',
+  textPri: '#1A1D2E',
+  textSec: '#475569',
+  textMuted: '#94A3B8',
 
-  textPri: '#0F172A',
-  textSec: '#334155',
-  textMuted: '#64748B',
-
-  border: '#CBD5E1', 
-  divider: '#E2E8F0',
+  border: '#E2E8F0',
+  divider: '#F1F5F9',
   shadow: '#000000',
 };
 
@@ -66,6 +71,7 @@ const normalizeRecharge = (data = []) =>
     isoDate: item.createdAt,
     desc: [item.operatorName, item.mobileNumber].filter(Boolean).join(' • ') || 'Recharge',
     operatorName: item.operatorName || '',
+    userName: item.userName || (item.user && item.user.userName) || '',
     extra: {
       commission: item.commission ?? 0,
       tds: item.tds ?? 0,
@@ -84,9 +90,9 @@ const TABS = [
 ];
 
 const STATUS_CONFIG = {
-  Success: { color: D.green, bg: D.greenSoft, border: D.greenBorder, icon: 'check-circle-outline', label: 'Success' },
-  Pending: { color: D.amber, bg: D.amberSoft, border: D.amberBorder, icon: 'clock-outline', label: 'Pending' },
-  Failed: { color: D.red, bg: D.redSoft, border: D.redBorder, icon: 'close-circle-outline', label: 'Failed' },
+  Success: { color: D.green, bg: D.greenBg, border: D.greenDim, icon: 'check-circle-outline', label: 'Success' },
+  Pending: { color: D.amber, bg: D.amberSoft, border: D.amberDim, icon: 'clock-outline', label: 'Pending' },
+  Failed: { color: D.red, bg: D.redSoft, border: D.redDim, icon: 'close-circle-outline', label: 'Failed' },
 };
 
 const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -348,8 +354,8 @@ const TxnCard = ({ txn, onPress }) => {
 
             <View style={TC.rightCol}>
               <View style={[TC.statusBadge, { backgroundColor: cfg.color, borderColor: cfg.color }]}>
-                 <Icon name={cfg.icon} size={10} color="#FFF" style={{ marginRight: 4 }} />
-                 <Text style={[TC.statusTxt, { color: '#FFF' }]}>{cfg.label.toUpperCase()}</Text>
+                <Icon name={cfg.icon} size={10} color="#FFF" style={{ marginRight: 4 }} />
+                <Text style={[TC.statusTxt, { color: '#FFF' }]}>{cfg.label.toUpperCase()}</Text>
               </View>
               <Text style={[TC.amount, { color: amtColor }]}>
                 {amtPrefix}{Number(txn.amount).toLocaleString('en-IN')}
@@ -400,26 +406,26 @@ const TC = StyleSheet.create({
   bar: { width: 4.5 },
   inner: { flex: 1, padding: 12, position: 'relative' },
   bgIcon: { position: 'absolute', right: -6, top: -6, zIndex: 0 },
-  
+
   mainRow: { flexDirection: 'row', alignItems: 'center', zIndex: 1 },
   iconBox: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 1.2 },
   centerCol: { flex: 1, marginLeft: 12, justifyContent: 'center' },
   title: { fontSize: 13, fontFamily: Fonts.Bold, color: D.textPri, marginBottom: 3 },
   refId: { fontSize: 10, fontFamily: Fonts.Medium, color: D.textMuted },
-  
+
   rightCol: { alignItems: 'flex-end', justifyContent: 'center' },
-  statusBadge: { 
-    flexDirection: 'row', alignItems: 'center', 
-    paddingHorizontal: 8, paddingVertical: 4, 
-    borderRadius: 8, marginBottom: 8 
+  statusBadge: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 8, paddingVertical: 4,
+    borderRadius: 8, marginBottom: 8
   },
   statusTxt: { fontSize: 8.5, fontFamily: Fonts.Bold, letterSpacing: 0.8 },
 
   amount: { fontSize: 16, fontFamily: Fonts.Bold, letterSpacing: -0.4, marginBottom: 3 },
   dateTxt: { fontSize: 9.5, fontFamily: Fonts.Medium, color: D.textMuted },
 
-  featureRow: { 
-    flexDirection: 'row', marginTop: 10, paddingTop: 10, 
+  featureRow: {
+    flexDirection: 'row', marginTop: 10, paddingTop: 10,
     borderTopWidth: 1, borderTopColor: '#F1F5F9', gap: 14
   },
   plainItem: { flexDirection: 'row', alignItems: 'center' },
@@ -521,7 +527,7 @@ const SummaryStrip = ({ summary }) => {
     {
       label: 'Amount',
       value: `₹${summary.amount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`,
-      color: D.brand,
+      color: D.gold,
     },
   ];
 
@@ -562,6 +568,136 @@ const ST = StyleSheet.create({
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
+//  FILTER SHEET
+// ══════════════════════════════════════════════════════════════════════════════
+const FILTER_SECTIONS = [
+  {
+    key: 'date', label: 'DATE RANGE', icon: 'calendar-month-outline', stateKey: 'date', defaultKey: 'Last 30 Days',
+    options: [
+      { key: 'Last 7 Days', label: 'Last 7 Days', icon: 'calendar-today' },
+      { key: 'Last 30 Days', label: 'Last 30 Days', icon: 'calendar-month' },
+      { key: 'Last 3 Months', label: 'Last 3 Months', icon: 'calendar-range' },
+      { key: 'Last 6 Months', label: 'Last 6 Months', icon: 'calendar-clock' },
+      { key: 'Custom', label: 'Custom Range', icon: 'calendar-edit' },
+    ]
+  },
+  {
+    key: 'user', label: 'USER', icon: 'account-circle-outline', stateKey: 'userId', defaultKey: 'All',
+    options: []
+  },
+  {
+    key: 'status', label: 'STATUS', icon: 'list-status', stateKey: 'status', defaultKey: 'All',
+    options: [
+      { key: 'All', label: 'All Statuses', icon: 'view-list-outline' },
+      { key: 'Success', label: 'Success', icon: 'check-circle-outline' },
+      { key: 'Pending', label: 'Pending', icon: 'clock-outline' },
+      { key: 'Failed', label: 'Failed', icon: 'close-circle-outline' },
+    ]
+  }
+];
+
+const FilterSheet = ({ visible, onClose, onApply, activeFilters, onOpenPicker, userOptions }) => {
+  const sections = window ? FILTER_SECTIONS.map(s => s.key === 'user' ? { ...s, options: userOptions || [] } : s) : FILTER_SECTIONS;
+  const slideA = useRef(new Animated.Value(SH)).current;
+  const backdropA = useRef(new Animated.Value(0)).current;
+  const [activeSection, setActiveSection] = useState('date');
+  const [local, setLocal] = useState(activeFilters);
+
+  useEffect(() => {
+    if (visible) {
+      setLocal(activeFilters);
+      setActiveSection('date');
+      Animated.parallel([
+        Animated.spring(slideA, { toValue: 0, bounciness: 2, speed: 18, useNativeDriver: true }),
+        Animated.timing(backdropA, { toValue: 1, duration: 220, useNativeDriver: true }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(slideA, { toValue: SH, duration: 260, useNativeDriver: true }),
+        Animated.timing(backdropA, { toValue: 0, duration: 200, useNativeDriver: true }),
+      ]).start();
+    }
+  }, [visible, activeFilters]);
+
+  const activeCount = (local.date !== 'Last 30 Days' ? 1 : 0) + (local.status !== 'All' ? 1 : 0) + (local.userId !== 'All' ? 1 : 0);
+  const currentSection = sections.find(s => s.key === activeSection);
+  const isCustomDate = local.date === 'Custom';
+
+  return (
+    <Modal transparent visible={visible} animationType="none" onRequestClose={onClose}>
+      <Animated.View style={[FST.backdrop, { opacity: backdropA }]}>
+        <TouchableOpacity style={StyleSheet.absoluteFill} onPress={onClose} activeOpacity={1} />
+      </Animated.View>
+      <Animated.View style={[FST.sheet, { transform: [{ translateY: slideA }] }]}>
+        <View style={FST.handle} />
+        <View style={FST.header}>
+          <Text style={FST.title}>Filters</Text>
+          <TouchableOpacity onPress={() => setLocal({ date: 'Last 30 Days', status: 'All', userId: 'All' })} style={FST.resetBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Icon name="refresh" size={12} color={D.gold} style={{ marginRight: 4 }} />
+            <Text style={FST.resetTxt}>Reset all</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={FST.body}>
+          <View style={FST.navCol}>
+            {sections.map(sec => {
+              const isActive = activeSection === sec.key;
+              const changed = local[sec.stateKey] !== sec.defaultKey;
+              return (
+                <TouchableOpacity key={sec.key} style={[FST.navItem, isActive && FST.navItemActive]} onPress={() => setActiveSection(sec.key)} activeOpacity={0.7}>
+                  <View style={[FST.navIconBox, isActive && { backgroundColor: D.goldDim }]}>
+                    <Icon name={sec.icon} size={15} color={isActive ? D.gold : D.textMuted} />
+                  </View>
+                  <Text style={[FST.navTxt, isActive && FST.navTxtActive]}>{sec.label.split(' ')[0]}</Text>
+                  {changed && <View style={FST.navDot} />}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          <ScrollView style={FST.optCol} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingVertical: 16 }}>
+            <Text style={FST.optSectionLabel}>{currentSection?.label}</Text>
+
+            {activeSection === 'date' && isCustomDate && (
+              <View style={FST.customDateRow}>
+                <TouchableOpacity style={FST.datePill} activeOpacity={0.8} onPress={() => onOpenPicker('from')}>
+                  <Icon name="calendar" size={14} color={D.gold} style={{ marginRight: 6 }} />
+                  <Text style={FST.datePillTxt}>From</Text>
+                </TouchableOpacity>
+                <View style={{ width: 8 }} />
+                <TouchableOpacity style={FST.datePill} activeOpacity={0.8} onPress={() => onOpenPicker('to')}>
+                  <Icon name="calendar" size={14} color={D.gold} style={{ marginRight: 6 }} />
+                  <Text style={FST.datePillTxt}>To</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {currentSection?.options.map(opt => {
+              const isSel = local[currentSection.stateKey] === opt.key;
+              return (
+                <TouchableOpacity key={opt.key} style={[FST.optRow, isSel && FST.optRowActive]} onPress={() => setLocal(p => ({ ...p, [currentSection.stateKey]: opt.key }))} activeOpacity={0.7}>
+                  <View style={[FST.optIconBox, isSel && { backgroundColor: D.goldDim }]}>
+                    <Icon name={opt.icon} size={14} color={isSel ? D.gold : D.textMuted} />
+                  </View>
+                  <Text style={[FST.optTxt, isSel && FST.optTxtActive]}>{opt.label}</Text>
+                  <View style={isSel ? FST.radioOn : FST.radioOff}>
+                    {isSel && <View style={FST.radioInner} />}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+        <View style={FST.footer}>
+          <TouchableOpacity style={FST.applyBtn} onPress={() => onApply(local)} activeOpacity={0.88}>
+            <Text style={FST.applyTxt}>Apply Filters</Text>
+            {activeCount > 0 && <View style={FST.badge}><Text style={FST.badgeTxt}>{activeCount}</Text></View>}
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
+    </Modal>
+  );
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
 //  MAIN SCREEN
 // ══════════════════════════════════════════════════════════════════════════════
 export default function InvoiceScreen({ navigation }) {
@@ -572,6 +708,26 @@ export default function InvoiceScreen({ navigation }) {
   const [toDate, setToDate] = useState(null);
   const [pickerMode, setPickerMode] = useState('from');
   const [pickerVisible, setPickerVisible] = useState(false);
+  const [filterVisible, setFilterVisible] = useState(false);
+  const [userIdFilter, setUserIdFilter] = useState('All');
+  const [downlineUsers, setDownlineUsers] = useState([]);
+
+  const loadDownline = async () => {
+    try {
+      const headerToken = await AsyncStorage.getItem('header_token');
+      const res = await getDownlineUsers({ headerToken });
+      if (res.success && res.data && res.data.children) {
+        const opts = res.data.children.map(u => ({
+          key: u.userName,
+          label: u.fullName || u.userName,
+          icon: 'account-outline'
+        }));
+        setDownlineUsers(opts);
+      }
+    } catch (_) { }
+  };
+
+  useEffect(() => { loadDownline(); }, []);
   const [search, setSearch] = useState('');
   const [tabData, setTabData] = useState({});
   const [loadingTab, setLoadingTab] = useState(false);
@@ -645,6 +801,10 @@ export default function InvoiceScreen({ navigation }) {
       if (start) list = list.filter(t => { const d = parseDisplayDate(t.date); return d ? d >= start : true; });
     }
 
+    if (userIdFilter !== 'All') {
+      list = list.filter(t => t.userName === userIdFilter);
+    }
+
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter(t =>
@@ -679,7 +839,6 @@ export default function InvoiceScreen({ navigation }) {
           <Icon name="arrow-left" size={18} color="#fff" />
         </TouchableOpacity>
         <Text style={S.hTitle}>Transactions</Text>
-        <View style={S.hBtn} />
       </View>
 
       {/* ── Tab bar ────────────────────────────────────────────────────────── */}
@@ -701,7 +860,7 @@ export default function InvoiceScreen({ navigation }) {
                 <Icon
                   name={tab.icon}
                   size={13}
-                  color={isActive ? D.brand : D.textMuted}
+                  color={isActive ? D.gold : D.textMuted}
                   style={{ marginRight: 5 }}
                 />
                 <Text style={[S.tabTxt, isActive && S.tabTxtActive]}>{tab.label}</Text>
@@ -712,24 +871,31 @@ export default function InvoiceScreen({ navigation }) {
         </ScrollView>
       </View>
 
-      {/* ── Search ─────────────────────────────────────────────────────────── */}
-      <View style={S.searchWrap}>
-        <Icon name="magnify" size={16} color={D.textMuted} style={{ marginRight: 8 }} />
-        <TextInput
-          style={S.searchInput}
-          placeholder="Search transactions..."
-          placeholderTextColor={D.textMuted}
-          value={search}
-          onChangeText={setSearch}
-        />
-        {!!search && (
-          <TouchableOpacity
-            onPress={() => setSearch('')}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Icon name="close-circle" size={15} color={D.textMuted} />
-          </TouchableOpacity>
-        )}
+      {/* ── Search & Filter Row ───────────────────────────────────────────── */}
+      <View style={S.sfRow}>
+        <View style={S.sfSearchBox}>
+          <Icon name="magnify" size={16} color={D.textMuted} style={{ marginRight: 8 }} />
+          <TextInput
+            style={S.sfInput}
+            placeholder="Search transactions..."
+            placeholderTextColor={D.textMuted}
+            value={search}
+            onChangeText={setSearch}
+          />
+          {!!search && (
+            <TouchableOpacity
+              onPress={() => setSearch('')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Icon name="close-circle" size={15} color={D.textMuted} />
+            </TouchableOpacity>
+          )}
+        </View>
+        <TouchableOpacity style={S.sfFilterBtn} activeOpacity={0.7} onPress={() => setFilterVisible(true)}>
+          <View style={S.sfFilterIconBox}>
+            <Icon name="tune-variant" size={18} color={D.gold} />
+          </View>
+        </TouchableOpacity>
       </View>
 
       {/* ── Status chips — spacing managed by CHI.container ────────────────── */}
@@ -741,7 +907,7 @@ export default function InvoiceScreen({ navigation }) {
       {/* ── Body ───────────────────────────────────────────────────────────── */}
       {loadingTab ? (
         <View style={S.center}>
-          <ActivityIndicator size="large" color={D.brand} />
+          <ActivityIndicator size="large" color={D.gold} />
           <Text style={S.centerTxt}>Fetching transactions…</Text>
         </View>
       ) : errorTab ? (
@@ -758,8 +924,8 @@ export default function InvoiceScreen({ navigation }) {
         </View>
       ) : !tabHasApi ? (
         <View style={S.center}>
-          <View style={[S.errorIcon, { backgroundColor: D.brandSoft }]}>
-            <Icon name="clock-outline" size={28} color={D.brand} />
+          <View style={[S.errorIcon, { backgroundColor: D.goldDim }]}>
+            <Icon name="clock-outline" size={28} color={D.gold} />
           </View>
           <Text style={S.errorTitle}>Coming Soon</Text>
           <Text style={S.errorSub}>{activeTabCfg?.label} transactions will appear here.</Text>
@@ -773,8 +939,8 @@ export default function InvoiceScreen({ navigation }) {
         >
           {filtered.length === 0 ? (
             <View style={S.center}>
-              <View style={[S.errorIcon, { backgroundColor: D.brandSoft }]}>
-                <Icon name="file-search-outline" size={28} color={D.brand} />
+              <View style={[S.errorIcon, { backgroundColor: D.goldDim }]}>
+                <Icon name="file-search-outline" size={28} color={D.gold} />
               </View>
               <Text style={S.errorTitle}>No results</Text>
               <Text style={S.errorSub}>Try adjusting your filters or search term</Text>
@@ -805,6 +971,27 @@ export default function InvoiceScreen({ navigation }) {
           }}
         />
       )}
+
+      {/* ── Filter Modal ── */}
+      <FilterSheet
+        visible={filterVisible}
+        activeFilters={{ date: dateFilter, status: statusFilter, userId: userIdFilter }}
+        userOptions={[
+          { key: 'All', label: 'All Users', icon: 'account-group' },
+          ...downlineUsers
+        ]}
+        onClose={() => setFilterVisible(false)}
+        onApply={(newF) => {
+          setDateFilter(newF.date);
+          setStatusFilter(newF.status);
+          setUserIdFilter(newF.userId);
+          setFilterVisible(false);
+        }}
+        onOpenPicker={(mode) => {
+          setPickerMode(mode);
+          setPickerVisible(true);
+        }}
+      />
 
       {/* ── Transaction detail sheet ────────────────────────────────────────── */}
       <TxnDetailSheet
@@ -848,31 +1035,40 @@ const S = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 14, paddingVertical: 8, marginRight: 2,
   },
-  tabItemActive: { borderBottomWidth: 2, borderBottomColor: D.brand },
+  tabItemActive: { borderBottomWidth: 2, borderBottomColor: D.gold },
   tabTxt: { fontSize: 13, fontFamily: Fonts.Medium, color: D.textMuted },
-  tabTxtActive: { fontFamily: Fonts.Bold, color: D.brand },
+  tabTxtActive: { fontFamily: Fonts.Bold, color: D.gold },
   soonDot: {
     width: 5, height: 5, borderRadius: 3,
     backgroundColor: D.amber, marginLeft: 4, marginBottom: 6,
   },
 
-  // Search
-  // marginBottom removed here — CHI.container.marginTop handles the gap below
-  searchWrap: {
+  // Search & Filter
+  sfRow: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: D.cardBg,
-    marginHorizontal: 16,
-    marginTop: 10,
-    // ↓ intentionally no marginBottom — StatusChips container handles spacing above chips
-    paddingHorizontal: 12, height: 42,
-    borderRadius: 10, borderWidth: 1, borderColor: D.border,
-    elevation: 2,
-    shadowColor: D.shadow, shadowOffset: { width: 0, height: 2 },
+    marginHorizontal: 16, marginTop: 10, gap: 10,
+  },
+  sfSearchBox: {
+    flex: 1, flexDirection: 'row', alignItems: 'center',
+    backgroundColor: D.cardBg, height: 42,
+    borderRadius: 10, paddingHorizontal: 12,
+    borderWidth: 1, borderColor: D.border,
+    elevation: 2, shadowColor: D.shadow, shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05, shadowRadius: 4,
   },
-  searchInput: {
+  sfInput: {
     flex: 1, fontSize: 13,
     fontFamily: Fonts.Medium, color: D.textPri, padding: 0,
+  },
+  sfFilterBtn: {
+    width: 42, height: 42, alignItems: 'center', justifyContent: 'center',
+  },
+  sfFilterIconBox: {
+    width: 42, height: 42, borderRadius: 10, backgroundColor: D.cardBg,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: D.border,
+    elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1, shadowRadius: 3,
   },
 
   // List
@@ -897,4 +1093,40 @@ const S = StyleSheet.create({
     paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10,
   },
   retryTxt: { fontSize: 13, fontFamily: Fonts.Bold, color: '#fff' },
+});
+
+const FST = StyleSheet.create({
+  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(15,23,42,0.55)' },
+  sheet: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: D.cardBg, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: SH * 0.78, elevation: 24, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.14, shadowRadius: 16 },
+  handle: { width: 32, height: 4, backgroundColor: 'rgba(0,0,0,0.12)', borderRadius: 2, alignSelf: 'center', marginTop: 10, marginBottom: 2 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: D.border },
+  title: { fontSize: 17, fontFamily: Fonts.Bold, color: D.textPri },
+  resetBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: D.goldDim },
+  resetTxt: { fontSize: 12, fontFamily: Fonts.Bold, color: D.gold },
+  body: { flexDirection: 'row', maxHeight: SH * 0.52 },
+  navCol: { width: 82, borderRightWidth: 1, borderRightColor: D.border, paddingTop: 10 },
+  navItem: { paddingVertical: 18, alignItems: 'center', paddingHorizontal: 6 },
+  navItemActive: { backgroundColor: D.cardBg },
+  navIconBox: { width: 34, height: 34, borderRadius: 10, backgroundColor: D.surfaceMid || '#F8FAFC', alignItems: 'center', justifyContent: 'center', marginBottom: 5 },
+  navTxt: { fontSize: 9, fontFamily: Fonts.Medium, color: D.textMuted, textAlign: 'center', letterSpacing: 0.3 },
+  navTxtActive: { color: D.gold, fontFamily: Fonts.Bold },
+  navDot: { position: 'absolute', top: 12, right: 10, width: 6, height: 6, borderRadius: 3, backgroundColor: D.gold },
+  optCol: { flex: 1, paddingHorizontal: 14 },
+  optSectionLabel: { fontSize: 9, fontFamily: Fonts.Bold, color: D.textMuted, letterSpacing: 1.2, marginBottom: 10, textTransform: 'uppercase' },
+  optRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, gap: 10, borderRadius: 10, paddingHorizontal: 4 },
+  optRowActive: { backgroundColor: D.goldDim, marginHorizontal: -4, paddingHorizontal: 8 },
+  optIconBox: { width: 32, height: 32, borderRadius: 9, backgroundColor: D.surfaceMid || '#F8FAFC', alignItems: 'center', justifyContent: 'center' },
+  optTxt: { flex: 1, fontSize: 13, fontFamily: Fonts.Medium, color: D.textSec },
+  optTxtActive: { color: D.gold, fontFamily: Fonts.Bold },
+  radioOff: { width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: D.border },
+  radioOn: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: D.gold, alignItems: 'center', justifyContent: 'center' },
+  radioInner: { width: 8, height: 8, borderRadius: 4, backgroundColor: D.gold },
+  customDateRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, paddingHorizontal: 4 },
+  datePill: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: D.gold, backgroundColor: D.goldDim },
+  datePillTxt: { color: D.gold, fontSize: 13, fontFamily: Fonts.Medium },
+  footer: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: Platform.OS === 'ios' ? 34 : 16, borderTopWidth: 1, borderTopColor: D.border },
+  applyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: D.headerBg, borderRadius: 14, paddingVertical: 15 },
+  applyTxt: { color: '#fff', fontSize: 14, fontFamily: Fonts.Bold },
+  badge: { marginLeft: 8, backgroundColor: D.gold, minWidth: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  badgeTxt: { color: '#fff', fontSize: 9, fontFamily: Fonts.Bold },
 });

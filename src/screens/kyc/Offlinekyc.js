@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import { submitOfflineKyc, fetchStateList, fetchCityList, fetchGlobalBankList } from "../../api/AuthApi";
+import { submitOfflineKyc, fetchStateList, fetchCityList, fetchGlobalBankList, fetchSubmittedKyc } from "../../api/AuthApi";
 import Fonts from "../../constants/Fonts";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "../../constants/Colors";
@@ -129,7 +129,9 @@ export default function Offlinekyc({ navigation, route }) {
     personalAddress: "", personalCity: "", personalState: "", personalPincode: "",
   });
   const [lockedPersonal, setLockedPersonal] = useState({
-    firstName: false, lastName: false, email: false, phone: false,
+    firstName: false, lastName: false, fatherName: false, gender: false,
+    email: false, phone: false, dob: false,
+    personalAddress: false, personalCity: false, personalState: false, personalPincode: false,
   });
 
   const [business, setBusiness] = useState({
@@ -137,12 +139,22 @@ export default function Offlinekyc({ navigation, route }) {
     businessAddress: "", businessCity: "", businessState: "", businessPincode: "",
     panNumber: "", aadharNumber: "",
   });
+  const [lockedBusiness, setLockedBusiness] = useState({
+    shopName: false, businessPanNumber: false, gstNumber: false,
+    businessAddress: false, businessCity: false, businessState: false, businessPincode: false,
+    panNumber: false, aadharNumber: false,
+  });
 
   const [files, setFiles] = useState({ aadharFile: null, panFile: null, shopImage: null });
+  const [lockedFiles, setLockedFiles] = useState({ aadharFile: false, panFile: false, shopImage: false });
 
   const [banking, setBanking] = useState({
     accountHolderName: "", bankName: "", accountNumber: "",
     confirmAccountNumber: "", ifscCode: "", branchName: "",
+  });
+  const [lockedBanking, setLockedBanking] = useState({
+    accountHolderName: false, bankName: false, accountNumber: false,
+    ifscCode: false, branchName: false,
   });
 
   // ── Account match status (real-time) ──────────────────────────────────
@@ -205,6 +217,176 @@ export default function Offlinekyc({ navigation, route }) {
   }, []);
 
   useEffect(() => { handleFetchStates(); }, []);
+
+  // ── Pre-fill from submitted KYC (re-KYC flow) ─────────────────────────
+  useEffect(() => {
+    (async () => {
+      try {
+        const headerToken = await AsyncStorage.getItem("header_token");
+        if (!headerToken) return;
+        const res = await fetchSubmittedKyc({ headerToken });
+        if (!res?.success || !res?.data) return;
+        const d = res.data;
+
+        // ── Personal fields ──
+        const dobFormatted = d.dob
+          ? (() => {
+            const dt = new Date(d.dob);
+            if (isNaN(dt)) return "";
+            const dd = String(dt.getDate()).padStart(2, "0");
+            const mm = String(dt.getMonth() + 1).padStart(2, "0");
+            const yyyy = dt.getFullYear();
+            return `${dd}-${mm}-${yyyy}`;
+          })()
+          : "";
+
+        // ── Status flags ──
+        const personalApproved = d.personalDetailStatus === "approved";
+        const businessApproved = d.businessDetailStatus === "approved";
+        const identityApproved = d.identityDetailStatus === "approved";
+        const bankApproved = d.bankDetailStatus === "approved";
+
+        // ── File builder helper ──
+        const IMG_BASE = "http://192.168.1.16:8000";
+        const buildFile = (relPath, fallbackName) => {
+          if (!relPath) return null;
+          return {
+            uri: `${IMG_BASE}${relPath}`,
+            name: relPath.split("/").pop() || fallbackName,
+            type: "image/jpeg",
+          };
+        };
+
+        // ════════════════════════════════════════════════════════════════
+        // 1. PERSONAL SECTION
+        //    approved → fill + lock   |   rejected → blank + editable
+        // ════════════════════════════════════════════════════════════════
+        if (personalApproved) {
+          setPersonal(p => ({
+            ...p,
+            firstName: d.firstName || p.firstName,
+            lastName: d.lastName || p.lastName,
+            fatherName: d.fatherName || p.fatherName,
+            gender: d.gender || p.gender,
+            email: d.email || p.email,
+            phone: d.phone || p.phone,
+            dob: dobFormatted || p.dob,
+            personalAddress: d.personalAddress?.address || p.personalAddress,
+            personalCity: d.personalAddress?.city || p.personalCity,
+            personalState: d.personalAddress?.state || p.personalState,
+            personalPincode: d.personalAddress?.pincode || p.personalPincode,
+          }));
+          setLockedPersonal({
+            firstName: !!d.firstName,
+            lastName: !!d.lastName,
+            fatherName: !!d.fatherName,
+            gender: !!d.gender,
+            email: !!d.email,
+            phone: !!d.phone,
+            dob: !!d.dob,
+            personalAddress: !!d.personalAddress?.address,
+            personalCity: !!d.personalAddress?.city,
+            personalState: !!d.personalAddress?.state,
+            personalPincode: !!d.personalAddress?.pincode,
+          });
+        }
+        // rejected → fields stay blank & editable (defaults)
+
+        // ════════════════════════════════════════════════════════════════
+        // 2. BUSINESS SECTION (shopName, address, businessPan, gst)
+        //    approved → fill + lock   |   rejected → blank + editable
+        //    NOTE: panNumber, aadharNumber & their files are controlled
+        //          separately by identityDetailStatus (see #3 below)
+        // ════════════════════════════════════════════════════════════════
+        if (businessApproved) {
+          setBusiness(b => ({
+            ...b,
+            shopName: d.shopName || b.shopName,
+            businessPanNumber: d.businessPanNumber || b.businessPanNumber,
+            gstNumber: d.gstNumber || b.gstNumber,
+            businessAddress: d.businessAddress?.address || b.businessAddress,
+            businessCity: d.businessAddress?.city || b.businessCity,
+            businessState: d.businessAddress?.state || b.businessState,
+            businessPincode: d.businessAddress?.pincode || b.businessPincode,
+          }));
+          setLockedBusiness(lb => ({
+            ...lb,
+            shopName: !!d.shopName,
+            businessPanNumber: !!d.businessPanNumber,
+            gstNumber: !!d.gstNumber,
+            businessAddress: !!d.businessAddress?.address,
+            businessCity: !!d.businessAddress?.city,
+            businessState: !!d.businessAddress?.state,
+            businessPincode: !!d.businessAddress?.pincode,
+          }));
+          // shopImage is a business-level doc
+          if (d.shopImageUrl) {
+            setFiles(f => ({ ...f, shopImage: buildFile(d.shopImageUrl, "shopImage.jpg") }));
+            setLockedFiles(lf => ({ ...lf, shopImage: true }));
+          }
+        }
+        // rejected → business fields stay blank & editable (defaults)
+
+        // ════════════════════════════════════════════════════════════════
+        // 3. IDENTITY SECTION (panNumber, aadharNumber + their images)
+        //    approved → fill + lock   |   rejected → blank + editable
+        // ════════════════════════════════════════════════════════════════
+        if (identityApproved) {
+          setBusiness(b => ({
+            ...b,
+            panNumber: d.panNumber || b.panNumber,
+            aadharNumber: d.aadharNumber || b.aadharNumber,
+          }));
+          setLockedBusiness(lb => ({
+            ...lb,
+            panNumber: !!d.panNumber,
+            aadharNumber: !!d.aadharNumber,
+          }));
+          if (d.aadharFileUrl) {
+            setFiles(f => ({ ...f, aadharFile: buildFile(d.aadharFileUrl, "aadharFile.jpg") }));
+            setLockedFiles(lf => ({ ...lf, aadharFile: true }));
+          }
+          if (d.panFileUrl) {
+            setFiles(f => ({ ...f, panFile: buildFile(d.panFileUrl, "panFile.jpg") }));
+            setLockedFiles(lf => ({ ...lf, panFile: true }));
+          }
+        }
+        // rejected → panNumber, aadharNumber, files stay blank & editable
+
+        // ════════════════════════════════════════════════════════════════
+        // 4. BANKING SECTION
+        //    approved → fill + lock   |   rejected → blank + editable
+        // ════════════════════════════════════════════════════════════════
+        if (bankApproved) {
+          setBanking(bk => ({
+            ...bk,
+            accountHolderName: d.accountHolderName || bk.accountHolderName,
+            bankName: d.bankName || bk.bankName,
+            accountNumber: d.accountNumber || bk.accountNumber,
+            confirmAccountNumber: d.accountNumber || bk.confirmAccountNumber,
+            ifscCode: d.ifscCode || bk.ifscCode,
+            branchName: d.branchName || bk.branchName,
+          }));
+          setLockedBanking({
+            accountHolderName: !!d.accountHolderName,
+            bankName: !!d.bankName,
+            accountNumber: !!d.accountNumber,
+            ifscCode: !!d.ifscCode,
+            branchName: !!d.branchName,
+          });
+        }
+        // rejected → banking fields stay blank & editable
+
+        console.log("[KYC] Pre-filled with status-based locking →",
+          `personal:${d.personalDetailStatus}`,
+          `business:${d.businessDetailStatus}`,
+          `identity:${d.identityDetailStatus}`,
+          `bank:${d.bankDetailStatus}`);
+      } catch (err) {
+        console.log("[KYC] fetchSubmittedKyc error:", err);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     Animated.spring(progressAnim, { toValue: step / 2, friction: 8, tension: 50, useNativeDriver: false }).start();
@@ -314,8 +496,6 @@ export default function Offlinekyc({ navigation, route }) {
     if (!business.businessCity.trim()) e.businessCity = "Required";
     if (!business.panNumber.trim() || !RX.pan.test(business.panNumber.trim())) e.panNumber = "Invalid PAN";
     if (!business.aadharNumber.trim() || !RX.aadhaar.test(business.aadharNumber.trim())) e.aadharNumber = "Invalid Aadhaar";
-    if (business.businessPanNumber?.trim() && !RX.pan.test(business.businessPanNumber.trim())) e.businessPanNumber = "Invalid Business PAN";
-    if (business.gstNumber?.trim() && !RX.gst.test(business.gstNumber.trim())) e.gstNumber = "Invalid GST number";
     if (!files.aadharFile) e.aadharFile = "Aadhaar photo required";
     if (!files.panFile) e.panFile = "PAN card photo required";
     if (!files.shopImage) e.shopImage = "Shop photo required";
@@ -417,7 +597,7 @@ export default function Offlinekyc({ navigation, route }) {
         const firstErrField = Object.keys(finalErrors)[0];
         const s0 = ["firstName", "lastName", "fatherName", "gender", "email", "phone", "dob", "personalAddress", "personalCity", "personalState", "personalPincode"];
         const s1 = ["shopName", "businessAddress", "businessPincode", "businessState", "businessCity", "panNumber", "aadharNumber", "aadharFile", "panFile", "shopImage"];
-        
+
         let targetStep = 2;
         if (s0.includes(firstErrField)) targetStep = 0;
         else if (s1.includes(firstErrField)) targetStep = 1;
@@ -523,8 +703,8 @@ export default function Offlinekyc({ navigation, route }) {
 
                 <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
                   onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.fatherName = y; fieldCoords.current.gender = y; }}>
-                  <Field label="Father's Name" value={personal.fatherName} onChange={v => setPersonal(p => ({ ...p, fatherName: v }))} error={errors.fatherName} placeholder="Father's full name" maxLength={50} />
-                  <GenderSelect value={personal.gender} onChange={v => setPersonal(p => ({ ...p, gender: v }))} error={errors.gender} />
+                  <Field label="Father's Name" value={personal.fatherName} onChange={v => setPersonal(p => ({ ...p, fatherName: v }))} error={errors.fatherName} placeholder="Father's full name" maxLength={50} locked={lockedPersonal.fatherName} />
+                  <GenderSelect value={personal.gender} onChange={v => setPersonal(p => ({ ...p, gender: v }))} error={errors.gender} locked={lockedPersonal.gender} />
                 </TwoCol>
 
                 <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
@@ -536,9 +716,9 @@ export default function Offlinekyc({ navigation, route }) {
                 <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
                   onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.dob = y; fieldCoords.current.personalState = y; }}>
                   <View>
-                    <TouchableOpacity onPress={() => setShowDatePicker(true)} activeOpacity={0.8}>
+                    <TouchableOpacity onPress={() => { if (!lockedPersonal.dob) setShowDatePicker(true); }} activeOpacity={lockedPersonal.dob ? 1 : 0.8}>
                       <View pointerEvents="none">
-                        <Field label="Date of Birth" value={personal.dob} onChange={() => { }} error={errors.dob} placeholder="DD-MM-YYYY" hint="Min age: 18 years" />
+                        <Field label="Date of Birth" value={personal.dob} onChange={() => { }} error={errors.dob} placeholder="DD-MM-YYYY" hint="Min age: 18 years" locked={lockedPersonal.dob} />
                       </View>
                     </TouchableOpacity>
                     {showDatePicker && (
@@ -560,9 +740,9 @@ export default function Offlinekyc({ navigation, route }) {
                     )}
                   </View>
                   <View>
-                    <TouchableOpacity onPress={() => handleOpenState("personal")} activeOpacity={0.8}>
+                    <TouchableOpacity onPress={() => { if (!lockedPersonal.personalState) handleOpenState("personal"); }} activeOpacity={lockedPersonal.personalState ? 1 : 0.8}>
                       <View pointerEvents="none">
-                        <Field label="State" value={personal.personalState} onChange={() => { }} error={errors.personalState} placeholder="Select State" />
+                        <Field label="State" value={personal.personalState} onChange={() => { }} error={errors.personalState} placeholder="Select State" locked={lockedPersonal.personalState} />
                       </View>
                     </TouchableOpacity>
                   </View>
@@ -570,11 +750,11 @@ export default function Offlinekyc({ navigation, route }) {
 
                 <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
                   onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.personalPincode = y; fieldCoords.current.personalCity = y; }}>
-                  <Field label="Pincode" value={personal.personalPincode} onChange={v => { if (/^\d*$/.test(v) && v.length <= 6) setPersonal(p => ({ ...p, personalPincode: v })); }} error={errors.personalPincode} placeholder="6-digit pincode" keyboardType="number-pad" maxLength={6} />
+                  <Field label="Pincode" value={personal.personalPincode} onChange={v => { if (/^\d*$/.test(v) && v.length <= 6) setPersonal(p => ({ ...p, personalPincode: v })); }} error={errors.personalPincode} placeholder="6-digit pincode" keyboardType="number-pad" maxLength={6} locked={lockedPersonal.personalPincode} />
                   <View>
-                    <TouchableOpacity onPress={() => handleOpenCity("personal")} activeOpacity={0.8}>
+                    <TouchableOpacity onPress={() => { if (!lockedPersonal.personalCity) handleOpenCity("personal"); }} activeOpacity={lockedPersonal.personalCity ? 1 : 0.8}>
                       <View pointerEvents="none">
-                        <Field label="City" value={personal.personalCity} onChange={() => { }} error={errors.personalCity} placeholder="Select City" />
+                        <Field label="City" value={personal.personalCity} onChange={() => { }} error={errors.personalCity} placeholder="Select City" locked={lockedPersonal.personalCity} />
                       </View>
                     </TouchableOpacity>
                   </View>
@@ -582,7 +762,7 @@ export default function Offlinekyc({ navigation, route }) {
 
                 <Field onLayout={e => fieldCoords.current.personalAddress = e.nativeEvent.layout.y}
                   label="Full Address" value={personal.personalAddress} onChange={v => setPersonal(p => ({ ...p, personalAddress: v }))}
-                  error={errors.personalAddress} multiline placeholder="House no., Street, Area, Landmark" hint="Minimum 10 characters" />
+                  error={errors.personalAddress} multiline placeholder="House no., Street, Area, Landmark" hint="Minimum 10 characters" locked={lockedPersonal.personalAddress} />
               </View>
             )}
 
@@ -591,32 +771,32 @@ export default function Offlinekyc({ navigation, route }) {
               <View style={[styles.card, { width: isWide ? contentWidth : "100%" }]}>
                 <SectionBanner icon="store-outline" title="Business Information" sub="Shop details & owner identification" />
 
-                <Field onLayout={e => fieldCoords.current.shopName = e.nativeEvent.layout.y} label="Shop / Business Name" value={business.shopName} onChange={v => setBusiness(b => ({ ...b, shopName: v }))} error={errors.shopName} placeholder="Your shop name" maxLength={100} />
+                <Field onLayout={e => fieldCoords.current.shopName = e.nativeEvent.layout.y} label="Shop / Business Name" value={business.shopName} onChange={v => setBusiness(b => ({ ...b, shopName: v }))} error={errors.shopName} placeholder="Your shop name" maxLength={100} locked={lockedBusiness.shopName} />
 
                 <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
                   onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.businessPanNumber = y; fieldCoords.current.gstNumber = y; }}>
-                  <Field label="Business PAN" value={business.businessPanNumber} onChange={v => setBusiness(b => ({ ...b, businessPanNumber: v.toUpperCase() }))} placeholder="ABCDE1234F" maxLength={10} error={errors.businessPanNumber} hint="Optional" required={false} />
-                  <Field label="GST Number" value={business.gstNumber} onChange={v => setBusiness(b => ({ ...b, gstNumber: v.toUpperCase() }))} placeholder="22AAAAA0000A1Z5" maxLength={15} error={errors.gstNumber} required={false} />
+                  <Field label="Business PAN" value={business.businessPanNumber} onChange={v => setBusiness(b => ({ ...b, businessPanNumber: v.toUpperCase() }))} placeholder="ABCDE1234F" maxLength={10} error={errors.businessPanNumber} hint="Optional" required={false} locked={lockedBusiness.businessPanNumber} />
+                  <Field label="GST Number" value={business.gstNumber} onChange={v => setBusiness(b => ({ ...b, gstNumber: v.toUpperCase() }))} placeholder="22AAAAA0000A1Z5" maxLength={15} error={errors.gstNumber} required={false} locked={lockedBusiness.gstNumber} />
                 </TwoCol>
 
-                <Field onLayout={e => fieldCoords.current.businessAddress = e.nativeEvent.layout.y} label="Shop Address" value={business.businessAddress} onChange={v => setBusiness(b => ({ ...b, businessAddress: v }))} error={errors.businessAddress} multiline placeholder="Full shop address with landmark" hint="Minimum 10 characters" />
+                <Field onLayout={e => fieldCoords.current.businessAddress = e.nativeEvent.layout.y} label="Shop Address" value={business.businessAddress} onChange={v => setBusiness(b => ({ ...b, businessAddress: v }))} error={errors.businessAddress} multiline placeholder="Full shop address with landmark" hint="Minimum 10 characters" locked={lockedBusiness.businessAddress} />
 
                 <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
                   onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.businessPincode = y; fieldCoords.current.businessState = y; }}>
-                  <Field label="Pincode" value={business.businessPincode} onChange={v => { if (/^\d*$/.test(v) && v.length <= 6) setBusiness(b => ({ ...b, businessPincode: v })); }} error={errors.businessPincode} placeholder="6-digit pincode" keyboardType="number-pad" maxLength={6} />
+                  <Field label="Pincode" value={business.businessPincode} onChange={v => { if (/^\d*$/.test(v) && v.length <= 6) setBusiness(b => ({ ...b, businessPincode: v })); }} error={errors.businessPincode} placeholder="6-digit pincode" keyboardType="number-pad" maxLength={6} locked={lockedBusiness.businessPincode} />
                   <View>
-                    <TouchableOpacity onPress={() => handleOpenState("business")} activeOpacity={0.8}>
+                    <TouchableOpacity onPress={() => { if (!lockedBusiness.businessState) handleOpenState("business"); }} activeOpacity={lockedBusiness.businessState ? 1 : 0.8}>
                       <View pointerEvents="none">
-                        <Field label="State" value={business.businessState} onChange={() => { }} error={errors.businessState} placeholder="Select State" />
+                        <Field label="State" value={business.businessState} onChange={() => { }} error={errors.businessState} placeholder="Select State" locked={lockedBusiness.businessState} />
                       </View>
                     </TouchableOpacity>
                   </View>
                 </TwoCol>
 
                 <View onLayout={e => fieldCoords.current.businessCity = e.nativeEvent.layout.y}>
-                  <TouchableOpacity onPress={() => handleOpenCity("business")} activeOpacity={0.8}>
+                  <TouchableOpacity onPress={() => { if (!lockedBusiness.businessCity) handleOpenCity("business"); }} activeOpacity={lockedBusiness.businessCity ? 1 : 0.8}>
                     <View pointerEvents="none">
-                      <Field label="City" value={business.businessCity} onChange={() => { }} error={errors.businessCity} placeholder="Select City" />
+                      <Field label="City" value={business.businessCity} onChange={() => { }} error={errors.businessCity} placeholder="Select City" locked={lockedBusiness.businessCity} />
                     </View>
                   </TouchableOpacity>
                 </View>
@@ -625,8 +805,8 @@ export default function Offlinekyc({ navigation, route }) {
 
                 <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
                   onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.panNumber = y; fieldCoords.current.aadharNumber = y; }}>
-                  <Field label="Personal PAN" value={business.panNumber} onChange={v => setBusiness(b => ({ ...b, panNumber: v.toUpperCase() }))} error={errors.panNumber} placeholder="ABCDE1234F" maxLength={10} hint="Format: AAAAA9999A" />
-                  <Field label="Aadhaar Number" value={business.aadharNumber} onChange={v => { if (/^\d*$/.test(v) && v.length <= 12) setBusiness(b => ({ ...b, aadharNumber: v })); }} error={errors.aadharNumber} placeholder="12-digit number" keyboardType="number-pad" maxLength={12} />
+                  <Field label="Personal PAN" value={business.panNumber} onChange={v => setBusiness(b => ({ ...b, panNumber: v.toUpperCase() }))} error={errors.panNumber} placeholder="ABCDE1234F" maxLength={10} hint="Format: AAAAA9999A" locked={lockedBusiness.panNumber} />
+                  <Field label="Aadhaar Number" value={business.aadharNumber} onChange={v => { if (/^\d*$/.test(v) && v.length <= 12) setBusiness(b => ({ ...b, aadharNumber: v })); }} error={errors.aadharNumber} placeholder="12-digit number" keyboardType="number-pad" maxLength={12} locked={lockedBusiness.aadharNumber} />
                 </TwoCol>
 
                 <Divider label="UPLOAD DOCUMENTS" />
@@ -645,7 +825,7 @@ export default function Offlinekyc({ navigation, route }) {
                       <View key={slot.key} style={[styles.docSlotWrap, isWide && { width: halfWidth }]}>
                         <TouchableOpacity
                           style={[styles.docBox, img && { borderStyle: "solid", borderColor: T.success, backgroundColor: T.success + "08" }, hasErr && { borderStyle: "solid", borderColor: T.error, backgroundColor: T.error + "06" }]}
-                          onPress={() => pickImage(slot.key)} activeOpacity={0.75}
+                          onPress={() => { if (!lockedFiles[slot.key]) pickImage(slot.key); }} activeOpacity={lockedFiles[slot.key] ? 1 : 0.75}
                         >
                           {img ? (
                             <>
@@ -655,12 +835,16 @@ export default function Offlinekyc({ navigation, route }) {
                                 <Text style={[styles.docDoneLabel, { fontSize: rs(9) }]}>UPLOADED</Text>
                                 <Text style={styles.docFileName} numberOfLines={1}>{img.name}</Text>
                               </LinearGradient>
-                              <TouchableOpacity style={[styles.docCornerBtn, { backgroundColor: T.accent, right: vs(30) }]} onPress={() => pickImage(slot.key)}>
-                                <Icon name="pencil" size={rs(10)} color="#FFF" />
-                              </TouchableOpacity>
-                              <TouchableOpacity style={[styles.docCornerBtn, { backgroundColor: T.error, right: vs(6) }]} onPress={() => removeFile(slot.key)}>
-                                <Icon name="close" size={rs(10)} color="#FFF" />
-                              </TouchableOpacity>
+                              {!lockedFiles[slot.key] && (
+                                <TouchableOpacity style={[styles.docCornerBtn, { backgroundColor: T.accent, right: vs(30) }]} onPress={() => pickImage(slot.key)}>
+                                  <Icon name="pencil" size={rs(10)} color="#FFF" />
+                                </TouchableOpacity>
+                              )}
+                              {!lockedFiles[slot.key] && (
+                                <TouchableOpacity style={[styles.docCornerBtn, { backgroundColor: T.error, right: vs(6) }]} onPress={() => removeFile(slot.key)}>
+                                  <Icon name="close" size={rs(10)} color="#FFF" />
+                                </TouchableOpacity>
+                              )}
                             </>
                           ) : (
                             <View style={styles.docEmptyContent}>
@@ -692,17 +876,18 @@ export default function Offlinekyc({ navigation, route }) {
                 <SectionBanner icon="bank-outline" title="Banking Details" sub="For settlements and commissions" />
 
                 {/* Bank name */}
-                <TouchableOpacity onPress={handleOpenBank} activeOpacity={0.8}>
+                <TouchableOpacity onPress={() => { if (!lockedBanking.bankName) handleOpenBank(); }} activeOpacity={lockedBanking.bankName ? 1 : 0.8}>
                   <View pointerEvents="none">
-                    <Field onLayout={e => fieldCoords.current.bankName = e.nativeEvent.layout.y} label="Bank Name" value={banking.bankName} error={errors.bankName} placeholder="Select your Bank" />
+                    <Field onLayout={e => fieldCoords.current.bankName = e.nativeEvent.layout.y} label="Bank Name" value={banking.bankName} error={errors.bankName} placeholder="Select your Bank" locked={lockedBanking.bankName} />
                   </View>
                 </TouchableOpacity>
 
                 {/* IFSC */}
                 <FieldWrap onLayout={e => fieldCoords.current.ifscCode = e.nativeEvent.layout.y} label="IFSC Code" required error={errors.ifscCode}>
-                  <View style={[styles.inputRow, errors.ifscCode && { borderColor: T.error, backgroundColor: T.error + "06" }]}>
-                    <TextInput style={[styles.input, { letterSpacing: 1 }]} value={banking.ifscCode}
-                      onChangeText={v => setBanking(b => ({ ...b, ifscCode: v.toUpperCase().replace(/[^A-Z0-9]/g, "") }))}
+                  <View style={[styles.inputRow, errors.ifscCode && { borderColor: T.error, backgroundColor: T.error + "06" }, lockedBanking.ifscCode && styles.inputRowLocked]}>
+                    <TextInput style={[styles.input, { letterSpacing: 1 }, lockedBanking.ifscCode && styles.inputLocked]} value={banking.ifscCode}
+                      onChangeText={lockedBanking.ifscCode ? undefined : (v => setBanking(b => ({ ...b, ifscCode: v.toUpperCase().replace(/[^A-Z0-9]/g, "") })))}
+                      editable={!lockedBanking.ifscCode}
                       placeholder="SBIN0001234" placeholderTextColor={T.textMuted} maxLength={11} autoCapitalize="characters" />
                   </View>
                 </FieldWrap>
@@ -711,17 +896,17 @@ export default function Offlinekyc({ navigation, route }) {
                     ACCOUNT NUMBER — with eye toggle
                 ══════════════════════════════════════════════════ */}
                 <FieldWrap onLayout={e => fieldCoords.current.accountNumber = e.nativeEvent.layout.y} label="Account Number" required error={errors.accountNumber}>
-                  <View style={[styles.inputRow, errors.accountNumber && { borderColor: T.error, backgroundColor: T.error + "06" }]}>
+                  <View style={[styles.inputRow, errors.accountNumber && { borderColor: T.error, backgroundColor: T.error + "06" }, lockedBanking.accountNumber && styles.inputRowLocked]}>
                     <TextInput
-                      style={[styles.input, { paddingRight: hs(44) }]}
+                      style={[styles.input, { paddingRight: hs(44) }, lockedBanking.accountNumber && styles.inputLocked]}
                       value={banking.accountNumber}
-                      onChangeText={v => {
+                      editable={!lockedBanking.accountNumber}
+                      onChangeText={lockedBanking.accountNumber ? undefined : (v => {
                         if (/^\d*$/.test(v) && v.length <= 18) {
                           setBanking(b => ({ ...b, accountNumber: v }));
-                          // Clear confirm if account changes so user must re-type
                           if (v !== banking.accountNumber) setBanking(b => ({ ...b, accountNumber: v, confirmAccountNumber: "" }));
                         }
-                      }}
+                      })}
                       placeholder="Enter account number" placeholderTextColor={T.textMuted}
                       keyboardType="number-pad" secureTextEntry={!showAcc} maxLength={18}
                     />
@@ -746,12 +931,13 @@ export default function Offlinekyc({ navigation, route }) {
                     accMatchStatus !== "idle" && { borderColor: accMatchColor, borderWidth: 1.5 },
                   ]}>
                     <TextInput
-                      style={[styles.input, { paddingRight: hs(44) }]}
+                      style={[styles.input, { paddingRight: hs(44) }, lockedBanking.accountNumber && styles.inputLocked]}
                       value={banking.confirmAccountNumber}
-                      onChangeText={v => {
+                      editable={!lockedBanking.accountNumber}
+                      onChangeText={lockedBanking.accountNumber ? undefined : (v => {
                         if (/^\d*$/.test(v) && v.length <= 18)
                           setBanking(b => ({ ...b, confirmAccountNumber: v }));
-                      }}
+                      })}
                       placeholder="Re-enter account number"
                       placeholderTextColor={T.textMuted}
                       keyboardType="number-pad"
@@ -780,8 +966,8 @@ export default function Offlinekyc({ navigation, route }) {
                 {/* Account holder + branch */}
                 <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
                   onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.accountHolderName = y; fieldCoords.current.branchName = y; }}>
-                  <Field label="Account Holder Name" value={banking.accountHolderName} onChange={v => setBanking(b => ({ ...b, accountHolderName: v }))} error={errors.accountHolderName} placeholder="As per bank records" maxLength={50} />
-                  <Field label="Branch Name" value={banking.branchName} onChange={v => setBanking(b => ({ ...b, branchName: v }))} error={errors.branchName} placeholder="e.g. Main Branch" />
+                  <Field label="Account Holder Name" value={banking.accountHolderName} onChange={v => setBanking(b => ({ ...b, accountHolderName: v }))} error={errors.accountHolderName} placeholder="As per bank records" maxLength={50} locked={lockedBanking.accountHolderName} />
+                  <Field label="Branch Name" value={banking.branchName} onChange={v => setBanking(b => ({ ...b, branchName: v }))} error={errors.branchName} placeholder="e.g. Main Branch" locked={lockedBanking.branchName} />
                 </TwoCol>
 
                 {/* Security banner */}
@@ -980,19 +1166,26 @@ function Field({ label, value, onChange, placeholder, error, keyboardType, multi
   );
 }
 
-function GenderSelect({ value, onChange, error, onLayout }) {
+function GenderSelect({ value, onChange, error, onLayout, locked = false }) {
   return (
     <View style={styles.fieldWrap} onLayout={onLayout}>
       <Text style={[styles.fieldLabel, { fontSize: rs(10) }]}>Gender <Text style={{ color: T.error }}>*</Text></Text>
       <View style={styles.genderRow}>
         {[{ label: "Male", icon: "gender-male" }, { label: "Female", icon: "gender-female" }, { label: "Other", icon: "gender-non-binary" }].map(opt => (
-          <TouchableOpacity key={opt.label} onPress={() => onChange(opt.label)}
-            style={[styles.genderBtn, value === opt.label && { backgroundColor: T.accent + "1C", borderColor: T.accent }]}>
-            <Icon name={opt.icon} size={rs(12)} color={value === opt.label ? T.accent : T.textMuted} />
-            <Text style={[styles.genderBtnText, { fontSize: rs(10), fontFamily: Fonts.Medium }, value === opt.label && { color: T.accent, fontFamily: Fonts.Bold }]}>{opt.label}</Text>
+          <TouchableOpacity key={opt.label} onPress={() => { if (!locked) onChange(opt.label); }} activeOpacity={locked ? 1 : 0.8}
+            style={[styles.genderBtn, value === opt.label && { backgroundColor: T.accent + "1C", borderColor: T.accent }, locked && value === opt.label && { borderStyle: "dashed", backgroundColor: T.lockedBg, borderColor: T.lockedBorder }]}>
+            <Icon name={opt.icon} size={rs(12)} color={value === opt.label ? (locked ? T.lockedText : T.accent) : T.textMuted} />
+            <Text style={[styles.genderBtnText, { fontSize: rs(10), fontFamily: Fonts.Medium }, value === opt.label && { color: locked ? T.lockedText : T.accent, fontFamily: Fonts.Bold }]}>{opt.label}</Text>
+            {locked && value === opt.label && <Icon name="lock-outline" size={rs(9)} color={T.accent} style={{ marginLeft: hs(2) }} />}
           </TouchableOpacity>
         ))}
       </View>
+      {locked && (
+        <View style={styles.lockedHintRow}>
+          <Icon name="shield-check-outline" size={rs(10)} color={T.success} />
+          <Text style={[styles.lockedHintTxt, { fontSize: rs(9) }]}>Verified from your account — cannot be changed</Text>
+        </View>
+      )}
       {!!error && <ErrLabel msg={error} />}
     </View>
   );
