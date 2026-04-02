@@ -333,7 +333,7 @@ const TxnCard = ({ txn, onPress }) => {
     <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
       <View style={[TC.card, { borderColor: cfg.bg }]}>
         {/* Left Status Bar */}
-        <View style={[TC.bar, { backgroundColor: cfg.color }]} />
+
 
         <View style={TC.inner}>
           {/* Decorative BG flourish */}
@@ -391,7 +391,7 @@ const TxnCard = ({ txn, onPress }) => {
 
 const TC = StyleSheet.create({
   card: {
-    backgroundColor: D.cardBg,
+    backgroundColor: "white",
     borderRadius: 16,
     marginBottom: 10,
     flexDirection: 'row',

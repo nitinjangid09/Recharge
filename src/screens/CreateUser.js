@@ -36,6 +36,7 @@ export default function CreateUser({ navigation }) {
     const [loading, setLoading] = useState(false);
 
     const [focusedInput, setFocusedInput] = useState(null);
+    const [errors, setErrors] = useState({});
 
     const [alertVisible, setAlertVisible] = useState(false);
     const [alertTitle, setAlertTitle] = useState("");
@@ -72,7 +73,7 @@ export default function CreateUser({ navigation }) {
                 const profileStr = await AsyncStorage.getItem("profile_data");
                 if (profileStr) {
                     const profile = JSON.parse(profileStr);
-                    const currentRoleId = profile?.roleId?._id;
+                    const currentRoleId = profile?.roleId?._id || profile?.roleId;
 
                     if (currentRoleId === "698ef04e14f23da91959cf45") { // MASTER DISTRIBUTOR
                         roles = roles.filter(r =>
@@ -87,6 +88,9 @@ export default function CreateUser({ navigation }) {
                             r._id === "698ef05714f23da91959cf48" || // DISTRIBUTOR
                             r._id === "698ef06914f23da91959cf4b"    // RETAILER
                         );
+                    } else {
+                        // For any other unexpected role, show no assignable roles
+                        roles = [];
                     }
                 }
             } catch (e) {
@@ -126,22 +130,21 @@ export default function CreateUser({ navigation }) {
         Keyboard.dismiss();
         animateButton();
 
-        if (!firstName || !lastName || !phone || !email || !role) {
-            triggerShake();
-            showAlert("Error", "Please fill all fields");
-            return;
-        }
-
-        if (phone.length !== 10) {
-            triggerShake();
-            showAlert("Error", "Please enter a valid 10-digit mobile number");
-            return;
-        }
+        let newErrors = {};
+        if (!firstName.trim()) newErrors.firstName = "First name is required";
+        if (!lastName.trim()) newErrors.lastName = "Last name is required";
+        if (!phone) newErrors.phone = "Mobile number is required";
+        else if (phone.length !== 10) newErrors.phone = "Mobile number must be 10 digits";
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email.trim())) {
+        if (!email) newErrors.email = "Email address is required";
+        else if (!emailRegex.test(email.trim())) newErrors.email = "Enter a valid email address";
+
+        if (!role) newErrors.role = "Role is required";
+
+        if (Object.keys(newErrors).length > 0) {
             triggerShake();
-            showAlert("Error", "Please enter a valid email address");
+            setErrors(newErrors);
             return;
         }
 
@@ -188,6 +191,7 @@ export default function CreateUser({ navigation }) {
 
     const renderInput = (label, icon, value, setValue, keyName, keyboardType = 'default', extraProps = {}) => {
         const isFocused = focusedInput === keyName;
+        const error = errors[keyName];
         return (
             <View style={styles.inputContainer}>
                 <Text style={styles.label}>{label}</Text>
@@ -195,19 +199,22 @@ export default function CreateUser({ navigation }) {
                     style={[
                         styles.inputBox,
                         {
-                            borderColor: getBorderColor(isFocused),
+                            borderColor: error ? "#EF4444" : getBorderColor(isFocused),
                             transform: [{ scale: getScale(isFocused) }],
                             backgroundColor: getBgColor(isFocused)
                         }
                     ]}
                 >
-                    <MaterialCommunityIcons name={icon} size={20} color={isFocused ? Colors.icon_primary : Colors.icon_secondary} style={styles.inputIcon} />
+                    <MaterialCommunityIcons name={icon} size={20} color={error ? "#EF4444" : isFocused ? Colors.icon_primary : Colors.icon_secondary} style={styles.inputIcon} />
                     <TextInput
                         placeholder={`Enter ${label}`}
                         placeholderTextColor={Colors.text_placeholder}
                         keyboardType={keyboardType}
                         value={value}
-                        onChangeText={setValue}
+                        onChangeText={(val) => {
+                            setValue(val);
+                            if (errors[keyName]) setErrors(prev => ({ ...prev, [keyName]: null }));
+                        }}
                         onFocus={() => setFocusedInput(keyName)}
                         onBlur={() => setFocusedInput(null)}
                         style={styles.input}
@@ -215,6 +222,7 @@ export default function CreateUser({ navigation }) {
                         {...extraProps}
                     />
                 </Animated.View>
+                {!!error && <Text style={styles.errorTextWrap}>{error}</Text>}
             </View>
         );
     };
@@ -253,10 +261,10 @@ export default function CreateUser({ navigation }) {
                         <Text style={styles.welcome}>New User</Text>
                         <Text style={styles.subTitle}>Fill details to add a new member</Text>
 
-                        {renderInput("First Name", "account", firstName, setFirstName, "firstName")}
-                        {renderInput("Last Name", "account-outline", lastName, setLastName, "lastName")}
+                        {renderInput("First Name", "account", firstName, (t) => setFirstName(t.replace(/[^a-zA-Z\s]/g, "")), "firstName")}
+                        {renderInput("Last Name", "account-outline", lastName, (t) => setLastName(t.replace(/[^a-zA-Z\s]/g, "")), "lastName")}
                         {renderInput("Mobile Number", "phone", phone, (text) => setPhone(text.replace(/[^0-9]/g, "")), "phone", "phone-pad", { maxLength: 10 })}
-                        {renderInput("Email Address", "email", email, setEmail, "email", "email-address")}
+                        {renderInput("Email Address", "email", email, (t) => setEmail(t.replace(/\s/g, "")), "email", "email-address")}
 
                         <View style={[styles.inputContainer, { zIndex: 10 }]}>
                             <Text style={styles.label}>Select Role</Text>
@@ -268,20 +276,21 @@ export default function CreateUser({ navigation }) {
                                         justifyContent: 'space-between',
                                         paddingHorizontal: 16 * scale,
                                         backgroundColor: roleOpen ? Colors.white : Colors.input_bg,
-                                        borderColor: roleOpen ? Colors.input_border_focus : Colors.input_border
+                                        borderColor: errors.role ? "#EF4444" : roleOpen ? Colors.input_border_focus : Colors.input_border
                                     }
                                 ]}
-                                onPress={() => setRoleOpen(!roleOpen)}
+                                onPress={() => { setRoleOpen(!roleOpen); if (errors.role) setErrors(prev => ({ ...prev, role: null })); }}
                                 activeOpacity={0.85}
                             >
                                 <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                                    <MaterialCommunityIcons name="account-group-outline" size={20} color={role ? Colors.icon_primary : Colors.icon_secondary} style={styles.inputIcon} />
+                                    <MaterialCommunityIcons name="account-group-outline" size={20} color={errors.role ? "#EF4444" : role ? Colors.icon_primary : Colors.icon_secondary} style={styles.inputIcon} />
                                     <Text style={[styles.input, { color: role ? Colors.black : Colors.text_placeholder }]}>
                                         {rolesList.find(r => r.value === role)?.label || "Select Role..."}
                                     </Text>
                                 </View>
                                 <MaterialCommunityIcons name="chevron-down" size={20} color={Colors.icon_secondary} />
                             </TouchableOpacity>
+                            {!!errors.role && <Text style={styles.errorTextWrap}>{errors.role}</Text>}
 
                             {roleOpen && (
                                 <View style={styles.customDropContainer}>
@@ -359,6 +368,7 @@ const styles = StyleSheet.create({
     subTitle: { fontSize: 13 * scale, fontFamily: Fonts.Medium, color: Colors.text_secondary, textAlign: "center", marginTop: 6 * scale, marginBottom: 20 * scale },
     inputContainer: { marginBottom: 16 * scale },
     label: { fontSize: 13 * scale, fontFamily: Fonts.Bold, color: Colors.text_primary, marginBottom: 6 * scale, marginLeft: 4 * scale },
+    errorTextWrap: { color: "#EF4444", fontSize: 11 * scale, fontFamily: Fonts.Medium, marginTop: 4 * scale, marginLeft: 16 * scale },
     inputBox: {
         flexDirection: "row", alignItems: "center", borderRadius: 30 * scale, height: 50 * scale,
         paddingHorizontal: 16 * scale, borderWidth: 1

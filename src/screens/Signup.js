@@ -231,10 +231,10 @@ export default function Signup({ navigation }) {
                             <Text style={styles.label}>Select Role</Text>
                             <TouchableOpacity
                                 style={[
-                                    styles.inputBox, 
-                                    { 
-                                        height: 50 * scale, 
-                                        justifyContent: 'space-between', 
+                                    styles.inputBox,
+                                    {
+                                        height: 50 * scale,
+                                        justifyContent: 'space-between',
                                         paddingHorizontal: 16 * scale,
                                         backgroundColor: roleOpen ? Colors.white : Colors.input_bg,
                                         borderColor: roleOpen ? Colors.input_border_focus : Colors.input_border

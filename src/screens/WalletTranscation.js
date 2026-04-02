@@ -839,8 +839,7 @@ const TransactionCard = ({ item, index, onPressDetail }) => {
 
   return (
     <View style={TC.card}>
-      {/* Coloured left bar */}
-      <View style={[TC.leftBar, { backgroundColor: barColor }]} />
+
       <View style={TC.body}>
         <View style={TC.row1}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>

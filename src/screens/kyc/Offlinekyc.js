@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
@@ -13,7 +13,8 @@ import Fonts from "../../constants/Fonts";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "../../constants/Colors";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { launchCamera, launchImageLibrary } from "react-native-image-picker";
+import ImagePicker from "react-native-image-crop-picker";
+import RNFS from "react-native-fs";
 
 // ─── Responsive helpers ───────────────────────────────────────────────────
 const BASE_WIDTH = 375;
@@ -24,6 +25,11 @@ const rs = (size) => {
 };
 const hs = (size) => Math.round(PixelRatio.roundToNearestPixel(size * (SCREEN_W / BASE_WIDTH)));
 const vs = (size) => Math.round(PixelRatio.roundToNearestPixel(size * (Math.min(SCREEN_H, 900) / 812)));
+
+// ─── Image size limits (bytes) ────────────────────────────────────────────
+const MIN_SIZE_BYTES = 10 * 1024;   // 10 KB
+const MAX_SIZE_BYTES = 200 * 1024;  // 200 KB
+const SIZE_LABEL = "10 KB – 200 KB";
 
 // ─── Design tokens ────────────────────────────────────────────────────────
 const T = {
@@ -61,7 +67,7 @@ const STEPS = [
   { key: "banking", label: "Banking", icon: "bank-outline" },
 ];
 
-// ─── Validators ───────────────────────────────────────────────────────────
+// ─── Field validators ─────────────────────────────────────────────────────
 const RX = {
   email: /^\S+@\S+\.\S+$/,
   phone: /^[6-9]\d{9}$/,
@@ -74,6 +80,119 @@ const RX = {
   accNum: /^[0-9]{9,20}$/,
   accountHolderName: /^[A-Za-z\s.]+$/,
   bankName: /^[A-Za-z\s.&]+$/,
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  IMAGE VALIDATION HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Returns the actual file size in bytes for an image returned by
+ * react-native-image-crop-picker.
+ *
+ * Approach:
+ *   1. image.size  — accurate on iOS and Android gallery; may be 0 on
+ *                    Android camera results → reject if 0/null.
+ *   2. RNFS.stat() — reads from disk; reliable on all platforms.
+ *   3. null        — both failed; caller should allow the file through.
+ */
+const getFileSizeBytes = async (image) => {
+  // ── Primary: crop-picker's size field ────────────────────────────────
+  if (typeof image.size === "number" && image.size > 0) {
+    return image.size;
+  }
+
+  // ── Fallback: RNFS disk stat ──────────────────────────────────────────
+  try {
+    // Strip "file://" prefix that RNFS doesn't accept on Android
+    const cleanPath = (image.path ?? "").replace(/^file:\/\//, "");
+    if (!cleanPath) throw new Error("No path");
+    const stat = await RNFS.stat(cleanPath);
+    if (typeof stat.size === "number" && stat.size > 0) return stat.size;
+  } catch (_) {
+    /* RNFS unavailable or path unreadable — fall through */
+  }
+
+  return null; // indeterminate
+};
+
+/**
+ * Shows a clear, actionable message when the image is out of range.
+ * Returns true → valid (or indeterminate → allow).
+ * Returns false → invalid (message already shown to user).
+ */
+const validateImageSize = async (image) => {
+  const sizeBytes = await getFileSizeBytes(image);
+
+  if (sizeBytes === null) {
+    // Can't measure → allow rather than falsely blocking the user
+    console.warn("[KYC] Image size indeterminate — skipping size check");
+    return true;
+  }
+
+  const sizeKB = (sizeBytes / 1024).toFixed(1);
+
+  if (sizeBytes < MIN_SIZE_BYTES) {
+    const msg = `Image too small (${sizeKB} KB).\nMinimum allowed: 10 KB.\nPlease choose a clearer, higher-quality photo.`;
+    if (Platform.OS === "android") {
+      ToastAndroid.showWithGravityAndOffset(msg, ToastAndroid.LONG, ToastAndroid.BOTTOM, 0, 80);
+    } else {
+      Alert.alert("Image Too Small", msg, [{ text: "OK" }]);
+    }
+    return false;
+  }
+
+  if (sizeBytes > MAX_SIZE_BYTES) {
+    const msg = `Image too large (${sizeKB} KB).\nMaximum allowed: 200 KB.\nPlease select a more compressed photo.`;
+    if (Platform.OS === "android") {
+      ToastAndroid.showWithGravityAndOffset(msg, ToastAndroid.LONG, ToastAndroid.BOTTOM, 0, 80);
+    } else {
+      Alert.alert("Image Too Large", msg, [{ text: "OK" }]);
+    }
+    return false;
+  }
+
+  return true; // ✓ within 10 KB – 200 KB
+};
+
+/**
+ * Opens camera or gallery, validates size (10 KB – 200 KB), and returns
+ * the image object or null on cancel / rejection.
+ *
+ * compressImageQuality: 0.75 keeps most phone photos well under 200 KB
+ * while preserving enough detail for document OCR.
+ */
+export const pickAndValidateImage = async (sourceType) => {
+  try {
+    const pickerOptions = {
+      mediaType: "photo",
+      compressImageQuality: 0.75,
+      includeBase64: false,
+      cropping: false,
+    };
+
+    const image =
+      sourceType === "camera"
+        ? await ImagePicker.openCamera(pickerOptions)
+        : await ImagePicker.openPicker(pickerOptions);
+
+    const isValid = await validateImageSize(image);
+    if (!isValid) return null;
+
+    return image; // ✓ valid
+
+  } catch (err) {
+    if (err?.code !== "E_PICKER_CANCELLED") {
+      const msg = err?.message || "Could not open image. Please try again.";
+      console.warn("[KYC] pickAndValidateImage error:", msg);
+      if (Platform.OS === "android") {
+        ToastAndroid.showWithGravityAndOffset(msg, ToastAndroid.LONG, ToastAndroid.BOTTOM, 0, 80);
+      } else {
+        Alert.alert("Image Error", msg, [{ text: "OK" }]);
+      }
+    }
+    return null;
+  }
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -99,7 +218,6 @@ export default function Offlinekyc({ navigation, route }) {
   const [showFailModal, setShowFailModal] = useState(false);
   const [failMsg, setFailMsg] = useState("");
 
-  // State / City / Bank modals
   const [stateList, setStateList] = useState([]);
   const [showStateModal, setShowStateModal] = useState(false);
   const [stateTarget, setStateTarget] = useState(null);
@@ -157,11 +275,7 @@ export default function Offlinekyc({ navigation, route }) {
     ifscCode: false, branchName: false,
   });
 
-  // ── Account match status (real-time) ──────────────────────────────────
-  // "idle"    — confirm field is empty
-  // "typing"  — confirm field has input but doesn't match yet (user still typing)
-  // "match"   — both numbers are identical and non-empty
-  // "mismatch"— confirm field has input but differs from accountNumber
+  // ── Account match ──────────────────────────────────────────────────────
   const accMatchStatus = (() => {
     const acc = banking.accountNumber.trim();
     const conf = banking.confirmAccountNumber.trim();
@@ -169,19 +283,10 @@ export default function Offlinekyc({ navigation, route }) {
     if (acc === conf) return "match";
     return "mismatch";
   })();
+  const accMatchColor = { idle: T.border, match: T.success, mismatch: T.error }[accMatchStatus];
+  const accMatchIcon = { match: "check-circle", mismatch: "close-circle" }[accMatchStatus];
 
-  const accMatchColor = {
-    idle: T.border,
-    match: T.success,
-    mismatch: T.error,
-  }[accMatchStatus];
-
-  const accMatchIcon = {
-    match: "check-circle",
-    mismatch: "close-circle",
-  }[accMatchStatus];
-
-  // ── Pre-fill from route or AsyncStorage ───────────────────────────────
+  // ── Pre-fill from route / AsyncStorage ────────────────────────────────
   useEffect(() => {
     const u = route?.params?.user;
     if (u) {
@@ -218,7 +323,7 @@ export default function Offlinekyc({ navigation, route }) {
 
   useEffect(() => { handleFetchStates(); }, []);
 
-  // ── Pre-fill from submitted KYC (re-KYC flow) ─────────────────────────
+  // ── Pre-fill from submitted KYC (re-KYC) ─────────────────────────────
   useEffect(() => {
     (async () => {
       try {
@@ -228,39 +333,21 @@ export default function Offlinekyc({ navigation, route }) {
         if (!res?.success || !res?.data) return;
         const d = res.data;
 
-        // ── Personal fields ──
-        const dobFormatted = d.dob
-          ? (() => {
-            const dt = new Date(d.dob);
-            if (isNaN(dt)) return "";
-            const dd = String(dt.getDate()).padStart(2, "0");
-            const mm = String(dt.getMonth() + 1).padStart(2, "0");
-            const yyyy = dt.getFullYear();
-            return `${dd}-${mm}-${yyyy}`;
-          })()
-          : "";
+        const dobFormatted = d.dob ? (() => {
+          const dt = new Date(d.dob);
+          if (isNaN(dt)) return "";
+          return `${String(dt.getDate()).padStart(2, "0")}-${String(dt.getMonth() + 1).padStart(2, "0")}-${dt.getFullYear()}`;
+        })() : "";
 
-        // ── Status flags ──
         const personalApproved = d.personalDetailStatus === "approved";
         const businessApproved = d.businessDetailStatus === "approved";
         const identityApproved = d.identityDetailStatus === "approved";
         const bankApproved = d.bankDetailStatus === "approved";
 
-        // ── File builder helper ──
         const IMG_BASE = "http://192.168.1.16:8000";
-        const buildFile = (relPath, fallbackName) => {
-          if (!relPath) return null;
-          return {
-            uri: `${IMG_BASE}${relPath}`,
-            name: relPath.split("/").pop() || fallbackName,
-            type: "image/jpeg",
-          };
-        };
+        const buildFile = (rel, name) =>
+          rel ? { uri: `${IMG_BASE}${rel}`, name: rel.split("/").pop() || name, type: "image/jpeg" } : null;
 
-        // ════════════════════════════════════════════════════════════════
-        // 1. PERSONAL SECTION
-        //    approved → fill + lock   |   rejected → blank + editable
-        // ════════════════════════════════════════════════════════════════
         if (personalApproved) {
           setPersonal(p => ({
             ...p,
@@ -277,27 +364,16 @@ export default function Offlinekyc({ navigation, route }) {
             personalPincode: d.personalAddress?.pincode || p.personalPincode,
           }));
           setLockedPersonal({
-            firstName: !!d.firstName,
-            lastName: !!d.lastName,
-            fatherName: !!d.fatherName,
-            gender: !!d.gender,
-            email: !!d.email,
-            phone: !!d.phone,
-            dob: !!d.dob,
-            personalAddress: !!d.personalAddress?.address,
+            firstName: !!d.firstName, lastName: !!d.lastName,
+            fatherName: !!d.fatherName, gender: !!d.gender,
+            email: !!d.email, phone: !!d.phone,
+            dob: !!d.dob, personalAddress: !!d.personalAddress?.address,
             personalCity: !!d.personalAddress?.city,
             personalState: !!d.personalAddress?.state,
             personalPincode: !!d.personalAddress?.pincode,
           });
         }
-        // rejected → fields stay blank & editable (defaults)
 
-        // ════════════════════════════════════════════════════════════════
-        // 2. BUSINESS SECTION (shopName, address, businessPan, gst)
-        //    approved → fill + lock   |   rejected → blank + editable
-        //    NOTE: panNumber, aadharNumber & their files are controlled
-        //          separately by identityDetailStatus (see #3 below)
-        // ════════════════════════════════════════════════════════════════
         if (businessApproved) {
           setBusiness(b => ({
             ...b,
@@ -311,37 +387,25 @@ export default function Offlinekyc({ navigation, route }) {
           }));
           setLockedBusiness(lb => ({
             ...lb,
-            shopName: !!d.shopName,
-            businessPanNumber: !!d.businessPanNumber,
-            gstNumber: !!d.gstNumber,
-            businessAddress: !!d.businessAddress?.address,
+            shopName: !!d.shopName, businessPanNumber: !!d.businessPanNumber,
+            gstNumber: !!d.gstNumber, businessAddress: !!d.businessAddress?.address,
             businessCity: !!d.businessAddress?.city,
             businessState: !!d.businessAddress?.state,
             businessPincode: !!d.businessAddress?.pincode,
           }));
-          // shopImage is a business-level doc
           if (d.shopImageUrl) {
             setFiles(f => ({ ...f, shopImage: buildFile(d.shopImageUrl, "shopImage.jpg") }));
             setLockedFiles(lf => ({ ...lf, shopImage: true }));
           }
         }
-        // rejected → business fields stay blank & editable (defaults)
 
-        // ════════════════════════════════════════════════════════════════
-        // 3. IDENTITY SECTION (panNumber, aadharNumber + their images)
-        //    approved → fill + lock   |   rejected → blank + editable
-        // ════════════════════════════════════════════════════════════════
         if (identityApproved) {
           setBusiness(b => ({
             ...b,
             panNumber: d.panNumber || b.panNumber,
             aadharNumber: d.aadharNumber || b.aadharNumber,
           }));
-          setLockedBusiness(lb => ({
-            ...lb,
-            panNumber: !!d.panNumber,
-            aadharNumber: !!d.aadharNumber,
-          }));
+          setLockedBusiness(lb => ({ ...lb, panNumber: !!d.panNumber, aadharNumber: !!d.aadharNumber }));
           if (d.aadharFileUrl) {
             setFiles(f => ({ ...f, aadharFile: buildFile(d.aadharFileUrl, "aadharFile.jpg") }));
             setLockedFiles(lf => ({ ...lf, aadharFile: true }));
@@ -351,12 +415,7 @@ export default function Offlinekyc({ navigation, route }) {
             setLockedFiles(lf => ({ ...lf, panFile: true }));
           }
         }
-        // rejected → panNumber, aadharNumber, files stay blank & editable
 
-        // ════════════════════════════════════════════════════════════════
-        // 4. BANKING SECTION
-        //    approved → fill + lock   |   rejected → blank + editable
-        // ════════════════════════════════════════════════════════════════
         if (bankApproved) {
           setBanking(bk => ({
             ...bk,
@@ -368,23 +427,12 @@ export default function Offlinekyc({ navigation, route }) {
             branchName: d.branchName || bk.branchName,
           }));
           setLockedBanking({
-            accountHolderName: !!d.accountHolderName,
-            bankName: !!d.bankName,
-            accountNumber: !!d.accountNumber,
-            ifscCode: !!d.ifscCode,
+            accountHolderName: !!d.accountHolderName, bankName: !!d.bankName,
+            accountNumber: !!d.accountNumber, ifscCode: !!d.ifscCode,
             branchName: !!d.branchName,
           });
         }
-        // rejected → banking fields stay blank & editable
-
-        console.log("[KYC] Pre-filled with status-based locking →",
-          `personal:${d.personalDetailStatus}`,
-          `business:${d.businessDetailStatus}`,
-          `identity:${d.identityDetailStatus}`,
-          `bank:${d.bankDetailStatus}`);
-      } catch (err) {
-        console.log("[KYC] fetchSubmittedKyc error:", err);
-      }
+      } catch (err) { console.log("[KYC] fetchSubmittedKyc error:", err); }
     })();
   }, []);
 
@@ -451,12 +499,10 @@ export default function Offlinekyc({ navigation, route }) {
     if (bankList.length === 0) handleFetchBanks();
   };
 
-  // ─── Scroll to first error ────────────────────────────────────────────
   const scrollToError = (errs) => {
     const firstKey = Object.keys(errs)[0];
-    if (firstKey && fieldCoords.current[firstKey] !== undefined) {
+    if (firstKey && fieldCoords.current[firstKey] !== undefined)
       scrollViewRef.current?.scrollTo({ y: Math.max(0, fieldCoords.current[firstKey] - 20), animated: true });
-    }
   };
 
   // ─── Validators ───────────────────────────────────────────────────────
@@ -508,15 +554,15 @@ export default function Offlinekyc({ navigation, route }) {
     if (!banking.accountHolderName.trim() || !RX.accountHolderName.test(banking.accountHolderName.trim())) e.accountHolderName = "Letters only, min 2 chars";
     if (!banking.bankName.trim() || !RX.bankName.test(banking.bankName.trim())) e.bankName = "Required";
     if (!RX.accNum.test(banking.accountNumber.trim())) e.accountNumber = "9–20 digits";
-    if (banking.accountNumber !== banking.confirmAccountNumber) e.confirmAccountNumber = "Account numbers don't match";
     if (!banking.confirmAccountNumber.trim()) e.confirmAccountNumber = "Please confirm account number";
+    else if (banking.accountNumber !== banking.confirmAccountNumber) e.confirmAccountNumber = "Account numbers don't match";
     if (!RX.ifsc.test(banking.ifscCode.trim())) e.ifscCode = "Invalid IFSC code";
     if (!banking.branchName.trim()) e.branchName = "Required";
     setErrors(e);
     return e;
   };
 
-  // ─── Step navigation ──────────────────────────────────────────────────
+  // ─── Step nav ─────────────────────────────────────────────────────────
   const slide = (dir, cb) => {
     Animated.timing(slideAnim, { toValue: dir === "fwd" ? -width : width, duration: 240, useNativeDriver: true })
       .start(() => {
@@ -534,28 +580,42 @@ export default function Offlinekyc({ navigation, route }) {
   };
   const handlePrev = () => { setErrors({}); slide("bwd", () => setStep(p => p - 1)); };
 
-  // ─── Image picker ─────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
+  // IMAGE PICKER  (10 KB – 200 KB enforced inside pickAndValidateImage)
+  // ─────────────────────────────────────────────────────────────────────────
   const pickImage = (fileKey) => {
     Alert.alert("Upload Photo", "Choose source", [
       {
-        text: "📷 Camera", onPress: () =>
-          launchCamera({ mediaType: "photo", quality: 0.85, saveToPhotos: false }, (r) => {
-            if (!r.didCancel && !r.errorCode && r.assets?.[0]) {
-              const a = r.assets[0];
-              setFiles(f => ({ ...f, [fileKey]: { uri: a.uri, name: a.fileName || `${fileKey}.jpg`, type: a.type || "image/jpeg" } }));
-              setErrors(e => ({ ...e, [fileKey]: undefined }));
-            }
-          }),
+        text: "📷 Camera",
+        onPress: async () => {
+          const image = await pickAndValidateImage("camera");
+          if (!image) return;
+          setFiles(f => ({
+            ...f,
+            [fileKey]: {
+              uri: image.path,
+              name: image.filename || image.path.split("/").pop() || `${fileKey}_${Date.now()}.jpg`,
+              type: image.mime || "image/jpeg",
+            },
+          }));
+          setErrors(e => ({ ...e, [fileKey]: undefined }));
+        },
       },
       {
-        text: "🖼️ Gallery", onPress: () =>
-          launchImageLibrary({ mediaType: "photo", quality: 0.85 }, (r) => {
-            if (!r.didCancel && !r.errorCode && r.assets?.[0]) {
-              const a = r.assets[0];
-              setFiles(f => ({ ...f, [fileKey]: { uri: a.uri, name: a.fileName || `${fileKey}.jpg`, type: a.type || "image/jpeg" } }));
-              setErrors(e => ({ ...e, [fileKey]: undefined }));
-            }
-          }),
+        text: "🖼️ Gallery",
+        onPress: async () => {
+          const image = await pickAndValidateImage("gallery");
+          if (!image) return;
+          setFiles(f => ({
+            ...f,
+            [fileKey]: {
+              uri: image.path,
+              name: image.filename || image.path.split("/").pop() || `${fileKey}_${Date.now()}.jpg`,
+              type: image.mime || "image/jpeg",
+            },
+          }));
+          setErrors(e => ({ ...e, [fileKey]: undefined }));
+        },
       },
       { text: "Cancel", style: "cancel" },
     ]);
@@ -570,58 +630,39 @@ export default function Offlinekyc({ navigation, route }) {
     setLoading(true);
     const result = await submitOfflineKyc({ personal, business, files, banking });
     setLoading(false);
+
     if (!result) { setFailMsg("No response. Please try again."); setShowFailModal(true); return; }
+
     const ok = result.success === true || result.status === "success" || result.status === 1 || result.statusCode === 200;
-    if (ok) {
-      setShowSuccessModal(true);
-    } else {
-      let finalErrors = {};
-      let bulletErrors = "";
+    if (ok) { setShowSuccessModal(true); return; }
 
-      if (result.errors && Array.isArray(result.errors)) {
-        // Handle array of error strings
-        bulletErrors = result.errors.join("\n• ");
-      } else if (result.errors && typeof result.errors === "object") {
-        // Handle field-level object errors
-        finalErrors = result.errors;
-      } else if (result.missingFields && Array.isArray(result.missingFields)) {
-        // Map missing fields back to the UI
-        result.missingFields.forEach(f => {
-          finalErrors[f] = "Required";
-        });
-      }
-
-      if (Object.keys(finalErrors).length > 0) {
-        setErrors(finalErrors);
-        // Determine which step has the first error
-        const firstErrField = Object.keys(finalErrors)[0];
-        const s0 = ["firstName", "lastName", "fatherName", "gender", "email", "phone", "dob", "personalAddress", "personalCity", "personalState", "personalPincode"];
-        const s1 = ["shopName", "businessAddress", "businessPincode", "businessState", "businessCity", "panNumber", "aadharNumber", "aadharFile", "panFile", "shopImage"];
-
-        let targetStep = 2;
-        if (s0.includes(firstErrField)) targetStep = 0;
-        else if (s1.includes(firstErrField)) targetStep = 1;
-
-        if (targetStep !== step) {
-          setStep(targetStep);
-          // Small delay to allow step transition before scrolling
-          setTimeout(() => scrollToError(finalErrors), 300);
-        } else {
-          scrollToError(finalErrors);
-        }
-      }
-
-      // Build a comprehensive, readable failure message
-      let displayMsg = result.message || "Check your details and try again.";
-      if (bulletErrors) {
-        displayMsg = `${displayMsg}\n\nErrors:\n• ${bulletErrors}`;
-      } else if (result.missingFields && Array.isArray(result.missingFields) && result.missingFields.length > 0) {
-        displayMsg = `${displayMsg}\n\nRequired fields missing:\n• ${result.missingFields.join("\n• ")}`;
-      }
-
-      setFailMsg(displayMsg);
-      setShowFailModal(true);
+    let finalErrors = {};
+    let bulletErrors = "";
+    if (result.errors && Array.isArray(result.errors)) {
+      bulletErrors = result.errors.join("\n• ");
+    } else if (result.errors && typeof result.errors === "object") {
+      finalErrors = result.errors;
+    } else if (result.missingFields && Array.isArray(result.missingFields)) {
+      result.missingFields.forEach(f => { finalErrors[f] = "Required"; });
     }
+
+    if (Object.keys(finalErrors).length > 0) {
+      setErrors(finalErrors);
+      const firstErrField = Object.keys(finalErrors)[0];
+      const s0 = ["firstName", "lastName", "fatherName", "gender", "email", "phone", "dob", "personalAddress", "personalCity", "personalState", "personalPincode"];
+      const s1 = ["shopName", "businessAddress", "businessPincode", "businessState", "businessCity", "panNumber", "aadharNumber", "aadharFile", "panFile", "shopImage"];
+      let targetStep = 2;
+      if (s0.includes(firstErrField)) targetStep = 0;
+      else if (s1.includes(firstErrField)) targetStep = 1;
+      if (targetStep !== step) { setStep(targetStep); setTimeout(() => scrollToError(finalErrors), 300); }
+      else scrollToError(finalErrors);
+    }
+
+    let displayMsg = result.message || "Check your details and try again.";
+    if (bulletErrors) displayMsg += `\n\nErrors:\n• ${bulletErrors}`;
+    else if (result.missingFields?.length > 0) displayMsg += `\n\nRequired fields missing:\n• ${result.missingFields.join("\n• ")}`;
+    setFailMsg(displayMsg);
+    setShowFailModal(true);
   };
 
   // ─────────────────────────────────────────────────────────────────────
@@ -690,7 +731,7 @@ export default function Offlinekyc({ navigation, route }) {
             keyboardShouldPersistTaps="handled"
           >
 
-            {/* ════ STEP 1 : PERSONAL ═══════════════════════════════════ */}
+            {/* ══ STEP 1 : PERSONAL ════════════════════════════════════ */}
             {step === 0 && (
               <View style={[styles.card, { width: isWide ? contentWidth : "100%" }]}>
                 <SectionBanner icon="account-circle-outline" title="Personal Details" sub="Your identity & contact information" />
@@ -766,7 +807,7 @@ export default function Offlinekyc({ navigation, route }) {
               </View>
             )}
 
-            {/* ════ STEP 2 : BUSINESS ═══════════════════════════════════ */}
+            {/* ══ STEP 2 : BUSINESS ════════════════════════════════════ */}
             {step === 1 && (
               <View style={[styles.card, { width: isWide ? contentWidth : "100%" }]}>
                 <SectionBanner icon="store-outline" title="Business Information" sub="Shop details & owner identification" />
@@ -810,8 +851,20 @@ export default function Offlinekyc({ navigation, route }) {
                 </TwoCol>
 
                 <Divider label="UPLOAD DOCUMENTS" />
-                <Text style={[styles.docHintText, { fontSize: rs(11) }]}>Clear, well-lit photos only — JPG or PNG</Text>
 
+                {/* ── Size hint ───────────────────────────────────────── */}
+                <View style={styles.sizeHintBanner}>
+                  <Icon name="information-outline" size={rs(13)} color={T.accent} />
+                  <Text style={[styles.sizeHintText, { fontSize: rs(11) }]}>
+                    Image must be between{" "}
+                    <Text style={{ fontFamily: Fonts.Bold, color: T.text }}>10 KB</Text>
+                    {" "}and{" "}
+                    <Text style={{ fontFamily: Fonts.Bold, color: T.text }}>200 KB</Text>.
+                    {" "}Clear, well-lit JPG or PNG only.
+                  </Text>
+                </View>
+
+                {/* ── Document slots ──────────────────────────────────── */}
                 <View style={[styles.docGrid, isWide && { flexDirection: "row", flexWrap: "wrap", gap: colGap }]}
                   onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.aadharFile = y; fieldCoords.current.panFile = y; fieldCoords.current.shopImage = y; }}>
                   {[
@@ -824,8 +877,13 @@ export default function Offlinekyc({ navigation, route }) {
                     return (
                       <View key={slot.key} style={[styles.docSlotWrap, isWide && { width: halfWidth }]}>
                         <TouchableOpacity
-                          style={[styles.docBox, img && { borderStyle: "solid", borderColor: T.success, backgroundColor: T.success + "08" }, hasErr && { borderStyle: "solid", borderColor: T.error, backgroundColor: T.error + "06" }]}
-                          onPress={() => { if (!lockedFiles[slot.key]) pickImage(slot.key); }} activeOpacity={lockedFiles[slot.key] ? 1 : 0.75}
+                          style={[
+                            styles.docBox,
+                            img && { borderStyle: "solid", borderColor: T.success, backgroundColor: T.success + "08" },
+                            hasErr && { borderStyle: "solid", borderColor: T.error, backgroundColor: T.error + "06" },
+                          ]}
+                          onPress={() => { if (!lockedFiles[slot.key]) pickImage(slot.key); }}
+                          activeOpacity={lockedFiles[slot.key] ? 1 : 0.75}
                         >
                           {img ? (
                             <>
@@ -854,6 +912,7 @@ export default function Offlinekyc({ navigation, route }) {
                               <View style={{ flex: 1 }}>
                                 <Text style={[styles.docSlotLabel, { fontFamily: Fonts.Bold, fontSize: rs(12) }]}>{slot.label}</Text>
                                 <Text style={[styles.docSlotSub, { fontSize: rs(10) }]}>{slot.sub}</Text>
+                                <Text style={[styles.docSizeLabel, { fontSize: rs(9) }]}>{SIZE_LABEL}</Text>
                               </View>
                               <View style={[styles.docUploadTag, { backgroundColor: T.accent + "18", borderColor: T.accent + "40" }]}>
                                 <Icon name="camera-plus-outline" size={rs(11)} color={T.accent} />
@@ -870,42 +929,35 @@ export default function Offlinekyc({ navigation, route }) {
               </View>
             )}
 
-            {/* ════ STEP 3 : BANKING ════════════════════════════════════ */}
+            {/* ══ STEP 3 : BANKING ═════════════════════════════════════ */}
             {step === 2 && (
               <View style={[styles.card, { width: isWide ? contentWidth : "100%" }]}>
                 <SectionBanner icon="bank-outline" title="Banking Details" sub="For settlements and commissions" />
 
-                {/* Bank name */}
                 <TouchableOpacity onPress={() => { if (!lockedBanking.bankName) handleOpenBank(); }} activeOpacity={lockedBanking.bankName ? 1 : 0.8}>
                   <View pointerEvents="none">
                     <Field onLayout={e => fieldCoords.current.bankName = e.nativeEvent.layout.y} label="Bank Name" value={banking.bankName} error={errors.bankName} placeholder="Select your Bank" locked={lockedBanking.bankName} />
                   </View>
                 </TouchableOpacity>
 
-                {/* IFSC */}
                 <FieldWrap onLayout={e => fieldCoords.current.ifscCode = e.nativeEvent.layout.y} label="IFSC Code" required error={errors.ifscCode}>
                   <View style={[styles.inputRow, errors.ifscCode && { borderColor: T.error, backgroundColor: T.error + "06" }, lockedBanking.ifscCode && styles.inputRowLocked]}>
-                    <TextInput style={[styles.input, { letterSpacing: 1 }, lockedBanking.ifscCode && styles.inputLocked]} value={banking.ifscCode}
+                    <TextInput style={[styles.input, { letterSpacing: 1 }, lockedBanking.ifscCode && styles.inputLocked]}
+                      value={banking.ifscCode}
                       onChangeText={lockedBanking.ifscCode ? undefined : (v => setBanking(b => ({ ...b, ifscCode: v.toUpperCase().replace(/[^A-Z0-9]/g, "") })))}
                       editable={!lockedBanking.ifscCode}
                       placeholder="SBIN0001234" placeholderTextColor={T.textMuted} maxLength={11} autoCapitalize="characters" />
                   </View>
                 </FieldWrap>
 
-                {/* ══════════════════════════════════════════════════
-                    ACCOUNT NUMBER — with eye toggle
-                ══════════════════════════════════════════════════ */}
                 <FieldWrap onLayout={e => fieldCoords.current.accountNumber = e.nativeEvent.layout.y} label="Account Number" required error={errors.accountNumber}>
                   <View style={[styles.inputRow, errors.accountNumber && { borderColor: T.error, backgroundColor: T.error + "06" }, lockedBanking.accountNumber && styles.inputRowLocked]}>
                     <TextInput
                       style={[styles.input, { paddingRight: hs(44) }, lockedBanking.accountNumber && styles.inputLocked]}
-                      value={banking.accountNumber}
-                      editable={!lockedBanking.accountNumber}
+                      value={banking.accountNumber} editable={!lockedBanking.accountNumber}
                       onChangeText={lockedBanking.accountNumber ? undefined : (v => {
-                        if (/^\d*$/.test(v) && v.length <= 18) {
-                          setBanking(b => ({ ...b, accountNumber: v }));
-                          if (v !== banking.accountNumber) setBanking(b => ({ ...b, accountNumber: v, confirmAccountNumber: "" }));
-                        }
+                        if (/^\d*$/.test(v) && v.length <= 18)
+                          setBanking(b => ({ ...b, accountNumber: v, confirmAccountNumber: "" }));
                       })}
                       placeholder="Enter account number" placeholderTextColor={T.textMuted}
                       keyboardType="number-pad" secureTextEntry={!showAcc} maxLength={18}
@@ -916,61 +968,42 @@ export default function Offlinekyc({ navigation, route }) {
                   </View>
                 </FieldWrap>
 
-                {/* ══════════════════════════════════════════════════
-                    CONFIRM ACCOUNT NUMBER — real-time match indicator
-                ══════════════════════════════════════════════════ */}
                 <FieldWrap
                   onLayout={e => fieldCoords.current.confirmAccountNumber = e.nativeEvent.layout.y}
-                  label="Confirm Account Number"
-                  required
+                  label="Confirm Account Number" required
                   error={accMatchStatus === "mismatch" && banking.confirmAccountNumber.length > 0 ? "Account numbers don't match" : errors.confirmAccountNumber}
                 >
-                  {/* Input row with dynamic border colour */}
-                  <View style={[
-                    styles.inputRow,
-                    accMatchStatus !== "idle" && { borderColor: accMatchColor, borderWidth: 1.5 },
-                  ]}>
+                  <View style={[styles.inputRow, accMatchStatus !== "idle" && { borderColor: accMatchColor, borderWidth: 1.5 }]}>
                     <TextInput
                       style={[styles.input, { paddingRight: hs(44) }, lockedBanking.accountNumber && styles.inputLocked]}
-                      value={banking.confirmAccountNumber}
-                      editable={!lockedBanking.accountNumber}
+                      value={banking.confirmAccountNumber} editable={!lockedBanking.accountNumber}
                       onChangeText={lockedBanking.accountNumber ? undefined : (v => {
                         if (/^\d*$/.test(v) && v.length <= 18)
                           setBanking(b => ({ ...b, confirmAccountNumber: v }));
                       })}
-                      placeholder="Re-enter account number"
-                      placeholderTextColor={T.textMuted}
-                      keyboardType="number-pad"
-                      secureTextEntry={!showConfirmAcc}
-                      maxLength={18}
+                      placeholder="Re-enter account number" placeholderTextColor={T.textMuted}
+                      keyboardType="number-pad" secureTextEntry={!showConfirmAcc} maxLength={18}
                     />
-                    {/* Eye toggle */}
                     <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowConfirmAcc(p => !p)}>
                       <Icon name={showConfirmAcc ? "eye-off-outline" : "eye-outline"} size={rs(18)} color={T.textMuted} />
                     </TouchableOpacity>
                   </View>
-
-                  {/* ── Real-time match status strip ── */}
                   {accMatchStatus !== "idle" && (
                     <View style={[styles.accMatchStrip, { backgroundColor: accMatchColor + "12", borderColor: accMatchColor + "35" }]}>
                       <Icon name={accMatchIcon} size={rs(13)} color={accMatchColor} />
                       <Text style={[styles.accMatchTxt, { color: accMatchColor }]}>
-                        {accMatchStatus === "match"
-                          ? "Account numbers match ✓"
-                          : "Account numbers do not match"}
+                        {accMatchStatus === "match" ? "Account numbers match ✓" : "Account numbers do not match"}
                       </Text>
                     </View>
                   )}
                 </FieldWrap>
 
-                {/* Account holder + branch */}
                 <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
                   onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.accountHolderName = y; fieldCoords.current.branchName = y; }}>
                   <Field label="Account Holder Name" value={banking.accountHolderName} onChange={v => setBanking(b => ({ ...b, accountHolderName: v }))} error={errors.accountHolderName} placeholder="As per bank records" maxLength={50} locked={lockedBanking.accountHolderName} />
                   <Field label="Branch Name" value={banking.branchName} onChange={v => setBanking(b => ({ ...b, branchName: v }))} error={errors.branchName} placeholder="e.g. Main Branch" locked={lockedBanking.branchName} />
                 </TwoCol>
 
-                {/* Security banner */}
                 <LinearGradient colors={[T.accent + "1A", T.accent + "08"]} style={styles.securityBanner}>
                   <View style={[styles.securityIcon, { backgroundColor: T.accent + "25" }]}>
                     <Icon name="shield-lock-outline" size={rs(20)} color={T.accent} />
@@ -1051,7 +1084,7 @@ export default function Offlinekyc({ navigation, route }) {
         </View>
       </Modal>
 
-      {/* City / State / Bank search modals */}
+      {/* Search modals */}
       <SearchModal visible={showCityModal} title="Select City" loading={cityLoading} search={citySearch} setSearch={setCitySearch}
         items={cityList.filter(c => c.cityName?.toLowerCase().includes(citySearch.trim().toLowerCase()))} getLabel={c => c.cityName}
         onSelect={ct => { if (cityTarget === "personal") setPersonal(p => ({ ...p, personalCity: ct.cityName })); if (cityTarget === "business") setBusiness(b => ({ ...b, businessCity: ct.cityName })); setShowCityModal(false); setCitySearch(""); }}
@@ -1264,34 +1297,16 @@ const styles = StyleSheet.create({
   lockedHintRow: { flexDirection: "row", alignItems: "center", gap: hs(4), marginTop: vs(3) },
   lockedHintTxt: { color: T.success, fontFamily: Fonts.Regular, flex: 1 },
   eyeBtn: { padding: hs(4) },
-
-  // ── Account match strip (NEW) ──────────────────────────────────────────
-  accMatchStrip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: hs(6),
-    marginTop: vs(5),
-    paddingHorizontal: hs(10),
-    paddingVertical: vs(6),
-    borderRadius: hs(8),
-    borderWidth: 1,
-  },
-  accMatchTxt: {
-    fontSize: rs(10),
-    fontFamily: Fonts.Bold,
-    flex: 1,
-    letterSpacing: 0.2,
-    includeFontPadding: false,
-    lineHeight: rs(14),
-  },
-
+  accMatchStrip: { flexDirection: "row", alignItems: "center", gap: hs(6), marginTop: vs(5), paddingHorizontal: hs(10), paddingVertical: vs(6), borderRadius: hs(8), borderWidth: 1 },
+  accMatchTxt: { fontSize: rs(10), fontFamily: Fonts.Bold, flex: 1, letterSpacing: 0.2, includeFontPadding: false, lineHeight: rs(14) },
   genderRow: { flexDirection: "row", gap: hs(5) },
   genderBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: vs(9), borderRadius: hs(8), backgroundColor: T.inputBg, borderWidth: 1.2, borderColor: T.border, gap: hs(4) },
   genderBtnText: { color: T.textMuted },
   divider: { flexDirection: "row", alignItems: "center", marginVertical: vs(14), gap: hs(8) },
   dividerLine: { flex: 1, height: 1.2, backgroundColor: T.border },
   dividerLabel: { color: T.textMuted, letterSpacing: 1 },
-  docHintText: { color: T.textSub, marginBottom: vs(10), fontFamily: Fonts.Regular },
+  sizeHintBanner: { flexDirection: "row", alignItems: "flex-start", gap: hs(7), backgroundColor: T.accent + "10", borderRadius: hs(8), borderLeftWidth: 3, borderLeftColor: T.accent, paddingHorizontal: hs(10), paddingVertical: vs(7), marginBottom: vs(10) },
+  sizeHintText: { flex: 1, color: T.textSub, fontFamily: Fonts.Regular, lineHeight: rs(16) },
   docGrid: {},
   docSlotWrap: { marginBottom: vs(10) },
   docBox: { height: vs(90), borderRadius: hs(14), borderWidth: 1.5, borderStyle: "dashed", borderColor: T.border, overflow: "hidden", backgroundColor: T.inputBg },
@@ -1304,6 +1319,7 @@ const styles = StyleSheet.create({
   docIconCircle: { width: hs(42), height: hs(42), borderRadius: hs(21), alignItems: "center", justifyContent: "center" },
   docSlotLabel: { color: T.text },
   docSlotSub: { color: T.textMuted, marginTop: 2, fontFamily: Fonts.Regular },
+  docSizeLabel: { color: T.textMuted, marginTop: vs(2), fontFamily: Fonts.Regular },
   docUploadTag: { flexDirection: "row", alignItems: "center", paddingHorizontal: hs(8), paddingVertical: vs(4), borderRadius: hs(10), borderWidth: 1, gap: hs(4) },
   docUploadTagText: {},
   securityBanner: { flexDirection: "row", alignItems: "flex-start", borderRadius: hs(12), padding: hs(12), marginTop: vs(12), gap: hs(10) },
@@ -1328,4 +1344,4 @@ const styles = StyleSheet.create({
   modalBtnText: { color: T.surface, fontFamily: Fonts.Bold, fontSize: rs(14) },
   modalEmpty: { textAlign: "center", marginTop: vs(40), color: T.textMuted, fontFamily: Fonts.Regular, fontSize: rs(13) },
   modalListItem: { paddingVertical: vs(14), borderBottomWidth: 1, borderBottomColor: T.border },
-}); 
+});

@@ -115,26 +115,30 @@ const FieldLabel = ({ text }) => (
 );
 
 // ─── Reusable text input row ──────────────────────────────────────────────
-const InputBox = ({ label, value, setValue, icon, placeholder, keyboardType }) => (
+const InputBox = ({ label, value, setValue, icon, placeholder, keyboardType, error, maxLength, filter }) => (
   <View style={st.fieldWrap}>
     <FieldLabel text={label} />
-    <View style={st.inputRow}>
+    <View style={[st.inputRow, error ? st.inputRowError : null]}>
       <TextInput
         value={value}
-        onChangeText={(val) =>
-          setValue(
-            keyboardType === "numeric" || keyboardType === "number-pad"
-              ? val.replace(/[^0-9]/g, "")
-              : val
-          )
-        }
+        onChangeText={(val) => {
+          let v = val;
+          if (filter === "alphanumeric") {
+            v = v.replace(/[^a-zA-Z0-9]/g, "");
+          } else if (keyboardType === "numeric" || keyboardType === "number-pad") {
+            v = v.replace(/[^0-9]/g, "");
+          }
+          setValue(v);
+        }}
         keyboardType={keyboardType || "default"}
         placeholder={placeholder}
         placeholderTextColor="#C4C4C4"
         style={st.inputText}
+        maxLength={maxLength}
       />
-      <Icon name={icon} size={S(18)} color={ACCENT + "90"} />
+      <Icon name={icon} size={S(18)} color={error ? "#EF4444" : ACCENT + "90"} />
     </View>
+    {!!error && <Text style={st.errorTxt}>{error}</Text>}
   </View>
 );
 
@@ -159,6 +163,7 @@ export default function OfflineTopup({ navigation }) {
   const [alertTitle, setAlertTitle] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
   const [uploadVisible, setUploadVisible] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const activeModeHint = PAYMENT_MODES.find(m => m.key === mode)?.hint || "";
 
@@ -174,6 +179,7 @@ export default function OfflineTopup({ navigation }) {
       const m = String(selectedDate.getMonth() + 1).padStart(2, "0");
       const d = String(selectedDate.getDate()).padStart(2, "0");
       setPaymentDate(`${y}-${m}-${d}`);
+      if (errors.paymentDate) setErrors(prev => ({ ...prev, paymentDate: null }));
     }
   };
 
@@ -191,20 +197,39 @@ export default function OfflineTopup({ navigation }) {
   }, []);
 
   const handleCamera = () => launchCamera({ mediaType: "photo", quality: 0.7 }, (res) => {
-    if (!res.didCancel && res.assets?.length) setPaymentProof(res.assets[0].uri);
+    if (!res.didCancel && res.assets?.length) {
+      setPaymentProof(res.assets[0].uri);
+      if (errors.paymentProof) setErrors(prev => ({ ...prev, paymentProof: null }));
+    }
   });
   const handleGallery = () => launchImageLibrary({ mediaType: "photo", quality: 0.7 }, (res) => {
-    if (!res.didCancel && res.assets?.length) setPaymentProof(res.assets[0].uri);
+    if (!res.didCancel && res.assets?.length) {
+      setPaymentProof(res.assets[0].uri);
+      if (errors.paymentProof) setErrors(prev => ({ ...prev, paymentProof: null }));
+    }
   });
   const handleFile = () => launchImageLibrary({ mediaType: "photo", quality: 0.7 }, (res) => {
-    if (!res.didCancel && res.assets?.length) setPaymentProof(res.assets[0].uri);
+    if (!res.didCancel && res.assets?.length) {
+      setPaymentProof(res.assets[0].uri);
+      if (errors.paymentProof) setErrors(prev => ({ ...prev, paymentProof: null }));
+    }
   });
 
   const handleSubmit = async () => {
-    if (!amount || !receiverBank || !utrNumber) {
-      showAlert("error", "Validation Error", "Please fill in all mandatory fields (Amount, Bank, UTR).");
-      return;
-    }
+    let hasError = false;
+    let newErrors = {};
+    if (!amount) { newErrors.amount = "Amount is required"; hasError = true; }
+    else if (Number(amount) <= 0) { newErrors.amount = "Amount must be greater than 0"; hasError = true; }
+    else if (Number(amount) > 1000000) { newErrors.amount = "Max amount allowed is ₹10,00,000"; hasError = true; }
+
+    if (!receiverBank) { newErrors.receiverBank = "Please select a receiver bank"; hasError = true; }
+    if (!utrNumber) { newErrors.utrNumber = "UTR / Ref number is required"; hasError = true; }
+    if (!paymentDate) { newErrors.paymentDate = "Payment date is required"; hasError = true; }
+    if (!paymentProof) { newErrors.paymentProof = "Payment proof screenshot is required"; hasError = true; }
+
+    setErrors(newErrors);
+    if (hasError) return;
+
     setSubmitting(true);
     try {
       const headerToken = await AsyncStorage.getItem("header_token");
@@ -234,9 +259,17 @@ export default function OfflineTopup({ navigation }) {
             label="Amount (₹)"
             placeholder="Enter amount"
             value={amount}
-            setValue={setAmount}
+            setValue={(val) => {
+              if (val !== "" && Number(val) > 1000000) {
+                setErrors(prev => ({ ...prev, amount: "Max amount allowed is ₹10,00,000" }));
+                return;
+              }
+              setAmount(val);
+              if (errors.amount) setErrors(prev => ({ ...prev, amount: null }));
+            }}
             icon="currency-inr"
             keyboardType="numeric"
+            error={errors.amount}
           />
 
           {/* ── Payment Mode ── */}
@@ -263,8 +296,11 @@ export default function OfflineTopup({ navigation }) {
           <View style={st.fieldWrap}>
             <FieldLabel text="Receiver Bank" />
             <TouchableOpacity
-              style={st.inputRow}
-              onPress={() => setBankModalVisible(true)}
+              style={[st.inputRow, errors.receiverBank ? st.inputRowError : null]}
+              onPress={() => {
+                if (errors.receiverBank) setErrors(prev => ({ ...prev, receiverBank: null }));
+                setBankModalVisible(true);
+              }}
               activeOpacity={0.7}
             >
               <Text
@@ -273,8 +309,9 @@ export default function OfflineTopup({ navigation }) {
               >
                 {selectedBankName || "Choose a Bank"}
               </Text>
-              <Icon name="chevron-down" size={S(18)} color={ACCENT + "90"} />
+              <Icon name="chevron-down" size={S(18)} color={errors.receiverBank ? "#EF4444" : ACCENT + "90"} />
             </TouchableOpacity>
+            {!!errors.receiverBank && <Text style={st.errorTxt}>{errors.receiverBank}</Text>}
           </View>
 
           {/* ── UTR ── */}
@@ -282,19 +319,34 @@ export default function OfflineTopup({ navigation }) {
             label="UTR / Ref Number"
             placeholder="e.g., 6545654323"
             value={utrNumber}
-            setValue={setUtrNumber}
+            setValue={(val) => {
+              setUtrNumber(val);
+              if (errors.utrNumber) setErrors(prev => ({ ...prev, utrNumber: null }));
+            }}
             icon="text-box-search-outline"
+            keyboardType="default"
+            maxLength={20}
+            filter="alphanumeric"
+            error={errors.utrNumber}
           />
 
           {/* ── Payment Date ── */}
           <View style={st.fieldWrap}>
             <FieldLabel text="Payment Date" />
-            <TouchableOpacity style={st.inputRow} onPress={() => setShowDatePicker(true)} activeOpacity={0.7}>
+            <TouchableOpacity
+              style={[st.inputRow, errors.paymentDate ? st.inputRowError : null]}
+              onPress={() => {
+                if (errors.paymentDate) setErrors(prev => ({ ...prev, paymentDate: null }));
+                setShowDatePicker(true);
+              }}
+              activeOpacity={0.7}
+            >
               <Text style={[st.inputText, { color: paymentDate ? FG : "#C4C4C4", paddingVertical: S(11) }]}>
                 {paymentDate || "YYYY-MM-DD"}
               </Text>
-              <Icon name="calendar" size={S(18)} color={ACCENT + "90"} />
+              <Icon name="calendar" size={S(18)} color={errors.paymentDate ? "#EF4444" : ACCENT + "90"} />
             </TouchableOpacity>
+            {!!errors.paymentDate && <Text style={st.errorTxt}>{errors.paymentDate}</Text>}
           </View>
           {showDatePicker && (
             <DateTimePicker value={date} mode="date" display="default" maximumDate={new Date()} onChange={onDateChange} />
@@ -304,8 +356,11 @@ export default function OfflineTopup({ navigation }) {
           <View style={st.fieldWrap}>
             <FieldLabel text="Payment Proof" />
             <TouchableOpacity
-              style={[st.inputRow, paymentProof && st.inputRowGreen]}
-              onPress={() => setUploadVisible(true)}
+              style={[st.inputRow, errors.paymentProof ? st.inputRowError : paymentProof && !errors.paymentProof ? st.inputRowGreen : null]}
+              onPress={() => {
+                if (errors.paymentProof) setErrors(prev => ({ ...prev, paymentProof: null }));
+                setUploadVisible(true);
+              }}
               activeOpacity={0.7}
             >
               <Text style={[
@@ -321,11 +376,12 @@ export default function OfflineTopup({ navigation }) {
               <Icon
                 name={paymentProof ? "check-circle" : "camera-plus-outline"}
                 size={S(18)}
-                color={paymentProof ? "#16A34A" : ACCENT + "90"}
+                color={errors.paymentProof ? "#EF4444" : paymentProof ? "#16A34A" : ACCENT + "90"}
               />
             </TouchableOpacity>
+            {!!errors.paymentProof && <Text style={st.errorTxt}>{errors.paymentProof}</Text>}
 
-            {paymentProof && (
+            {!!paymentProof && (
               <View style={st.previewBox}>
                 <Image source={{ uri: paymentProof }} style={st.previewImg} />
                 <TouchableOpacity style={st.changeChip} onPress={() => setUploadVisible(true)}>
@@ -513,6 +569,15 @@ const st = StyleSheet.create({
     fontFamily: Fonts.Medium,
     paddingVertical: S(11),
     includeFontPadding: false,
+  },
+  inputRowError: {
+    borderColor: "#EF4444",
+  },
+  errorTxt: {
+    color: "#EF4444",
+    fontSize: S(10),
+    fontFamily: Fonts.Medium,
+    marginTop: S(4),
   },
 
   // ── Proof preview ─────────────────────────────────────────────────────
