@@ -49,6 +49,9 @@ export default function Login({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [focusedInput, setFocusedInput] = useState(null);
 
+  // Inline field errors
+  const [errors, setErrors] = useState({ email: "", userName: "", password: "" });
+
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertTitle, setAlertTitle] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
@@ -178,20 +181,26 @@ export default function Login({ navigation }) {
     Keyboard.dismiss();
     animateButton();
 
-    // ── Validation first — no AsyncStorage writes before this ─────────────────
+    // ── Inline validation — collect all errors before returning ───────────────
+    const newErrors = { email: "", userName: "", password: "" };
+    let hasError = false;
+
     if (!email.trim()) {
-      triggerShake();
-      showAlert("Error", "Please enter email");
-      return;
+      newErrors.email = "Please enter your email address";
+      hasError = true;
     }
     if (!userName.trim()) {
-      triggerShake();
-      showAlert("Error", "Please enter user name");
-      return;
+      newErrors.userName = "Please enter your user name";
+      hasError = true;
     }
     if (!password.trim()) {
+      newErrors.password = "Please enter your password";
+      hasError = true;
+    }
+
+    if (hasError) {
+      setErrors(newErrors);
       triggerShake();
-      showAlert("Error", "Please enter password");
       return;
     }
 
@@ -392,13 +401,21 @@ export default function Login({ navigation }) {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  if (errors.email) setErrors((prev) => ({ ...prev, email: "" }));
+                }}
                 onFocus={() => handleInputFocus("email")}
                 onBlur={() => handleInputBlur("email")}
                 style={styles.input}
                 selectionColor={Colors.accent}
               />
             </Animated.View>
+            {!!errors.email && (
+              <Text style={styles.errorText}>
+                <MaterialCommunityIcons name="alert-circle-outline" size={12} /> {errors.email}
+              </Text>
+            )}
 
             {/* User Name */}
             <Text style={styles.label}>User Name</Text>
@@ -422,13 +439,21 @@ export default function Login({ navigation }) {
                 placeholderTextColor={Colors.text_placeholder}
                 autoCapitalize="characters"
                 value={userName}
-                onChangeText={(text) => setUserName(text.toUpperCase())}
+                onChangeText={(text) => {
+                  setUserName(text.toUpperCase());
+                  if (errors.userName) setErrors((prev) => ({ ...prev, userName: "" }));
+                }}
                 onFocus={() => handleInputFocus("userName")}
                 onBlur={() => handleInputBlur("userName")}
                 style={styles.input}
                 selectionColor={Colors.accent}
               />
             </Animated.View>
+            {!!errors.userName && (
+              <Text style={styles.errorText}>
+                <MaterialCommunityIcons name="alert-circle-outline" size={12} /> {errors.userName}
+              </Text>
+            )}
 
             {/* Password */}
             <Text style={styles.label}>Password</Text>
@@ -452,7 +477,10 @@ export default function Login({ navigation }) {
                 placeholderTextColor={Colors.text_placeholder}
                 secureTextEntry={!showPassword}
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  if (errors.password) setErrors((prev) => ({ ...prev, password: "" }));
+                }}
                 onFocus={() => handleInputFocus("password")}
                 onBlur={() => handleInputBlur("password")}
                 style={styles.input}
@@ -469,6 +497,11 @@ export default function Login({ navigation }) {
                 />
               </TouchableOpacity>
             </Animated.View>
+            {!!errors.password && (
+              <Text style={styles.errorText}>
+                <MaterialCommunityIcons name="alert-circle-outline" size={12} /> {errors.password}
+              </Text>
+            )}
 
             {/* Remember Me / Forgot */}
             <View style={styles.rememberRow}>
@@ -599,7 +632,15 @@ const styles = StyleSheet.create({
     flexDirection: "row", alignItems: "center",
     borderRadius: 30 * scale, height: 50 * scale,
     paddingHorizontal: 16 * scale, borderWidth: 1,
-    marginBottom: 16 * scale,
+    marginBottom: 4 * scale,
+  },
+  errorText: {
+    fontSize: 12 * scale,
+    fontFamily: Fonts.Medium,
+    color: "#E53935",
+    marginLeft: 12 * scale,
+    marginBottom: 10 * scale,
+    marginTop: 2 * scale,
   },
   inputIcon: { marginRight: 10 * scale },
   input: {
