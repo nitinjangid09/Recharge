@@ -31,6 +31,7 @@ import {
   getRechargeCircleList,
   verifyRechargeMobile,
   processRecharge,
+  getMyRechargeHistory,
 } from "../api/AuthApi";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -39,26 +40,7 @@ import ViewShot from "react-native-view-shot";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  RECEIPT MODAL
-//
-//  Layout (top → bottom):
-//  ┌─────────────────────────────────────────────┐
-//  │  ViewShot ← receiptCardRef                  │  ← CAPTURED (banner + amount + rows + note)
-//  │    Gradient banner                          │
-//  │    Amount card                              │
-//  │    Detail rows card                         │
-//  │    Note strip                               │
-//  │    14 px spacer                             │
-//  └─────────────────────────────────────────────┘
-//  ── ACTIONS divider ──                           ← NOT captured
-//  [ Download ]  [ Share ]                         ← NOT captured
-//  [ Raise Complaint ]                             ← NOT captured
-//
-//  Share  → capture tmpfile → RNShare.open({ url, message })
-//           message = "Hey, I paid ₹X to recharge OP on +91NUM using B2B App"
-//  Download → capture base64 → embed in HTML → RNHTMLtoPDF → save PDF
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 function RechargeReceipt({ receiptData, onClose, navigation }) {
   if (!receiptData) return null;
@@ -498,6 +480,8 @@ export default function TopUpScreen({ navigation, route }) {
   const [operatorCode, setOperatorCode] = useState("");
   const [receiptData, setReceiptData] = useState(null);
   const [completed, setCompleted] = useState(false);
+  const [rechargeHistory, setRechargeHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   const [customToast, setCustomToast] = useState({ visible: false, message: "", type: "success" });
   const toastAnim = useRef(new Animated.Value(0)).current;
@@ -537,7 +521,23 @@ export default function TopUpScreen({ navigation, route }) {
       Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
     ]).start();
     fetchOperatorCircle();
+    fetchRechargeHistory();
   }, []);
+
+  const fetchRechargeHistory = async () => {
+    try {
+      setHistoryLoading(true);
+      const headerToken = await AsyncStorage.getItem("header_token");
+      if (headerToken) {
+        const result = await getMyRechargeHistory({ headerToken });
+        if (result?.success) setRechargeHistory(result.data || []);
+      }
+    } catch (e) {
+      console.log("Recharge history fetch error", e);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
 
   useEffect(() => {
     const backAction = () => {
@@ -706,7 +706,7 @@ export default function TopUpScreen({ navigation, route }) {
           keyboardVerticalOffset={insets.top + 56}
         >
           <ScrollView
-            contentContainerStyle={{ paddingBottom: 100, paddingTop: 20 }}
+            contentContainerStyle={{ paddingBottom: 20, paddingTop: 20 }}
             showsVerticalScrollIndicator={false}
           >
             <Animated.View
@@ -794,19 +794,6 @@ export default function TopUpScreen({ navigation, route }) {
 
               {/* AMOUNT */}
               <View style={styles.premiumAmountCard}>
-                <View style={styles.typeSelector}>
-                  {["airtime", "special"].map((t) => (
-                    <TouchableOpacity
-                      key={t}
-                      style={[styles.typeBtn, type === t && styles.typeBtnActive]}
-                      onPress={() => setType(t)}
-                    >
-                      <Text style={[styles.typeText, type === t && styles.typeTextActive]}>
-                        {t === "airtime" ? "Topup" : "Special Plans"}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
                 <Text style={styles.amountHeader}>Pick or Enter Amount</Text>
                 <View style={styles.amountInputRow}>
                   <Text style={styles.currencySymbol}>₹</Text>
@@ -874,6 +861,88 @@ export default function TopUpScreen({ navigation, route }) {
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
+
+
+              {/* RECENT RECHARGE HISTORY */}
+              {(historyLoading || rechargeHistory.length > 0) && (
+                <View style={styles.historyCard_Outer}>
+
+                  {/* ── Header banner (dark) ── */}
+                  <View style={styles.historyHeaderGrad}>
+                    <View style={styles.historyHeaderLeft}>
+                      <View style={styles.historyHeaderIconBox}>
+                        <Icon name="history" size={15} color={Colors.finance_accent} />
+                      </View>
+                      <Text style={styles.historySectionTitle}>Recent Recharges</Text>
+                    </View>
+                    {!historyLoading && rechargeHistory.length > 0 && (
+                      <View style={styles.historyCountBadge}>
+                        <Text style={styles.historyCountText}>{rechargeHistory.length}</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* ── Cards list (scrollable) ── */}
+                  <ScrollView
+                    style={styles.historyCardsList}
+                    nestedScrollEnabled={true}
+                    showsVerticalScrollIndicator={false}
+                  >
+                    {historyLoading ? (
+                      <ActivityIndicator size="small" color={Colors.finance_accent} style={{ marginVertical: 18 }} />
+                    ) : (
+                      rechargeHistory.map((item) => {
+                        const isSuccess = item.status === "SUCCESS";
+                        const isFailed = item.status === "FAILED";
+                        const statusColor = isSuccess ? "#16A34A" : isFailed ? "#DC2626" : "#D97706";
+                        const statusBg = isSuccess ? "#F0FDF4" : isFailed ? "#FEF2F2" : "#FFFBEB";
+                        const opInitial = (item.operatorName || "?")[0].toUpperCase();
+                        const dateStr = item.createdAt
+                          ? new Date(item.createdAt).toLocaleDateString("en-IN", {
+                            day: "2-digit", month: "short", year: "numeric",
+                          }) + "  " +
+                          new Date(item.createdAt).toLocaleTimeString("en-IN", {
+                            hour: "2-digit", minute: "2-digit", hour12: true,
+                          })
+                          : "";
+
+                        return (
+                          <View key={item._id} style={styles.historyItemRow}>
+                            {/* Left — operator badge */}
+                            <View style={[styles.historyOpBadge, { backgroundColor: Colors.finance_accent + "18" }]}>
+                              <Text style={styles.historyOpInitial}>{opInitial}</Text>
+                            </View>
+
+                            {/* Middle — details */}
+                            <View style={{ flex: 1, marginHorizontal: 10 }}>
+                              <Text style={styles.historyOpName}>
+                                {item.operatorName}
+                                <Text style={styles.historyMobile}> · {item.mobileNumber}</Text>
+                              </Text>
+                              <Text style={styles.historyRefId} numberOfLines={1}>
+                                {item.referenceId}
+                              </Text>
+                              <Text style={styles.historyDate}>{dateStr}</Text>
+                            </View>
+
+                            {/* Right — amount + status */}
+                            <View style={{ alignItems: "flex-end" }}>
+                              <Text style={styles.historyAmount}>₹{item.amount}</Text>
+                              <View style={[styles.historyStatusPill, { backgroundColor: statusBg }]}>
+                                <View style={[styles.historyStatusDot, { backgroundColor: statusColor }]} />
+                                <Text style={[styles.historyStatusText, { color: statusColor }]}>
+                                  {item.status}
+                                </Text>
+                              </View>
+                            </View>
+                          </View>
+                        );
+                      })
+                    )}
+                  </ScrollView>
+
+                </View>
+              )}
 
             </Animated.View>
           </ScrollView>
@@ -1047,11 +1116,6 @@ const styles = StyleSheet.create({
   dividerLine: { height: 1, backgroundColor: "#EEE", marginHorizontal: 14 },
 
   premiumAmountCard: { backgroundColor: "#1A1A1A", borderRadius: 20, padding: 14, marginBottom: 14, borderWidth: 1.5, borderColor: "rgba(212,176,106,0.4)" },
-  typeSelector: { flexDirection: "row", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: 12, padding: 3, marginBottom: 12 },
-  typeBtn: { flex: 1, paddingVertical: 8, alignItems: "center", borderRadius: 10 },
-  typeBtnActive: { backgroundColor: "rgba(212,176,106,0.2)", borderWidth: 1, borderColor: "rgba(212,176,106,0.5)" },
-  typeText: { fontSize: 11, fontFamily: Fonts.Medium, color: "rgba(255,255,255,0.4)" },
-  typeTextActive: { color: Colors.finance_accent, fontFamily: Fonts.Bold },
   amountHeader: { fontSize: 10, color: "rgba(255,255,255,0.6)", fontFamily: Fonts.Medium, textTransform: "uppercase", letterSpacing: 1, textAlign: "center", marginBottom: 8 },
   amountInputRow: { flexDirection: "row", alignItems: "center", marginBottom: 12, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", paddingVertical: 8, paddingHorizontal: 14 },
   currencySymbol: { fontSize: 20, fontFamily: Fonts.Bold, color: Colors.finance_accent, marginRight: 8 },
@@ -1062,11 +1126,11 @@ const styles = StyleSheet.create({
   suggestionChipActive: { backgroundColor: "rgba(212,176,106,0.2)", borderColor: Colors.finance_accent },
   suggestionText: { color: "rgba(255,255,255,0.7)", fontSize: 12, fontFamily: Fonts.Medium },
   suggestionTextActive: { color: Colors.finance_accent, fontFamily: Fonts.Bold },
-  viewPlansBtn: { borderRadius: 14, overflow: "hidden" },
-  viewPlansGradient: { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 14, gap: 10 },
-  viewPlansText: { color: Colors.black, fontFamily: Fonts.Bold, fontSize: 14 },
+  viewPlansBtn: { borderRadius: 10, overflow: "hidden", alignSelf: "center" },
+  viewPlansGradient: { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 8, paddingHorizontal: 20, gap: 6 },
+  viewPlansText: { color: Colors.black, fontFamily: Fonts.Bold, fontSize: 12 },
 
-  actionContainer: { padding: 12, backgroundColor: Colors.homebg, borderTopWidth: 1, borderTopColor: "rgba(212,176,106,0.1)" },
+  actionContainer: { paddingBottom: 8, paddingHorizontal: 8, borderTopColor: "rgba(212,176,106,0.1)" },
   sliderWrapper: { height: 60, backgroundColor: Colors.white, borderRadius: 30, borderWidth: 1.5, borderColor: Colors.finance_accent, justifyContent: "center", overflow: "hidden" },
   sliderBackground: { ...StyleSheet.absoluteFillObject, justifyContent: "center", alignItems: "center" },
   swipeText: { color: Colors.finance_accent, fontSize: 14, fontFamily: Fonts.Bold, letterSpacing: 2 },
@@ -1098,4 +1162,66 @@ const styles = StyleSheet.create({
   customToastGrad: { flexDirection: "row", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, gap: 10 },
   customToastText: { color: "#FFF", fontFamily: Fonts.Bold, fontSize: 13, flex: 1 },
   fullLoader: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(255,255,255,0.7)", justifyContent: "center", alignItems: "center", zIndex: 1000 },
+
+  // ── Recent Recharges History ──
+  historyCard_Outer: {
+    backgroundColor: Colors.bg,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "rgba(212,176,106,0.25)",
+    overflow: "hidden",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 6,
+  },
+  historyHeaderGrad: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    backgroundColor: "#1A1A1A",
+  },
+  historyHeaderLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
+  historyHeaderIconBox: {
+    width: 26, height: 26, borderRadius: 8,
+    backgroundColor: "rgba(212,176,106,0.15)",
+    alignItems: "center", justifyContent: "center",
+  },
+  historySectionTitle: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.finance_accent, letterSpacing: 0.3 },
+  historyCountBadge: {
+    backgroundColor: "rgba(212,176,106,0.2)",
+    borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2,
+    borderWidth: 1, borderColor: "rgba(212,176,106,0.4)",
+  },
+  historyCountText: { fontSize: 11, fontFamily: Fonts.Bold, color: Colors.finance_accent },
+
+  // 5 items × ~62px each = 310px — first 5 visible, extras scroll
+  historyCardsList: { maxHeight: 350, paddingHorizontal: 12, paddingTop: 6, paddingBottom: 4 },
+
+  historyItemRow: {
+    flexDirection: "row", alignItems: "center",
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "rgba(212,176,106,0.15)",
+  },
+  historyOpBadge: {
+    width: 40, height: 40, borderRadius: 12,
+    alignItems: "center", justifyContent: "center",
+    borderWidth: 1, borderColor: Colors.finance_accent + "30",
+  },
+  historyOpInitial: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.finance_accent },
+  historyOpName: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.finance_text },
+  historyMobile: { fontSize: 11, fontFamily: Fonts.Medium, color: Colors.finance_text_light || "#6B7280" },
+  historyRefId: { fontSize: 10, fontFamily: Fonts.Medium, color: Colors.finance_text_light || "#6B7280", marginTop: 1 },
+  historyDate: { fontSize: 10, fontFamily: Fonts.Medium, color: "#9CA3AF", marginTop: 2 },
+  historyAmount: { fontSize: 15, fontFamily: Fonts.Bold, color: Colors.finance_text, marginBottom: 4 },
+  historyStatusPill: {
+    flexDirection: "row", alignItems: "center", gap: 4,
+    paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6,
+  },
+  historyStatusDot: { width: 5, height: 5, borderRadius: 3 },
+  historyStatusText: { fontSize: 9, fontFamily: Fonts.Bold, letterSpacing: 0.4 },
 });

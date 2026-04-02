@@ -13,7 +13,6 @@ const HeaderBar = ({ title, onBack, rightIcon, onRightPress }) => {
           <MaterialCommunityIcons
             name="chevron-left"
             size={26}
-            color={Colors.finance_text}
           />
         </TouchableOpacity>
 
@@ -67,12 +66,11 @@ const styles = StyleSheet.create({
     width: 33,
     height: 33,
     borderRadius: 18,
-    backgroundColor: Colors.finance_chip, // Light Beige
+    backgroundColor: "rgba(255, 255, 255, 0.2)", // Light Beige
     alignItems: "center",
     justifyContent: "center",
     borderWidth: .5,
     elevation: 5,
-    borderColor: Colors.finance_accent
   },
 
   title: {

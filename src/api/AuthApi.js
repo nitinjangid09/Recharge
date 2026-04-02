@@ -1078,3 +1078,77 @@ export const getWalletHistory = async ({ headerToken, page = 1, limit = 10, sear
     return { success: false, message: error.message || "Network error" };
   }
 };
+
+/**
+ * getMyRechargeHistory
+ * Fetches the last recharge history for the logged-in user.
+ * GET /user/rechargeReport/my-recharge-history
+ *
+ * Response shape:
+ * {
+ *   success: boolean,
+ *   message: string,
+ *   data: Array<{
+ *     _id, mobileNumber, operatorName, amount,
+ *     commission, tds, netCommission,
+ *     referenceId, status, createdAt
+ *   }>
+ * }
+ */
+export const getMyRechargeHistory = async ({ headerToken }) => {
+  try {
+    const url = `${BASE_URL}/user/rechargeReport/my-recharge-history`;
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${headerToken}`,
+      },
+    });
+
+    const text = await response.text();
+    if (text.trim().startsWith("<")) {
+      console.log("[getMyRechargeHistory] HTML response — server error");
+      return { success: false, message: "Server error. Please try again.", data: [] };
+    }
+
+    const json = JSON.parse(text);
+    return json; // { success, message, data: [...] }
+  } catch (error) {
+    console.log("[getMyRechargeHistory] error:", error?.message || error);
+    return { success: false, message: error.message || "Network error", data: [] };
+  }
+};
+
+/**
+ * getMyCommissionPlan
+ * Fetches the commission plan assigned to the logged-in user.
+ * GET /user/commissionPlan/my-commission-plan
+ *
+ * @param {{ headerToken: string }} params
+ * @returns {Promise<{ success: boolean, message: string, data: object }>}
+ */
+export const getMyCommissionPlan = async ({ headerToken }) => {
+  try {
+    const url = `${BASE_URL}/user/commissionPlan/my-commission-plan`;
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${headerToken}`,
+      },
+    });
+
+    const text = await response.text();
+    if (text.trim().startsWith("<")) {
+      console.log("[getMyCommissionPlan] HTML response — server error");
+      return { success: false, message: "Server error. Please try again.", data: null };
+    }
+
+    const json = JSON.parse(text);
+    return json; // { success, message, data: { ... } }
+  } catch (error) {
+    console.log("[getMyCommissionPlan] error:", error?.message || error);
+    return { success: false, message: error.message || "Network error", data: null };
+  }
+};

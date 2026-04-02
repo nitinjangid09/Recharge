@@ -378,7 +378,7 @@ export default function ProfileScreen({ navigation }) {
         {/* ── QUICK TILES ── */}
         <View style={styles.tiles}>
           <Animated.View style={{ flex: 1, transform: [{ translateY: tile1 }], opacity: tile1Op }}>
-            <Tile icon="bell-outline" label="Alerts" onPress={() => { }} />
+            <Tile icon="bell-outline" label="Commission Plan" onPress={() => { navigation.navigate("CommisionPlan") }} />
           </Animated.View>
           <Animated.View style={{ flex: 1, transform: [{ translateY: tile2 }], opacity: tile2Op }}>
             <Tile icon="bank-transfer" label="Wallet Transfer" onPress={() => { navigation.navigate("WalletTransfer") }} />
