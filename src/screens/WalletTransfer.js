@@ -244,7 +244,7 @@ const WalletTransfer = ({ navigation }) => {
             <View style={styles.swapSeparator}>
               <View style={styles.swapSeparatorLine} />
               <View style={styles.swapSeparatorIconWrap}>
-                <Icon name="swap-horizontal" size={14} color={Colors.finance_accent} />
+                <Icon name="arrow-right-thick" size={14} color={Colors.finance_accent} />
               </View>
               <View style={styles.swapSeparatorLine} />
             </View>

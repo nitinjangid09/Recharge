@@ -399,27 +399,30 @@ export default function ProfileScreen({ navigation }) {
               icon="account-outline"
               label="Edit Profile"
               sub="Name, photo, Aadhar, PAN"
-              isFirst
-              isLast={!isDistributor}
               onPress={() => navigation.navigate("EditProfileScreen", { profileData })}
             />
-            {isDistributor && (
-              <>
-                <Row
-                  icon="account-plus-outline"
-                  label="Create User"
-                  sub="Add a new sub-account"
-                  onPress={() => navigation.navigate("CreateUser")}
-                />
-                <Row
-                  icon="account-group-outline"
-                  label="User Downline"
-                  sub="Manage your network"
-                  isLast
-                  onPress={() => navigation.navigate("UserListScreen")}
-                />
-              </>
-            )}
+            {[
+              "698ef03714f23da91959cf41", // STATE HEAD
+              "698ef04e14f23da91959cf45", // MASTER DISTRIBUTOR
+              "698ef05714f23da91959cf48", // DISTRIBUTOR
+            ].includes(profileData?.roleId?._id || profileData?.roleId) && (
+
+                <>
+                  <Row
+                    icon="account-plus-outline"
+                    label="Create User"
+                    sub="Add a new sub-account"
+                    onPress={() => navigation.navigate("CreateUser")}
+                  />
+                  <Row
+                    icon="account-group-outline"
+                    label="User Downline"
+                    sub="Manage your network"
+                    isLast
+                    onPress={() => navigation.navigate("UserListScreen")}
+                  />
+                </>
+              )}
             <Row
               icon="map-marker-outline"
               label="Address Management"
