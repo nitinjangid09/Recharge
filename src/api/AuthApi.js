@@ -1,7 +1,7 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const BASE_URL = "http://192.168.1.16:8000";
+export const BASE_URL = "http://192.168.1.16:8000";
 
 
 const safeTransform = (raw) => {
@@ -211,6 +211,18 @@ export const getDownlineUsers = async ({ headerToken }) => {
         message: "Unable to fetch downline users",
       }
     );
+  }
+};
+
+export const getAllBanners = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/banner/all-banners`, {
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get All Banners API Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch banners" };
   }
 };
 

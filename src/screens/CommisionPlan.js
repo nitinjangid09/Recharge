@@ -1,99 +1,63 @@
 /**
  * CommissionPlanScreen.jsx
  * React Native — Commission Plan Screen for Camlenio
- * Mirrors the HTML mockup design faithfully.
- *
- * Dependencies (add to your project):
- *   npm install react-native-safe-area-context
- *   npm install @react-navigation/native  (for back button if needed)
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
     ScrollView,
     TouchableOpacity,
     StyleSheet,
-    Animated,
     StatusBar,
-    Platform,
     ActivityIndicator,
+    TextInput,
+    Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getMyCommissionPlan } from '../api/AuthApi';
-
-// ─── Tokens ──────────────────────────────────────────────────────────────────
-const C = {
-    bg: '#EEF2FF',
-    screen: '#F8FAFF',
-    white: '#FFFFFF',
-    s1: '#F1F5FF',
-    blue: '#2563EB',
-    blueD: '#1D4ED8',
-    blueL: '#EFF6FF',
-    blueM: '#BFDBFE',
-    blueXL: '#F0F5FF',
-    indigo: '#4F46E5',
-    indigoBg: '#EEF2FF',
-    cyan: '#0891B2',
-    cyanBg: '#ECFEFF',
-    cyanBr: '#A5F3FC',
-    amber: '#D97706',
-    amberBg: '#FFFBEB',
-    green: '#059669',
-    greenBg: '#ECFDF5',
-    greenBr: '#A7F3D0',
-    t1: '#0F172A',
-    t2: '#334155',
-    t3: '#64748B',
-    t4: '#94A3B8',
-    t5: '#CBD5E1',
-    br: '#E2E8F0',
-    brD: '#CBD5E1',
-};
-
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { getMyCommissionPlan, fetchBbpsCategories } from '../api/AuthApi';
+import Colors from '../constants/Colors';
+import HeaderBar from '../componets/HeaderBar';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 const Badge = ({ type }) =>
     type === '%' ? (
         <View style={[s.badge, s.badgePercent]}>
-            <Text style={[s.badgeTxt, { color: C.indigo }]}>Percent</Text>
+            <Text style={[s.badgeTxt, { color: Colors.finance_accent }]}>Percent</Text>
         </View>
     ) : (
         <View style={[s.badge, s.badgeFlat]}>
-            <Text style={[s.badgeTxt, { color: C.cyan }]}>Flat</Text>
+            <Text style={[s.badgeTxt, { color: Colors.finance_accent }]}>Flat</Text>
         </View>
     );
 
 const CommTable = ({ data, accentColor }) => (
     <View style={s.table}>
-        {/* Header (Fixed) */}
-        <View style={[s.tableHead, { borderBottomColor: C.br }]}>
+        <View style={s.tableHead}>
             {['Operator', 'Range', 'Comm.', 'Type'].map((h) => (
                 <Text key={h} style={s.th}>{h}</Text>
             ))}
         </View>
-
-        {/* Scrollable Rows */}
         <View style={{ maxHeight: 215 }}>
             <ScrollView nestedScrollEnabled showsVerticalScrollIndicator={true}>
                 {data.map((row, i) => (
-                    <View
-                        key={i}
-                        style={[s.tableRow, i === data.length - 1 && { borderBottomWidth: 0 }]}
-                    >
+                    <View key={i} style={[s.tableRow, i === data.length - 1 && { borderBottomWidth: 0 }]}>
                         <Text style={s.tdName} numberOfLines={1}>{row.name}</Text>
                         <Text style={s.tdRange}>{row.range}</Text>
-                        <Text style={[s.tdComm, { color: accentColor || C.blue }]}>{row.comm}</Text>
+                        <Text style={[s.tdComm, { color: accentColor }]}>{row.comm}</Text>
                         <Badge type={row.type} />
                     </View>
                 ))}
                 {data.length === 0 && (
                     <View style={{ padding: 20, alignItems: 'center' }}>
-                        <Text style={{ fontSize: 12, color: C.t4 }}>No data found for this category</Text>
+                        <MaterialCommunityIcons name="table-off" size={28} color={Colors.gray_BD} />
+                        <Text style={{ fontSize: 12, color: Colors.text_secondary, marginTop: 8 }}>
+                            No data found for this category
+                        </Text>
                     </View>
                 )}
             </ScrollView>
@@ -109,7 +73,6 @@ const SegControl = ({ tabs, activeKey, onChange }) => (
                     key={tab.key}
                     onPress={() => onChange(tab.key)}
                     style={[s.segBtn, activeKey === tab.key && s.segBtnOn]}
-                    activeOpacity={0.7}
                 >
                     <Text style={[s.segBtnTxt, activeKey === tab.key && s.segBtnTxtOn]}>
                         {tab.label}
@@ -120,10 +83,10 @@ const SegControl = ({ tabs, activeKey, onChange }) => (
     </ScrollView>
 );
 
-const SectionHeader = ({ title, tag, color, pipColor }) => (
+const SectionHeader = ({ title, tag, color, }) => (
     <View style={s.sh}>
         <View style={s.shLeft}>
-            <View style={[s.shPip, { backgroundColor: pipColor || C.blue }]} />
+            <View style={[s.shPip, { backgroundColor: Colors.finance_accent }]} />
             <Text style={s.shTitle}>{title}</Text>
         </View>
         <View style={[s.shTag, { backgroundColor: color?.tagBg, borderColor: color?.tagBorder }]}>
@@ -136,7 +99,10 @@ const SectionHeader = ({ title, tag, color, pipColor }) => (
 export default function CommissionPlanScreen({ navigation }) {
     const [rechargeTab, setRechargeTab] = useState('mob');
     const [bbpsTab, setBbpsTab] = useState('all');
-    const [bbpsTabExpanded, setBbpsTabExpanded] = useState(false);
+    const [bbpsSearch, setBbpsSearch] = useState('');
+    const [bbpsCategories, setBbpsCategories] = useState([]);
+    const [isFilterVisible, setIsFilterVisible] = useState(false);
+    const [fetchingCats, setFetchingCats] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [planData, setPlanData] = useState([]);
@@ -162,35 +128,40 @@ export default function CommissionPlanScreen({ navigation }) {
         }
     };
 
-    // Helper to get rows by service name
+    const handleFilterPress = async () => {
+        setIsFilterVisible(true);
+        if (bbpsCategories.length === 0) {
+            try {
+                setFetchingCats(true);
+                const headerToken = await AsyncStorage.getItem('header_token');
+                const res = await fetchBbpsCategories({ headerToken });
+                if (res?.success) setBbpsCategories(res.data || []);
+            } catch (err) {
+                console.log('Category fetch error');
+            } finally {
+                setFetchingCats(false);
+            }
+        }
+    };
+
     const getServiceRows = (serviceName) => {
         const service = planData.find(s => s.serviceName === serviceName);
         return service?.rows || [];
     };
 
-    // Filter logic for tabs
     const rechargeRows = getServiceRows('recharge');
     const bbpsRows = getServiceRows('bbps');
 
-    const filteredRecharge = rechargeRows.filter(r => {
-        if (rechargeTab === 'mob') return !r.name.includes('DTH') && !r.name.includes('TALKTIME') && !r.name.includes('Datacard');
-        if (rechargeTab === 'dth') return r.name.includes('DTH');
-        if (rechargeTab === 'dat') return r.name.includes('Datacard');
-        return true;
-    });
-
-    // If the API returns everything in one list (like in user example), we might need to map it carefully.
-    // In the user's example, BSNL TALKTIME is recharge, AIRTEL is recharge, etc.
-    // Let's use a more robust mapping for the provided response:
     const mapRows = (rows) => rows.map(r => ({
         name: r.name,
-        range: `₹${r.fromAmount} – ${r.toAmount}`,
+        range: `₹${r.fromAmount}–${r.toAmount}`,
         comm: r.commissionType === 'flat' ? `₹${r.commission}` : `${r.commission}%`,
-        type: r.commissionType === 'flat' ? 'Flat' : '%'
+        type: r.commissionType === 'flat' ? 'Flat' : '%',
     }));
 
     const mappedRecharge = mapRows(rechargeRows.filter(r => {
-        const name = r.name.toUpperCase();
+        const name = (r.name || '').toUpperCase();
+        if (rechargeTab === 'mob') return !name.includes('DTH');
         if (rechargeTab === 'jio') return name.includes('JIO');
         if (rechargeTab === 'airtel') return name.includes('AIRTEL');
         if (rechargeTab === 'vi') return name.includes('VI');
@@ -199,47 +170,34 @@ export default function CommissionPlanScreen({ navigation }) {
     }));
 
     const mappedBbps = mapRows(bbpsRows.filter(r => {
-        const name = r.name.toLowerCase();
+        const name = (r.name || '').toLowerCase();
+        const category = (r.category || '').toLowerCase();
+        const search = (bbpsSearch || '').toLowerCase();
+        const tab = (bbpsTab || '').toLowerCase();
+        const matchesSearch = name.includes(search) || category.includes(search);
+        if (!matchesSearch) return false;
         if (bbpsTab === 'all') return true;
-        if (bbpsTab === 'elc') return name.includes('electricity');
-        if (bbpsTab === 'wat') return name.includes('water');
-        if (bbpsTab === 'gas') return name.includes('gas');
-        if (bbpsTab === 'ins') return name.includes('insurance');
-        if (bbpsTab === 'dth') return name.includes('dth');
-        return true;
+        return name.includes(tab) || category.includes(tab);
     }));
 
     return (
         <SafeAreaView style={s.root} edges={['top', 'bottom']}>
-            <StatusBar barStyle="dark-content" backgroundColor={C.screen} />
+            <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
 
-            {/* ── Header ── */}
-            <View style={s.hdr}>
-                <TouchableOpacity
-                    style={s.hdrBack}
-                    onPress={() => navigation?.goBack?.()}
-                    activeOpacity={0.7}
-                >
-                    {/* Chevron left */}
-                    <Text style={s.hdrBackIcon}>‹</Text>
-                </TouchableOpacity>
+            <HeaderBar
+                title="Commission Plan"
+                onBack={() => navigation?.goBack?.()}
+            />
 
-                <View style={s.hdrCenter}>
-                    <Text style={s.hdrTitle}>Commission Plan</Text>
-                    <Text style={s.hdrSub}>Active commission structures</Text>
-                </View>
-            </View>
-
-            {/* ── Scroll Content ── */}
             {loading ? (
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <ActivityIndicator size="large" color={C.blue} />
+                    <ActivityIndicator size="large" color={Colors.finance_accent} />
                 </View>
             ) : error ? (
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-                    <Text style={{ color: 'red', textAlign: 'center' }}>{error}</Text>
-                    <TouchableOpacity onPress={fetchPlan} style={{ marginTop: 10, padding: 10, backgroundColor: C.blue, borderRadius: 5 }}>
-                        <Text style={{ color: '#fff' }}>Retry</Text>
+                    <Text style={{ color: Colors.finance_error, textAlign: 'center' }}>{error}</Text>
+                    <TouchableOpacity onPress={fetchPlan} style={{ marginTop: 12, paddingHorizontal: 20, paddingVertical: 10, backgroundColor: Colors.primary, borderRadius: 8 }}>
+                        <Text style={{ color: Colors.white, fontWeight: '700' }}>Retry</Text>
                     </TouchableOpacity>
                 </View>
             ) : (
@@ -248,13 +206,10 @@ export default function CommissionPlanScreen({ navigation }) {
                     contentContainerStyle={s.scrollContent}
                     showsVerticalScrollIndicator={false}
                 >
-                    {/* Plan Card (Mock stats for now as not in specific API response) */}
                     <View style={s.planCard}>
                         <View style={s.planGradBar} />
                         <View style={s.planTop}>
-                            <View style={s.planIcon}>
-                                <Text style={{ fontSize: 22 }}>🛡️</Text>
-                            </View>
+
                             <View style={s.planInfo}>
                                 <Text style={s.planName}>My Commission Plan</Text>
                                 <Text style={s.planOrg}>Fetched successfully</Text>
@@ -266,12 +221,15 @@ export default function CommissionPlanScreen({ navigation }) {
                         </View>
                     </View>
 
-                    {/* ── Recharge Section ── */}
                     <SectionHeader
                         title="RECHARGE"
-                        tag="Mobile "
-                        pipColor={C.blue}
-                        color={{ tagBg: C.blueL, tagBorder: C.blueM, tagText: C.blue }}
+                        tag="Mobile"
+                        pipColor={Colors.primary}
+                        color={{
+                            tagBg: Colors.finance_chip,
+                            tagBorder: Colors.finance_accent,
+                            tagText: Colors.primary,
+                        }}
                     />
 
                     <View style={s.segWrapper}>
@@ -288,42 +246,111 @@ export default function CommissionPlanScreen({ navigation }) {
                         />
                     </View>
 
-                    <CommTable data={mappedRecharge} accentColor={C.blue} />
+                    <CommTable data={mappedRecharge} accentColor={Colors.primary} />
 
-                    {/* ── BBPS Section ── */}
                     <SectionHeader
                         title="BBPS"
                         tag="Bills · Utilities"
-                        pipColor={C.cyan}
-                        color={{ tagBg: C.cyanBg, tagBorder: C.cyanBr, tagText: C.cyan }}
+                        pipColor={Colors.black}
+                        color={{
+                            tagBg: Colors.finance_chip,
+                            tagBorder: Colors.finance_accent,
+                            tagText: Colors.black,
+                        }}
                     />
 
-                    <View style={s.segWrapper}>
-                        <SegControl
-                            tabs={(() => {
-                                const fullTabs = [
+                    <View style={s.bbpsBarRow}>
+                        <View style={{ flex: 1 }}>
+                            <SegControl
+                                tabs={[
                                     { key: 'all', label: 'All' },
-                                    { key: 'elc', label: 'Electricity' },
-                                    { key: 'wat', label: 'Water' },
-                                    { key: 'dth', label: 'DTH' },
-                                    { key: 'gas', label: 'Gas' },
-                                    { key: 'ins', label: 'Insurance' },
-                                ];
-                                if (bbpsTabExpanded) return fullTabs;
-                                return [...fullTabs.slice(0, 3), { key: 'more', label: 'More' }];
-                            })()}
-                            activeKey={bbpsTab}
-                            onChange={(key) => {
-                                if (key === 'more') {
-                                    setBbpsTabExpanded(true);
-                                } else {
-                                    setBbpsTab(key);
-                                }
-                            }}
+                                    { key: 'Electricity', label: 'Electricity' },
+                                    { key: 'Water', label: 'Water' },
+                                    { key: 'LPG Gas', label: 'Gas' },
+                                ]}
+                                activeKey={bbpsTab}
+                                onChange={setBbpsTab}
+                            />
+                        </View>
+                        <TouchableOpacity
+                            onPress={handleFilterPress}
+                            style={s.filterBtn}
+                            activeOpacity={0.7}
+                        >
+                            <MaterialCommunityIcons
+                                name="filter-variant"
+                                size={20}
+                                color={Colors.finance_accent}
+                            />
+                        </TouchableOpacity>
+                    </View>
+
+                    <Modal
+                        visible={isFilterVisible}
+                        transparent
+                        animationType="slide"
+                        onRequestClose={() => setIsFilterVisible(false)}
+                    >
+                        <TouchableOpacity
+                            style={s.modalOverlay}
+                            activeOpacity={1}
+                            onPress={() => setIsFilterVisible(false)}
+                        >
+                            <View style={s.modalContent}>
+                                <View style={s.modalHeader}>
+                                    <Text style={s.modalTitle}>Choose Service Filter</Text>
+                                    <TouchableOpacity onPress={() => setIsFilterVisible(false)}>
+                                        <MaterialCommunityIcons name="close" size={24} color={Colors.white} />
+                                    </TouchableOpacity>
+                                </View>
+
+                                {fetchingCats ? (
+                                    <ActivityIndicator size="small" color={Colors.finance_accent} style={{ margin: 20 }} />
+                                ) : (
+                                    <ScrollView style={s.catList}>
+                                        <TouchableOpacity
+                                            style={[s.catItem, bbpsTab === 'all' && s.catItemOn]}
+                                            onPress={() => { setBbpsTab('all'); setIsFilterVisible(false); }}
+                                        >
+                                            <Text style={[s.catItemTxt, bbpsTab === 'all' && s.catItemTxtOn]}>View All Services</Text>
+                                        </TouchableOpacity>
+                                        {bbpsCategories.map((cat, idx) => {
+                                            const catName = cat?.categoryName || cat?.name || (typeof cat === 'string' ? cat : '');
+                                            if (!catName) return null;
+
+                                            return (
+                                                <TouchableOpacity
+                                                    key={idx}
+                                                    style={[s.catItem, bbpsTab === catName && s.catItemOn]}
+                                                    onPress={() => {
+                                                        setBbpsTab(catName);
+                                                        setIsFilterVisible(false);
+                                                    }}
+                                                >
+                                                    <Text style={[s.catItemTxt, bbpsTab === catName && s.catItemTxtOn]}>
+                                                        {catName}
+                                                    </Text>
+                                                    <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.text_secondary} />
+                                                </TouchableOpacity>
+                                            );
+                                        })}
+                                    </ScrollView>
+                                )}
+                            </View>
+                        </TouchableOpacity>
+                    </Modal>
+
+                    <View style={s.searchWrap}>
+                        <TextInput
+                            style={s.searchInput}
+                            placeholder="Search service structure..."
+                            placeholderTextColor={Colors.text_placeholder}
+                            value={bbpsSearch}
+                            onChangeText={setBbpsSearch}
                         />
                     </View>
 
-                    <CommTable data={mappedBbps} accentColor={C.cyan} />
+                    <CommTable data={mappedBbps} accentColor={Colors.finance_accent} />
 
                     <View style={{ height: 20 }} />
                 </ScrollView>
@@ -332,73 +359,28 @@ export default function CommissionPlanScreen({ navigation }) {
     );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
     root: {
         flex: 1,
-        backgroundColor: C.screen,
+        backgroundColor: Colors.bg,
     },
-
-    // Header
-    hdr: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: C.br,
-        backgroundColor: "#1A1A2E",
-    },
-    hdrBack: {
-        width: 34,
-        height: 34,
-        backgroundColor: "rgba(255, 255, 255, 0.1)",
-        borderWidth: 1,
-        borderRadius: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    hdrBackIcon: {
-        fontSize: 30,
-        color: C.t3,
-        lineHeight: 26,
-        marginTop: -2,
-    },
-    hdrCenter: { flex: 1 },
-    hdrTitle: {
-        fontSize: 15.5,
-        fontWeight: '800',
-        color: "#fff",
-        letterSpacing: 0.1,
-    },
-    hdrSub: {
-        fontSize: 10.5,
-        color: "#fff",
-        marginTop: 2,
-    },
-
-    // Scroll
     scroll: { flex: 1 },
     scrollContent: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 20 },
-
-    // Plan Card
     planCard: {
-        backgroundColor: C.white,
+        backgroundColor: Colors.homebg,
         borderWidth: 1,
-        borderColor: C.br,
+        borderColor: Colors.border,
         borderRadius: 18,
         overflow: 'hidden',
-        shadowColor: C.blue,
+        shadowColor: Colors.homebg,
         shadowOpacity: 0.08,
         shadowOffset: { width: 0, height: 2 },
         shadowRadius: 10,
         elevation: 2,
     },
     planGradBar: {
-        height: 3,
-        backgroundColor: C.blue,
-        // Linear gradient would require expo-linear-gradient; using solid blue as fallback
+        height: 4,
+        backgroundColor: Colors.finance_accent,
     },
     planTop: {
         flexDirection: 'row',
@@ -409,24 +391,23 @@ const s = StyleSheet.create({
     planIcon: {
         width: 44,
         height: 44,
-        backgroundColor: C.blueL,
+        backgroundColor: Colors.finance_chip,
         borderWidth: 1,
-        borderColor: C.blueM,
+        borderColor: Colors.finance_accent,
         borderRadius: 14,
         alignItems: 'center',
         justifyContent: 'center',
     },
     planInfo: { flex: 1 },
     planName: {
-        fontSize: 12.5,
+        fontSize: 13.5,
         fontWeight: '800',
-        color: C.t1,
+        color: Colors.black,
         letterSpacing: 0.5,
-        textTransform: 'uppercase',
     },
     planOrg: {
-        fontSize: 10.5,
-        color: C.t4,
+        fontSize: 11.5,
+        color: Colors.text_secondary,
         marginTop: 2,
     },
     activeBadge: {
@@ -435,110 +416,24 @@ const s = StyleSheet.create({
         gap: 5,
         paddingHorizontal: 10,
         paddingVertical: 4,
-        backgroundColor: C.greenBg,
+        backgroundColor: '#E8F5E9',
         borderWidth: 1,
-        borderColor: C.greenBr,
+        borderColor: Colors.finance_success,
         borderRadius: 100,
     },
     activeDot: {
         width: 5,
         height: 5,
         borderRadius: 3,
-        backgroundColor: C.green,
+        backgroundColor: Colors.finance_success,
     },
     activeTxt: {
-        fontSize: 9,
+        fontSize: 10,
         fontWeight: '700',
-        color: C.green,
+        color: Colors.finance_success,
         letterSpacing: 0.7,
         textTransform: 'uppercase',
     },
-    planDivider: {
-        height: 1,
-        backgroundColor: C.br,
-        marginHorizontal: 16,
-    },
-    planStats: {
-        flexDirection: 'row',
-        paddingVertical: 12,
-    },
-    stat: {
-        flex: 1,
-        alignItems: 'center',
-        paddingVertical: 8,
-        paddingHorizontal: 4,
-    },
-    statBorder: {
-        borderRightWidth: 1,
-        borderRightColor: C.br,
-    },
-    statVal: {
-        fontSize: 15,
-        fontWeight: '800',
-        color: C.blue,
-        lineHeight: 18,
-    },
-    statLabel: {
-        fontSize: 9,
-        color: C.t4,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-        marginTop: 3,
-        textAlign: 'center',
-    },
-
-    // Metrics
-    metrics: {
-        flexDirection: 'row',
-        gap: 10,
-        marginTop: 12,
-    },
-    metricCard: {
-        flex: 1,
-        backgroundColor: C.white,
-        borderWidth: 1,
-        borderColor: C.br,
-        borderRadius: 14,
-        padding: 13,
-        overflow: 'hidden',
-        shadowColor: '#000',
-        shadowOpacity: 0.04,
-        shadowOffset: { width: 0, height: 1 },
-        shadowRadius: 4,
-        elevation: 1,
-    },
-    metricBar: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: 2.5,
-        borderTopLeftRadius: 14,
-        borderTopRightRadius: 14,
-    },
-    metricIcon: {
-        width: 28,
-        height: 28,
-        borderRadius: 8,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 9,
-    },
-    metricVal: {
-        fontSize: 13,
-        fontWeight: '800',
-        color: C.t1,
-        lineHeight: 16,
-    },
-    metricLabel: {
-        fontSize: 9,
-        color: C.t4,
-        marginTop: 3,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-    },
-
-    // Section Header
     sh: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -549,9 +444,9 @@ const s = StyleSheet.create({
     shLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     shPip: { width: 3, height: 17, borderRadius: 2 },
     shTitle: {
-        fontSize: 12.5,
+        fontSize: 13.5,
         fontWeight: '800',
-        color: C.t1,
+        color: Colors.finance_text,
         letterSpacing: 0.7,
         textTransform: 'uppercase',
     },
@@ -562,20 +457,18 @@ const s = StyleSheet.create({
         borderWidth: 1,
     },
     shTagTxt: {
-        fontSize: 8.5,
+        fontSize: 9.5,
         fontWeight: '700',
         letterSpacing: 0.8,
         textTransform: 'uppercase',
     },
-
-    // Segmented Control
     segWrapper: { paddingTop: 10, paddingBottom: 12 },
     segScroll: {},
     seg: {
         flexDirection: 'row',
-        backgroundColor: C.s1,
+        backgroundColor: Colors.white,
         borderWidth: 1,
-        borderColor: C.br,
+        borderColor: Colors.border,
         borderRadius: 10,
         padding: 3,
         gap: 2,
@@ -586,31 +479,29 @@ const s = StyleSheet.create({
         borderRadius: 7,
     },
     segBtnOn: {
-        backgroundColor: C.white,
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
+        backgroundColor: Colors.primary,
+        shadowColor: Colors.primary,
+        shadowOpacity: 0.2,
         shadowOffset: { width: 0, height: 1 },
         shadowRadius: 4,
         elevation: 2,
     },
     segBtnTxt: {
-        fontSize: 10,
+        fontSize: 11,
         fontWeight: '700',
-        color: C.t4,
+        color: Colors.text_secondary,
         letterSpacing: 0.5,
         textTransform: 'uppercase',
     },
-    segBtnTxtOn: { color: C.blue },
-
-    // Table
+    segBtnTxtOn: { color: Colors.white },
     table: {
-        backgroundColor: C.white,
-        borderWidth: 1,
-        borderColor: C.br,
+        backgroundColor: Colors.white,
+        borderWidth: 0.5,
+        borderColor: Colors.finance_accent,
         borderRadius: 14,
         overflow: 'hidden',
         marginBottom: 4,
-        shadowColor: '#000',
+        shadowColor: Colors.homebg,
         shadowOpacity: 0.04,
         shadowOffset: { width: 0, height: 1 },
         shadowRadius: 4,
@@ -620,17 +511,18 @@ const s = StyleSheet.create({
         flexDirection: 'row',
         paddingHorizontal: 14,
         paddingVertical: 9,
-        backgroundColor: C.s1,
+        backgroundColor: Colors.homeSecondry,
         borderBottomWidth: 1,
-        borderBottomColor: C.br,
+        borderBottomColor: Colors.finance_accent,
     },
     th: {
         flex: 1,
-        fontSize: 8.5,
+        fontSize: 9.5,
         fontWeight: '700',
-        color: C.t4,
+        color: Colors.primary,
         letterSpacing: 1,
         textTransform: 'uppercase',
+        textAlign: 'center',
     },
     tableRow: {
         flexDirection: 'row',
@@ -638,44 +530,201 @@ const s = StyleSheet.create({
         paddingHorizontal: 14,
         paddingVertical: 10,
         borderBottomWidth: 1,
-        borderBottomColor: 'rgba(226,232,240,0.65)',
+        borderBottomColor: Colors.gray_EB,
     },
     tdName: {
         flex: 1,
-        fontSize: 11.5,
+        fontSize: 12.5,
         fontWeight: '700',
-        color: C.t1,
+        color: Colors.finance_text,
+        textAlign: 'left',
     },
     tdRange: {
         flex: 1,
-        fontSize: 10.5,
-        color: C.t3,
+        fontSize: 11.5,
+        color: Colors.text_secondary,
+        textAlign: 'center',
     },
     tdComm: {
         flex: 1,
-        fontSize: 12,
+        fontSize: 13,
         fontWeight: '800',
+        textAlign: 'center',
     },
     badge: {
         flex: 1,
-        alignSelf: 'flex-start',
+        alignSelf: 'center',
+        justifyContent: 'center',
         paddingHorizontal: 7,
         paddingVertical: 3,
         borderRadius: 5,
         borderWidth: 1,
     },
     badgePercent: {
-        backgroundColor: C.indigoBg,
-        borderColor: 'rgba(79,70,229,0.15)',
+        backgroundColor: Colors.finance_chip,
+        borderColor: Colors.finance_accent,
     },
     badgeFlat: {
-        backgroundColor: C.cyanBg,
-        borderColor: C.cyanBr,
+        backgroundColor: Colors.finance_chip,
+        borderColor: Colors.finance_accent,
     },
     badgeTxt: {
-        fontSize: 8,
+        fontSize: 9,
         fontWeight: '700',
         letterSpacing: 0.6,
         textTransform: 'uppercase',
+        textAlign: 'center',
+    },
+    searchWrap: {
+        marginBottom: 10,
+    },
+    searchInput: {
+        backgroundColor: Colors.white,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        borderRadius: 10,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        fontSize: 13,
+        color: Colors.finance_text,
+    },
+    bbpsBarRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        paddingTop: 12,
+        paddingBottom: 12,
+    },
+    filterBtn: {
+        width: 38,
+        height: 38,
+        backgroundColor: Colors.white,
+        borderWidth: 1,
+        borderColor: Colors.finance_accent,
+        borderRadius: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: Colors.shadow,
+        shadowOpacity: 0.08,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
+        elevation: 2,
+    },
+
+    // ── Search ──
+    searchWrap: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.white,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        borderRadius: 12,
+        paddingHorizontal: 12,
+        marginBottom: 10,
+        shadowColor: Colors.shadow,
+        shadowOpacity: 0.05,
+        shadowOffset: { width: 0, height: 1 },
+        shadowRadius: 4,
+        elevation: 1,
+    },
+    searchIcon: { marginRight: 8 },
+    searchInput: {
+        flex: 1,
+        paddingVertical: 10,
+        fontSize: 14,
+        color: Colors.text_primary,
+    },
+    searchClear: { padding: 4 },
+
+    // ── Modal ──
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.45)',
+        justifyContent: 'flex-end',
+    },
+    modalContent: {
+        backgroundColor: Colors.white,
+        borderTopLeftRadius: 26,
+        borderTopRightRadius: 26,
+        maxHeight: '72%',
+        paddingBottom: 20,
+    },
+    modalHandle: {
+        width: 40,
+        height: 4,
+        backgroundColor: Colors.gray_E0,
+        borderRadius: 2,
+        alignSelf: 'center',
+        marginTop: 12,
+        marginBottom: 4,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        backgroundColor: Colors.primary,
+        borderTopLeftRadius: 26,
+        borderTopRightRadius: 26,
+    },
+    modalTitle: {
+        fontSize: 17,
+        fontWeight: '800',
+        color: Colors.white,
+        letterSpacing: 0.2,
+    },
+    modalCloseBtn: {
+        width: 30,
+        height: 30,
+        backgroundColor: Colors.gray_F0,
+        borderRadius: 15,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    catList: {
+        padding: 16,
+    },
+    catItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 12,
+        marginBottom: 4,
+        backgroundColor: Colors.white,
+    },
+    catItemOn: {
+        backgroundColor: Colors.finance_chip,
+    },
+    catItemLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    catItemTxt: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: Colors.black,
+    },
+    catItemTxtOn: {
+        color: Colors.black,
+        fontWeight: '700',
+    },
+
+    // ── Retry ──
+    retryBtn: {
+        marginTop: 16,
+        paddingHorizontal: 24,
+        paddingVertical: 10,
+        backgroundColor: Colors.primary,
+        borderRadius: 10,
+    },
+    retryTxt: {
+        color: Colors.finance_accent,
+        fontWeight: '700',
+        fontSize: 15,
+        letterSpacing: 0.3,
     },
 });

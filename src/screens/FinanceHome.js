@@ -23,27 +23,12 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Fonts from "../constants/Fonts";
 import Colors from "../constants/Colors";
-import { getWalletBalance, fetchUserProfile } from "../api/AuthApi";
+import { getWalletBalance, fetchUserProfile, getAllBanners, BASE_URL } from "../api/AuthApi";
 
 import BBPSIconSVG from "../assets/Icons/BBPS.svg";
 import RechargeIconSVG from "../assets/Icons/Recharge.svg";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// WHY Colors.bg IS APPLIED INLINE (not in StyleSheet.create)
-// ─────────────────────────────────────────────────────────────────────────────
-// StyleSheet.create() is evaluated once at module load time — before the
-// Colors object is imported and resolved. If you write:
-//   body: { backgroundColor: Colors.bg }  ← inside StyleSheet.create()
-// it will be undefined because the import hasn't settled yet.
-//
-// The fix: pass { backgroundColor: Colors.bg } as an inline style prop
-// in JSX, where it is evaluated at render time when Colors is already loaded.
-// This is why you'll see it in the JSX as style={[S.xxx, BG]} or inline.
-// ─────────────────────────────────────────────────────────────────────────────
 
-// ─────────────────────────────────────────────────────────────────────────────
-// RESPONSIVE
-// ─────────────────────────────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get("window");
 const scale = (n) => Math.round((SW / 375) * n);
 const vscale = (n) => Math.round((SH / 812) * n);
@@ -114,7 +99,6 @@ const SESSION_KEYS = [
 // ─────────────────────────────────────────────────────────────────────────────
 // API
 // ─────────────────────────────────────────────────────────────────────────────
-const BASE_URL = "https://your-api-domain.com/api";
 const apiGet = async (ep, tok) => {
   const r = await fetch(`${BASE_URL}${ep}`, {
     method: "GET",
@@ -215,10 +199,22 @@ export default function FinanceHome({ navigation }) {
   const [servicesLoading, setServicesLoading] = useState(false);
   const [isAeps, setIsAeps] = useState(true);
   const [showBalance, setShowBalance] = useState(true);
+  const [banners, setBanners] = useState([]);
   const [statusMessage, setStatusMessage] = useState("");
 
   const hasService = (n) =>
     assignedServices.some((s) => s.name?.toLowerCase() === n.toLowerCase());
+
+  const loadBanners = useCallback(async (tok) => {
+    try {
+      const res = await getAllBanners({ headerToken: tok });
+      console.log("[BANNERS] Dynamic banners result:", res?.success ? "success" : "failed", res?.data?.length || 0, "items");
+      if (res?.success) setBanners(res.data || []);
+    } catch (e) {
+      console.log("[BANNERS] Load error:", e);
+      setBanners([]);
+    }
+  }, []);
 
   // ── Header collapse ────────────────────────────────────────────────────────
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -314,6 +310,7 @@ export default function FinanceHome({ navigation }) {
       })();
 
       loadBalances(s.header_token);
+      loadBanners(s.header_token);
     } catch (e) {
       console.error("loadSession:", e);
       setUserName("User");
@@ -372,10 +369,14 @@ export default function FinanceHome({ navigation }) {
   const scrollRef = useRef(null);
   const ITEM_W = SW - rs(36) + rs(10);
   useEffect(() => {
+    if (banners.length < 2) return;
     let i = 0;
-    const iv = setInterval(() => { i = (i + 1) % 3; scrollRef.current?.scrollTo({ x: i * ITEM_W, animated: true }); }, 3000);
+    const iv = setInterval(() => {
+      i = (i + 1) % banners.length;
+      scrollRef.current?.scrollTo({ x: i * ITEM_W, animated: true });
+    }, 3000);
     return () => clearInterval(iv);
-  }, []);
+  }, [banners.length]);
 
   const CARD_W = SW * 0.8;
   const SPACING = rs(15);
@@ -433,7 +434,7 @@ export default function FinanceHome({ navigation }) {
       <View style={[S.root, { backgroundColor: Colors.bg }]}>
 
         {/* ══ HEADER — bottom border radius rs(32) ══ */}
-        <Animated.View style={[S.headerWrap, { height: headerHeight }]}>
+        <Animated.View style={[S.headerWrap]}>
           <LinearGradient
             colors={["#161616", "#000000"]}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
@@ -531,9 +532,7 @@ export default function FinanceHome({ navigation }) {
                   }
                 ]}
               >
-                <TouchableOpacity
-                  activeOpacity={1}
-                  onPress={toggleWallet}
+                <View
                   style={{ flex: 1 }}
                 >
                   <LinearGradient
@@ -547,9 +546,14 @@ export default function FinanceHome({ navigation }) {
                         <Icon name="wallet-outline" size={rs(13)} color="#d4b06a" />
                         <Text style={S.walletTagTxt}>AEPS Wallet</Text>
                       </View>
-                      <View style={S.swapBtn}>
+                      <TouchableOpacity
+                        style={S.swapBtn}
+                        onPress={toggleWallet}
+                        activeOpacity={0.7}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      >
                         <Icon name="swap-horizontal" size={rs(18)} color="#d4b06a" />
-                      </View>
+                      </TouchableOpacity>
                     </View>
 
                     <View style={{ marginTop: rs(8) }}>
@@ -586,10 +590,9 @@ export default function FinanceHome({ navigation }) {
                         <View style={[S.kycDotSm, { backgroundColor: kyc }]} />
                         <Text style={[S.kycBadgeTxt, { color: kyc }]}>KYC {kycStatus.toUpperCase()}</Text>
                       </TouchableOpacity>
-                      <Text style={S.footerHint}>Tap card to flip</Text>
                     </View>
                   </LinearGradient>
-                </TouchableOpacity>
+                </View>
               </Animated.View>
 
               {/* BACK SIDE (MAIN) */}
@@ -604,9 +607,7 @@ export default function FinanceHome({ navigation }) {
                   }
                 ]}
               >
-                <TouchableOpacity
-                  activeOpacity={1}
-                  onPress={toggleWallet}
+                <View
                   style={{ flex: 1 }}
                 >
                   <LinearGradient
@@ -620,9 +621,14 @@ export default function FinanceHome({ navigation }) {
                         <Icon name="wallet-membership" size={rs(13)} color="#d4b06a" />
                         <Text style={[S.walletTagTxt, { color: "#d4b06a" }]}>Main Wallet</Text>
                       </View>
-                      <View style={S.swapBtn}>
+                      <TouchableOpacity
+                        style={S.swapBtn}
+                        onPress={toggleWallet}
+                        activeOpacity={0.7}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      >
                         <Icon name="swap-horizontal" size={rs(18)} color="#d4b06a" />
-                      </View>
+                      </TouchableOpacity>
                     </View>
 
                     <View style={{ marginTop: rs(8) }}>
@@ -665,10 +671,10 @@ export default function FinanceHome({ navigation }) {
                         <View style={[S.kycDotSm, { backgroundColor: kyc }]} />
                         <Text style={[S.kycBadgeTxt, { color: kyc }]}>KYC {kycStatus.toUpperCase()}</Text>
                       </TouchableOpacity>
-                      <Text style={S.footerHint}>Tap card to flip</Text>
+
                     </View>
                   </LinearGradient>
-                </TouchableOpacity>
+                </View>
               </Animated.View>
             </View>
 
@@ -867,43 +873,37 @@ export default function FinanceHome({ navigation }) {
               </>
             )}
 
-            {/* Banner */}
-            <View style={S.bannerWrap}>
-              <ScrollView
-                ref={scrollRef} horizontal snapToInterval={ITEM_W}
-                decelerationRate="fast" showsHorizontalScrollIndicator={false}
-                scrollEventThrottle={16} contentContainerStyle={{ paddingRight: rs(20) }}
-                onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: bannerX } } }], { useNativeDriver: false })}
-              >
-                {[require("../assets/banner_a.png"), require("../assets/banner_b.png"), require("../assets/banner_c.png")].map((img, i) => (
-                  <Image key={i} source={img} style={S.bannerImg} />
-                ))}
-              </ScrollView>
-              <View style={S.paginRow}>
-                {[0, 1, 2].map((_, i) => {
-                  const r = [(i - 1) * SW, i * SW, (i + 1) * SW];
-                  return (
-                    <Animated.View key={i} style={[S.paginDot, {
-                      width: bannerX.interpolate({ inputRange: r, outputRange: [8, 20, 8], extrapolate: "clamp" }),
-                      opacity: bannerX.interpolate({ inputRange: r, outputRange: [0.3, 1, 0.3], extrapolate: "clamp" }),
-                    }]} />
-                  );
-                })}
-              </View>
-            </View>
-
-            {/* Great Deals */}
-            <View style={S.dealsRow}>
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <View style={[S.dealIconBg, { backgroundColor: Colors.finance_chip }]}>
-                  <Icon name="fire" size={rs(17)} color={Colors.finance_accent} />
+            {/* Banner Section */}
+            {banners.length > 0 && (
+              <View style={S.bannerWrap}>
+                <ScrollView
+                  ref={scrollRef} horizontal snapToInterval={ITEM_W}
+                  decelerationRate="fast" showsHorizontalScrollIndicator={false}
+                  scrollEventThrottle={16} contentContainerStyle={{ paddingRight: rs(20) }}
+                  onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: bannerX } } }], { useNativeDriver: false })}
+                >
+                  {banners.map((img, i) => (
+                    <Image
+                      key={img._id || i}
+                      source={{ uri: `${BASE_URL}${img.imageUrl}` }}
+                      style={S.bannerImg}
+                    />
+                  ))}
+                </ScrollView>
+                <View style={S.paginRow}>
+                  {banners.map((_, i) => {
+                    const r = [(i - 1) * SW, i * SW, (i + 1) * SW];
+                    return (
+                      <Animated.View key={i} style={[S.paginDot, {
+                        width: bannerX.interpolate({ inputRange: r, outputRange: [8, 20, 8], extrapolate: "clamp" }),
+                        opacity: bannerX.interpolate({ inputRange: r, outputRange: [0.3, 1, 0.3], extrapolate: "clamp" }),
+                      }]} />
+                    );
+                  })}
                 </View>
-                <Text style={[S.dealTitle, { color: Colors.finance_text }]}>Great Deals</Text>
               </View>
-              <View style={[S.hotTag, { backgroundColor: Colors.finance_accent }]}>
-                <Text style={S.hotTagTxt}>LIMITED</Text>
-              </View>
-            </View>
+            )}
+
 
           </View>
         </Animated.ScrollView>
@@ -1145,14 +1145,6 @@ const S = StyleSheet.create({
   paginRow: { position: "absolute", bottom: rs(7), flexDirection: "row", alignSelf: "center" },
   paginDot: { height: rs(5), borderRadius: rs(3), backgroundColor: Colors.finance_accent, marginHorizontal: rs(3) },
 
-  dealsRow: {
-    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
-    marginBottom: rs(9), marginTop: rs(9),
-    paddingVertical: rs(11), paddingHorizontal: rs(13),
-    backgroundColor: Colors.white, borderRadius: rs(14), elevation: 2,
-  },
-  dealIconBg: { width: rs(29), height: rs(29), borderRadius: rs(14), alignItems: "center", justifyContent: "center", marginRight: rs(7) },
-  dealTitle: { fontSize: rs(13), fontFamily: Fonts.Bold },
   hotTag: { paddingHorizontal: rs(8), paddingVertical: rs(3), borderRadius: rs(9) },
   hotTagTxt: { color: Colors.white, fontSize: rs(9), fontFamily: Fonts.Bold },
 
