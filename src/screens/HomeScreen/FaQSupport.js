@@ -14,31 +14,57 @@ import {
   Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { getAllTickets, registerTicket } from "../../api/bbpsApi";
-
-
-const normaliseType = (item, index) => ({
-  key:
-    item.type ||
-    item.id ||
-    item.service ||
-    item.cat_key ||
-    String(index),
-  label:
-    item.name ||
-    item.label ||
-    item.serviceName ||
-    item.type ||
-    `Service ${index + 1}`,
-  raw: item, // keep original in case API needs original fields
-});
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  fetchUserProfile,
+  createSupportRequest,
+  getMySupportRequests,
+} from "../../api/AuthApi";
 
 /* ─────────────────────────────────────────────
-   Service Picker Modal
+   Helpers
 ─────────────────────────────────────────────*/
 
-const ServicePicker = ({ visible, types, selected, onSelect, onClose }) => {
-  const normalised = (types || []).map(normaliseType);
+/** Retrieve the saved auth token from AsyncStorage */
+const getToken = async () => {
+  let token = await AsyncStorage.getItem("header_token");
+  if (!token) {
+    const raw = await AsyncStorage.getItem("token");
+    if (raw) {
+      try {
+        token = JSON.parse(raw)?.token ?? null;
+      } catch {
+        token = raw;
+      }
+    }
+  }
+  return token;
+};
+
+/**
+ * Normalise an assignedService object coming from the profile API:
+ *   { _id: "6993147e...", name: "bbps" }
+ * into a consistent shape used throughout the UI.
+ */
+const normaliseService = (item, index) => {
+  const key =
+    item._id || item.id || item.name || item.type || item.cat_key || String(index);
+  const rawLabel =
+    item.name || item.label || item.serviceName || item.type || `Service ${index + 1}`;
+
+  return {
+    key,
+    label: typeof rawLabel === "string" ? rawLabel.toUpperCase() : String(rawLabel),
+    raw: item,
+  };
+};
+
+/* ─────────────────────────────────────────────
+   Service Picker Modal  (UI unchanged)
+─────────────────────────────────────────────*/
+
+const ServicePicker = ({ visible, services, selected, onSelect, onClose }) => {
+  const normalised = (services || []).map(normaliseService);
 
   return (
     <Modal
@@ -52,8 +78,7 @@ const ServicePicker = ({ visible, types, selected, onSelect, onClose }) => {
         activeOpacity={1}
         onPress={onClose}
       >
-        <TouchableOpacity activeOpacity={1} style={pickerStyles.sheet} onPress={() => {}}>
-          {/* Handle bar */}
+        <TouchableOpacity activeOpacity={1} style={pickerStyles.sheet} onPress={() => { }}>
           <View style={pickerStyles.handle} />
 
           <Text style={pickerStyles.title}>Select Service Type</Text>
@@ -95,19 +120,29 @@ const ServicePicker = ({ visible, types, selected, onSelect, onClose }) => {
 };
 
 /* ─────────────────────────────────────────────
-   Ticket Card (expandable)
+   Ticket Card (expandable)  (UI unchanged)
 ─────────────────────────────────────────────*/
 
 const STATUS_COLORS = {
   RESOLVED: { bg: "#D1FAE5", text: "#059669" },
-  PENDING:  { bg: "#FEF3C7", text: "#B45309" },
-  OPEN:     { bg: "#DBEAFE", text: "#1D4ED8" },
-  CLOSED:   { bg: "#F3F4F6", text: "#6B7280" },
+  PENDING: { bg: "#FEF3C7", text: "#B45309" },
+  OPEN: { bg: "#DBEAFE", text: "#1D4ED8" },
+  CLOSED: { bg: "#F3F4F6", text: "#6B7280" },
 };
 
 const TicketCard = ({ ticket }) => {
   const [open, setOpen] = useState(false);
-  const colors = STATUS_COLORS[ticket.status] || { bg: "#F3F4F6", text: "#6B7280" };
+  const colors =
+    STATUS_COLORS[ticket.status?.toUpperCase()] || { bg: "#F3F4F6", text: "#6B7280" };
+
+  const ticketId = ticket.ticketId || ticket._id || "N/A";
+  const serviceName = ticket.serviceName || ticket.serviceId?.name || "N/A";
+  const details = ticket.supportDetails || ticket.message || "No details provided";
+  const adminReply = ticket.adminRemark || "No reply yet";
+  const transactionId = ticket.transactionId || ticket.txnid || "";
+  const createdAt = ticket.createdAt
+    ? new Date(ticket.createdAt).toLocaleDateString()
+    : "N/A";
 
   return (
     <TouchableOpacity
@@ -116,37 +151,41 @@ const TicketCard = ({ ticket }) => {
       onPress={() => setOpen((v) => !v)}
     >
       <View style={styles.historyTop}>
-        <Text style={styles.ticketId}>#{ticket.ticketid}</Text>
+        <Text style={styles.ticketId}>#{ticketId.slice(-8).toUpperCase()}</Text>
         <View style={[styles.statusBadge, { backgroundColor: colors.bg }]}>
-          <Text style={[styles.statusText, { color: colors.text }]}>
-            {ticket.status}
-          </Text>
+          <Text style={[styles.statusText, { color: colors.text }]}>{ticket.status}</Text>
         </View>
       </View>
 
       <Text style={styles.rowText}>
         <Text style={styles.rowLabel}>Service: </Text>
-        {ticket.service}
+        {serviceName.toUpperCase()}
       </Text>
       <Text style={styles.rowText}>
-        <Text style={styles.rowLabel}>Txn ID: </Text>
-        {ticket.txnid}
+        <Text style={styles.rowLabel}>Subject / Details: </Text>
+        {details}
       </Text>
+      {transactionId ? (
+        <Text style={styles.rowText}>
+          <Text style={styles.rowLabel}>Txn ID: </Text>
+          {transactionId}
+        </Text>
+      ) : null}
 
       {open && (
         <View style={styles.expandedWrap}>
           <View style={styles.divider} />
           <Text style={styles.rowText}>
-            <Text style={styles.rowLabel}>Message: </Text>
-            {ticket.message}
+            <Text style={styles.rowLabel}>Details: </Text>
+            {details}
           </Text>
           <Text style={styles.rowText}>
             <Text style={styles.rowLabel}>Admin Reply: </Text>
-            {ticket.adminmsg || "No reply yet"}
+            {adminReply}
           </Text>
           <Text style={styles.rowText}>
             <Text style={styles.rowLabel}>Date: </Text>
-            {ticket.date}
+            {createdAt}
           </Text>
         </View>
       )}
@@ -156,39 +195,91 @@ const TicketCard = ({ ticket }) => {
   );
 };
 
+
 /* ─────────────────────────────────────────────
    MAIN SCREEN
 ─────────────────────────────────────────────*/
 
 const FaqSupportScreen = () => {
   const [selectedService, setSelectedService] = useState(null); // normalised item
-  const [txnId, setTxnId] = useState("");
-  const [message, setMessage] = useState("");
+  const [transactionId, setTransactionId] = useState("");
+  const [supportDetails, setSupportDetails] = useState("");
 
-  const [supportTypes, setSupportTypes] = useState([]);
+  // Populated from fetchUserProfile → data.assignedServices
+  const [assignedServices, setAssignedServices] = useState([]);
   const [tickets, setTickets] = useState([]);
 
   const [pickerOpen, setPickerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // Pagination states
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
   useEffect(() => {
     loadData();
   }, []);
 
-  /* ── Load ─────────────────────────────────── */
-  const loadData = async () => {
+  /* ── Load profile + tickets ──────────────── */
+  const loadData = async (pageNum = 1) => {
     setLoading(true);
+    setPage(pageNum);
     try {
-      const result = await getAllTickets();
-      if (result.success) {
-        setSupportTypes(Array.isArray(result.supportTypes) ? result.supportTypes : []);
-        setTickets(Array.isArray(result.supportTickets) ? result.supportTickets : []);
-      } else {
-        Alert.alert("Error", result.message || "Failed to load data.");
+      const headerToken = await getToken();
+
+      const [ticketsResult, profileResult] = await Promise.allSettled([
+        headerToken
+          ? getMySupportRequests({ headerToken, page: pageNum, limit: 5 })
+          : Promise.resolve(null),
+        headerToken
+          ? fetchUserProfile({ headerToken })
+          : Promise.resolve(null),
+      ]);
+
+      /* Tickets */
+      if (
+        ticketsResult.status === "fulfilled" &&
+        ticketsResult.value?.success
+      ) {
+        setTickets(
+          Array.isArray(ticketsResult.value.data) ? ticketsResult.value.data : []
+        );
+        // Set total pages from API pagination metadata
+        setTotalPages(ticketsResult.value.pagination?.totalPages || 1);
+      }
+
+      /*
+       * Profile → assignedServices
+       *
+       * API: {{base_url}}/fetch-user-profile
+       * Response shape:
+       * {
+       *   success: true,
+       *   data: {
+       *     assignedServices: [
+       *       { _id: "6993147e71936d89b7185e36", name: "bbps"     },
+       *       { _id: "699314b271936d89b7185e48", name: "recharge" }
+       *     ],
+       *     ...
+       *   }
+       * }
+       *
+       * Each item is normalised to { key: _id, label: "BBPS", raw: originalItem }
+       * and fed into the ServicePicker modal list.
+       */
+      if (
+        profileResult.status === "fulfilled" &&
+        profileResult.value?.success &&
+        profileResult.value?.data?.assignedServices
+      ) {
+        const services = Array.isArray(profileResult.value.data.assignedServices)
+          ? profileResult.value.data.assignedServices
+          : [];
+        setAssignedServices(services);
       }
     } catch (err) {
-      Alert.alert("Error", "Unexpected error loading tickets.");
+      console.log("[Support] Error loading data:", err);
     } finally {
       setLoading(false);
     }
@@ -198,25 +289,28 @@ const FaqSupportScreen = () => {
   const handleSubmit = async () => {
     if (!selectedService)
       return Alert.alert("Validation", "Please select a service type.");
-    if (!txnId.trim())
-      return Alert.alert("Validation", "Please enter a Transaction ID.");
-    if (!message.trim())
-      return Alert.alert("Validation", "Please enter a message.");
+
+    // Validate support details as required field
+    if (!supportDetails.trim())
+      return Alert.alert("Validation", "Error: Missing required field - support details.");
 
     setSubmitting(true);
     try {
-      const result = await registerTicket({
-        service: selectedService.key, // normalised key sent to API
-        txnid: txnId.trim(),
-        message: message.trim(),
+      const headerToken = await getToken();
+
+      const result = await createSupportRequest({
+        serviceId: selectedService.key, // sends the _id of the selected assignedService
+        supportDetails: supportDetails.trim(),
+        transactionId: transactionId.trim(),
+        headerToken,
       });
 
       if (result.success) {
         Alert.alert("Success ✓", result.message || "Ticket raised successfully.");
         setSelectedService(null);
-        setTxnId("");
-        setMessage("");
-        loadData();
+        setTransactionId("");
+        setSupportDetails("");
+        loadData(1); // Refresh back to page 1
       } else {
         Alert.alert("Error", result.message || "Something went wrong.");
       }
@@ -249,6 +343,7 @@ const FaqSupportScreen = () => {
           </Text>
         </View>
 
+
         {/* Form */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>New Support Ticket</Text>
@@ -265,18 +360,18 @@ const FaqSupportScreen = () => {
             <Text style={styles.dropArrow}>▾</Text>
           </TouchableOpacity>
 
-          <Text style={styles.fieldLabel}>TRANSACTION ID *</Text>
+          <Text style={styles.fieldLabel}>TRANSACTION ID (OPTIONAL)</Text>
           <TextInput
             style={[styles.inputBox, styles.inputText]}
-            value={txnId}
-            onChangeText={setTxnId}
+            value={transactionId}
+            onChangeText={setTransactionId}
             placeholder="e.g. TXN123456789"
             placeholderTextColor="#9CA3AF"
             autoCapitalize="characters"
             autoCorrect={false}
           />
 
-          <Text style={styles.fieldLabel}>REMARK *</Text>
+          <Text style={styles.fieldLabel}>SUPPORT DETAILS *</Text>
           <TextInput
             style={[
               styles.inputBox,
@@ -284,9 +379,9 @@ const FaqSupportScreen = () => {
               { height: 110, textAlignVertical: "top", alignItems: "flex-start" },
             ]}
             multiline
-            value={message}
-            onChangeText={setMessage}
-            placeholder="Describe your issue in detail..."
+            value={supportDetails}
+            onChangeText={setSupportDetails}
+            placeholder="E.g. AEPS service not working..."
             placeholderTextColor="#9CA3AF"
           />
 
@@ -304,9 +399,9 @@ const FaqSupportScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* History */}
-        <View style={styles.historyHeader}>
-          <Text style={styles.historyTitle}>My Tickets</Text>
+        {/* Support History Directly on Screen */}
+        <View style={historyStyles.header}>
+          <Text style={historyStyles.title}>My Support Tickets</Text>
           <TouchableOpacity onPress={loadData} disabled={loading}>
             <Text style={styles.refreshBtn}>{loading ? "…" : "↻ Refresh"}</Text>
           </TouchableOpacity>
@@ -320,19 +415,56 @@ const FaqSupportScreen = () => {
             <Text style={styles.emptyText}>No tickets raised yet.</Text>
           </View>
         ) : (
-          tickets.map((item) => (
-            <TicketCard key={String(item.ticketid)} ticket={item} />
+          tickets.map((item, index) => (
+            <TicketCard key={item._id || String(index)} ticket={item} />
           ))
+        )}
+
+        {/* Pagination Card */}
+        {tickets.length > 0 && totalPages > 1 && (
+          <View style={paginationStyles.card}>
+            <TouchableOpacity
+              style={[
+                paginationStyles.btn,
+                (page <= 1 || loading) && paginationStyles.btnDisabled,
+              ]}
+              onPress={() => loadData(page - 1)}
+              disabled={page <= 1 || loading}
+              activeOpacity={0.7}
+            >
+              <Text style={paginationStyles.btnText}>◀ PREV</Text>
+            </TouchableOpacity>
+
+            <View style={paginationStyles.infoContainer}>
+              <Text style={paginationStyles.infoText}>
+                {page} / {totalPages}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={[
+                paginationStyles.btn,
+                (page >= totalPages || loading) && paginationStyles.btnDisabled,
+              ]}
+              onPress={() => loadData(page + 1)}
+              disabled={page >= totalPages || loading}
+              activeOpacity={0.7}
+            >
+              <Text style={paginationStyles.btnText}>NEXT ▶</Text>
+            </TouchableOpacity>
+          </View>
         )}
       </ScrollView>
 
+      {/* Service Picker — list comes from assignedServices via fetchUserProfile */}
       <ServicePicker
         visible={pickerOpen}
-        types={supportTypes}
+        services={assignedServices}
         selected={selectedService}
         onSelect={setSelectedService}
         onClose={() => setPickerOpen(false)}
       />
+
     </SafeAreaView>
   );
 };
@@ -340,7 +472,7 @@ const FaqSupportScreen = () => {
 export default FaqSupportScreen;
 
 /* ─────────────────────────────────────────────
-   STYLES
+   STYLES  (identical to original)
 ─────────────────────────────────────────────*/
 
 const styles = StyleSheet.create({
@@ -407,14 +539,6 @@ const styles = StyleSheet.create({
   submitButtonDisabled: { opacity: 0.65 },
   submitText: { color: "#fff", fontWeight: "800", fontSize: 14, letterSpacing: 1 },
 
-  historyHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginHorizontal: 20,
-    marginBottom: 12,
-  },
-  historyTitle: { fontSize: 18, fontWeight: "800", color: "#111827" },
   refreshBtn: { fontSize: 14, color: "#D71920", fontWeight: "700" },
 
   emptyWrap: { alignItems: "center", marginTop: 30 },
@@ -447,6 +571,17 @@ const styles = StyleSheet.create({
   expandedWrap: { marginTop: 8 },
   divider: { height: 1, backgroundColor: "#F3F4F6", marginVertical: 10 },
   caret: { fontSize: 11, color: "#D71920", fontWeight: "600", marginTop: 10, textAlign: "right" },
+
+  actionRow: { paddingHorizontal: 20, marginTop: 10 },
+  historyBtn: {
+    backgroundColor: "#fff",
+    paddingVertical: 12,
+    borderRadius: 14,
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: "#D71920",
+  },
+  historyBtnTxt: { color: "#D71920", fontWeight: "800", fontSize: 13, letterSpacing: 1 },
 });
 
 const pickerStyles = StyleSheet.create({
@@ -495,3 +630,61 @@ const pickerStyles = StyleSheet.create({
   },
   closeTxt: { color: "#374151", fontWeight: "700", fontSize: 14 },
 });
+
+const historyStyles = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginHorizontal: 20,
+    marginTop: 10,
+    marginBottom: 12,
+  },
+  title: { fontSize: 18, fontWeight: "800", color: "#111827" },
+});
+
+const paginationStyles = StyleSheet.create({
+  card: {
+    backgroundColor: "#fff",
+    marginHorizontal: 20,
+    marginTop: 5,
+    marginBottom: 20,
+    padding: 12,
+    borderRadius: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  btn: {
+    backgroundColor: "#D71920",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    minWidth: 80,
+    alignItems: "center",
+  },
+  btnDisabled: {
+    backgroundColor: "#E5E7EB",
+    opacity: 0.8,
+  },
+  btnText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+  },
+  infoContainer: {
+    paddingHorizontal: 12,
+  },
+  infoText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#374151",
+  },
+});
+

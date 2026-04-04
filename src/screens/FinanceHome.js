@@ -793,6 +793,53 @@ export default function FinanceHome({ navigation }) {
             style={[S.body, { backgroundColor: Colors.bg, opacity: bodyFade, transform: [{ translateY: bodySlide }] }]}
           >
 
+            {/* ── OVERVIEW STATS ── */}
+            <OverviewStats
+              navigation={navigation}
+              kycStatus={kycStatus}
+              assignedServices={assignedServices}
+              statusMessage={statusMessage}
+            />
+
+            {/* ── SERVICES GRID ── */}
+            <SectionHeader title="Services" linkLabel="View All" onLink={() => { }} />
+            <View style={S.svcGrid}>
+              {assignedServices.map((item, idx) => {
+                const n = item.name?.toLowerCase();
+                const iconName = SERVICE_ICON_MAP[n] || SERVICE_ICON_MAP.default;
+                const isFirst = idx === 0;
+                return (
+                  <TouchableOpacity
+                    key={item._id}
+                    style={[S.svcGridItem]}
+                    activeOpacity={0.78}
+                    onPress={() => {
+                      if (n === "recharge") navigation.navigate("TopUpScreen");
+                      else if (n === "bbps") navigation.navigate("PaymentsScreen");
+                      else if (n === "aeps") navigation.navigate("CashWithdraw");
+                    }}
+                  >
+                    <View style={[S.svcIconCircle]}>
+                      {n === "bbps" && typeof BBPSIconSVG === "function" ? (
+                        <BBPSIconSVG width={rs(26)} height={rs(26)} />
+                      ) : n === "recharge" && typeof RechargeIconSVG === "function" ? (
+                        <RechargeIconSVG width={rs(26)} height={rs(26)} />
+                      ) : (
+                        <Icon
+                          name={iconName}
+                          size={rs(22)}
+                          color={isFirst ? Colors.finance_accent : "#444"}
+                        />
+                      )}
+                    </View>
+                    <Text style={[S.svcGridLabel]}>
+                      {item.name.toUpperCase()}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
             {/* ── PROMO BANNER ── */}
             {banners.length > 0 ? (
               <View style={{ marginTop: rs(10) }}>
@@ -834,53 +881,6 @@ export default function FinanceHome({ navigation }) {
             ) : (
               <PromoBanner onPress={() => navigation.navigate("TopUpScreen")} />
             )}
-
-            {/* ── SERVICES GRID ── */}
-            <SectionHeader title="Services" linkLabel="View All" onLink={() => { }} />
-            <View style={S.svcGrid}>
-              {assignedServices.map((item, idx) => {
-                const n = item.name?.toLowerCase();
-                const iconName = SERVICE_ICON_MAP[n] || SERVICE_ICON_MAP.default;
-                const isFirst = idx === 0;
-                return (
-                  <TouchableOpacity
-                    key={item._id}
-                    style={[S.svcGridItem]}
-                    activeOpacity={0.78}
-                    onPress={() => {
-                      if (n === "recharge") navigation.navigate("TopUpScreen");
-                      else if (n === "bbps") navigation.navigate("PaymentsScreen");
-                      else if (n === "aeps") navigation.navigate("CashWithdraw");
-                    }}
-                  >
-                    <View style={[S.svcIconCircle]}>
-                      {n === "bbps" && typeof BBPSIconSVG === "function" ? (
-                        <BBPSIconSVG width={rs(26)} height={rs(26)} />
-                      ) : n === "recharge" && typeof RechargeIconSVG === "function" ? (
-                        <RechargeIconSVG width={rs(26)} height={rs(26)} />
-                      ) : (
-                        <Icon
-                          name={iconName}
-                          size={rs(22)}
-                          color={isFirst ? Colors.finance_accent : "#444"}
-                        />
-                      )}
-                    </View>
-                    <Text style={[S.svcGridLabel]}>
-                      {item.name.toUpperCase()}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-
-            {/* ── OVERVIEW STATS ── */}
-            <OverviewStats
-              navigation={navigation}
-              kycStatus={kycStatus}
-              assignedServices={assignedServices}
-              statusMessage={statusMessage}
-            />
 
             {/* ── RECENT TRANSACTIONS ── */}
             <SectionHeader

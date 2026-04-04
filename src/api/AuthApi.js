@@ -1056,7 +1056,7 @@ export const transferAepsToMainWallet = async ({ amount, headerToken }) => {
     if (text.trim().startsWith("<")) {
       return { success: false, message: "Server error. Please try again." };
     }
-    
+
     return JSON.parse(text);
   } catch (error) {
     return { success: false, message: error.message || "Network error" };
@@ -1084,7 +1084,7 @@ export const getWalletHistory = async ({ headerToken, page = 1, limit = 10, sear
     if (text.trim().startsWith("<")) {
       return { success: false, message: "Server error. Please try again." };
     }
-    
+
     return JSON.parse(text);
   } catch (error) {
     return { success: false, message: error.message || "Network error" };
@@ -1162,5 +1162,42 @@ export const getMyCommissionPlan = async ({ headerToken }) => {
   } catch (error) {
     console.log("[getMyCommissionPlan] error:", error?.message || error);
     return { success: false, message: error.message || "Network error", data: null };
+  }
+};
+
+/**
+ * createSupportRequest
+ * @param {{ serviceId: string, supportDetails: string, transactionId: string, headerToken: string }} params
+ */
+export const createSupportRequest = async ({ serviceId, supportDetails, transactionId, headerToken }) => {
+  try {
+    const url = `${BASE_URL}/user/support/create-support-request`;
+    const response = await axios.post(url, { serviceId, supportDetails, transactionId }, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "Content-Type": "application/json"
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Create Support Request Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Ticket creation failed" };
+  }
+};
+
+/**
+ * getMySupportRequests
+ * @param {{ headerToken: string, page: number, limit: number }} params
+ */
+export const getMySupportRequests = async ({ headerToken, page = 1, limit = 5 }) => {
+  try {
+    const url = `${BASE_URL}/user/support/get-my-support-requests?page=${page}&limit=${limit}`;
+    const response = await axios.get(url, {
+      headers: { Authorization: `Bearer ${headerToken}` }
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get Support Requests Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch support requests" };
   }
 };
