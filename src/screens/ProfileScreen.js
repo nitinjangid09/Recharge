@@ -424,6 +424,13 @@ export default function ProfileScreen({ navigation }) {
                 </>
               )}
             <Row
+              icon="account-cash-register-outline"
+              label="User Wallet Refill"
+              sub="Add Balance to User Wallet"
+              isLast
+              onPress={() => navigation.navigate("UserWalletRefill")}
+            />
+            <Row
               icon="map-marker-outline"
               label="Address Management"
               sub="Saved delivery addresses"

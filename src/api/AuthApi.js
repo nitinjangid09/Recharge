@@ -214,6 +214,67 @@ export const getDownlineUsers = async ({ headerToken }) => {
   }
 };
 
+export const getUserWalletRefillProfile = async (userId, { headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/userWalletRefill/user-profile`, {
+      params: { userId },
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get User Wallet Refill Profile Error:", error?.response?.data || error);
+    return (
+      error?.response?.data || {
+        success: false,
+        message: "Unable to fetch profile for wallet refill",
+      }
+    );
+  }
+};
+
+export const refillUserWallet = async ({ userId, amount, idempotencyKey, headerToken }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/userWalletRefill/refill-user-wallet`, {
+      userId,
+      amount
+    }, {
+      headers: { 
+        Authorization: `Bearer ${headerToken}`,
+        'idempotency-key': idempotencyKey
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Refill User Wallet API Error:", error?.response?.data || error);
+    return (
+      error?.response?.data || {
+        success: false,
+        message: "Wallet refill failed. Please try again.",
+      }
+    );
+  }
+};
+
+export const getUserWalletRefillHistory = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/userWalletRefill/wallet-refill-history`, {
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get Wallet Refill History API Error:", error?.response?.data || error);
+    return (
+      error?.response?.data || {
+        success: false,
+        message: "Unable to fetch refill history",
+      }
+    );
+  }
+};
+
+
+
+
 export const getAllBanners = async ({ headerToken }) => {
   try {
     const response = await axios.get(`${BASE_URL}/user/banner/all-banners`, {
