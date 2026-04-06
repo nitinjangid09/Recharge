@@ -53,6 +53,8 @@ import BbpsDynamicServiceScreen from '../screens/BBPS_Services/BbpsDynamicServic
 import WalletTransfer from '../screens/WalletTransfer';
 import CommisionPlan from '../screens/CommisionPlan';
 import UserWalletRefill from '../screens/UserWalletRefill';
+import OfflineServices from '../screens/OfflineServices';
+import OfflineServiceForm from '../screens/OfflineServiceForm';
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
@@ -180,6 +182,8 @@ const AppNavigator = () => {
       <Stack.Screen name="WalletTransfer" component={WalletTransfer} />
       <Stack.Screen name="CommisionPlan" component={CommisionPlan} />
       <Stack.Screen name="UserWalletRefill" component={UserWalletRefill} />
+      <Stack.Screen name="OfflineServices" component={OfflineServices} />
+      <Stack.Screen name="OfflineServiceForm" component={OfflineServiceForm} />
     </Stack.Navigator>
   );
 };

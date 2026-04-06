@@ -238,7 +238,7 @@ export const refillUserWallet = async ({ userId, amount, idempotencyKey, headerT
       userId,
       amount
     }, {
-      headers: { 
+      headers: {
         Authorization: `Bearer ${headerToken}`,
         'idempotency-key': idempotencyKey
       },
@@ -1260,5 +1260,40 @@ export const getMySupportRequests = async ({ headerToken, page = 1, limit = 5 })
   } catch (error) {
     console.log("Get Support Requests Error:", error?.response?.data || error);
     return error?.response?.data || { success: false, message: "Unable to fetch support requests" };
+  }
+};
+
+/**
+ * getAllOfflineServices
+ * Returns a list of available services (e.g. ITR file).
+ */
+export const getAllOfflineServices = async ({ headerToken }) => {
+  try {
+    const url = `${BASE_URL}/user/offlineService/all-offline-service`;
+    const response = await axios.get(url, {
+      headers: { Authorization: `Bearer ${headerToken}`, "Content-Type": "application/json" }
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get All Offline Services Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch available services" };
+  }
+};
+
+/**
+ * getOfflineServiceForm
+ * GET /user/offlineService/offline-service-form
+ * Fetches required fields & documents for a specific service ID.
+ */
+export const getOfflineServiceForm = async ({ serviceId, headerToken }) => {
+  try {
+    const url = `${BASE_URL}/user/offlineService/offline-service-form/${serviceId}`;
+    const response = await axios.get(url, {
+      headers: { Authorization: `Bearer ${headerToken}`, "Content-Type": "application/json" }
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get Offline Service Form Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch service requirements" };
   }
 };

@@ -68,6 +68,7 @@ const ALL_ITEMS = [
   { id: "16", label: "Transaction History", icon: "history", screen: "InvoiceScreen" },
   { id: "17", label: "Wallet Report", icon: "file-document-outline", screen: "WalletTransactionScreen" },
   { id: "18", label: "KYC Verification", icon: "shield-check", screen: "Offlinekyc" },
+  { id: "19", label: "Offline Services", icon: "clipboard-list-outline", screen: "OfflineServices" },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -95,6 +96,7 @@ const SERVICE_ICON_MAP = {
   aeps: "bank-outline",
   dmt: "bank-transfer",
   insurance: "shield-check-outline",
+  offline: "clipboard-list-outline",
   default: "apps",
 };
 
@@ -838,6 +840,24 @@ export default function FinanceHome({ navigation }) {
                   </TouchableOpacity>
                 );
               })}
+
+              {/* Static Offline Services Item */}
+              <TouchableOpacity
+                style={[S.svcGridItem]}
+                activeOpacity={0.78}
+                onPress={() => navigation.navigate("OfflineServices")}
+              >
+                <View style={[S.svcIconCircle]}>
+                  <Icon
+                    name="clipboard-list-outline"
+                    size={rs(22)}
+                    color="#444"
+                  />
+                </View>
+                <Text style={[S.svcGridLabel]}>
+                  OFFLINE SERVICES
+                </Text>
+              </TouchableOpacity>
             </View>
 
             {/* ── PROMO BANNER ── */}
