@@ -674,7 +674,7 @@ export default function Offlinekyc({ navigation, route }) {
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + vs(10), paddingHorizontal: hs(16) }]}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.navigate("Login")} activeOpacity={0.7}>
           <Icon name="chevron-left" size={rs(22)} color={T.text} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
