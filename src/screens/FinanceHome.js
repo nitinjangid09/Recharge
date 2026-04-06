@@ -27,6 +27,7 @@ import { getWalletBalance, fetchUserProfile, getAllBanners, getWalletReport, BAS
 
 import BBPSIconSVG from "../assets/Icons/BBPS.svg";
 import RechargeIconSVG from "../assets/Icons/Recharge.svg";
+import OfflineServicesIconSVG from "../assets/Icons/ofline service.svg";
 
 
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -529,8 +530,9 @@ export default function FinanceHome({ navigation }) {
                   >
                     <Icon name="magnify" size={rs(20)} color="#FFF" />
                   </TouchableOpacity>
-                  <TouchableOpacity style={S.glassBtn}>
-                    <View style={S.notifDot} />
+                  <TouchableOpacity style={S.glassBtn}
+                    onPress={() => navigation.navigate("Notification")}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                     <Icon name="bell-ring-outline" size={rs(20)} color="#FFF" />
                   </TouchableOpacity>
                 </View>
@@ -830,11 +832,11 @@ export default function FinanceHome({ navigation }) {
                         <Icon
                           name={iconName}
                           size={rs(22)}
-                          color={isFirst ? Colors.finance_accent : "#444"}
+                          color={Colors.finance_accent}
                         />
                       )}
                     </View>
-                    <Text style={[S.svcGridLabel]}>
+                    <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
                       {item.name.toUpperCase()}
                     </Text>
                   </TouchableOpacity>
@@ -848,13 +850,12 @@ export default function FinanceHome({ navigation }) {
                 onPress={() => navigation.navigate("OfflineServices")}
               >
                 <View style={[S.svcIconCircle]}>
-                  <Icon
-                    name="clipboard-list-outline"
-                    size={rs(22)}
-                    color="#444"
+                  <OfflineServicesIconSVG
+                    width={rs(24)}
+                    height={rs(24)}
                   />
                 </View>
-                <Text style={[S.svcGridLabel]}>
+                <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
                   OFFLINE SERVICES
                 </Text>
               </TouchableOpacity>

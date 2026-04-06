@@ -14,6 +14,7 @@ import Colors from '../constants/Colors';
 import Fonts from '../constants/Fonts';
 import { getWalletReport, getWalletBalance, getDownlineUsers } from '../api/AuthApi';
 import { fadeIn, slideUp, buttonPress, FadeSlideUp } from '../utils/ScreenAnimations';
+import HeaderBar from '../componets/HeaderBar';
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get('window');
@@ -1229,22 +1230,10 @@ const WalletTransactionScreen = ({ navigation }) => {
       <StatusBar barStyle="light-content" backgroundColor={D.headerBg} />
 
       {/* ── Header ── */}
-      <View style={S.header}>
-        <TouchableOpacity onPress={() => navigation?.goBack()} style={S.headerIconBtn} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Icon name="arrow-left" size={rs(18)} color="#fff" />
-        </TouchableOpacity>
-
-        <Text style={S.headerTitle}>Wallet Ledger</Text>
-
-        <View style={S.headerRight}>
-          <TouchableOpacity style={S.headerIconBtn} activeOpacity={0.7}>
-            <Icon name="download-outline" size={rs(16)} color="rgba(255,255,255,0.75)" />
-          </TouchableOpacity>
-          <TouchableOpacity style={[S.headerIconBtn, { marginLeft: sc(8) }]} activeOpacity={0.7}>
-            <Icon name="arrow-expand" size={rs(14)} color="rgba(255,255,255,0.75)" />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <HeaderBar 
+        title="Wallet Ledger" 
+        onBack={() => navigation?.goBack()} 
+      />
 
       {/* Error banner */}
       {!!error && (

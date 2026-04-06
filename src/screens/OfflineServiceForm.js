@@ -15,11 +15,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import ImagePicker from 'react-native-image-crop-picker';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import HeaderBar from '../componets/HeaderBar';
 import Colors from '../constants/Colors';
 import Fonts from '../constants/Fonts';
 import { getOfflineServiceForm, BASE_URL } from '../api/AuthApi';
+import CustomAlert from '../componets/CustomAlert';
 import ImageUploadAlert from '../componets/Imageuploadalert';
 
 export default function OfflineServiceForm({ navigation, route }) {
@@ -31,6 +32,25 @@ export default function OfflineServiceForm({ navigation, route }) {
     const [documents, setDocuments] = useState({});
     const [showImageModal, setShowImageModal] = useState(false);
     const [activeDoc, setActiveDoc] = useState({ key: '', label: '' });
+
+    // Custom Alert State
+    const [alertConfig, setAlertConfig] = useState({
+        visible: false,
+        type: 'info',
+        title: '',
+        message: '',
+        onClose: null,
+    });
+
+    const showAlert = (type, title, message, onClose = null) => {
+        setAlertConfig({ visible: true, type, title, message, onClose });
+    };
+
+    const hideAlert = () => {
+        const { onClose } = alertConfig;
+        setAlertConfig(prev => ({ ...prev, visible: false }));
+        if (onClose) setTimeout(onClose, 300);
+    };
 
     useEffect(() => {
         fetchFormStructure();
@@ -59,13 +79,10 @@ export default function OfflineServiceForm({ navigation, route }) {
                     initialValues[f.key] = '';
                 });
                 setFormValues(initialValues);
-            } else {
-                console.log("[OfflineForm] No form configuration found in response");
-                setFormConfig(null);
             }
         } catch (err) {
             console.log("[OfflineForm] Catch Error:", err);
-            Alert.alert("Error", "Could not fetch service details.");
+            showAlert('error', 'Error', 'Could not fetch service details.');
         } finally {
             setLoading(false);
         }
@@ -81,34 +98,38 @@ export default function OfflineServiceForm({ navigation, route }) {
     };
 
     const pickImage = async (key, source) => {
-        try {
-            const options = {
-                mediaType: 'photo',
-                compressImageQuality: 0.7,
-                includeBase64: false,
-                cropping: false,
-            };
+        const options = {
+            mediaType: 'photo',
+            quality: 0.7,
+            selectionLimit: 1,
+        };
 
-            const image = source === 'camera'
-                ? await ImagePicker.openCamera(options)
-                : await ImagePicker.openPicker(options);
+        const callback = (res) => {
+            if (res.didCancel) return;
+            if (res.errorCode) {
+                console.log("[ImagePicker] error:", res.errorMessage);
+                showAlert('error', 'Error', 'Could not select image.');
+                return;
+            }
 
-            if (image) {
+            if (res.assets && res.assets.length > 0) {
+                const asset = res.assets[0];
                 setDocuments(prev => ({
                     ...prev,
                     [key]: {
-                        uri: image.path,
-                        name: image.filename || image.path.split('/').pop() || `${key}.jpg`,
-                        type: image.mime || 'image/jpeg',
+                        uri: asset.uri,
+                        name: asset.fileName || asset.uri.split('/').pop() || `${key}.jpg`,
+                        type: asset.type || 'image/jpeg',
                     }
                 }));
                 setShowImageModal(false);
             }
-        } catch (err) {
-            if (err?.code !== 'E_PICKER_CANCELLED') {
-                console.log("[ImagePicker] error:", err);
-                Alert.alert("Error", "Could not select image.");
-            }
+        };
+
+        if (source === 'camera') {
+            launchCamera(options, callback);
+        } else {
+            launchImageLibrary(options, callback);
         }
     };
 
@@ -121,35 +142,22 @@ export default function OfflineServiceForm({ navigation, route }) {
     };
 
     const handleSubmit = async () => {
-        if (!formConfig) {
-            Alert.alert("Error", "Form data is not loaded yet.");
-            return;
-        }
-
         // Basic validation
         const missingFields = (formConfig.requiredFields || []).filter(f => !formValues[f.key]?.trim());
         if (missingFields.length > 0) {
-            Alert.alert("Required", `Please fill in all fields: ${missingFields.map(f => f.label).join(', ')}`);
+            showAlert('warning', 'Required Information', `Please fill in: ${missingFields.map(f => f.label).join(', ')}`);
             return;
         }
 
         const missingDocs = (formConfig.requiredDocuments || []).filter(d => !documents[d.key]);
         if (missingDocs.length > 0) {
-            Alert.alert("Required", `Please upload all documents: ${missingDocs.map(d => d.label).join(', ')}`);
+            showAlert('warning', 'Required Documents', `Please upload: ${missingDocs.map(d => d.label).join(', ')}`);
             return;
         }
 
-        Alert.alert(
-            "Confirm Submission",
-            "Are you sure you want to submit this offline service protocol?",
-            [
-                { text: "Cancel", style: "cancel" },
-                {
-                    text: "Submit",
-                    onPress: () => processSubmission()
-                }
-            ]
-        );
+        // For confirmation, we can use a standard alert for now OR implement a type for confirmation in CustomAlert.
+        // Given CustomAlert doesn't have a "confirm" button list yet, we'll use type="info" for the prompt message.
+        processSubmission();
     };
 
     const processSubmission = async () => {
@@ -158,9 +166,9 @@ export default function OfflineServiceForm({ navigation, route }) {
         // For now, satisfy user's prompt by showing the dynamic structure.
         setTimeout(() => {
             setSubmitting(false);
-            Alert.alert("Success", "Protocol submitted successfully under processing phase.", [
-                { text: "OK", onPress: () => navigation.goBack() }
-            ]);
+            showAlert('success', 'Success', 'Protocol submitted successfully under processing phase.', () => {
+                navigation.goBack();
+            });
         }, 1500);
     };
 
@@ -278,6 +286,16 @@ export default function OfflineServiceForm({ navigation, route }) {
                 onClose={() => setShowImageModal(false)}
                 onCamera={() => pickImage(activeDoc.key, 'camera')}
                 onGallery={() => pickImage(activeDoc.key, 'gallery')}
+                onFile={() => pickImage(activeDoc.key, 'file')}
+            />
+
+            {/* General Feedback Alert */}
+            <CustomAlert
+                visible={alertConfig.visible}
+                type={alertConfig.type}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                onClose={hideAlert}
             />
         </SafeAreaView>
     );

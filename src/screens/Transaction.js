@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, SectionList, Image,StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, SectionList, Image, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import HeaderBar from '../componets/HeaderBar';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const transactions = [
   {
@@ -120,7 +121,7 @@ const groupTransactionsByDate = (transactions) => {
   return grouped;
 };
 
-const Transaction = () => {
+const Transaction = ({ navigation }) => {
   const [searchDate, setSearchDate] = useState('');
 
   const filteredTransactions = groupTransactionsByDate(
@@ -154,40 +155,34 @@ const Transaction = () => {
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputWrapper}>
-          <Image
-            style={styles.searchIcon}
-            source={require('../assets/search.png')}
-          />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search by Date"
-            value={searchDate}
-            onChangeText={setSearchDate}
-          />
-        </View>
-        <TouchableOpacity>
-          <Image
-            style={styles.icon}
-            source={require('../assets/search.png')}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Image
-            style={styles.icon}
-            source={require('../assets/download.png')}
-          />
-        </TouchableOpacity>
-      </View>
-      <SectionList
-        sections={filteredTransactions}
-        keyExtractor={(item) => item.id}
-        renderItem={renderTransaction}
-        renderSectionHeader={renderHeader}
+    <SafeAreaView style={styles.container}>
+      <HeaderBar 
+        title="Transaction" 
+        onBack={() => navigation?.goBack()} 
       />
-    </View>
+      <View style={{ paddingHorizontal: 15, flex: 1 }}>
+        <View style={styles.searchContainer}>
+          <View style={styles.searchInputWrapper}>
+            <Image
+              style={styles.searchIcon}
+              source={require('../assets/search.png')}
+            />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search by Date"
+              value={searchDate}
+              onChangeText={setSearchDate}
+            />
+          </View>
+        </View>
+        <SectionList
+          sections={filteredTransactions}
+          keyExtractor={(item) => item.id}
+          renderItem={renderTransaction}
+          renderSectionHeader={renderHeader}
+        />
+      </View>
+    </SafeAreaView>
   );
 };
 

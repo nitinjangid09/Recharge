@@ -24,6 +24,7 @@ import { getAllTopupBanks, addOfflineTopupRequest } from "../api/AuthApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import CustomAlert from "../componets/CustomAlert";
+import ImageUploadAlert from "../componets/Imageuploadalert";
 
 // ─── Responsive scale ─────────────────────────────────────────────────────
 const { width: W } = Dimensions.get("window");
@@ -472,11 +473,8 @@ export default function OfflineTopup({ navigation }) {
           if (alertType === "success") setTimeout(() => navigation.goBack(), 120);
         }}
       />
-      <CustomAlert
+      <ImageUploadAlert
         visible={uploadVisible}
-        type="upload"
-        title="Upload Payment Proof"
-        message="Select how you'd like to add your screenshot"
         onClose={() => setUploadVisible(false)}
         onCamera={handleCamera}
         onGallery={handleGallery}

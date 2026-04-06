@@ -20,7 +20,6 @@ const Icon = ({ name, size = 28, color = '#fff' }) => {
         gallery: '🖼️',
         file: '📁',
         close: '✕',
-        upload: '⬆',
         check: '✓',
     };
     return (
@@ -110,9 +109,6 @@ export const ImageUploadAlert = ({ visible, onClose, onCamera, onGallery, onFile
                 {/* Header */}
                 <View style={styles.header}>
                     <View style={styles.headerLeft}>
-                        <View style={styles.uploadIconBg}>
-                            <Icon name="upload" size={20} color="#A78BFA" />
-                        </View>
                         <View>
                             <Text style={styles.title}>Upload Image</Text>
                             <Text style={styles.subtitle}>Choose a source to continue</Text>
