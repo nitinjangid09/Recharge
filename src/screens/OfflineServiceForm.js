@@ -12,7 +12,6 @@ import {
     Image,
     KeyboardAvoidingView,
     Platform,
-    Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -21,6 +20,7 @@ import HeaderBar from '../componets/HeaderBar';
 import Colors from '../constants/Colors';
 import Fonts from '../constants/Fonts';
 import { getOfflineServiceForm, BASE_URL } from '../api/AuthApi';
+import ImageUploadAlert from '../componets/Imageuploadalert';
 
 export default function OfflineServiceForm({ navigation, route }) {
     const { service } = route.params; // service contains {_id, serviceName, description}
@@ -41,11 +41,11 @@ export default function OfflineServiceForm({ navigation, route }) {
         try {
             const headerToken = await AsyncStorage.getItem('header_token');
             console.log("[OfflineForm] Fetching fields for service:", service._id);
-            const res = await getOfflineServiceForm({ 
-                serviceId: service._id, 
-                headerToken 
+            const res = await getOfflineServiceForm({
+                serviceId: service._id,
+                headerToken
             });
-            
+
             console.log("[OfflineForm] API Response:", JSON.stringify(res));
 
             // Support both { data: { field } } and { data: { data: { field } } }
@@ -89,7 +89,7 @@ export default function OfflineServiceForm({ navigation, route }) {
                 cropping: false,
             };
 
-            const image = source === 'camera' 
+            const image = source === 'camera'
                 ? await ImagePicker.openCamera(options)
                 : await ImagePicker.openPicker(options);
 
@@ -181,12 +181,12 @@ export default function OfflineServiceForm({ navigation, route }) {
             <StatusBar barStyle="dark-content" backgroundColor={Colors.secondary} />
             <HeaderBar title={service.serviceName.toUpperCase()} onBack={() => navigation.goBack()} />
 
-            <KeyboardAvoidingView 
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 style={{ flex: 1 }}
             >
-                <ScrollView 
-                    style={styles.scroll} 
+                <ScrollView
+                    style={styles.scroll}
                     contentContainerStyle={styles.content}
                     showsVerticalScrollIndicator={false}
                 >
@@ -217,7 +217,7 @@ export default function OfflineServiceForm({ navigation, route }) {
                                 {formConfig.requiredDocuments.map((doc) => (
                                     <View key={doc._id} style={styles.docItem}>
                                         <Text style={styles.docLabel}>{doc.label}</Text>
-                                        <TouchableOpacity 
+                                        <TouchableOpacity
                                             style={[styles.uploadBox, documents[doc.key] && styles.uploadBoxActive]}
                                             onPress={() => handlePickDocument(doc.key, doc.label)}
                                             activeOpacity={0.7}
@@ -225,7 +225,7 @@ export default function OfflineServiceForm({ navigation, route }) {
                                             {documents[doc.key] ? (
                                                 <View style={styles.previewWrap}>
                                                     <Image source={{ uri: documents[doc.key].uri }} style={styles.previewImage} />
-                                                    <TouchableOpacity 
+                                                    <TouchableOpacity
                                                         style={styles.removeBtn}
                                                         onPress={() => removeDocument(doc.key)}
                                                     >
@@ -258,67 +258,27 @@ export default function OfflineServiceForm({ navigation, route }) {
                     <View style={{ height: 100 }} />
                 </ScrollView>
 
-                {/* Fixed Footer */}
-                <View style={styles.footer}>
-                    <TouchableOpacity 
-                        style={styles.submitBtn} 
-                        onPress={handleSubmit}
-                        disabled={submitting}
-                        activeOpacity={0.8}
-                    >
-                        {submitting ? (
-                            <ActivityIndicator color={Colors.white} />
-                        ) : (
-                            <Text style={styles.submitBtnText}>CONTINUE TO SUBMISSION</Text>
-                        )}
-                    </TouchableOpacity>
-                </View>
+                {/* Floating Bottom Button */}
+                <TouchableOpacity
+                    style={styles.submitBtnFixed}
+                    onPress={handleSubmit}
+                    disabled={submitting}
+                    activeOpacity={0.8}
+                >
+                    {submitting ? (
+                        <ActivityIndicator color={Colors.white} />
+                    ) : (
+                        <Text style={styles.submitBtnText}>CONTINUE TO SUBMISSION</Text>
+                    )}
+                </TouchableOpacity>
             </KeyboardAvoidingView>
 
-            {/* Image Source Modal */}
-            <Modal
+            <ImageUploadAlert
                 visible={showImageModal}
-                transparent={true}
-                animationType="slide"
-                onRequestClose={() => setShowImageModal(false)}
-            >
-                <TouchableOpacity 
-                    style={styles.modalOverlay} 
-                    activeOpacity={1} 
-                    onPress={() => setShowImageModal(false)}
-                >
-                    <View style={styles.modalContent}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Upload {activeDoc.label}</Text>
-                            <TouchableOpacity onPress={() => setShowImageModal(false)}>
-                                <Text style={styles.modalClose}>✕</Text>
-                            </TouchableOpacity>
-                        </View>
-                        
-                        <View style={styles.modalOptions}>
-                            <TouchableOpacity 
-                                style={styles.modalOption}
-                                onPress={() => pickImage(activeDoc.key, 'camera')}
-                            >
-                                <View style={[styles.modalIconWrap, { backgroundColor: '#FFEECC' }]}>
-                                    <Text style={styles.modalIcon}>📷</Text>
-                                </View>
-                                <Text style={styles.modalOptionText}>Take Photo</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity 
-                                style={styles.modalOption}
-                                onPress={() => pickImage(activeDoc.key, 'gallery')}
-                            >
-                                <View style={[styles.modalIconWrap, { backgroundColor: '#CCEEFF' }]}>
-                                    <Text style={styles.modalIcon}>🖼️</Text>
-                                </View>
-                                <Text style={styles.modalOptionText}>Choose from Gallery</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </TouchableOpacity>
-            </Modal>
+                onClose={() => setShowImageModal(false)}
+                onCamera={() => pickImage(activeDoc.key, 'camera')}
+                onGallery={() => pickImage(activeDoc.key, 'gallery')}
+            />
         </SafeAreaView>
     );
 }
@@ -427,10 +387,10 @@ const styles = StyleSheet.create({
         fontFamily: Fonts.Regular,
     },
 
-    docGrid: { 
-        flexDirection: 'row', 
-        flexWrap: 'wrap', 
-        justifyContent: 'space-between' 
+    docGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between'
     },
     docItem: { width: '48%', marginBottom: 15 },
     docLabel: {
@@ -457,10 +417,10 @@ const styles = StyleSheet.create({
     },
     uploadPlaceholder: { alignItems: 'center' },
     uploadIcon: { fontSize: 24, marginBottom: 5 },
-    uploadText: { 
-        fontSize: 10, 
-        color: Colors.text_secondary, 
-        fontFamily: Fonts.Bold 
+    uploadText: {
+        fontSize: 10,
+        color: Colors.text_secondary,
+        fontFamily: Fonts.Bold
     },
 
     previewWrap: { width: '100%', height: '100%' },
@@ -478,7 +438,7 @@ const styles = StyleSheet.create({
     },
     removeText: { color: Colors.white, fontSize: 12 },
 
-    submitBtn: {
+    submitBtnFixed: {
         backgroundColor: Colors.finance_accent,
         paddingVertical: 18,
         borderRadius: 15,
@@ -488,6 +448,8 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 8,
         elevation: 6,
+        marginHorizontal: 20,
+        marginBottom: 20,
     },
     submitBtnText: {
         fontSize: 14,
@@ -495,73 +457,5 @@ const styles = StyleSheet.create({
         color: Colors.primary,
         fontFamily: Fonts.Bold,
         letterSpacing: 0.5,
-    },
-
-    // ── Footer ──
-    footer: {
-        padding: 20,
-        backgroundColor: Colors.secondary,
-        borderTopWidth: 1,
-        borderColor: Colors.divider,
-    },
-
-    // ── Modal ──
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'flex-end',
-    },
-    modalContent: {
-        backgroundColor: Colors.white,
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
-        padding: 24,
-        paddingBottom: 40,
-    },
-    modalHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 25,
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: '900',
-        color: Colors.primary,
-        fontFamily: Fonts.Bold,
-    },
-    modalClose: {
-        fontSize: 20,
-        color: Colors.text_secondary,
-        padding: 5,
-    },
-    modalOptions: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-    },
-    modalOption: {
-        alignItems: 'center',
-        gap: 10,
-    },
-    modalIconWrap: {
-        width: 70,
-        height: 70,
-        borderRadius: 35,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 5 },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-        elevation: 5,
-    },
-    modalIcon: {
-        fontSize: 28,
-    },
-    modalOptionText: {
-        fontSize: 13,
-        fontWeight: '700',
-        color: Colors.primary,
-        fontFamily: Fonts.Bold,
     },
 });

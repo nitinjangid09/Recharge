@@ -9,6 +9,7 @@ import {
     Dimensions,
     Platform,
 } from 'react-native';
+import Colors from '../constants/Colors';
 
 const { width } = Dimensions.get('window');
 
@@ -53,7 +54,7 @@ const OptionButton = ({ icon, label, subtitle, onPress, delay, accentColor }) =>
     const onPressOut = () => Animated.spring(scale, { toValue: 1, useNativeDriver: true }).start();
 
     return (
-        <Animated.View style={{ opacity: fade, transform: [{ translateY: slide }, { scale }] }}>
+        <Animated.View style={[styles.optionContainer, { opacity: fade, transform: [{ translateY: slide }, { scale }] }]}>
             <TouchableOpacity
                 activeOpacity={1}
                 onPress={onPress}
@@ -61,23 +62,17 @@ const OptionButton = ({ icon, label, subtitle, onPress, delay, accentColor }) =>
                 onPressOut={onPressOut}
                 style={styles.optionBtn}
             >
-                <View style={[styles.iconWrap, { backgroundColor: accentColor + '22', borderColor: accentColor + '55' }]}>
-                    <Icon name={icon} size={22} color={accentColor} />
+                <View style={[styles.iconWrap, { backgroundColor: accentColor + '15' }]}>
+                    <Icon name={icon} size={24} color={accentColor} />
                 </View>
-                <View style={styles.optionText}>
-                    <Text style={styles.optionLabel}>{label}</Text>
-                    <Text style={styles.optionSub}>{subtitle}</Text>
-                </View>
-                <View style={styles.arrow}>
-                    <Text style={{ color: '#555', fontSize: 18 }}>›</Text>
-                </View>
+                <Text style={styles.optionLabel}>{label}</Text>
             </TouchableOpacity>
         </Animated.View>
     );
 };
 
 // ─── Main Alert Component ───────────────────────────────────────────────────
-const ImageUploadAlert = ({ visible, onClose, onCamera, onGallery, onFile }) => {
+export const ImageUploadAlert = ({ visible, onClose, onCamera, onGallery, onFile }) => {
     const backdrop = useRef(new Animated.Value(0)).current;
     const sheetY = useRef(new Animated.Value(400)).current;
 
@@ -131,30 +126,27 @@ const ImageUploadAlert = ({ visible, onClose, onCamera, onGallery, onFile }) => 
                 {/* Divider */}
                 <View style={styles.divider} />
 
-                {/* Options */}
-                <View style={styles.options}>
+                {/* Options Row */}
+                <View style={styles.optionsRow}>
                     <OptionButton
                         icon="camera"
-                        label="Take a Photo"
-                        subtitle="Use your device camera"
-                        accentColor="#60A5FA"
+                        label="Camera"
+                        accentColor="#3B82F6"
                         delay={60}
                         onPress={() => handleOption(onCamera)}
                     />
                     <OptionButton
                         icon="gallery"
-                        label="Choose from Gallery"
-                        subtitle="Pick from your photo library"
-                        accentColor="#34D399"
-                        delay={130}
+                        label="Gallery"
+                        accentColor="#10B981"
+                        delay={120}
                         onPress={() => handleOption(onGallery)}
                     />
                     <OptionButton
                         icon="file"
-                        label="Browse Files"
-                        subtitle="Select from file storage"
-                        accentColor="#F472B6"
-                        delay={200}
+                        label="Files"
+                        accentColor="#8B5CF6"
+                        delay={180}
                         onPress={() => handleOption(onFile)}
                     />
                 </View>
@@ -171,53 +163,7 @@ const ImageUploadAlert = ({ visible, onClose, onCamera, onGallery, onFile }) => 
     );
 };
 
-// ─── Demo Screen ────────────────────────────────────────────────────────────
-export default function App() {
-    const [visible, setVisible] = useState(false);
-    const [result, setResult] = useState(null);
-    const btnScale = useRef(new Animated.Value(1)).current;
-
-    const pulse = () => {
-        Animated.sequence([
-            Animated.spring(btnScale, { toValue: 0.94, useNativeDriver: true }),
-            Animated.spring(btnScale, { toValue: 1, useNativeDriver: true }),
-        ]).start(() => setVisible(true));
-    };
-
-    return (
-        <View style={styles.screen}>
-            {/* Background decoration */}
-            <View style={styles.bgCircle1} />
-            <View style={styles.bgCircle2} />
-
-            <Text style={styles.appTitle}>Image Upload</Text>
-            <Text style={styles.appSub}>Tap the button to open the alert</Text>
-
-            {result && (
-                <View style={styles.resultBadge}>
-                    <Text style={{ color: '#34D399', fontSize: 13 }}>
-                        ✓  {result}
-                    </Text>
-                </View>
-            )}
-
-            <Animated.View style={{ transform: [{ scale: btnScale }] }}>
-                <TouchableOpacity style={styles.triggerBtn} onPress={pulse} activeOpacity={0.85}>
-                    <Icon name="upload" size={22} color="#0F172A" />
-                    <Text style={styles.triggerTxt}>Upload Image</Text>
-                </TouchableOpacity>
-            </Animated.View>
-
-            <ImageUploadAlert
-                visible={visible}
-                onClose={() => setVisible(false)}
-                onCamera={() => setResult('Camera opened')}
-                onGallery={() => setResult('Gallery opened')}
-                onFile={() => setResult('File browser opened')}
-            />
-        </View>
-    );
-}
+export default ImageUploadAlert;
 
 // ─── Styles ─────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
@@ -258,62 +204,79 @@ const styles = StyleSheet.create({
         color: '#0F172A', fontWeight: '700', fontSize: 16, letterSpacing: 0.2,
     },
 
-    // Alert
+    // Alert Sheet
     backdrop: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0,0,0,0.65)',
+        backgroundColor: 'rgba(0,0,0,0.4)',
     },
     sheet: {
         position: 'absolute', bottom: 0, left: 0, right: 0,
-        backgroundColor: '#1E293B',
-        borderTopLeftRadius: 28, borderTopRightRadius: 28,
-        paddingHorizontal: 20, paddingTop: 12,
-        shadowColor: '#000', shadowOffset: { width: 0, height: -8 },
-        shadowOpacity: 0.5, shadowRadius: 24, elevation: 20,
+        backgroundColor: '#FFFFFF',
+        borderTopLeftRadius: 32, borderTopRightRadius: 32,
+        paddingHorizontal: 24, paddingTop: 12,
+        paddingBottom: 20,
+        shadowColor: '#000', shadowOffset: { width: 0, height: -10 },
+        shadowOpacity: 0.1, shadowRadius: 20, elevation: 25,
     },
     handle: {
-        alignSelf: 'center', width: 40, height: 4,
-        backgroundColor: '#334155', borderRadius: 2, marginBottom: 18,
+        alignSelf: 'center', width: 36, height: 4,
+        backgroundColor: '#E5E7EB', borderRadius: 2, marginBottom: 20,
     },
     header: {
         flexDirection: 'row', alignItems: 'center',
-        justifyContent: 'space-between', marginBottom: 16,
+        justifyContent: 'space-between', marginBottom: 24,
     },
-    headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 14 },
     uploadIconBg: {
-        width: 44, height: 44, borderRadius: 13,
-        backgroundColor: '#A78BFA22', borderWidth: 1, borderColor: '#A78BFA44',
+        width: 48, height: 48, borderRadius: 14,
+        backgroundColor: '#F3F4F6',
         alignItems: 'center', justifyContent: 'center',
     },
-    title: { color: '#F1F5F9', fontSize: 18, fontWeight: '700', letterSpacing: -0.3 },
-    subtitle: { color: '#64748B', fontSize: 12, marginTop: 1 },
+    title: { color: '#111827', fontSize: 20, fontWeight: '800', letterSpacing: -0.5 },
+    subtitle: { color: '#6B7280', fontSize: 13, marginTop: 2 },
     closeBtn: {
         width: 32, height: 32, borderRadius: 16,
-        backgroundColor: '#334155', alignItems: 'center', justifyContent: 'center',
+        backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center',
     },
-    closeTxt: { color: '#94A3B8', fontSize: 13, fontWeight: '600' },
-    divider: { height: 1, backgroundColor: '#334155', marginBottom: 12 },
+    closeTxt: { color: '#9CA3AF', fontSize: 12, fontWeight: 'bold' },
+    divider: { height: 1.5, backgroundColor: '#F3F4F6', marginBottom: 24 },
 
-    // Options
-    options: { gap: 4, marginBottom: 12 },
+    // Options Row Layout
+    optionsRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 24,
+        gap: 12,
+    },
+    optionContainer: {
+        flex: 1,
+    },
     optionBtn: {
-        flexDirection: 'row', alignItems: 'center', gap: 14,
-        paddingVertical: 14, paddingHorizontal: 12,
-        borderRadius: 16, backgroundColor: '#0F172A',
-        marginBottom: 4,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 20,
+        paddingHorizontal: 10,
+
     },
     iconWrap: {
-        width: 46, height: 46, borderRadius: 13,
-        borderWidth: 1, alignItems: 'center', justifyContent: 'center',
+        width: 56, height: 56, borderRadius: 18,
+        alignItems: 'center', justifyContent: 'center',
+        marginBottom: 12,
     },
-    optionText: { flex: 1 },
-    optionLabel: { color: '#E2E8F0', fontSize: 15, fontWeight: '600' },
-    optionSub: { color: '#475569', fontSize: 12, marginTop: 2 },
-    arrow: { paddingLeft: 4 },
+    optionLabel: {
+        color: '#374151',
+        fontSize: 13,
+        fontWeight: '700',
+        textAlign: 'center',
+    },
 
     cancelBtn: {
         alignItems: 'center', paddingVertical: 15,
         borderRadius: 16, backgroundColor: '#334155',
     },
-    cancelTxt: { color: '#94A3B8', fontWeight: '600', fontSize: 15 },
+    cancelTxt: {
+        color: '#FFFFFF',
+        fontWeight: '700',
+        fontSize: 15,
+    },
 });
