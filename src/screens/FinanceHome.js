@@ -529,8 +529,9 @@ export default function FinanceHome({ navigation }) {
                   >
                     <Icon name="magnify" size={rs(20)} color="#FFF" />
                   </TouchableOpacity>
-                  <TouchableOpacity style={S.glassBtn}>
-                    <View style={S.notifDot} />
+                  <TouchableOpacity style={S.glassBtn}
+                    onPress={() => navigation.navigate("Notification")}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                     <Icon name="bell-ring-outline" size={rs(20)} color="#FFF" />
                   </TouchableOpacity>
                 </View>

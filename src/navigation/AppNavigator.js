@@ -55,6 +55,7 @@ import CommisionPlan from '../screens/CommisionPlan';
 import UserWalletRefill from '../screens/UserWalletRefill';
 import OfflineServices from '../screens/OfflineServices';
 import OfflineServiceForm from '../screens/OfflineServiceForm';
+import Notification from '../screens/Notification';
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
@@ -184,6 +185,7 @@ const AppNavigator = () => {
       <Stack.Screen name="UserWalletRefill" component={UserWalletRefill} />
       <Stack.Screen name="OfflineServices" component={OfflineServices} />
       <Stack.Screen name="OfflineServiceForm" component={OfflineServiceForm} />
+      <Stack.Screen name="Notification" component={Notification} />
     </Stack.Navigator>
   );
 };
