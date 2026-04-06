@@ -503,20 +503,14 @@ export const submitOfflineKyc = async ({ personal, business, files, banking }) =
     formattedDob = `${yyyy}-${mm}-${dd}`;
   }
   form.append("dob", formattedDob);
-  form.append("personalAddress[address]", safeTrim(personal.personalAddress));
-  form.append("personalAddress[city]", safeTrim(personal.personalCity));
-  form.append("personalAddress[state]", safeTrim(personal.personalState));
-  form.append("personalAddress[pincode]", safeTrim(personal.personalPincode));
+  form.append("personalAddress", safeTrim(personal.personalAddress));
   form.append("personalCity", safeTrim(personal.personalCity));
   form.append("personalState", safeTrim(personal.personalState));
   form.append("personalPincode", safeTrim(personal.personalPincode));
 
   // Business fields
   form.append("shopName", safeTrim(business.shopName));
-  form.append("businessAddress[address]", safeTrim(business.businessAddress));
-  form.append("businessAddress[city]", safeTrim(business.businessCity));
-  form.append("businessAddress[state]", safeTrim(business.businessState));
-  form.append("businessAddress[pincode]", safeTrim(business.businessPincode));
+  form.append("businessAddress", safeTrim(business.businessAddress));
   form.append("businessCity", safeTrim(business.businessCity));
   form.append("businessState", safeTrim(business.businessState));
   form.append("businessPincode", safeTrim(business.businessPincode));
@@ -1295,5 +1289,50 @@ export const getOfflineServiceForm = async ({ serviceId, headerToken }) => {
   } catch (error) {
     console.log("Get Offline Service Form Error:", error?.response?.data || error);
     return error?.response?.data || { success: false, message: "Unable to fetch service requirements" };
+  }
+};
+
+export const addIdChargeRequest = async ({ amount, mode, receiverBank, utrNumber, paymentDate, paymentProof, headerToken }) => {
+  const generateIdempotencyKey = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = 'IDCH';
+    for (let i = 0; i < 8; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
+  const idempotencyKey = generateIdempotencyKey();
+
+  try {
+    let formData = new FormData();
+    formData.append("amount", amount);
+    formData.append("mode", mode);
+    formData.append("receiverBank", receiverBank);
+    formData.append("utrNumber", utrNumber);
+    formData.append("paymentDate", paymentDate);
+
+    if (paymentProof) {
+      const filename = paymentProof.split('/').pop();
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : `image`;
+      formData.append("paymentProof", {
+        uri: paymentProof,
+        name: filename,
+        type: type,
+      });
+    }
+
+    const response = await axios.post(`${BASE_URL}/user/charge/add-id-charge-request`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        "Authorization": `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Add ID Charge Request Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Request submission failed" };
   }
 };

@@ -46,6 +46,7 @@ import MoneyTransfer from "../screens/DMT/MoneyTransfer"
 // import BBPSServices from "../screens/BBPS_Services/BBPSServiceScreen"
 import SupportScreen from "../screens/Account/SupportScreen"
 import FaqSupportScreen from "../screens/HomeScreen/FaQSupport"
+import PaymentVerification from '../screens/Account/PaymentVerification';
 import Offlinekyc from '../screens/kyc/Offlinekyc';
 import KycSubmitted from '../screens/kyc/KycSubmitted';
 import OfflineTopup from '../screens/OfflineTopup';
@@ -77,22 +78,30 @@ const AppNavigator = () => {
             const result = await response.json();
 
             if (result?.success && result?.data) {
-              const kycStatus = result.data.kycStatus;
-              console.log("KYC Status fetched:", kycStatus);
+              const { kycStatus, isPaymentDone, idPaymentStatus } = result.data;
+              console.log("Profile Sync →", { kycStatus, isPaymentDone, idPaymentStatus });
 
               // Sync to storage
-              if (kycStatus) {
-                await AsyncStorage.setItem('kyc_status', kycStatus);
-              }
+              if (kycStatus) await AsyncStorage.setItem('kyc_status', kycStatus);
+              await AsyncStorage.setItem('is_payment_done', String(isPaymentDone));
+              if (idPaymentStatus) await AsyncStorage.setItem('id_payment_status', idPaymentStatus);
 
-              if (kycStatus === "submitted") {
-                setInitialRoute('KycSubmitted');
-              } else if (kycStatus === "approved") {
+              if (kycStatus === "approved") {
                 setInitialRoute('FinanceHome');
+              } else if (kycStatus === "submitted") {
+                setInitialRoute('KycSubmitted');
               } else if (kycStatus === "pending" || kycStatus === "rejected") {
-                setInitialRoute('Offlinekyc');
+                if (isPaymentDone === false) {
+                  if (idPaymentStatus === "complete") {
+                    setInitialRoute('PaymentVerification');
+                  } else {
+                    setInitialRoute('ActivateAccountScreen');
+                  }
+                } else {
+                  setInitialRoute('Offlinekyc');
+                }
               } else {
-                setInitialRoute('Offlinekyc'); // fallback
+                setInitialRoute('Offlinekyc');
               }
             } else {
               setInitialRoute('FinanceIntro');
@@ -184,6 +193,7 @@ const AppNavigator = () => {
       <Stack.Screen name="UserWalletRefill" component={UserWalletRefill} />
       <Stack.Screen name="OfflineServices" component={OfflineServices} />
       <Stack.Screen name="OfflineServiceForm" component={OfflineServiceForm} />
+      <Stack.Screen name="PaymentVerification" component={PaymentVerification} />
     </Stack.Navigator>
   );
 };

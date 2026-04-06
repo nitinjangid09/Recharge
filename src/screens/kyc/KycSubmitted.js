@@ -42,7 +42,7 @@ export default function KycSubmitted({ navigation }) {
   const handleRefresh = () => {
     navigation.reset({
       index: 0,
-      routes: [{ name: "FinanceHome" }],
+      routes: [{ name: "Login" }],
     });
   };
 
@@ -82,7 +82,7 @@ export default function KycSubmitted({ navigation }) {
           onPress={handleRefresh}
           activeOpacity={0.85}
         >
-          <Text style={styles.btnText}>Back to Home</Text>
+          <Text style={styles.btnText}>Login</Text>
         </TouchableOpacity>
       </Animated.View>
     </LinearGradient>

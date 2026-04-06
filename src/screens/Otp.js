@@ -201,17 +201,20 @@ export default function OTP({ navigation, route }) {
         const isPaymentRequired = result?.isPaymentRequired;
         const isPaymentDone = result?.user?.isPaymentDone;
         const kycStatus = result?.user?.kycStatus;
+        const idPaymentStatus = result?.user?.idPaymentStatus;
 
-        if (isPaymentRequired === true && isPaymentDone === false) {
-          navigateTo("ActivateAccountScreen");
-        } else {
-          if (kycStatus === "submitted") {
-            navigateTo("KycSubmitted");
-          } else if (kycStatus === "approved") {
-            navigateTo("FinanceHome");
+        if (kycStatus === "approved") {
+          navigateTo("FinanceHome");
+        } else if (kycStatus === "submitted") {
+          navigateTo("KycSubmitted");
+        } else if (isPaymentDone === false) {
+          if (idPaymentStatus === "complete") {
+            navigateTo("PaymentVerification");
           } else {
-            navigateTo("Offlinekyc", { user: result.user });
+            navigateTo("ActivateAccountScreen");
           }
+        } else {
+          navigateTo("Offlinekyc", { user: result.user });
         }
       } else {
         triggerShake();
