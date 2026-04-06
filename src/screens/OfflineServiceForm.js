@@ -20,6 +20,7 @@ import HeaderBar from '../componets/HeaderBar';
 import Colors from '../constants/Colors';
 import Fonts from '../constants/Fonts';
 import { getOfflineServiceForm, BASE_URL } from '../api/AuthApi';
+import CustomAlert from '../componets/CustomAlert';
 import ImageUploadAlert from '../componets/Imageuploadalert';
 
 export default function OfflineServiceForm({ navigation, route }) {
@@ -31,6 +32,25 @@ export default function OfflineServiceForm({ navigation, route }) {
     const [documents, setDocuments] = useState({});
     const [showImageModal, setShowImageModal] = useState(false);
     const [activeDoc, setActiveDoc] = useState({ key: '', label: '' });
+
+    // Custom Alert State
+    const [alertConfig, setAlertConfig] = useState({
+        visible: false,
+        type: 'info',
+        title: '',
+        message: '',
+        onClose: null,
+    });
+
+    const showAlert = (type, title, message, onClose = null) => {
+        setAlertConfig({ visible: true, type, title, message, onClose });
+    };
+
+    const hideAlert = () => {
+        const { onClose } = alertConfig;
+        setAlertConfig(prev => ({ ...prev, visible: false }));
+        if (onClose) setTimeout(onClose, 300);
+    };
 
     useEffect(() => {
         fetchFormStructure();
@@ -59,13 +79,10 @@ export default function OfflineServiceForm({ navigation, route }) {
                     initialValues[f.key] = '';
                 });
                 setFormValues(initialValues);
-            } else {
-                console.log("[OfflineForm] No form configuration found in response");
-                setFormConfig(null);
             }
         } catch (err) {
             console.log("[OfflineForm] Catch Error:", err);
-            Alert.alert("Error", "Could not fetch service details.");
+            showAlert('error', 'Error', 'Could not fetch service details.');
         } finally {
             setLoading(false);
         }
@@ -107,7 +124,7 @@ export default function OfflineServiceForm({ navigation, route }) {
         } catch (err) {
             if (err?.code !== 'E_PICKER_CANCELLED') {
                 console.log("[ImagePicker] error:", err);
-                Alert.alert("Error", "Could not select image.");
+                showAlert('error', 'Error', 'Could not select image.');
             }
         }
     };
@@ -121,35 +138,22 @@ export default function OfflineServiceForm({ navigation, route }) {
     };
 
     const handleSubmit = async () => {
-        if (!formConfig) {
-            Alert.alert("Error", "Form data is not loaded yet.");
-            return;
-        }
-
         // Basic validation
         const missingFields = (formConfig.requiredFields || []).filter(f => !formValues[f.key]?.trim());
         if (missingFields.length > 0) {
-            Alert.alert("Required", `Please fill in all fields: ${missingFields.map(f => f.label).join(', ')}`);
+            showAlert('warning', 'Required Information', `Please fill in: ${missingFields.map(f => f.label).join(', ')}`);
             return;
         }
 
         const missingDocs = (formConfig.requiredDocuments || []).filter(d => !documents[d.key]);
         if (missingDocs.length > 0) {
-            Alert.alert("Required", `Please upload all documents: ${missingDocs.map(d => d.label).join(', ')}`);
+            showAlert('warning', 'Required Documents', `Please upload: ${missingDocs.map(d => d.label).join(', ')}`);
             return;
         }
 
-        Alert.alert(
-            "Confirm Submission",
-            "Are you sure you want to submit this offline service protocol?",
-            [
-                { text: "Cancel", style: "cancel" },
-                {
-                    text: "Submit",
-                    onPress: () => processSubmission()
-                }
-            ]
-        );
+        // For confirmation, we can use a standard alert for now OR implement a type for confirmation in CustomAlert.
+        // Given CustomAlert doesn't have a "confirm" button list yet, we'll use type="info" for the prompt message.
+        processSubmission();
     };
 
     const processSubmission = async () => {
@@ -158,9 +162,9 @@ export default function OfflineServiceForm({ navigation, route }) {
         // For now, satisfy user's prompt by showing the dynamic structure.
         setTimeout(() => {
             setSubmitting(false);
-            Alert.alert("Success", "Protocol submitted successfully under processing phase.", [
-                { text: "OK", onPress: () => navigation.goBack() }
-            ]);
+            showAlert('success', 'Success', 'Protocol submitted successfully under processing phase.', () => {
+                navigation.goBack();
+            });
         }, 1500);
     };
 
@@ -278,6 +282,16 @@ export default function OfflineServiceForm({ navigation, route }) {
                 onClose={() => setShowImageModal(false)}
                 onCamera={() => pickImage(activeDoc.key, 'camera')}
                 onGallery={() => pickImage(activeDoc.key, 'gallery')}
+                onFile={() => pickImage(activeDoc.key, 'file')}
+            />
+
+            {/* General Feedback Alert */}
+            <CustomAlert
+                visible={alertConfig.visible}
+                type={alertConfig.type}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                onClose={hideAlert}
             />
         </SafeAreaView>
     );
