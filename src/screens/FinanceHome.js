@@ -27,6 +27,7 @@ import { getWalletBalance, fetchUserProfile, getAllBanners, getWalletReport, BAS
 
 import BBPSIconSVG from "../assets/Icons/BBPS.svg";
 import RechargeIconSVG from "../assets/Icons/Recharge.svg";
+import OfflineServicesIconSVG from "../assets/Icons/ofline service.svg";
 
 
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -849,10 +850,9 @@ export default function FinanceHome({ navigation }) {
                 onPress={() => navigation.navigate("OfflineServices")}
               >
                 <View style={[S.svcIconCircle]}>
-                  <Icon
-                    name="clipboard-list-outline"
-                    size={rs(22)}
-                    color={Colors.finance_accent}
+                  <OfflineServicesIconSVG
+                    width={rs(24)}
+                    height={rs(24)}
                   />
                 </View>
                 <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>

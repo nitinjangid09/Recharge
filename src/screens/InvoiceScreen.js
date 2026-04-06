@@ -13,6 +13,7 @@ import Colors from '../constants/Colors';
 import Fonts from '../constants/Fonts';
 import { getRechargeReport, getDownlineUsers } from '../api/AuthApi';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import HeaderBar from '../componets/HeaderBar';
 
 const { height: SH, width: SW } = Dimensions.get('window');
 
@@ -833,13 +834,10 @@ export default function InvoiceScreen({ navigation }) {
   return (
     <SafeAreaView style={S.safe} edges={['top']}>
 
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <View style={S.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={S.hBtn} activeOpacity={0.7}>
-          <Icon name="arrow-left" size={18} color="#fff" />
-        </TouchableOpacity>
-        <Text style={S.hTitle}>Transactions</Text>
-      </View>
+      <HeaderBar 
+        title="Transactions" 
+        onBack={() => navigation?.goBack()} 
+      />
 
       {/* ── Tab bar ────────────────────────────────────────────────────────── */}
       <View style={S.tabBar}>
