@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import ImagePicker from 'react-native-image-crop-picker';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import HeaderBar from '../componets/HeaderBar';
 import Colors from '../constants/Colors';
 import Fonts from '../constants/Fonts';
@@ -98,34 +98,38 @@ export default function OfflineServiceForm({ navigation, route }) {
     };
 
     const pickImage = async (key, source) => {
-        try {
-            const options = {
-                mediaType: 'photo',
-                compressImageQuality: 0.7,
-                includeBase64: false,
-                cropping: false,
-            };
+        const options = {
+            mediaType: 'photo',
+            quality: 0.7,
+            selectionLimit: 1,
+        };
 
-            const image = source === 'camera'
-                ? await ImagePicker.openCamera(options)
-                : await ImagePicker.openPicker(options);
+        const callback = (res) => {
+            if (res.didCancel) return;
+            if (res.errorCode) {
+                console.log("[ImagePicker] error:", res.errorMessage);
+                showAlert('error', 'Error', 'Could not select image.');
+                return;
+            }
 
-            if (image) {
+            if (res.assets && res.assets.length > 0) {
+                const asset = res.assets[0];
                 setDocuments(prev => ({
                     ...prev,
                     [key]: {
-                        uri: image.path,
-                        name: image.filename || image.path.split('/').pop() || `${key}.jpg`,
-                        type: image.mime || 'image/jpeg',
+                        uri: asset.uri,
+                        name: asset.fileName || asset.uri.split('/').pop() || `${key}.jpg`,
+                        type: asset.type || 'image/jpeg',
                     }
                 }));
                 setShowImageModal(false);
             }
-        } catch (err) {
-            if (err?.code !== 'E_PICKER_CANCELLED') {
-                console.log("[ImagePicker] error:", err);
-                showAlert('error', 'Error', 'Could not select image.');
-            }
+        };
+
+        if (source === 'camera') {
+            launchCamera(options, callback);
+        } else {
+            launchImageLibrary(options, callback);
         }
     };
 

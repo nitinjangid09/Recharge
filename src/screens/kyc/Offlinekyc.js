@@ -13,7 +13,7 @@ import Fonts from "../../constants/Fonts";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "../../constants/Colors";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import ImagePicker from "react-native-image-crop-picker";
+import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 import RNFS from "react-native-fs";
 
 // ─── Responsive helpers ───────────────────────────────────────────────────
@@ -97,15 +97,14 @@ const RX = {
  *   3. null        — both failed; caller should allow the file through.
  */
 const getFileSizeBytes = async (image) => {
-  // ── Primary: crop-picker's size field ────────────────────────────────
-  if (typeof image.size === "number" && image.size > 0) {
-    return image.size;
+  // ── Primary: react-native-image-picker's fileSize field ───────────────
+  if (typeof image.fileSize === "number" && image.fileSize > 0) {
+    return image.fileSize;
   }
 
   // ── Fallback: RNFS disk stat ──────────────────────────────────────────
   try {
-    // Strip "file://" prefix that RNFS doesn't accept on Android
-    const cleanPath = (image.path ?? "").replace(/^file:\/\//, "");
+    const cleanPath = (image.uri ?? "").replace(/^file:\/\//, "");
     if (!cleanPath) throw new Error("No path");
     const stat = await RNFS.stat(cleanPath);
     if (typeof stat.size === "number" && stat.size > 0) return stat.size;
@@ -163,36 +162,50 @@ const validateImageSize = async (image) => {
  * while preserving enough detail for document OCR.
  */
 export const pickAndValidateImage = async (sourceType) => {
-  try {
-    const pickerOptions = {
+  return new Promise((resolve) => {
+    const options = {
       mediaType: "photo",
-      compressImageQuality: 0.75,
-      includeBase64: false,
-      cropping: false,
+      quality: 0.75,
+      selectionLimit: 1,
     };
 
-    const image =
-      sourceType === "camera"
-        ? await ImagePicker.openCamera(pickerOptions)
-        : await ImagePicker.openPicker(pickerOptions);
-
-    const isValid = await validateImageSize(image);
-    if (!isValid) return null;
-
-    return image; // ✓ valid
-
-  } catch (err) {
-    if (err?.code !== "E_PICKER_CANCELLED") {
-      const msg = err?.message || "Could not open image. Please try again.";
-      console.warn("[KYC] pickAndValidateImage error:", msg);
-      if (Platform.OS === "android") {
-        ToastAndroid.showWithGravityAndOffset(msg, ToastAndroid.LONG, ToastAndroid.BOTTOM, 0, 80);
-      } else {
-        Alert.alert("Image Error", msg, [{ text: "OK" }]);
+    const handler = async (res) => {
+      if (res.didCancel) {
+        resolve(null);
+        return;
       }
+
+      if (res.errorCode) {
+        const msg = res.errorMessage || "Could not open image. Please try again.";
+        console.warn("[KYC] pickAndValidateImage error:", msg);
+        if (Platform.OS === "android") {
+          ToastAndroid.showWithGravityAndOffset(msg, ToastAndroid.LONG, ToastAndroid.BOTTOM, 0, 80);
+        } else {
+          Alert.alert("Image Error", msg, [{ text: "OK" }]);
+        }
+        resolve(null);
+        return;
+      }
+
+      if (res.assets && res.assets.length > 0) {
+        const asset = res.assets[0];
+        const isValid = await validateImageSize(asset);
+        if (!isValid) {
+          resolve(null);
+          return;
+        }
+        resolve(asset);
+      } else {
+        resolve(null);
+      }
+    };
+
+    if (sourceType === "camera") {
+      launchCamera(options, handler);
+    } else {
+      launchImageLibrary(options, handler);
     }
-    return null;
-  }
+  });
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -593,9 +606,9 @@ export default function Offlinekyc({ navigation, route }) {
           setFiles(f => ({
             ...f,
             [fileKey]: {
-              uri: image.path,
-              name: image.filename || image.path.split("/").pop() || `${fileKey}_${Date.now()}.jpg`,
-              type: image.mime || "image/jpeg",
+              uri: image.uri,
+              name: image.fileName || image.uri.split("/").pop() || `${fileKey}_${Date.now()}.jpg`,
+              type: image.type || "image/jpeg",
             },
           }));
           setErrors(e => ({ ...e, [fileKey]: undefined }));
@@ -609,9 +622,9 @@ export default function Offlinekyc({ navigation, route }) {
           setFiles(f => ({
             ...f,
             [fileKey]: {
-              uri: image.path,
-              name: image.filename || image.path.split("/").pop() || `${fileKey}_${Date.now()}.jpg`,
-              type: image.mime || "image/jpeg",
+              uri: image.uri,
+              name: image.fileName || image.uri.split("/").pop() || `${fileKey}_${Date.now()}.jpg`,
+              type: image.type || "image/jpeg",
             },
           }));
           setErrors(e => ({ ...e, [fileKey]: undefined }));
@@ -620,6 +633,7 @@ export default function Offlinekyc({ navigation, route }) {
       { text: "Cancel", style: "cancel" },
     ]);
   };
+
 
   const removeFile = (fileKey) => setFiles(f => ({ ...f, [fileKey]: null }));
 

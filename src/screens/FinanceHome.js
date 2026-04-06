@@ -831,11 +831,11 @@ export default function FinanceHome({ navigation }) {
                         <Icon
                           name={iconName}
                           size={rs(22)}
-                          color={isFirst ? Colors.finance_accent : "#444"}
+                          color={Colors.finance_accent}
                         />
                       )}
                     </View>
-                    <Text style={[S.svcGridLabel]}>
+                    <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
                       {item.name.toUpperCase()}
                     </Text>
                   </TouchableOpacity>
@@ -852,10 +852,10 @@ export default function FinanceHome({ navigation }) {
                   <Icon
                     name="clipboard-list-outline"
                     size={rs(22)}
-                    color="#444"
+                    color={Colors.finance_accent}
                   />
                 </View>
-                <Text style={[S.svcGridLabel]}>
+                <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
                   OFFLINE SERVICES
                 </Text>
               </TouchableOpacity>
