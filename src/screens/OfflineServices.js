@@ -23,9 +23,9 @@ const { width } = Dimensions.get('window');
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const STATS = [
-    { id: '1', label: 'TOTAL\nSUBMISSIONS', value: '5', icon: '⊞' },
-    { id: '2', label: 'IN PROCESSING', value: '2', icon: '↻' },
-    { id: '3', label: 'FINALISED', value: '2', icon: '✓' },
+    { id: '1', label: 'TOTAL\nSUBMISSIONS', value: '5' },
+    { id: '2', label: 'IN PROCESSING', value: '2' },
+    { id: '3', label: 'FINALISED', value: '2' },
 ];
 
 const PROTOCOLS_MOCK = [
@@ -188,7 +188,6 @@ export default function OfflineServices({ navigation }) {
                 >
                     {STATS.map((s) => (
                         <View key={s.id} style={styles.statCard}>
-                            <Text style={styles.statIcon}>{s.icon}</Text>
                             <Text style={styles.statValue}>{s.value}</Text>
                             <Text style={styles.statLabel}>{s.label}</Text>
                         </View>
@@ -207,21 +206,25 @@ export default function OfflineServices({ navigation }) {
                 ) : (
                     services.map((svc) => (
                         <View key={svc._id} style={styles.itrCard}>
-                            {svc.serviceImageUrl ? (
-                                <Image
-                                    source={{ uri: `${BASE_URL}${svc.serviceImageUrl}` }}
-                                    style={styles.svcImage}
-                                    resizeMode="cover"
-                                />
-                            ) : (
-                                <View style={styles.itrIconWrap}>
-                                    <Text style={styles.itrIconEmoji}>📄</Text>
+                            <View style={styles.itrMainRow}>
+                                {svc.serviceImageUrl ? (
+                                    <Image
+                                        source={{ uri: `${BASE_URL}${svc.serviceImageUrl}` }}
+                                        style={styles.svcImage}
+                                        resizeMode="cover"
+                                    />
+                                ) : (
+                                    <View style={styles.itrIconWrap}>
+                                        <Text style={styles.itrIconEmoji}>📄</Text>
+                                    </View>
+                                )}
+                                <View style={styles.itrInfo}>
+                                    <Text style={styles.itrTitle}>{svc.serviceName.toUpperCase()}</Text>
+                                    <Text style={styles.itrDesc} numberOfLines={2}>
+                                        {svc.description}
+                                    </Text>
                                 </View>
-                            )}
-                            <Text style={styles.itrTitle}>{svc.serviceName.toUpperCase()}</Text>
-                            <Text style={styles.itrDesc} numberOfLines={3}>
-                                {svc.description}
-                            </Text>
+                            </View>
                             <View style={styles.itrFooter}>
                                 <View>
                                     <Text style={styles.itrFeeLabel}>PROCESS FEE</Text>
@@ -330,11 +333,6 @@ const styles = StyleSheet.create({
         shadowRadius: 8,
         elevation: 3,
     },
-    statIcon: {
-        fontSize: 20,
-        color: Colors.finance_accent,
-        marginBottom: 8,
-    },
     statValue: {
         fontSize: 34,
         fontWeight: '900',
@@ -386,6 +384,7 @@ const styles = StyleSheet.create({
 
     // ── ITR Card (Service Card) ──
     itrCard: {
+
         marginHorizontal: 20,
         marginBottom: 16,
         backgroundColor: Colors.white,
@@ -399,37 +398,44 @@ const styles = StyleSheet.create({
         shadowRadius: 12,
         elevation: 4,
     },
+    itrMainRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        marginBottom: 16,
+    },
     svcImage: {
-        width: '100%',
-        height: 140,
+        width: 70,
+        height: 70,
         borderRadius: 14,
-        marginBottom: 14,
     },
     itrIconWrap: {
-        width: 48,
-        height: 48,
+        width: 60,
+        height: 60,
         borderRadius: 14,
         backgroundColor: Colors.finance_chip,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 14,
         borderWidth: 1,
         borderColor: Colors.border,
     },
-    itrIconEmoji: { fontSize: 22 },
+    itrIconEmoji: { fontSize: 26 },
+    itrInfo: {
+        flex: 1,
+        marginLeft: 18,
+    },
     itrTitle: {
-        fontSize: 20,
+        paddingTop: 12,
+        fontSize: 18,
         fontWeight: '900',
         color: Colors.primary,
         letterSpacing: 0.5,
-        marginBottom: 10,
+        marginBottom: 4,
         fontFamily: Fonts.Bold,
     },
     itrDesc: {
-        fontSize: 13,
+        fontSize: 12,
         color: Colors.text_secondary,
-        lineHeight: 20,
-        marginBottom: 20,
+        lineHeight: 18,
         fontFamily: Fonts.Regular,
     },
     itrFooter: {
