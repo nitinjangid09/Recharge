@@ -12,6 +12,8 @@ import {
   Animated,
   Dimensions,
   PixelRatio,
+  PermissionsAndroid,
+  Alert,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -197,12 +199,38 @@ export default function OfflineTopup({ navigation }) {
     })();
   }, []);
 
-  const handleCamera = () => launchCamera({ mediaType: "photo", quality: 0.7 }, (res) => {
-    if (!res.didCancel && res.assets?.length) {
-      setPaymentProof(res.assets[0].uri);
-      if (errors.paymentProof) setErrors(prev => ({ ...prev, paymentProof: null }));
+  const handleCamera = async () => {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          title: "Camera Permission",
+          message: "App needs camera access to take a photo of your payment proof.",
+          buttonNeutral: "Ask Me Later",
+          buttonNegative: "Cancel",
+          buttonPositive: "OK",
+        }
+      );
+
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        launchCamera({ mediaType: "photo", quality: 0.7, saveToPhotos: false }, (res) => {
+          if (res.didCancel) {
+            console.log("User cancelled camera");
+          } else if (res.errorCode) {
+            console.log("Camera Error: ", res.errorMessage || res.errorCode);
+            showAlert("error", "Camera Error", res.errorMessage || "Unable to open camera.");
+          } else if (res.assets?.length) {
+            setPaymentProof(res.assets[0].uri);
+            if (errors.paymentProof) setErrors(prev => ({ ...prev, paymentProof: null }));
+          }
+        });
+      } else {
+        showAlert("error", "Permission Denied", "Camera permission is required to use this feature.");
+      }
+    } catch (err) {
+      console.warn("Camera Error:", err);
     }
-  });
+  };
   const handleGallery = () => launchImageLibrary({ mediaType: "photo", quality: 0.7 }, (res) => {
     if (!res.didCancel && res.assets?.length) {
       setPaymentProof(res.assets[0].uri);

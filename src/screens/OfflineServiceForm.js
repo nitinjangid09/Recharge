@@ -12,6 +12,7 @@ import {
     Image,
     KeyboardAvoidingView,
     Platform,
+    PermissionsAndroid,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -102,13 +103,14 @@ export default function OfflineServiceForm({ navigation, route }) {
             mediaType: 'photo',
             quality: 0.7,
             selectionLimit: 1,
+            saveToPhotos: false,
         };
 
         const callback = (res) => {
             if (res.didCancel) return;
             if (res.errorCode) {
-                console.log("[ImagePicker] error:", res.errorMessage);
-                showAlert('error', 'Error', 'Could not select image.');
+                console.log("[ImagePicker] error:", res.errorMessage || res.errorCode);
+                showAlert('error', 'Camera Error', res.errorMessage || 'Could not open camera.');
                 return;
             }
 
@@ -127,7 +129,25 @@ export default function OfflineServiceForm({ navigation, route }) {
         };
 
         if (source === 'camera') {
-            launchCamera(options, callback);
+            try {
+                const granted = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.CAMERA,
+                    {
+                        title: "Camera Permission",
+                        message: "App needs camera access to take document photos.",
+                        buttonNeutral: "Ask Me Later",
+                        buttonNegative: "Cancel",
+                        buttonPositive: "OK",
+                    }
+                );
+                if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+                    launchCamera(options, callback);
+                } else {
+                    showAlert('error', 'Permission Denied', 'Camera permission is required to take photos.');
+                }
+            } catch (err) {
+                console.warn("[CameraPermission] Error:", err);
+            }
         } else {
             launchImageLibrary(options, callback);
         }

@@ -217,7 +217,7 @@ export default function FinanceHome({ navigation }) {
   const [balanceLoading, setBalanceLoading] = useState(false);
   const [assignedServices, setAssignedServices] = useState([]);
   const [servicesLoading, setServicesLoading] = useState(false);
-  const [isAeps, setIsAeps] = useState(true);
+  const [isMainWallet, setIsMainWallet] = useState(true);
   const [showBalance, setShowBalance] = useState(true);
   const [banners, setBanners] = useState([]);
   const [statusMessage, setStatusMessage] = useState("");
@@ -267,14 +267,14 @@ export default function FinanceHome({ navigation }) {
   const flipAnim = useRef(new Animated.Value(0)).current;
 
   const toggleWallet = () => {
-    const toValue = isAeps ? 1 : 0;
+    const toValue = isMainWallet ? 1 : 0;
     Animated.timing(flipAnim, {
       toValue,
       duration: 500,
       useNativeDriver: true,
       easing: Easing.inOut(Easing.ease),
     }).start(() => {
-      setIsAeps(!isAeps);
+      setIsMainWallet(!isMainWallet);
     });
   };
 
@@ -575,85 +575,14 @@ export default function FinanceHome({ navigation }) {
 
             {/* ══ WALLET CARD ══ */}
             <Animated.View style={{ height: WALLET_H, opacity: cardOpacity, transform: [{ translateY: cardTranslateY }, { scale: cardScale }] }}>
-              {/* FRONT SIDE (AEPS) */}
+              {/* FRONT SIDE (MAIN) */}
               <Animated.View
                 style={[
                   S.flipCard,
                   {
-                    zIndex: isAeps ? 2 : 1,
+                    zIndex: isMainWallet ? 2 : 1,
                     opacity: frontOpacity,
                     transform: [{ rotateY: frontInterpolate }],
-                  }
-                ]}
-              >
-                <View style={{ flex: 1 }}>
-                  <LinearGradient
-                    colors={["#2C2C2C", "#111111"]}
-                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                    style={[S.walletCard, { borderColor: "rgba(212,176,106,0.3)" }]}
-                  >
-                    <View style={S.circ1} /><View style={S.circ2} />
-                    <View style={S.rowBetween}>
-                      <View style={S.walletTag}>
-                        <Icon name="wallet-outline" size={rs(13)} color="#d4b06a" />
-                        <Text style={S.walletTagTxt}>AEPS Wallet</Text>
-                      </View>
-                      <TouchableOpacity
-                        style={S.swapBtn}
-                        onPress={toggleWallet}
-                        activeOpacity={0.7}
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                      >
-                        <Icon name="swap-horizontal" size={rs(18)} color="#d4b06a" />
-                      </TouchableOpacity>
-                    </View>
-
-                    <View style={{ marginTop: rs(8) }}>
-                      <Text style={S.balLabel}>AEPS Balance</Text>
-                      <View style={{ flexDirection: "row", alignItems: "center" }}>
-                        {!balanceLoading && <Text style={S.rupee}>₹</Text>}
-                        {balanceLoading
-                          ? <ActivityIndicator size="small" color="#FFF" style={{ marginLeft: 4 }} />
-                          : <Text style={S.balAmt}>{!showBalance ? "••••••" : formatBalance(aepsBalance)}</Text>
-                        }
-                        {!balanceLoading && (
-                          <TouchableOpacity
-                            onPress={(e) => { e.stopPropagation(); setShowBalance((p) => !p); }}
-                            style={{ marginLeft: rs(8) }}
-                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                          >
-                            <Icon name={!showBalance ? "eye-off" : "eye"} size={rs(18)} color="rgba(255,255,255,0.45)" />
-                          </TouchableOpacity>
-                        )}
-                      </View>
-                    </View>
-
-                    <View style={S.cardFooter}>
-                      <TouchableOpacity
-                        style={[S.kycBadge, { borderColor: kyc }]}
-                        activeOpacity={0.75}
-                        onPress={(e) => {
-                          e.stopPropagation();
-                          if (kycStatus !== "approved") navigation.navigate("Offlinekyc");
-                        }}
-                      >
-                        <View style={[S.kycDotSm, { backgroundColor: kyc }]} />
-                        <Text style={[S.kycBadgeTxt, { color: kyc }]}>KYC {kycStatus.toUpperCase()}</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </LinearGradient>
-                </View>
-              </Animated.View>
-
-              {/* BACK SIDE (MAIN) */}
-              <Animated.View
-                style={[
-                  S.flipCard,
-                  S.flipCardBack,
-                  {
-                    zIndex: isAeps ? 1 : 2,
-                    opacity: backOpacity,
-                    transform: [{ rotateY: backInterpolate }],
                   }
                 ]}
               >
@@ -706,6 +635,77 @@ export default function FinanceHome({ navigation }) {
                       <Icon name="plus" size={rs(12)} color="#000" />
                       <Text style={[S.addBtnTxt, { color: "#000" }]}>Top Up</Text>
                     </TouchableOpacity>
+
+                    <View style={S.cardFooter}>
+                      <TouchableOpacity
+                        style={[S.kycBadge, { borderColor: kyc }]}
+                        activeOpacity={0.75}
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          if (kycStatus !== "approved") navigation.navigate("Offlinekyc");
+                        }}
+                      >
+                        <View style={[S.kycDotSm, { backgroundColor: kyc }]} />
+                        <Text style={[S.kycBadgeTxt, { color: kyc }]}>KYC {kycStatus.toUpperCase()}</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </LinearGradient>
+                </View>
+              </Animated.View>
+
+              {/* BACK SIDE (AEPS) */}
+              <Animated.View
+                style={[
+                  S.flipCard,
+                  S.flipCardBack,
+                  {
+                    zIndex: isMainWallet ? 1 : 2,
+                    opacity: backOpacity,
+                    transform: [{ rotateY: backInterpolate }],
+                  }
+                ]}
+              >
+                <View style={{ flex: 1 }}>
+                  <LinearGradient
+                    colors={["#2C2C2C", "#111111"]}
+                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                    style={[S.walletCard, { borderColor: "rgba(212,176,106,0.3)" }]}
+                  >
+                    <View style={S.circ1} /><View style={S.circ2} />
+                    <View style={S.rowBetween}>
+                      <View style={S.walletTag}>
+                        <Icon name="wallet-outline" size={rs(13)} color="#d4b06a" />
+                        <Text style={S.walletTagTxt}>AEPS Wallet</Text>
+                      </View>
+                      <TouchableOpacity
+                        style={S.swapBtn}
+                        onPress={toggleWallet}
+                        activeOpacity={0.7}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      >
+                        <Icon name="swap-horizontal" size={rs(18)} color="#d4b06a" />
+                      </TouchableOpacity>
+                    </View>
+
+                    <View style={{ marginTop: rs(8) }}>
+                      <Text style={S.balLabel}>AEPS Balance</Text>
+                      <View style={{ flexDirection: "row", alignItems: "center" }}>
+                        {!balanceLoading && <Text style={S.rupee}>₹</Text>}
+                        {balanceLoading
+                          ? <ActivityIndicator size="small" color="#FFF" style={{ marginLeft: 4 }} />
+                          : <Text style={S.balAmt}>{!showBalance ? "••••••" : formatBalance(aepsBalance)}</Text>
+                        }
+                        {!balanceLoading && (
+                          <TouchableOpacity
+                            onPress={(e) => { e.stopPropagation(); setShowBalance((p) => !p); }}
+                            style={{ marginLeft: rs(8) }}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                          >
+                            <Icon name={!showBalance ? "eye-off" : "eye"} size={rs(18)} color="rgba(255,255,255,0.45)" />
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    </View>
 
                     <View style={S.cardFooter}>
                       <TouchableOpacity
