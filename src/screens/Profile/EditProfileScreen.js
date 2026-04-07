@@ -18,7 +18,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fetchUserProfile } from "../../api/AuthApi";
 import Colors from "../../constants/Colors";
 import Fonts from "../../constants/Fonts";
-import HeaderBar from "../../componets/HeaderBar";
+import HeaderBar from "../../componets/Utils/HeaderBar";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width: W } = Dimensions.get("window");

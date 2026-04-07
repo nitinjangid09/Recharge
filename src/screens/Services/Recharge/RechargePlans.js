@@ -17,7 +17,7 @@ import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Colors from "../../../constants/Colors";
 import Fonts from "../../../constants/Fonts";
-import HeaderBar from "../../../componets/HeaderBar";
+import HeaderBar from "../../../componets/Utils/HeaderBar";
 import { fetchPlans } from "../../../api/AuthApi";
 
 const { width } = Dimensions.get("window");

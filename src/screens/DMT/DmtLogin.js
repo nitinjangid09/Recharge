@@ -17,7 +17,7 @@ import { useNavigation } from "@react-navigation/native";
 import Colors from "../../constants/Colors";
 import Fonts from "../../constants/Fonts";
 import { fadeIn, slideUp, buttonPress } from "../../utils/ScreenAnimations";
-import CustomAlert from "../../componets/CustomAlert";
+import CustomAlert from "../../componets/Utils/CustomAlert";
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get("window");

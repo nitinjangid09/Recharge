@@ -20,7 +20,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '../../constants/Colors';
 import Fonts from '../../constants/Fonts';
 import { getWalletBalance, transferAepsToMainWallet, getWalletHistory } from '../../api/AuthApi';
-import CustomAlert from '../../componets/CustomAlert';
+import CustomAlert from '../../componets/Utils/CustomAlert';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 const { width: SCREEN_W } = Dimensions.get('window');

@@ -20,7 +20,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getMyCommissionPlan, fetchBbpsCategories } from '../api/AuthApi';
 import Colors from '../constants/Colors';
-import HeaderBar from '../componets/HeaderBar';
+import HeaderBar from '../componets/Utils/HeaderBar';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 

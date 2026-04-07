@@ -9,7 +9,7 @@ import {
     Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import HeaderBar from '../componets/HeaderBar';
+import HeaderBar from '../componets/Utils/HeaderBar';
 import Colors from '../constants/Colors';
 import Fonts from '../constants/Fonts';
 

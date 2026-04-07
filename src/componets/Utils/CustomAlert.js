@@ -19,8 +19,8 @@ import {
   Platform,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import Colors from "../constants/Colors";
-import Fonts from "../constants/Fonts";
+import Colors from "../../constants/Colors";
+import Fonts from "../../constants/Fonts";
 
 const { width } = Dimensions.get("window");
 const S = width / 375;
@@ -77,7 +77,7 @@ const CustomAlert = ({
     <Modal transparent visible={visible} animationType="none" statusBarTranslucent onRequestClose={onClose}>
       <View style={styles.overlay}>
         <Animated.View style={[styles.overlayBg, { opacity: dialogFade }]}>
-           <TouchableOpacity style={StyleSheet.absoluteFill} onPress={onClose} activeOpacity={1} />
+          <TouchableOpacity style={StyleSheet.absoluteFill} onPress={onClose} activeOpacity={1} />
         </Animated.View>
 
         <Animated.View style={[styles.alertBox, { transform: [{ scale: dialogScale }], opacity: dialogFade }]}>

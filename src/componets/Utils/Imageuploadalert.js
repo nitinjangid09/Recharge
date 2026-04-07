@@ -9,7 +9,7 @@ import {
     Dimensions,
     Platform,
 } from 'react-native';
-import Colors from '../constants/Colors';
+import Colors from '../../constants/Colors';
 
 const { width } = Dimensions.get('window');
 

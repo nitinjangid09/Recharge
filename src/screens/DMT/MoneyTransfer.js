@@ -16,7 +16,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import Colors from "../../constants/Colors";
 import Fonts from "../../constants/Fonts";
-import CustomAlert from "../../componets/CustomAlert";
+import CustomAlert from "../../componets/Utils/CustomAlert";
 import { fadeIn, slideUp, buttonPress } from "../../utils/ScreenAnimations";
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────

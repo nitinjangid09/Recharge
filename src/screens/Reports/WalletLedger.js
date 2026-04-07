@@ -14,7 +14,7 @@ import Colors from '../../constants/Colors';
 import Fonts from '../../constants/Fonts';
 import { getWalletReport, getWalletBalance, getDownlineUsers } from '../../api/AuthApi';
 import { fadeIn, slideUp, buttonPress, FadeSlideUp } from '../../utils/ScreenAnimations';
-import HeaderBar from '../../componets/HeaderBar';
+import HeaderBar from '../../componets/Utils/HeaderBar';
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get('window');
