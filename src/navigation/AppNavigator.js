@@ -194,11 +194,8 @@ const AppNavigator = () => {
       <Stack.Screen name="UserWalletRefill" component={UserWalletRefill} />
       <Stack.Screen name="OfflineServices" component={OfflineServices} />
       <Stack.Screen name="OfflineServiceForm" component={OfflineServiceForm} />
-      {/* <<<<<<< HEAD
       <Stack.Screen name="PaymentVerification" component={PaymentVerification} />
-=======
       <Stack.Screen name="Notification" component={Notification} />
->>>>>>> 80cbcb0c6d23a7dda2f93abfa9420c98d706023c */}
     </Stack.Navigator>
   );
 };
