@@ -99,6 +99,54 @@ const FloatInput = ({
 };
 
 /* ─────────────────────────────────────────────
+   MODERN OTP INPUT (6-DIGIT BOXES)
+───────────────────────────────────────────── */
+const OtpInput = ({ code, setCode, maximumLength = 6 }) => {
+  const boxArray = new Array(maximumLength).fill(0);
+  const inputRef = useRef();
+
+  const handlePress = () => { inputRef.current?.focus(); };
+
+  const boxDigit = (_, index) => {
+    const digit = code[index] || "";
+    const isCurrentDigit = index === code.length;
+    const isLastDigit = index === maximumLength - 1;
+    const isCodeFull = code.length === maximumLength;
+    const isFocused = isCurrentDigit || (isLastDigit && isCodeFull);
+
+    return (
+      <View
+        key={index}
+        style={[
+          styles.otpBox,
+          isFocused && styles.otpBoxFocused,
+          code[index] && styles.otpBoxFilled,
+        ]}
+      >
+        <Text style={styles.otpText}>{digit}</Text>
+      </View>
+    );
+  };
+
+  return (
+    <View style={styles.otpContainer}>
+      <TouchableOpacity style={styles.otpGrid} activeOpacity={1} onPress={handlePress}>
+        {boxArray.map(boxDigit)}
+      </TouchableOpacity>
+      <TextInput
+        ref={inputRef}
+        value={code}
+        onChangeText={setCode}
+        maxLength={maximumLength}
+        keyboardType="number-pad"
+        style={styles.hiddenInput}
+        autoFocus={true}
+      />
+    </View>
+  );
+};
+
+/* ─────────────────────────────────────────────
    TOPBAR
 ───────────────────────────────────────────── */
 const Topbar = ({ onBack }) => (
@@ -260,15 +308,10 @@ const ForgotPinScreen = ({ navigation }) => {
               <Text style={styles.modalEmail}>{email}</Text>
             </Text>
 
-            <FloatInput
-              label="6-digit OTP"
-              value={otp}
-              onChangeText={setOtp}
-              keyboardType="number-pad"
-              maxLength={6}
-              textAlign="center"
-              letterSpacing={8}
-            />
+            {/* OTP input */}
+            <View style={{ width: "100%", marginVertical: 10 }}>
+              <OtpInput code={otp} setCode={setOtp} />
+            </View>
 
             <TouchableOpacity style={styles.verifyBtn} onPress={handleVerifyOtp}>
               <Text style={styles.verifyTxt}>Verify & Continue</Text>
@@ -553,5 +596,56 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Medium,
     fontSize: 13,
     color: Colors.ink3,
+  },
+
+  /* ── Otp Input Styles ── */
+  otpContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 10,
+  },
+  otpGrid: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    gap: 8,
+  },
+  otpBox: {
+    flex: 1,
+    aspectRatio: 0.85,
+    borderRadius: 12,
+    backgroundColor: Colors.white,
+    borderWidth: 1.5,
+    borderColor: Colors.ink5,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: Colors.ink,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 1,
+  },
+  otpBoxFocused: {
+    borderColor: Colors.amber,
+    backgroundColor: Colors.white,
+    borderWidth: 2,
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  otpBoxFilled: {
+    backgroundColor: Colors.white,
+    borderColor: Colors.amber,
+  },
+  otpText: {
+    fontSize: 22,
+    fontFamily: Fonts.Bold,
+    color: Colors.ink,
+  },
+  hiddenInput: {
+    position: "absolute",
+    width: 0,
+    height: 0,
+    opacity: 0,
   },
 });

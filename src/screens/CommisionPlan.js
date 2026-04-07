@@ -3,7 +3,7 @@
  * React Native — Commission Plan Screen for Camlenio
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     View,
     Text,
@@ -14,6 +14,7 @@ import {
     ActivityIndicator,
     TextInput,
     Modal,
+    RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -105,6 +106,7 @@ export default function CommissionPlanScreen({ navigation }) {
     const [isFilterVisible, setIsFilterVisible] = useState(false);
     const [fetchingCats, setFetchingCats] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState(null);
     const [planData, setPlanData] = useState([]);
 
@@ -126,8 +128,14 @@ export default function CommissionPlanScreen({ navigation }) {
             setError('Network error');
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
     };
+
+    const onRefresh = React.useCallback(() => {
+        setRefreshing(true);
+        load();
+    }, []);
 
     const handleFilterPress = async () => {
         setIsFilterVisible(true);
@@ -206,6 +214,14 @@ export default function CommissionPlanScreen({ navigation }) {
                     style={s.scroll}
                     contentContainerStyle={s.scrollContent}
                     showsVerticalScrollIndicator={false}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            tintColor={Colors.finance_accent}
+                            colors={[Colors.finance_accent]}
+                        />
+                    }
                 >
                     <View style={s.planCard}>
                         <View style={s.planGradBar} />

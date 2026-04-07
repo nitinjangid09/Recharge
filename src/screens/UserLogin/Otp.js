@@ -207,9 +207,13 @@ export default function OTP({ navigation, route }) {
           navigateTo("FinanceHome");
         } else if (kycStatus === "submitted") {
           navigateTo("KycSubmitted");
+        } else if (kycStatus === "rekyc") {
+          navigateTo("Offlinekyc", { user: result.user });
         } else if (isPaymentDone === false) {
           if (idPaymentStatus === "complete") {
             navigateTo("PaymentVerification");
+          } else if (idPaymentStatus === "reject") {
+            navigateTo("ActivateAccountScreen");
           } else {
             navigateTo("ActivateAccountScreen");
           }
