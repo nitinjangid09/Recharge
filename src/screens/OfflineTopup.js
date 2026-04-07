@@ -20,13 +20,13 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { launchImageLibrary, launchCamera } from "react-native-image-picker";
 import Colors from "../constants/Colors";
 import Fonts from "../constants/Fonts";
-import HeaderBar from "../componets/Utils/HeaderBar";
+import HeaderBar from "../componets/HeaderBar/HeaderBar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getAllTopupBanks, addOfflineTopupRequest } from "../api/AuthApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import CustomAlert from "../componets/Utils/CustomAlert";
-import ImageUploadAlert from "../componets/Utils/Imageuploadalert";
+import CustomAlert from "../componets/Alerts/CustomAlert";
+import ImageUploadAlert from "../componets/Alerts/Imageuploadalert";
 
 // ─── Responsive scale ─────────────────────────────────────────────────────
 const { width: W } = Dimensions.get("window");

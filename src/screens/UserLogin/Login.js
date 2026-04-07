@@ -25,7 +25,7 @@ import { NetworkInfo } from "react-native-network-info";
 import Colors from "../../constants/Colors";
 import Fonts from "../../constants/Fonts";
 import { loginUser } from "../../api/AuthApi";
-import CustomAlert from "../../componets/Utils/CustomAlert";
+import CustomAlert from "../../componets/Alerts/CustomAlert";
 
 /* ---------- RESPONSIVE SCALE ---------- */
 const { width } = Dimensions.get("window");

@@ -25,7 +25,7 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import RNShare from "react-native-share"; // npm install react-native-share
 import Colors from "../../../constants/Colors";
 import Fonts from "../../../constants/Fonts";
-import HeaderBar from "../../../componets/Utils/HeaderBar";
+import HeaderBar from "../../../componets/HeaderBar/HeaderBar";
 import {
   getRechargeOperatorList,
   getRechargeCircleList,

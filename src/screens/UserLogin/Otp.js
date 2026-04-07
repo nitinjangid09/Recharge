@@ -17,7 +17,7 @@ import { ActivityIndicator } from "react-native";
 import Colors from "../../constants/Colors";
 import Fonts from "../../constants/Fonts";
 import { verifyUserOtp } from "../../api/AuthApi";
-import CustomAlert from "../../componets/Utils/CustomAlert";
+import CustomAlert from "../../componets/Alerts/CustomAlert";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 const { width } = Dimensions.get("window");

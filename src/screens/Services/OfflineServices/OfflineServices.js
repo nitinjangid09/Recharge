@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import HeaderBar from '../../../componets/Utils/HeaderBar';
+import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
 import Colors from '../../../constants/Colors';
 import Fonts from '../../../constants/Fonts';
 import { getAllOfflineServices, BASE_URL } from '../../../api/AuthApi';

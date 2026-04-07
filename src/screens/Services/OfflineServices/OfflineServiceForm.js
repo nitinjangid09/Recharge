@@ -17,12 +17,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import HeaderBar from '../../../componets/Utils/HeaderBar';
+import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
 import Colors from '../../../constants/Colors';
 import Fonts from '../../../constants/Fonts';
 import { getOfflineServiceForm, BASE_URL } from '../../../api/AuthApi';
-import CustomAlert from '../../../componets/Utils/CustomAlert';
-import ImageUploadAlert from '../../../componets/Utils/Imageuploadalert';
+import CustomAlert from '../../../componets/Alerts/CustomAlert';
+import ImageUploadAlert from '../../../componets/Alerts/Imageuploadalert';
 
 export default function OfflineServiceForm({ navigation, route }) {
     const { service } = route.params; // service contains {_id, serviceName, description}

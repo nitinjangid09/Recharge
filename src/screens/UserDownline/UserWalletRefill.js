@@ -20,9 +20,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '../../constants/Colors';
 import Fonts from '../../constants/Fonts';
-import HeaderBar from '../../componets/Utils/HeaderBar';
+import HeaderBar from '../../componets/HeaderBar/HeaderBar';
 import { getDownlineUsers, getUserWalletRefillProfile, refillUserWallet, getUserWalletRefillHistory } from '../../api/AuthApi';
-import CustomAlert from '../../componets/Utils/CustomAlert';
+import CustomAlert from '../../componets/Alerts/CustomAlert';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 /** Recursively flatten the downline tree (including self) into a flat array */

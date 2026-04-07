@@ -18,7 +18,7 @@ import DropDownPicker from "react-native-dropdown-picker";
 
 import Colors from "../../constants/Colors";
 import Fonts from "../../constants/Fonts";
-import CustomAlert from "../../componets/Utils/CustomAlert";
+import CustomAlert from "../../componets/Alerts/CustomAlert";
 import { getRoleList, registerUser } from "../../api/AuthApi";
 
 /* ---------- RESPONSIVE SCALE ---------- */

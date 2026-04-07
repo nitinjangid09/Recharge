@@ -18,7 +18,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import Colors from "../../constants/Colors";
 import Fonts from "../../constants/Fonts";
-import CustomAlert from "../../componets/Utils/CustomAlert";
+import CustomAlert from "../../componets/Alerts/CustomAlert";
 import { getRoleList, createNewUser } from "../../api/AuthApi";
 
 /* ---------- RESPONSIVE SCALE ---------- */

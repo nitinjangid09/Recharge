@@ -13,7 +13,7 @@ import Colors from '../../constants/Colors';
 import Fonts from '../../constants/Fonts';
 import { getRechargeReport, getDownlineUsers } from '../../api/AuthApi';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import HeaderBar from '../../componets/Utils/HeaderBar';
+import HeaderBar from '../../componets/HeaderBar/HeaderBar';
 
 const { height: SH, width: SW } = Dimensions.get('window');
 
