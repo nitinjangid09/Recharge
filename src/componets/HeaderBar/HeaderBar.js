@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     width: 33,
     height: 33,
     borderRadius: 18,
-    backgroundColor: "rgba(255, 255, 255, 0.2)", // Light Beige
+    backgroundColor: Colors.white, // Light Beige
     alignItems: "center",
     justifyContent: "center",
     borderWidth: .5,
