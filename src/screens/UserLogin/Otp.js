@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
     width: OTP_BOX_SIZE,
     height: OTP_BOX_SIZE * 1.2,
     borderRadius: 12,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.secondary,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 0.8,

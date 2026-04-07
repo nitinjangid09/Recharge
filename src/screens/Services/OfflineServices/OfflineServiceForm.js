@@ -482,9 +482,9 @@ const styles = StyleSheet.create({
 
     submitBtnFixed: {
         position: 'absolute',
-        bottom: 25,
-        left: 20,
-        right: 20,
+        bottom: 10,
+        left: 40,
+        right: 40,
         backgroundColor: Colors.finance_accent,
         height: 56,
         borderRadius: 15,

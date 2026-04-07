@@ -782,6 +782,19 @@ export const addOfflineTopupRequest = async ({ amount, mode, receiverBank, utrNu
   }
 };
 
+export const getAllOfflineTopupRequests = async ({ headerToken, page = 1, limit = 10 }) => {
+  try {
+    const url = `${BASE_URL}/user/offlineTopup/get-all-offline-topup-requests?page=${page}&limit=${limit}`;
+    const response = await axios.get(url, {
+      headers: { Authorization: `Bearer ${headerToken}` }
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get All Offline Topup Requests Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch topup requests" };
+  }
+};
+
 export const getWalletBalance = async ({ headerToken }) => {
   try {
     const response = await axios.get(`${BASE_URL}/user/wallet/get-wallet-balance`, {
@@ -806,6 +819,19 @@ export const fetchBbpsCategories = async ({ headerToken }) => {
   }
 };
 
+/**
+ * fetchParticularCategoryBillers
+ * Fetches the list of billers for a specific BBPS category (e.g. "Electricity", "Credit Card").
+ *
+ * Expected API response structure:
+ * {
+ *   "success": true,
+ *   "data": [
+ *     { "billerId": "...", "billerName": "...", "billerCategory": "..." },
+ *     ...
+ *   ]
+ * }
+ */
 export const fetchParticularCategoryBillers = async ({ category, headerToken }) => {
   try {
     const response = await axios.get(`${BASE_URL}/user/bbps/fetch-particular-category-billers`, {
@@ -1297,7 +1323,7 @@ export const addIdChargeRequest = async ({ amount, mode, receiverBank, utrNumber
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = 'IDCH';
     for (let i = 0; i < 8; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return result;
   };

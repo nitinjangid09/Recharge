@@ -26,7 +26,7 @@ import {
   payBbpsBill,
   fetchParticularCategoryBillers,
   fetchBillerInfo,
-} from "../../api/AuthApi";
+} from "../../../api/AuthApi";
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 
@@ -58,7 +58,8 @@ const getCategoryIcon = (name = "") => {
   if (n.includes("education") || n.includes("school")) return "🎓";
   if (n.includes("hospital") || n.includes("health")) return "🏥";
   if (n.includes("fastag") || n.includes("toll")) return "🚗";
-  return "🏢";
+  if (n.includes("card")) return "💳";
+  return "📁";
 };
 
 const isDobField = (field) => {

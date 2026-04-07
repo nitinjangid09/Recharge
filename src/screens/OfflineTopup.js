@@ -22,7 +22,7 @@ import Colors from "../constants/Colors";
 import Fonts from "../constants/Fonts";
 import HeaderBar from "../componets/HeaderBar/HeaderBar";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { getAllTopupBanks, addOfflineTopupRequest } from "../api/AuthApi";
+import { getAllTopupBanks, addOfflineTopupRequest, getAllOfflineTopupRequests } from "../api/AuthApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import CustomAlert from "../componets/Alerts/CustomAlert";
@@ -167,6 +167,8 @@ export default function OfflineTopup({ navigation }) {
   const [alertMessage, setAlertMessage] = useState("");
   const [uploadVisible, setUploadVisible] = useState(false);
   const [errors, setErrors] = useState({});
+  const [requests, setRequests] = useState([]);
+  const [requestsLoading, setRequestsLoading] = useState(false);
 
   const activeModeHint = PAYMENT_MODES.find(m => m.key === mode)?.hint || "";
 
@@ -186,17 +188,36 @@ export default function OfflineTopup({ navigation }) {
     }
   };
 
+  const fetchBanks = async () => {
+    setBanksLoading(true);
+    try {
+      const headerToken = await AsyncStorage.getItem("header_token");
+      const result = await getAllTopupBanks({ headerToken });
+      const ok = result?.success === true || result?.status === "success" || result?.statusCode === 200;
+      if (ok) setBanks(result.data || []);
+    } catch (e) {
+      console.log("Fetch banks error:", e);
+    } finally {
+      setBanksLoading(false);
+    }
+  };
+
+  const fetchRequests = async () => {
+    setRequestsLoading(true);
+    try {
+      const headerToken = await AsyncStorage.getItem("header_token");
+      const result = await getAllOfflineTopupRequests({ headerToken, page: 1, limit: 10 });
+      if (result?.success) setRequests(result.data || []);
+    } catch (e) {
+      console.log("Fetch requests error:", e);
+    } finally {
+      setRequestsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    (async () => {
-      setBanksLoading(true);
-      try {
-        const headerToken = await AsyncStorage.getItem("header_token");
-        const result = await getAllTopupBanks({ headerToken });
-        const ok = result?.success === true || result?.status === "success" || result?.statusCode === 200;
-        if (ok) setBanks(result.data || []);
-      } catch (e) { console.log("Fetch banks error:", e); }
-      finally { setBanksLoading(false); }
-    })();
+    fetchBanks();
+    fetchRequests();
   }, []);
 
   const handleCamera = async () => {
@@ -272,6 +293,7 @@ export default function OfflineTopup({ navigation }) {
       const result = await addOfflineTopupRequest({ amount, mode, receiverBank, utrNumber, paymentDate, paymentProof, headerToken });
       if (result?.success) {
         showAlert("success", "Request Submitted!", "Your topup request has been submitted successfully.");
+        fetchRequests(); // Automatically refresh list
       } else {
         showAlert("error", "Submission Failed", result?.message || "Unable to submit. Please try again.");
       }
@@ -445,6 +467,87 @@ export default function OfflineTopup({ navigation }) {
               }
             </LinearGradient>
           </TouchableOpacity>
+        </View>
+
+        {/* ── Requests History ── */}
+        <View style={st.historySection}>
+          <View style={st.historyHeaderRow}>
+            <View style={st.historyHeaderLeft}>
+              <Icon name="clock-outline" size={S(16)} color={FG} />
+              <Text style={st.historyHeaderTitle}>Recent Requests</Text>
+            </View>
+            <View style={st.historyCountBadge}>
+              <Text style={st.historyCountTxt}>{requests.length}</Text>
+            </View>
+          </View>
+
+          {requestsLoading ? (
+            <ActivityIndicator size="small" color={ACCENT} style={{ marginVertical: S(30) }} />
+          ) : requests.length > 0 ? (
+            requests.map((item) => {
+              const status = (item.status || "pending").toLowerCase();
+              const isApproved = status === "approved";
+              const isRejected = status === "rejected";
+              const statusColor = isApproved ? "#16A34A" : isRejected ? "#DC2626" : "#D97706";
+              const statusBg = isApproved ? "#F0FDF4" : isRejected ? "#FEF2F2" : "#FFFBEB";
+              const statusIcon = isApproved ? "check-circle" : isRejected ? "close-circle" : "timer-sand";
+
+              return (
+                <View key={item._id} style={st.transactionCard}>
+                  {/* Card Header: Amount & Status */}
+                  <View style={st.cardHeaderTop}>
+                    <View style={st.amtColumn}>
+                      <Text style={st.amtSymbol}>₹<Text style={st.amtVal}>{item.amount}</Text></Text>
+                      <Text style={st.dateLabel}>
+                        {new Date(item.createdAt).toLocaleDateString("en-IN", {
+                          day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"
+                        })}
+                      </Text>
+                    </View>
+                    <View style={[st.cardStatusPill, { backgroundColor: statusBg, borderColor: statusColor + "20" }]}>
+                      <Icon name={statusIcon} size={S(11)} color={statusColor} style={{ marginRight: S(4) }} />
+                      <Text style={[st.cardStatusTxt, { color: statusColor }]}>
+                        {status.toUpperCase()}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Card Divider */}
+                  <View style={st.cardInnerDivider} />
+
+                  {/* Card Body: Details */}
+                  <View style={st.cardDetailsGrid}>
+                    <View style={st.detailItem}>
+                      <Text style={st.detailLabel}>REFERENCE ID</Text>
+                      <Text style={st.detailValue} numberOfLines={1}>{item.referenceId}</Text>
+                    </View>
+                    <View style={[st.detailItem, { alignItems: "flex-end" }]}>
+                      <Text style={st.detailLabel}>PAYMENT MODE</Text>
+                      <View style={st.modeGroup}>
+                        <Icon name={item.mode === "upi" ? "qrcode-scan" : "bank-outline"} size={S(10)} color={FG + "70"} />
+                        <Text style={st.detailValue}>{item.mode.toUpperCase()}</Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  <View style={[st.cardDetailsGrid, { marginTop: S(8) }]}>
+                    <View style={st.detailItem}>
+                      <Text style={st.detailLabel}>UTR / TRANS NO</Text>
+                      <Text style={st.detailValue}>{item.utrNumber}</Text>
+                    </View>
+                  </View>
+                </View>
+              );
+            })
+          ) : (
+            <View style={st.emptyStateBox}>
+              <View style={st.emptyIconCircle}>
+                <Icon name="history" size={S(32)} color="#D1D5DB" />
+              </View>
+              <Text style={st.emptyTitle}>No transaction history</Text>
+              <Text style={st.emptySubtitle}>Your offline topup requests will appear here</Text>
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -719,4 +822,31 @@ const st = StyleSheet.create({
     zIndex: 999,
   },
   loaderTxt: { color: "#FFF", fontFamily: Fonts.Medium, fontSize: S(13), marginTop: S(8) },
+
+  historySection: { width: "92%", marginTop: S(24), marginBottom: S(10) },
+  historyHeaderRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: S(15), paddingHorizontal: S(4) },
+  historyHeaderLeft: { flexDirection: "row", alignItems: "center", gap: S(8) },
+  historyHeaderTitle: { fontSize: S(14), fontFamily: Fonts.Bold, color: FG, letterSpacing: 0.3 },
+  historyCountBadge: { backgroundColor: SURFACE, borderWidth: 1, borderColor: "rgba(0,0,0,0.06)", borderRadius: S(8), paddingHorizontal: S(8), paddingVertical: S(2) },
+  historyCountTxt: { fontSize: S(11), fontFamily: Fonts.Bold, color: FG },
+
+  transactionCard: { backgroundColor: SURFACE, borderRadius: S(16), padding: S(14), marginBottom: S(12), elevation: 2, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: S(6), borderWidth: 1, borderColor: "rgba(0,0,0,0.03)" },
+  cardHeaderTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  amtColumn: { gap: S(2) },
+  amtSymbol: { fontSize: S(13), fontFamily: Fonts.Bold, color: ACCENT },
+  amtVal: { fontSize: S(19), color: FG },
+  dateLabel: { fontSize: S(10), fontFamily: Fonts.Medium, color: "#9CA3AF" },
+  cardStatusPill: { flexDirection: "row", alignItems: "center", paddingHorizontal: S(10), paddingVertical: S(5), borderRadius: S(100), borderWidth: 1 },
+  cardStatusTxt: { fontSize: S(10), fontFamily: Fonts.Bold, letterSpacing: 0.5 },
+  cardInnerDivider: { height: 1, backgroundColor: "#F3F4F6", marginVertical: S(12), opacity: 0.8 },
+  cardDetailsGrid: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  detailItem: { flex: 1 },
+  detailLabel: { fontSize: S(9), fontFamily: Fonts.Bold, color: "#9CA3AF", letterSpacing: 0.8, marginBottom: S(4) },
+  detailValue: { fontSize: S(12), fontFamily: Fonts.Bold, color: FG, letterSpacing: 0.2 },
+  modeGroup: { flexDirection: "row", alignItems: "center", gap: S(5) },
+
+  emptyStateBox: { alignItems: "center", paddingVertical: S(40), backgroundColor: "rgba(212,176,106,0.04)", borderRadius: S(18), borderStyle: "dashed", borderWidth: 1, borderColor: "rgba(0,0,0,0.1)" },
+  emptyIconCircle: { width: S(64), height: S(64), borderRadius: S(32), backgroundColor: SURFACE, alignItems: "center", justifyContent: "center", marginBottom: S(14), elevation: 1 },
+  emptyTitle: { fontSize: S(15), fontFamily: Fonts.Bold, color: FG, marginBottom: S(4) },
+  emptySubtitle: { fontSize: S(12), fontFamily: Fonts.Medium, color: "#9CA3AF", textAlign: "center" },
 });

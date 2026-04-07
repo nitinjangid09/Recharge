@@ -706,7 +706,7 @@ export default function TopUpScreen({ navigation, route }) {
           keyboardVerticalOffset={insets.top + 56}
         >
           <ScrollView
-            contentContainerStyle={{ paddingBottom: 20, paddingTop: 20 }}
+            contentContainerStyle={{ paddingBottom: 100, paddingTop: 20 }}
             showsVerticalScrollIndicator={false}
           >
             <Animated.View
@@ -1130,7 +1130,15 @@ const styles = StyleSheet.create({
   viewPlansGradient: { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 8, paddingHorizontal: 20, gap: 6 },
   viewPlansText: { color: Colors.black, fontFamily: Fonts.Bold, fontSize: 12 },
 
-  actionContainer: { paddingBottom: 8, paddingHorizontal: 8, borderTopColor: "rgba(212,176,106,0.1)" },
+  actionContainer: {
+    position: "absolute",
+    bottom: 10,
+    left: 20,
+    right: 20,
+    paddingBottom: 0,
+    paddingHorizontal: 0,
+    zIndex: 100,
+  },
   sliderWrapper: { height: 60, backgroundColor: Colors.white, borderRadius: 30, borderWidth: 1.5, borderColor: Colors.finance_accent, justifyContent: "center", overflow: "hidden" },
   sliderBackground: { ...StyleSheet.absoluteFillObject, justifyContent: "center", alignItems: "center" },
   swipeText: { color: Colors.finance_accent, fontSize: 14, fontFamily: Fonts.Bold, letterSpacing: 2 },
