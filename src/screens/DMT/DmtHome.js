@@ -351,8 +351,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: scale(7), paddingVertical: vs(3),
   },
   tagTxt: { fontFamily: Fonts.Medium, fontSize: rs(9), color: Colors.gray_75 },
-  tagIfsc: { backgroundColor: "#EEF1FF" }, // Left this brand color as is
-  tagIfscTxt: { fontFamily: Fonts.Medium, color: "#3F51B5" }, // Left this brand color as is
+  tagIfsc: { backgroundColor: Colors.info_light },
+  tagIfscTxt: { fontFamily: Fonts.Medium, color: Colors.info_dark },
 
   // ── Send button — text only ──
   sendBtn: {

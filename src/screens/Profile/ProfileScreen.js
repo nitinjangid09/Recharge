@@ -63,7 +63,7 @@ const AvatarRing = ({ initials, size = 80, onEditPress }) => {
           width: innerSize,
           height: innerSize,
           borderRadius: innerSize / 2,
-          backgroundColor: "#2A2825",
+          backgroundColor: Colors.hex_2E2E2E || "#2A2825",
           alignItems: "center",
           justifyContent: "center",
           borderWidth: 2.5,
@@ -88,7 +88,7 @@ const AvatarRing = ({ initials, size = 80, onEditPress }) => {
           style={styles.avEditBadge}
           hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
         >
-          <MaterialCommunityIcons name="pencil" size={9} color="#fff" />
+          <MaterialCommunityIcons name="pencil" size={9} color={Colors.white} />
         </TouchableOpacity>
       )}
     </View>
@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
     width: 280,
     height: 280,
     borderRadius: 140,
-    backgroundColor: "rgba(201,106,0,0.18)",
+    backgroundColor: Colors.amberOpacity_18,
     top: -60,
     right: -40,
   },
@@ -512,7 +512,7 @@ const styles = StyleSheet.create({
     top: 0, left: 0, right: 0, bottom: 0,
     // Simulated with very subtle pattern — React Native doesn't support background-image grids
     opacity: 0.03,
-    backgroundColor: "#ffffff",
+    backgroundColor: Colors.white,
   },
   heroNav: {
     flexDirection: "row",
@@ -524,7 +524,7 @@ const styles = StyleSheet.create({
   heroLogo: {
     fontFamily: Fonts.Bold,
     fontSize: 22,
-    color: "#fff",
+    color: Colors.white,
     letterSpacing: -0.36,
   },
 
@@ -550,7 +550,7 @@ const styles = StyleSheet.create({
   heroName: {
     fontFamily: Fonts.Bold,
     fontSize: 22,
-    color: "#fff",
+    color: Colors.white,
     letterSpacing: -0.66,
     marginTop: 10,
     textAlign: "center",
@@ -558,7 +558,7 @@ const styles = StyleSheet.create({
   heroEmail: {
     fontFamily: Fonts.Regular,
     fontSize: 12,
-    color: "rgba(255,255,255,0.38)",
+    color: Colors.whiteOpacity_38,
     textAlign: "center",
     marginTop: 2,
   },
@@ -589,20 +589,20 @@ const styles = StyleSheet.create({
   hstatVal: {
     fontFamily: Fonts.Bold,
     fontSize: 20,
-    color: "#fff",
+    color: Colors.white,
     letterSpacing: -0.6,
   },
   hstatKey: {
     fontFamily: Fonts.Bold,
     fontSize: 9,
-    color: "rgba(255,255,255,0.3)",
+    color: Colors.whiteOpacity_38,
     letterSpacing: 0.8,
     textTransform: "uppercase",
     marginTop: 2,
   },
   hstatDiv: {
     width: 1,
-    backgroundColor: "rgba(255,255,255,0.08)",
+    backgroundColor: Colors.whiteOpacity_08,
   },
 
   /* ── Tiles ── */
@@ -628,7 +628,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 3,
     borderWidth: 1,
-    borderColor: "rgba(15,14,13,0.04)",
+    borderColor: Colors.border,
   },
   tileIc: {
     width: 30,
@@ -730,14 +730,14 @@ const styles = StyleSheet.create({
   loaderOverlay: {
     position: "absolute",
     top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.35)",
+    backgroundColor: Colors.blackOpacity_35,
     justifyContent: "center",
     alignItems: "center",
     zIndex: 999,
   },
   loaderText: {
     marginTop: 10,
-    color: "#fff",
+    color: Colors.white,
     fontSize: 14,
     fontFamily: Fonts.Medium,
   },

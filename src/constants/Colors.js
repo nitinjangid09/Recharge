@@ -9,6 +9,11 @@ const base = {
   red: "#EF4444",
   green: "#22C55E",
   amber: "#C96A00",
+  blue: "#2563EB",
+  indigo: "#6366F1",
+  slate: "#4B5563",
+  emerald: "#10B981",
+  rose: "#E11D48",
 };
 
 const Colors = {
@@ -82,11 +87,31 @@ const Colors = {
   lightGray: "#e6e6e6",
 
   // ─── Opacity / Overlay ────────────────────────────────────────────────────
-  blackOpacity_45: "rgba(0,0,0,0.45)",
-  whiteOpacity_65: "rgba(255,255,255,0.65)",
   whiteOpacity_10: "rgba(255,255,255,0.1)",
   whiteOpacity_18: "rgba(255,255,255,0.18)",
+  whiteOpacity_45: "rgba(255,255,255,0.45)",
+  whiteOpacity_60: "rgba(255,255,255,0.60)",
+  whiteOpacity_65: "rgba(255,255,255,0.65)",
+  whiteOpacity_70: "rgba(255,255,255,0.70)",
   whiteOpacity_80: "rgba(255,255,255,0.8)",
+  blackOpacity_03: "rgba(0,0,0,0.03)",
+  blackOpacity_05: "rgba(0,0,0,0.05)",
+  blackOpacity_08: "rgba(0,0,0,0.08)",
+  blackOpacity_12: "rgba(0,0,0,0.12)",
+  blackOpacity_20: "rgba(0,0,0,0.20)",
+  blackOpacity_45: "rgba(0,0,0,0.45)",
+  blackOpacity_50: "rgba(0,0,0,0.50)",
+  blackOpacity_52: "rgba(0,0,0,0.52)",
+  blackOpacity_70: "rgba(0,0,0,0.70)",
+  success_ring: "#BBF7D0",
+  error_ring: "#FECACA",
+  warningOpacity_10: "rgba(245,158,11,0.10)",
+  warningOpacity_30: "rgba(245,158,11,0.30)",
+  successOpacity_10: "rgba(34, 197, 94, 0.10)",
+  successOpacity_30: "rgba(34, 197, 94, 0.30)",
+  successOpacity_70: "rgba(34, 197, 94, 0.70)",
+  redOpacity_10: "rgba(239, 68, 68, 0.10)",
+  redOpacity_70: "rgba(239, 68, 68, 0.70)",
 
   // ─── Account & Profile (Camlenio Premium) ───────────────────────────────
   ink: base.ink_dark, 
@@ -150,6 +175,78 @@ const Colors = {
   kyc_lockedBg: "#F3F4F6",
   kyc_lockedBorder: "#D1D5DB",
   kyc_lockedText: "#6B7280",
+
+  // ─── Status & Utility ──────────────────────────────────────────────────────
+  success_light: "#D1FAE5",
+  success_dark: "#059669",
+  warning_light: "#FEF3C7",
+  warning_dark: "#B45309",
+  info_light: "#DBEAFE",
+  info_dark: "#1D4ED8",
+  error_light: "#FEE2E2",
+  error_dark: "#DC2626",
+  
+  // ─── Additional UI Colors ──────────────────────────────────────────────────
+  slate_900: "#0F172A",
+  slate_700: "#334155",
+  slate_500: "#64748B",
+  slate_400: "#94A3B8",
+  slate_100: "#F1F5F9",
+  slate_50: "#F8FAFC",
+  
+  // ─── Direct Hex Mapping for Consistency ────────────────────────────────────
+  hex_E53935: "#E53935", // Red
+  hex_10B981: "#10B981", // Emerald
+  hex_F59E0B: "#F59E0B", // Amber
+  hex_6366F1: "#6366F1", // Indigo
+  hex_4B5563: "#4B5563", // Slate
+  hex_059669: "#059669", // Emerald Dark
+  hex_D4A843: "#D4A843", // Gold/Amber
+  hex_B8944D: "#B8944D", // Dark Gold
+  hex_2E2E2E: "#2E2E2E", // Dark Gray
+  hex_232323: "#232323", // Dark Gray
+  hex_3A3A3A: "#3A3A3A", // Dark Gray
+  hex_F8F9FA: "#F8F9FA",
+  hex_F8F9FC: "#F8F9FC",
+  hex_EDF0F5: "#EDF0F5",
+  hex_E2E8F0: "#E2E8F0",
+  hex_FEF3C7: "#FEF3C7",
+  hex_D97706: "#D97706",
+  hex_F2F2F2: "#F2F2F2",
+  hex_F8F8F8: "#F8F8F8",
+  hex_F4F4F4: "#F4F4F4",
+  hex_E0C38C: "#E0C38C",
+  hex_1A1A1A: "#1A1A1A",
+  hex_F3F4F6: "#F3F4F6",
+  hex_6B7280: "#6B7280",
+  hex_111827: "#111827",
+  hex_E5E7EB: "#E5E7EB",
+  hex_FAFAFA: "#FAFAFA",
+  hex_374151: "#374151",
+  hex_D1D5DB: "#D1D5DB",
+  hex_FEF2F2: "#FEF2F2",
+  hex_E5C37A: "#E5C37A",
+  hex_C79A3F: "#C79A3F",
+  
+  // ─── Translucents ────────────────────────────────────────────────────────
+  whiteOpacity_04: "rgba(255,255,255,0.04)",
+  whiteOpacity_08: "rgba(255,255,255,0.08)",
+  whiteOpacity_12: "rgba(255,255,255,0.12)",
+  whiteOpacity_15: "rgba(255,255,255,0.15)",
+  whiteOpacity_20: "rgba(255,255,255,0.20)",
+  whiteOpacity_60: "rgba(255,255,255,0.60)",
+  blackOpacity_03: "rgba(0,0,0,0.03)",
+  blackOpacity_05: "rgba(0,0,0,0.05)",
+  blackOpacity_08: "rgba(0,0,0,0.08)",
+  blackOpacity_12: "rgba(0,0,0,0.12)",
+  blackOpacity_20: "rgba(0,0,0,0.20)",
+  blackOpacity_70: "rgba(0,0,0,0.70)",
+  amberOpacity_15: "rgba(212,176,106,0.15)",
+  amberOpacity_18: "rgba(201,106,0,0.18)",
+  amberOpacity_30: "rgba(212,176,106,0.30)",
+  whiteOpacity_38: "rgba(255,255,255,0.38)",
+  blackOpacity_35: "rgba(0,0,0,0.35)",
+  successOpacity_10: "rgba(34, 197, 94, 0.10)",
 };
 
 export default Colors;

@@ -64,7 +64,7 @@ function DecorCircle({ size, top, right, opacity = 0.18 }) {
             style={{
                 position: 'absolute', top, right,
                 width: size, height: size, borderRadius: size / 2,
-                backgroundColor: `rgba(255,255,255,${opacity})`,
+                backgroundColor: Colors.whiteOpacity_08,
             }}
         />
     );
@@ -515,7 +515,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 15,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.08)',
+        borderColor: Colors.whiteOpacity_08,
     },
     walletHeroHeader: {
         flexDirection: 'row',
@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
 
     walletHeroLabel: {
         fontSize: 12,
-        color: 'rgba(255,255,255,0.6)',
+        color: Colors.whiteOpacity_60,
         fontWeight: '600',
         letterSpacing: 0.5,
     },
@@ -537,7 +537,7 @@ const styles = StyleSheet.create({
     walletDivider: {
         width: 1,
         height: 35,
-        backgroundColor: 'rgba(255,255,255,0.15)',
+        backgroundColor: Colors.whiteOpacity_15,
         marginHorizontal: 20,
     },
     walletStatItem: {
@@ -601,7 +601,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.05)',
+        borderColor: Colors.blackOpacity_05,
         marginBottom: 4,
         elevation: 2,
     },
@@ -643,7 +643,7 @@ const styles = StyleSheet.create({
         borderBottomColor: Colors.divider,
     },
     dropdownItemActive: {
-        backgroundColor: 'rgba(0,0,0,0.05)',
+        backgroundColor: Colors.blackOpacity_05,
     },
     dropdownItemText: {
         fontSize: 14,
@@ -674,7 +674,7 @@ const styles = StyleSheet.create({
         fontFamily: Fonts.Medium,
         color: Colors.text_primary,
         borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.05)',
+        borderColor: Colors.blackOpacity_05,
         elevation: 2,
     },
 
@@ -720,7 +720,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: 14,
-        shadowColor: '#000',
+        shadowColor: Colors.black,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.22,
         shadowRadius: 10,

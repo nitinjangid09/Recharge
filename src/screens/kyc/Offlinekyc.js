@@ -701,7 +701,7 @@ export default function Offlinekyc({ navigation, route }) {
             return (
               <View key={s.key} style={styles.stepDotItem}>
                 <LinearGradient
-                  colors={done ? [Colors.kyc_success, "#15803D"] : active ? [Colors.kyc_accent, Colors.kyc_accentDark] : [Colors.kyc_border, Colors.kyc_border]}
+                  colors={done ? [Colors.kyc_success, Colors.success_dark] : active ? [Colors.kyc_accent, Colors.kyc_accentDark] : [Colors.kyc_border, Colors.kyc_border]}
                   style={[styles.stepDotCircle, { width: rs(active ? 36 : 28), height: rs(active ? 36 : 28), borderRadius: rs(active ? 18 : 14) }]}
                 >
                   <Icon name={done ? "check" : s.icon} size={rs(done ? 14 : active ? 16 : 13)} color={done || active ? Colors.kyc_surface : Colors.kyc_textMuted} />
@@ -863,9 +863,9 @@ export default function Offlinekyc({ navigation, route }) {
                 <View style={[styles.docGrid, isWide && { flexDirection: "row", flexWrap: "wrap", gap: colGap }]}
                   onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.aadharFile = y; fieldCoords.current.panFile = y; fieldCoords.current.shopImage = y; }}>
                   {[
-                    { key: "aadharFile", label: "Aadhaar Card", sub: "Front side", icon: "card-account-details", color: "#3B82F6" },
-                    { key: "panFile", label: "PAN Card", sub: "Clear photo", icon: "card-account-details-outline", color: "#8B5CF6" },
-                    { key: "shopImage", label: "Shop Photo", sub: "Front view", icon: "store-outline", color: "#F59E0B" },
+                    { key: "aadharFile", label: "Aadhaar Card", sub: "Front side", icon: "card-account-details", color: Colors.info_dark },
+                    { key: "panFile", label: "PAN Card", sub: "Clear photo", icon: "card-account-details-outline", color: Colors.hub_hubIndigo },
+                    { key: "shopImage", label: "Shop Photo", sub: "Front view", icon: "store-outline", color: Colors.amber },
                   ].map((slot) => {
                     const img = files[slot.key];
                     const hasErr = !!errors[slot.key];
@@ -890,12 +890,12 @@ export default function Offlinekyc({ navigation, route }) {
                               </LinearGradient>
                               {!lockedFiles[slot.key] && (
                                 <TouchableOpacity style={[styles.docCornerBtn, { backgroundColor: Colors.kyc_accent, right: vs(30) }]} onPress={() => pickImage(slot.key)}>
-                                  <Icon name="pencil" size={rs(10)} color="#FFF" />
+                                  <Icon name="pencil" size={rs(10)} color={Colors.white} />
                                 </TouchableOpacity>
                               )}
                               {!lockedFiles[slot.key] && (
                                 <TouchableOpacity style={[styles.docCornerBtn, { backgroundColor: Colors.kyc_error, right: vs(6) }]} onPress={() => removeFile(slot.key)}>
-                                  <Icon name="close" size={rs(10)} color="#FFF" />
+                                  <Icon name="close" size={rs(10)} color={Colors.white} />
                                 </TouchableOpacity>
                               )}
                             </>
@@ -1010,7 +1010,7 @@ export default function Offlinekyc({ navigation, route }) {
                 </LinearGradient>
 
                 <View style={styles.reviewBanner}>
-                  <Icon name="information-outline" size={rs(13)} color="#3B82F6" />
+                  <Icon name="information-outline" size={rs(13)} color={Colors.info_dark} />
                   <Text style={[styles.reviewText, { fontSize: rs(11), fontFamily: Fonts.Regular }]}>Review all details before submitting. Changes after submission may delay approval.</Text>
                 </View>
               </View>
@@ -1071,7 +1071,7 @@ export default function Offlinekyc({ navigation, route }) {
             <Text style={styles.modalTitle}>Submission Failed</Text>
             <Text style={styles.modalSub}>{failMsg || "Something went wrong. Please check your details and try again."}</Text>
             <TouchableOpacity style={styles.modalBtn} activeOpacity={0.8} onPress={() => setShowFailModal(false)}>
-              <LinearGradient colors={[Colors.kyc_error, "#BE123C"]} style={styles.modalBtnGrad}>
+              <LinearGradient colors={[Colors.kyc_error, Colors.error_dark]} style={styles.modalBtnGrad}>
                 <Text style={styles.modalBtnText}>Try Again</Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -1258,7 +1258,7 @@ function ErrLabel({ msg }) {
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   header: { flexDirection: "row", alignItems: "center", paddingBottom: vs(10) },
-  backBtn: { width: hs(38), height: hs(38), borderRadius: hs(12), backgroundColor: Colors.kyc_surface, alignItems: "center", justifyContent: "center", marginRight: hs(10), elevation: 2, shadowColor: "#000", shadowOpacity: 0.07, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } },
+  backBtn: { width: hs(38), height: hs(38), borderRadius: hs(12), backgroundColor: Colors.kyc_surface, alignItems: "center", justifyContent: "center", marginRight: hs(10), elevation: 2, shadowColor: Colors.black, shadowOpacity: 0.07, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } },
   headerCenter: { flex: 1, flexDirection: "row", alignItems: "center", gap: hs(10) },
   headerLogo: { width: hs(34), height: hs(34), borderRadius: hs(10), alignItems: "center", justifyContent: "center" },
   headerTitle: { color: Colors.kyc_text, lineHeight: rs(20) },
@@ -1273,7 +1273,7 @@ const styles = StyleSheet.create({
   stepDotCircle: { alignItems: "center", justifyContent: "center", marginBottom: vs(4) },
   stepDotLabel: { color: Colors.kyc_textMuted, textAlign: "center", letterSpacing: 0.4 },
   scrollContent: { paddingTop: vs(4) },
-  card: { backgroundColor: Colors.kyc_surface, borderRadius: hs(20), padding: hs(18), marginBottom: vs(14), elevation: 3, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 10 },
+  card: { backgroundColor: Colors.kyc_surface, borderRadius: hs(20), padding: hs(18), marginBottom: vs(14), elevation: 3, shadowColor: Colors.black, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 10 },
   sectionBanner: { flexDirection: "row", alignItems: "center", gap: hs(12), marginBottom: vs(18), padding: hs(12), backgroundColor: Colors.kyc_accent + "0C", borderRadius: hs(14), borderLeftWidth: 3, borderLeftColor: Colors.kyc_accent },
   sectionBannerIcon: { width: hs(42), height: hs(42), borderRadius: hs(12), alignItems: "center", justifyContent: "center" },
   sectionBannerTitle: { color: Colors.kyc_text },
@@ -1308,7 +1308,7 @@ const styles = StyleSheet.create({
   docThumb: { width: "100%", height: "100%", borderRadius: hs(12) },
   docOverlay: { position: "absolute", bottom: 0, left: 0, right: 0, flexDirection: "row", alignItems: "center", paddingHorizontal: hs(10), paddingVertical: vs(6), gap: hs(6) },
   docDoneLabel: { color: Colors.kyc_success, fontFamily: Fonts.Bold, letterSpacing: 0.4 },
-  docFileName: { flex: 1, color: "#FFF", fontFamily: Fonts.Regular, fontSize: rs(9) },
+  docFileName: { flex: 1, color: Colors.white, fontFamily: Fonts.Regular, fontSize: rs(9) },
   docCornerBtn: { position: "absolute", top: vs(6), width: hs(22), height: hs(22), borderRadius: hs(11), alignItems: "center", justifyContent: "center" },
   docEmptyContent: { flex: 1, flexDirection: "row", alignItems: "center", paddingHorizontal: hs(14), gap: hs(12) },
   docIconCircle: { width: hs(42), height: hs(42), borderRadius: hs(21), alignItems: "center", justifyContent: "center" },
@@ -1321,8 +1321,8 @@ const styles = StyleSheet.create({
   securityIcon: { width: hs(36), height: hs(36), borderRadius: hs(10), alignItems: "center", justifyContent: "center" },
   securityTitle: { marginBottom: vs(2) },
   securityBody: { color: Colors.kyc_textSub, lineHeight: rs(16) },
-  reviewBanner: { flexDirection: "row", alignItems: "flex-start", backgroundColor: "#EFF6FF", borderRadius: hs(10), borderLeftWidth: 3, borderLeftColor: "#3B82F6", padding: hs(10), marginTop: vs(10), gap: hs(8) },
-  reviewText: { flex: 1, color: "#1D4ED8", lineHeight: rs(16) },
+  reviewBanner: { flexDirection: "row", alignItems: "flex-start", backgroundColor: Colors.info_light, borderRadius: hs(10), borderLeftWidth: 3, borderLeftColor: Colors.info_dark, padding: hs(10), marginTop: vs(10), gap: hs(8) },
+  reviewText: { flex: 1, color: Colors.info_dark, lineHeight: rs(16) },
   actionRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: vs(4), marginBottom: vs(8), gap: hs(12) },
   prevBtn: { flexDirection: "row", alignItems: "center", paddingVertical: vs(12), paddingHorizontal: hs(18), borderRadius: hs(12), borderWidth: 1.2, borderColor: Colors.kyc_border, backgroundColor: Colors.kyc_surface, gap: hs(6), elevation: 1 },
   prevBtnText: { color: Colors.kyc_text },
@@ -1330,7 +1330,7 @@ const styles = StyleSheet.create({
   nextBtnGrad: { flexDirection: "row", alignItems: "center", paddingVertical: vs(14), paddingHorizontal: hs(26) },
   nextBtnText: {},
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", paddingHorizontal: hs(24) },
-  modalCard: { backgroundColor: Colors.kyc_surface, width: "100%", borderRadius: hs(24), padding: hs(24), alignItems: "center", elevation: 10, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12 },
+  modalCard: { backgroundColor: Colors.kyc_surface, width: "100%", borderRadius: hs(24), padding: hs(24), alignItems: "center", elevation: 10, shadowColor: Colors.black, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12 },
   modalIconWrap: { width: rs(72), height: rs(72), borderRadius: rs(36), backgroundColor: Colors.kyc_success + "15", justifyContent: "center", alignItems: "center", marginBottom: vs(16) },
   modalTitle: { color: Colors.kyc_text, fontSize: rs(18), fontFamily: Fonts.Bold, textAlign: "center", marginBottom: vs(8) },
   modalSub: { color: Colors.kyc_textSub, fontSize: rs(12), fontFamily: Fonts.Regular, textAlign: "center", lineHeight: rs(18), marginBottom: vs(24) },

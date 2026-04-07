@@ -261,7 +261,7 @@ export default function Signup({ navigation }) {
                                                 style={[
                                                     styles.customDropItem,
                                                     index === rolesList.length - 1 && { borderBottomWidth: 0 },
-                                                    role === r.value && { backgroundColor: "rgba(255,255,255,0.12)" }
+                                                    role === r.value && { backgroundColor: Colors.whiteOpacity_12 }
                                                 ]}
                                                 onPress={() => {
                                                     setRole(r.value);
@@ -358,11 +358,11 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.circle_bg, bottom: -40 * scale, left: -40 * scale,
     },
     customDropContainer: {
-        backgroundColor: Colors.button_bg || "#1A1A2E",
+        backgroundColor: Colors.button_bg,
         borderRadius: 16 * scale,
         marginTop: 6 * scale,
         elevation: 6,
-        shadowColor: "#000",
+        shadowColor: Colors.black,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.25,
         shadowRadius: 8,
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
         paddingVertical: 14 * scale,
         paddingHorizontal: 16 * scale,
         borderBottomWidth: 1,
-        borderBottomColor: "rgba(255,255,255,0.12)",
+        borderBottomColor: Colors.whiteOpacity_12,
     },
     customDropText: {
         fontSize: 14 * scale,

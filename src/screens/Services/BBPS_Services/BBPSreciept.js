@@ -216,20 +216,20 @@ export default BbpsReceiptScreen;
 //  Styles
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SUCCESS_GREEN = "#16A34A";
-const SUCCESS_BG = "#F0FDF4";
-const SUCCESS_RING = "#BBF7D0";
-const FAILED_RED = "#DC2626";
-const FAILED_BG = "#FEF2F2";
-const FAILED_RING = "#FECACA";
+const SUCCESS_GREEN = Colors.success_dark;
+const SUCCESS_BG = Colors.success_light;
+const SUCCESS_RING = Colors.success_ring;
+const FAILED_RED = Colors.error_dark;
+const FAILED_BG = Colors.error_light;
+const FAILED_RING = Colors.error_ring;
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.primary },
 
   // Header — identical to service screen
   header: { paddingVertical: 22, alignItems: "center" },
-  headerTitle: { fontSize: 22, fontFamily: Fonts.Bold, color: Colors.white || "#FFF", letterSpacing: 0.3 },
-  headerSub: { fontSize: 12, fontFamily: Fonts.Regular, color: "rgba(255,255,255,0.6)", marginTop: 3 },
+  headerTitle: { fontSize: 22, fontFamily: Fonts.Bold, color: Colors.white, letterSpacing: 0.3 },
+  headerSub: { fontSize: 12, fontFamily: Fonts.Regular, color: Colors.whiteOpacity_60, marginTop: 3 },
 
   // Body card — identical to service screen
   body: {
@@ -262,10 +262,10 @@ const styles = StyleSheet.create({
   successColor: { color: SUCCESS_GREEN },
   failedColor: { color: FAILED_RED },
   amountText: {
-    fontSize: 30, fontFamily: Fonts.Bold, color: Colors.black || "#1A1A2E", marginTop: 4, marginBottom: 4,
+    fontSize: 30, fontFamily: Fonts.Bold, color: Colors.black, marginTop: 4, marginBottom: 4,
   },
   failureReason: {
-    fontSize: 13, fontFamily: Fonts.Regular, color: "#6B7280", textAlign: "center",
+    fontSize: 13, fontFamily: Fonts.Regular, color: Colors.slate_500, textAlign: "center",
     marginTop: 6, marginHorizontal: 20, lineHeight: 20,
   },
 
@@ -284,8 +284,8 @@ const styles = StyleSheet.create({
   },
   cardHeaderSuccess: { backgroundColor: SUCCESS_BG },
   cardHeaderFailed: { backgroundColor: FAILED_BG },
-  cardHeaderTxt: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.black || "#1A1A2E" },
-  cardHeaderSub: { fontSize: 11, fontFamily: Fonts.Regular, color: "#9CA3AF" },
+  cardHeaderTxt: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.black },
+  cardHeaderSub: { fontSize: 11, fontFamily: Fonts.Regular, color: Colors.slate_400 },
 
   cardBody: { paddingHorizontal: 18, paddingBottom: 10, paddingTop: 6 },
 
@@ -294,11 +294,11 @@ const styles = StyleSheet.create({
     flexDirection: "row", justifyContent: "space-between", alignItems: "center",
     paddingVertical: 11,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: Colors.slate_50,
   },
-  detailLabel: { fontSize: 13, fontFamily: Fonts.Regular, color: "#6B7280", flex: 1 },
+  detailLabel: { fontSize: 13, fontFamily: Fonts.Regular, color: Colors.slate_500, flex: 1 },
   detailValue: {
-    fontSize: 13, fontFamily: Fonts.SemiBold, color: Colors.black || "#1A1A2E",
+    fontSize: 13, fontFamily: Fonts.SemiBold, color: Colors.black,
     flex: 1.5, textAlign: "right",
   },
   detailValueHighlight: { fontSize: 15, fontFamily: Fonts.Bold, color: Colors.primary },

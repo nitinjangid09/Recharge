@@ -54,9 +54,9 @@ const PROTOCOLS_MOCK = [
 ];
 
 const STATUS_CONFIG = {
-    PROCESSING: { bg: '#FFF3D6', dot: '#F59E0B', text: '#B45309' },
-    COMPLETED: { bg: '#DCFCE7', dot: '#22C55E', text: '#15803D' },
-    PENDING: { bg: '#F3F4F6', dot: '#9CA3AF', text: '#6B7280' },
+    PROCESSING: { bg: Colors.warning_light, dot: Colors.amber, text: Colors.warning_dark },
+    COMPLETED: { bg: Colors.success_light, dot: Colors.green, text: Colors.success_dark },
+    PENDING: { bg: Colors.slate_50, dot: Colors.slate_400, text: Colors.slate_500 },
 };
 
 // ─── Components ───────────────────────────────────────────────────────────────

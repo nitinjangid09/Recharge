@@ -176,7 +176,7 @@ const MoneyTransferScreen = ({ route }) => {
               <TextInput
                 style={styles.input}
                 placeholder="Enter Amount"
-                placeholderTextColor={Colors.gray_BD}
+                placeholderTextColor={Colors.text_placeholder}
                 keyboardType="numeric"
                 value={amount}
                 onChangeText={(t) => setAmount(t.replace(/[^0-9.]/g, ""))}
@@ -331,7 +331,7 @@ const MoneyTransferScreen = ({ route }) => {
               <TextInput
                 style={[styles.input, { flex: 1, textAlign: "center", fontSize: rs(22), letterSpacing: scale(8), fontWeight: "800" }]}
                 placeholder="• • • • • •"
-                placeholderTextColor={Colors.gray_BD}
+                placeholderTextColor={Colors.text_placeholder}
                 keyboardType="number-pad"
                 value={otp}
                 onChangeText={(t) => setOtp(t.replace(/[^0-9]/g, ""))}
@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
   recipientBank: { fontFamily: Fonts.Regular, color: Colors.whiteOpacity_65, fontSize: rs(10), marginTop: vs(2) },
   verifiedBadge: {
     width: scale(24), height: scale(24), borderRadius: scale(12),
-    backgroundColor: "#16A34A", alignItems: "center", justifyContent: "center",
+    backgroundColor: Colors.kyc_success, alignItems: "center", justifyContent: "center",
   },
   verifiedTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(10), fontWeight: "900" },
 

@@ -25,29 +25,12 @@ const { width: W } = Dimensions.get("window");
 const S = (n) => Math.round(PixelRatio.roundToNearestPixel(n * (W / 375)));
 
 // ─── Colour map — all from Colors file ────────────────────────────────────
-const C = {
-  pageBg: Colors.finance_bg_1 || "#F4F5F7",
-  heroBg: Colors.dark || "#161616",
-  cardBg: Colors.white || "#FFFFFF",
-  listBg: Colors.homebg || "#FFFFFF",
-  heading: Colors.finance_text || "#1A1A2E",
-  subText: Colors.gray || "#6B7280",
-  heroText: Colors.white || "#FFFFFF",
-  heroSub: Colors.lightGray || "#9CA3AF",
-  accent: Colors.finance_accent || "#D4A843",
-  accentDark: "#B8944D",
-  online: Colors.success || "#22C55E",
-  border: Colors.border || "#E5E7EB",
-  chatColor: Colors.finance_accent || "#D4A843",
-  faqColor: Colors.primary || "#6366F1",
-  ticketColor: Colors.success || "#22C55E",
-  cbColor: Colors.error || "#EF4444",
-};
+
 
 // ─── Static data ──────────────────────────────────────────────────────────
 const CONTACT = {
   phone: "9876543210",
-  email: "info@gmail.com",
+  email: "[EMAIL_ADDRESS]",
   address: "64 Suman Pareek Enclave, Near Iris College, Vivek Vihar",
 };
 
@@ -58,10 +41,10 @@ const CONTACT_ROWS = [
 ];
 
 const QUICK_CARDS = [
-  { icon: "message-text-outline", title: "Live Chat", sub: "Chat with an agent instantly", accent: C.chatColor },
-  { icon: "frequently-asked-questions", title: "FAQs", sub: "Browse common questions", accent: C.faqColor },
-  { icon: "ticket-outline", title: "Raise Ticket", sub: "Submit a support request", accent: C.ticketColor },
-  { icon: "phone-incoming-outline", title: "Callback", sub: "We'll call you back soon", accent: C.cbColor },
+  { icon: "message-text-outline", title: "Live Chat", sub: "Chat with an agent instantly", accent: Colors.finance_accent },
+  { icon: "frequently-asked-questions", title: "FAQs", sub: "Browse common questions", accent: Colors.primary },
+  { icon: "ticket-outline", title: "Raise Ticket", sub: "Submit a support request", accent: Colors.finance_success },
+  { icon: "phone-incoming-outline", title: "Callback", sub: "We'll call you back soon", accent: Colors.finance_error },
 ];
 
 const STATS = [
@@ -101,14 +84,14 @@ const SupportScreen = () => {
 
   return (
     <SafeAreaView style={st.safe} edges={["top"]}>
-      <StatusBar barStyle="light-content" backgroundColor={C.heroBg} />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.slate_900} />
 
       {/* ════════════════════════════════════════════════
           FIXED HEADER (dark, always on top)
       ════════════════════════════════════════════════ */}
       <View style={st.header}>
         <TouchableOpacity style={st.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
-          <Icon name="chevron-left" size={S(22)} color={C.accent} />
+          <Icon name="chevron-left" size={S(22)} color={Colors.finance_accent} />
           <Text style={st.backTxt}>Back</Text>
         </TouchableOpacity>
 
@@ -120,7 +103,7 @@ const SupportScreen = () => {
           activeOpacity={0.7}
         >
           <View style={st.profileCircle}>
-            <Icon name="account-outline" size={S(17)} color={C.heroSub} />
+            <Icon name="account-outline" size={S(17)} color={Colors.slate_400} />
           </View>
         </TouchableOpacity>
       </View>
@@ -153,17 +136,17 @@ const SupportScreen = () => {
             <View style={{ flex: 1, paddingRight: S(12) }}>
               <Text style={st.heroHeading}>
                 {"We're here\nto "}
-                <Text style={{ color: C.accent }}>help you</Text>
+                <Text style={{ color: Colors.finance_accent }}>help you</Text>
               </Text>
               <Text style={st.heroSubTxt}>
                 Available 24/7 for all your{"\n"}queries and issues
               </Text>
             </View>
             <LinearGradient
-              colors={[C.accent + "35", C.accent + "12"]}
+              colors={[Colors.finance_accent + "35", Colors.finance_accent + "12"]}
               style={st.agentCircle}
             >
-              <Icon name="headset" size={S(34)} color={C.accent} />
+              <Icon name="headset" size={S(34)} color={Colors.finance_accent} />
             </LinearGradient>
           </View>
 
@@ -171,7 +154,7 @@ const SupportScreen = () => {
           <View style={st.statsRow}>
             {STATS.map((s, i) => (
               <View key={i} style={st.statChip}>
-                <Icon name={s.icon} size={S(13)} color={C.accent} />
+                <Icon name={s.icon} size={S(13)} color={Colors.finance_accent} />
                 <Text style={st.statTxt}>{s.text}</Text>
               </View>
             ))}
@@ -191,8 +174,8 @@ const SupportScreen = () => {
             {CONTACT_ROWS.map((row, i) => (
               <View key={i}>
                 <View style={st.contactRow}>
-                  <View style={[st.contactIconBox, { backgroundColor: C.accent + "18", borderColor: C.accent + "30" }]}>
-                    <Icon name={row.icon} size={S(17)} color={C.accent} />
+                  <View style={[st.contactIconBox, { backgroundColor: Colors.finance_accent + "18", borderColor: Colors.finance_accent + "30" }]}>
+                    <Icon name={row.icon} size={S(17)} color={Colors.finance_accent} />
                   </View>
                   <View style={st.contactInfo}>
                     <Text style={st.contactLabel}>{row.label}</Text>
@@ -204,7 +187,7 @@ const SupportScreen = () => {
                     </Text>
                   </View>
                   <TouchableOpacity style={st.contactAction} onPress={row.onAction}>
-                    <Icon name={row.actionIcon} size={S(15)} color={C.subText} />
+                    <Icon name={row.actionIcon} size={S(15)} color={Colors.subText} />
                   </TouchableOpacity>
                 </View>
                 {i < CONTACT_ROWS.length - 1 && <View style={st.divider} />}
@@ -232,12 +215,12 @@ const SupportScreen = () => {
             <Animated.View style={{ transform: [{ scale: scaleCall }] }}>
               <TouchableOpacity onPress={handleCall} activeOpacity={0.85}>
                 <LinearGradient
-                  colors={[C.accent, C.accentDark]}
+                  colors={[Colors.finance_accent, Colors.finance_accent]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={st.callBtn}
                 >
-                  <Icon name="phone" size={S(17)} color={C.heroBg} />
+                  <Icon name="phone" size={S(17)} color={Colors.slate_900} />
                   <Text style={st.callTxt}>Call Support</Text>
                 </LinearGradient>
               </TouchableOpacity>
@@ -245,7 +228,7 @@ const SupportScreen = () => {
 
             <Animated.View style={{ transform: [{ scale: scaleMail }] }}>
               <TouchableOpacity style={st.emailBtn} onPress={handleEmail} activeOpacity={0.85}>
-                <Icon name="email-outline" size={S(17)} color={C.heading} />
+                <Icon name="email-outline" size={S(17)} color={Colors.finance_text} />
                 <Text style={st.emailTxt}>Send Email</Text>
               </TouchableOpacity>
             </Animated.View>
@@ -263,13 +246,13 @@ export default SupportScreen;
 // STYLES
 // ─────────────────────────────────────────────────────────────────────────────
 const st = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: C.heroBg },
+  safe: { flex: 1, backgroundColor: Colors.slate_900 },
   scroll: { flex: 1 },
   scrollContent: { flexGrow: 1, backgroundColor: Colors.bg },
 
   // ── Header ────────────────────────────────────────────────────────────
   header: {
-    backgroundColor: C.heroBg,
+    backgroundColor: Colors.slate_900,
     paddingVertical: S(11),
     paddingHorizontal: S(16),
     flexDirection: "row",
@@ -277,20 +260,20 @@ const st = StyleSheet.create({
     alignItems: "center",
   },
   backBtn: { flexDirection: "row", alignItems: "center", minWidth: S(60) },
-  backTxt: { color: C.accent, fontSize: S(14), fontFamily: Fonts.Medium, marginLeft: S(2) },
-  headerTitle: { fontSize: S(16), fontFamily: Fonts.Bold, color: C.heroText, textAlign: "center" },
+  backTxt: { color: Colors.finance_accent, fontSize: S(14), fontFamily: Fonts.Medium, marginLeft: S(2) },
+  headerTitle: { fontSize: S(16), fontFamily: Fonts.Bold, color: Colors.white, textAlign: "center" },
   profileBtn: { minWidth: S(60), alignItems: "flex-end" },
   profileCircle: {
     width: S(34), height: S(34), borderRadius: S(17),
-    backgroundColor: "#2E2E2E",
+    backgroundColor: Colors.hex_2E2E2E,
     justifyContent: "center", alignItems: "center",
-    borderWidth: 1, borderColor: "#3A3A3A",
+    borderWidth: 1, borderColor: Colors.hex_3A3A3A,
   },
 
   // ── Hero ──────────────────────────────────────────────────────────────
   // NO borderRadius at bottom — the curveConnector handles the curve
   hero: {
-    backgroundColor: C.heroBg,
+    backgroundColor: Colors.slate_900,
     paddingHorizontal: S(20),
     paddingTop: S(10),
     paddingBottom: S(20),
@@ -298,21 +281,21 @@ const st = StyleSheet.create({
   onlineBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: C.online + "20",
+    backgroundColor: Colors.finance_success + "20",
     alignSelf: "flex-start",
     borderRadius: S(20),
     paddingHorizontal: S(12),
     paddingVertical: S(5),
     marginBottom: S(16),
     borderWidth: 1,
-    borderColor: C.online + "40",
+    borderColor: Colors.finance_success + "40",
   },
   onlineDot: {
     width: S(7), height: S(7), borderRadius: S(4),
-    backgroundColor: C.online, marginRight: S(7),
+    backgroundColor: Colors.finance_success, marginRight: S(7),
   },
   onlineTxt: {
-    color: C.online, fontSize: S(10),
+    color: Colors.finance_success, fontSize: S(10),
     fontFamily: Fonts.Bold, letterSpacing: 0.8,
     includeFontPadding: false, lineHeight: S(14),
   },
@@ -324,21 +307,21 @@ const st = StyleSheet.create({
   },
   heroHeading: {
     fontSize: S(26), fontFamily: Fonts.Bold,
-    color: C.heroText, lineHeight: S(33), marginBottom: S(8),
+    color: Colors.white, lineHeight: S(33), marginBottom: S(8),
   },
   heroSubTxt: {
-    fontSize: S(12), color: C.heroSub,
+    fontSize: S(12), color: Colors.slate_400,
     lineHeight: S(18), fontFamily: Fonts.Medium,
   },
   agentCircle: {
     width: S(74), height: S(74), borderRadius: S(37),
     justifyContent: "center", alignItems: "center",
-    borderWidth: 1, borderColor: C.accent + "30",
+    borderWidth: 1, borderColor: Colors.accent + "30",
   },
   statsRow: { flexDirection: "row", gap: S(10) },
   statChip: {
     flex: 1,
-    backgroundColor: "#232323",
+    backgroundColor: Colors.hex_232323,
     borderRadius: S(10),
     paddingVertical: S(9),
     paddingHorizontal: S(10),
@@ -346,21 +329,21 @@ const st = StyleSheet.create({
     alignItems: "center",
     gap: S(6),
     borderWidth: 1,
-    borderColor: "#2E2E2E",
+    borderColor: Colors.hex_2E2E2E,
   },
-  statTxt: { fontSize: S(10), color: C.heroSub, lineHeight: S(14), fontFamily: Fonts.Medium },
+  statTxt: { fontSize: S(10), color: Colors.slate_400, lineHeight: S(14), fontFamily: Fonts.Medium },
 
   // ── Curve connector ──────────────────────────────────────────────────
   // Dark background + rounded bottom corners creates the smooth arch
   // that joins the dark hero to the light body WITHOUT any overlap.
   curveConnector: {
     height: S(28),
-    backgroundColor: C.heroBg,
+    backgroundColor: Colors.slate_900,
     borderBottomLeftRadius: S(28),
     borderBottomRightRadius: S(28),
     // Shadow so it floats slightly above the light body
     elevation: 4,
-    shadowColor: "#000",
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.18,
     shadowRadius: S(8),
@@ -384,7 +367,7 @@ const st = StyleSheet.create({
     paddingVertical: S(4),
     marginBottom: S(24),
     elevation: 3,
-    shadowColor: "#000",
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: S(8),
@@ -402,20 +385,20 @@ const st = StyleSheet.create({
   contactInfo: { flex: 1 },
   contactLabel: {
     fontSize: S(9), fontFamily: Fonts.Bold,
-    color: C.subText, letterSpacing: 0.8,
+    color: Colors.text_secondary, letterSpacing: 0.8,
     marginBottom: S(3), includeFontPadding: false,
   },
   contactValue: {
     fontSize: S(14), fontFamily: Fonts.Bold,
-    color: C.heading, includeFontPadding: false, lineHeight: S(20),
+    color: Colors.finance_text, includeFontPadding: false, lineHeight: S(20),
   },
   contactAction: { padding: S(6) },
-  divider: { height: 1, backgroundColor: C.border, marginLeft: S(52) },
+  divider: { height: 1, backgroundColor: Colors.border, marginLeft: S(52) },
 
   // ── Quick help ────────────────────────────────────────────────────────
   sectionTitle: {
     fontSize: S(10), fontFamily: Fonts.Bold,
-    color: C.subText, letterSpacing: 1.2,
+    color: Colors.text_secondary, letterSpacing: 1.2,
     marginBottom: S(12), includeFontPadding: false,
   },
   quickGrid: {
@@ -431,7 +414,7 @@ const st = StyleSheet.create({
     padding: S(14),
     borderTopWidth: 3,
     elevation: 2,
-    shadowColor: "#000",
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: S(6),
@@ -443,10 +426,10 @@ const st = StyleSheet.create({
   },
   quickTitle: {
     fontSize: S(13), fontFamily: Fonts.Bold,
-    color: C.heading, marginBottom: S(3), includeFontPadding: false,
+    color: Colors.finance_text, marginBottom: S(3), includeFontPadding: false,
   },
   quickSub: {
-    fontSize: S(10), color: C.subText,
+    fontSize: S(10), color: Colors.text_secondary,
     lineHeight: S(14), fontFamily: Fonts.Medium,
   },
 
@@ -460,18 +443,18 @@ const st = StyleSheet.create({
     justifyContent: "center",
     gap: S(9),
     elevation: 4,
-    shadowColor: C.accent,
+    shadowColor: Colors.finance_accent,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.3,
     shadowRadius: S(8),
   },
   callTxt: {
-    color: C.heroBg, fontSize: S(15),
+    color: Colors.slate_900, fontSize: S(15),
     fontFamily: Fonts.Bold, letterSpacing: 0.3,
   },
   emailBtn: {
-    backgroundColor: C.cardBg,
-    borderWidth: 1.5, borderColor: C.border,
+    backgroundColor: Colors.white,
+    borderWidth: 1.5, borderColor: Colors.border,
     paddingVertical: S(15),
     borderRadius: S(14),
     flexDirection: "row",
@@ -480,7 +463,7 @@ const st = StyleSheet.create({
     gap: S(9),
   },
   emailTxt: {
-    color: C.heading, fontSize: S(15),
+    color: Colors.heading, fontSize: S(15),
     fontFamily: Fonts.Bold, letterSpacing: 0.3,
   },
 });

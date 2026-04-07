@@ -108,9 +108,9 @@ const UserListScreen = ({ navigation }) => {
 
   const getRoleColor = (role) => {
     const r = (role || '').toUpperCase();
-    if (r.includes('DISTRIBUTOR')) return '#6366F1';
-    if (r.includes('RETAILER')) return '#F59E0B';
-    return '#4B5563';
+    if (r.includes('DISTRIBUTOR')) return Colors.hex_6366F1;
+    if (r.includes('RETAILER')) return Colors.hex_F59E0B;
+    return Colors.hex_4B5563;
   };
 
   const renderUserCard = ({ item, index }) => (
@@ -125,7 +125,7 @@ const UserListScreen = ({ navigation }) => {
         <View style={styles.nameArea}>
           <View style={styles.nameRow}>
             <Text style={styles.userName} numberOfLines={1}>{item.fullName || 'N/A'}</Text>
-            <View style={[styles.statusPoint, { backgroundColor: Colors.finance_success || '#10B981' }]} />
+            <View style={[styles.statusPoint, { backgroundColor: Colors.finance_success || Colors.hex_10B981 }]} />
           </View>
           <Text style={styles.userId}>{item.userName || 'N/A'}</Text>
         </View>
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
     width: 40 * scale,
     height: 40 * scale,
     borderRadius: 12 * scale,
-    backgroundColor: 'rgba(0,0,0,0.1)',
+    backgroundColor: Colors.blackOpacity_10,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.03)',
+    backgroundColor: Colors.blackOpacity_03,
     padding: 10 * scale,
     borderRadius: 12 * scale,
   },
@@ -408,14 +408,14 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Medium,
   },
   activeTag: {
-    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+    backgroundColor: Colors.successOpacity_10,
     paddingHorizontal: 10 * scale,
     paddingVertical: 3 * scale,
     borderRadius: 6 * scale,
   },
   activeTagTxt: {
     fontSize: 11 * scale,
-    color: Colors.finance_success || '#059669',
+    color: Colors.finance_success || Colors.hex_059669,
     fontFamily: Fonts.Bold,
   },
   mobilePagination: {
@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12 * scale,
     borderRadius: 30 * scale,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
+    borderColor: Colors.blackOpacity_05,
   },
   refreshBtnTxt: {
     fontSize: 14 * scale,

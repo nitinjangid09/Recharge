@@ -454,7 +454,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 0.8,
-    shadowColor: "#474747",
+    shadowColor: Colors.slate_500,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -512,7 +512,7 @@ const styles = StyleSheet.create({
   loaderOverlay: {
     position: "absolute",
     top: 0, bottom: 0, left: 0, right: 0,
-    backgroundColor: "rgba(0,0,0,0.7)",
+    backgroundColor: Colors.blackOpacity_70,
     justifyContent: "center",
     alignItems: "center",
     zIndex: 1000,

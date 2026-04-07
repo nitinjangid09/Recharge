@@ -637,7 +637,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 12 * scale,
     fontFamily: Fonts.Medium,
-    color: "#E53935",
+    color: Colors.hex_E53935,
     marginLeft: 12 * scale,
     marginBottom: 10 * scale,
     marginTop: 2 * scale,

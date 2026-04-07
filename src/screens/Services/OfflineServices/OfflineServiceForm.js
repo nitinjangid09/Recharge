@@ -216,7 +216,6 @@ export default function OfflineServiceForm({ navigation, route }) {
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            <StatusBar barStyle="dark-content" backgroundColor={Colors.secondary} />
             <HeaderBar title={service.serviceName.toUpperCase()} onBack={() => navigation.goBack()} />
 
             <KeyboardAvoidingView
@@ -362,7 +361,7 @@ const styles = StyleSheet.create({
         padding: 20,
         marginBottom: 20,
         elevation: 5,
-        shadowColor: '#000',
+        shadowColor: Colors.black,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.15,
         shadowRadius: 10,
@@ -375,7 +374,7 @@ const styles = StyleSheet.create({
     },
     infoDesc: {
         fontSize: 13,
-        color: 'rgba(255,255,255,0.7)',
+        color: Colors.whiteOpacity_70,
         lineHeight: 18,
         fontFamily: Fonts.Regular,
         marginBottom: 15,
@@ -383,7 +382,7 @@ const styles = StyleSheet.create({
     feeTag: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.1)',
+        backgroundColor: Colors.whiteOpacity_10,
         paddingHorizontal: 12,
         paddingVertical: 8,
         borderRadius: 10,
@@ -444,7 +443,7 @@ const styles = StyleSheet.create({
     },
     uploadBox: {
         aspectRatio: 1,
-        backgroundColor: 'rgba(0,0,0,0.03)',
+        backgroundColor: Colors.blackOpacity_03,
         borderRadius: 15,
         borderWidth: 1,
         borderStyle: 'dashed',
@@ -473,7 +472,7 @@ const styles = StyleSheet.create({
         right: 5,
         width: 24,
         height: 24,
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: Colors.blackOpacity_50,
         borderRadius: 12,
         justifyContent: 'center',
         alignItems: 'center'

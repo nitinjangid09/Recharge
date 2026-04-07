@@ -33,39 +33,39 @@ const CIRCLE_SIZE = Math.max(CELL_SIZE - sc(8), sc(28));
 // ─── Design tokens — exact match to screenshots ───────────────────────────────
 const D = {
   // Page / structural
-  pageBg: '#F2EDE4',          // warm cream bg  (all 3 screenshots)
-  headerBg: '#1C1C1E',          // very dark header bar
-  cardBg: '#FFFFFF',          // white cards
-  heroBg: '#1C1C1E',          // dark balance hero card (screenshot 2)
-  surfaceMid: '#F8FAFC',
+  pageBg: Colors.finance_bg_1,          // warm cream bg  (all 3 screenshots)
+  headerBg: Colors.slate_900,          // very dark header bar
+  cardBg: Colors.white,          // white cards
+  heroBg: Colors.slate_900,          // dark balance hero card (screenshot 2)
+  surfaceMid: Colors.slate_50,
 
   // Brand accent — gold/amber
-  gold: Colors.finance_accent || '#D4A843',
-  goldDim: 'rgba(212,168,67,0.14)',
-  goldLight: '#FEF3C7',
+  gold: Colors.finance_accent,
+  goldDim: Colors.amberOpacity_15,
+  goldLight: Colors.warning_light,
 
   // Type colours
   // CREDIT → green left bar + green badge (screenshot 3)
-  green: '#16A34A',
-  greenLight: '#22C55E',
-  greenDim: 'rgba(22,163,74,0.13)',
-  greenBg: '#F0FDF4',
+  green: Colors.finance_success,
+  greenLight: Colors.success_dark,
+  greenDim: Colors.successOpacity_10,
+  greenBg: Colors.successOpacity_10,
 
   // DEBIT → amber/gold left bar + amber badge (screenshot 3)
-  debit: '#D97706',          // amber for debit badge
-  debitDim: 'rgba(217,119,6,0.13)',
-  debitBg: '#FFFBEB',
+  debit: Colors.amber,          // amber for debit badge
+  debitDim: Colors.amberOpacity_30,
+  debitBg: Colors.amberOpacity_15,
 
   // Detail sheet amount colour
-  amountCredit: '#16A34A',        // +₹0.95 in green  (screenshot 1)
+  amountCredit: Colors.finance_success,        // +₹0.95 in green  (screenshot 1)
 
   // Text
-  textPri: '#1C1C1E',
-  textSec: '#6B7280',
-  textMuted: '#9CA3AF',
-  textHint: '#94A3B8',
-  border: 'rgba(0,0,0,0.07)',
-  divider: '#F1F5F9',
+  textPri: Colors.text_primary,
+  textSec: Colors.text_secondary,
+  textMuted: Colors.text_placeholder,
+  textHint: Colors.gray_9E,
+  border: Colors.border,
+  divider: Colors.divider,
 };
 
 // ─── Filter config ────────────────────────────────────────────────────────────
@@ -150,10 +150,10 @@ const downloadReceipt = async (item) => {
       const html = `<html><head><meta charset="utf-8"/><style>
         body{font-family:Arial,sans-serif;padding:32px;color:#1a1a1a;}
         .header{text-align:center;margin-bottom:24px;border-bottom:2px solid #eee;padding-bottom:16px;}
-        .title{font-size:20px;font-weight:900;color:#002E6E;}.subtitle{font-size:12px;color:#888;}
+        .title{font-size:20px;font-weight:900;color:${Colors.primary};}.subtitle{font-size:12px;color:#888;}
         .badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:800;
-          background:${isDebit ? '#FFFBEB' : '#F0FDF4'};color:${isDebit ? '#D97706' : '#16A34A'};}
-        .amount{font-size:36px;font-weight:900;color:${isDebit ? '#D97706' : '#16A34A'};margin:12px 0;}
+          background:${isDebit ? Colors.amberOpacity_10 : Colors.successOpacity_10};color:${isDebit ? Colors.hex_D97706 : Colors.success};}
+        .amount{font-size:36px;font-weight:900;color:${isDebit ? Colors.hex_D97706 : Colors.success};margin:12px 0;}
         table{width:100%;border-collapse:collapse;margin-top:16px;}tr{border-bottom:1px solid #f0f0f0;}
         td{padding:10px 0;font-size:13px;}td:first-child{color:#888;width:40%;}td:last-child{font-weight:700;}
         .footer{text-align:center;margin-top:32px;font-size:10px;color:#aaa;}
@@ -263,7 +263,7 @@ const CalendarModal = ({ visible, initialDate, title, onConfirm, onCancel }) => 
                   <TouchableOpacity style={cal.cellInner} onPress={() => selectable && setSelDay(day)} activeOpacity={selectable ? 0.7 : 1} disabled={!selectable}>
                     {sel && <View style={cal.selCircle} />}
                     {tod && !sel && <View style={cal.todayRing} />}
-                    <Text style={[cal.dayTxt, !valid && { color: 'transparent' }, isFuture && { color: '#D1D5DB' }, isWE && !sel && !isFuture && { color: D.gold }, sel && { color: '#fff', fontFamily: Fonts.Bold }, tod && !sel && { color: D.gold, fontFamily: Fonts.Bold }]}>
+                    <Text style={[cal.dayTxt, !valid && { color: 'transparent' }, isFuture && { color: Colors.ink4 }, isWE && !sel && !isFuture && { color: D.gold }, sel && { color: Colors.white, fontFamily: Fonts.Bold }, tod && !sel && { color: D.gold, fontFamily: Fonts.Bold }]}>
                       {valid ? day : ''}
                     </Text>
                   </TouchableOpacity>
@@ -276,7 +276,7 @@ const CalendarModal = ({ visible, initialDate, title, onConfirm, onCancel }) => 
               <Text style={cal.cancelTxt}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity style={cal.confirmBtn} onPress={() => onConfirm(new Date(viewYear, viewMonth, selDay))} activeOpacity={0.85}>
-              <Icon name="check" size={rs(14)} color="#fff" style={{ marginRight: sc(5) }} />
+              <Icon name="check" size={rs(14)} color={Colors.white} style={{ marginRight: sc(5) }} />
               <Text style={cal.confirmTxt}>Apply Date</Text>
             </TouchableOpacity>
           </View>
@@ -390,7 +390,7 @@ const TxnDetailSheet = ({ visible, item, onClose }) => {
           </TouchableOpacity>
 
           <TouchableOpacity style={ds.closeBtn} onPress={onClose} activeOpacity={0.85}>
-            <Icon name="check" size={rs(14)} color="#fff" style={{ marginRight: sc(5) }} />
+            <Icon name="check" size={rs(14)} color={Colors.white} style={{ marginRight: sc(5) }} />
             <Text style={ds.closeTxt}>Close</Text>
           </TouchableOpacity>
         </View>
@@ -495,7 +495,7 @@ const FilterSheet = ({ visible, onClose, onApply, activeFilters, startDate, endD
                       <Icon name={opt.icon} size={rs(14)} color={isSel ? D.gold : D.textMuted} />
                     ) : (
                       <View style={{ width: rs(14), height: rs(14), borderRadius: rs(7), backgroundColor: isSel ? D.gold : D.textMuted, alignItems: 'center', justifyContent: 'center' }}>
-                        <Text style={{ fontSize: rs(8), color: '#fff', fontFamily: Fonts.Bold }}>{opt.label.charAt(0)}</Text>
+                        <Text style={{ fontSize: rs(8), color: Colors.white, fontFamily: Fonts.Bold }}>{opt.label.charAt(0)}</Text>
                       </View>
                     )}
                   </View>
@@ -526,14 +526,14 @@ const FilterSheet = ({ visible, onClose, onApply, activeFilters, startDate, endD
 };
 
 const FST = StyleSheet.create({
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(15,23,42,0.55)' },
+  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: Colors.blackOpacity_55 },
   sheet: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     backgroundColor: D.cardBg,
     borderTopLeftRadius: sc(24), borderTopRightRadius: sc(24),
-    maxHeight: SH * 0.78, elevation: 24, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.14, shadowRadius: 16,
+    maxHeight: SH * 0.78, elevation: 24, shadowColor: Colors.black, shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.14, shadowRadius: 16,
   },
-  handle: { width: sc(32), height: vs(4), backgroundColor: 'rgba(0,0,0,0.12)', borderRadius: 2, alignSelf: 'center', marginTop: vs(10), marginBottom: vs(2) },
+  handle: { width: sc(32), height: vs(4), backgroundColor: Colors.blackOpacity_12, borderRadius: 2, alignSelf: 'center', marginTop: vs(10), marginBottom: vs(2) },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: sc(20), paddingVertical: vs(14), borderBottomWidth: 1, borderBottomColor: D.border },
   title: { fontSize: rs(17), fontFamily: Fonts.Bold, color: D.textPri },
   resetBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: sc(12), paddingVertical: vs(6), borderRadius: sc(8), backgroundColor: D.goldDim },
@@ -559,9 +559,9 @@ const FST = StyleSheet.create({
   customDateRow: { flexDirection: 'row', alignItems: 'center', marginBottom: vs(16), paddingHorizontal: sc(4) },
   footer: { paddingHorizontal: sc(20), paddingTop: vs(12), paddingBottom: Platform.OS === 'ios' ? vs(34) : vs(16), borderTopWidth: 1, borderTopColor: D.border },
   applyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: D.headerBg, borderRadius: sc(14), paddingVertical: vs(15) },
-  applyTxt: { color: '#fff', fontSize: rs(14), fontFamily: Fonts.Bold },
+  applyTxt: { color: Colors.white, fontSize: rs(14), fontFamily: Fonts.Bold },
   badge: { marginLeft: sc(8), backgroundColor: D.gold, minWidth: sc(20), height: sc(20), borderRadius: sc(10), alignItems: 'center', justifyContent: 'center', paddingHorizontal: sc(4) },
-  badgeTxt: { color: '#fff', fontSize: rs(9), fontFamily: Fonts.Bold },
+  badgeTxt: { color: Colors.white, fontSize: rs(9), fontFamily: Fonts.Bold },
 });
 
 // ─── Filter Pills Component ──────────────────────────────────────────────────
@@ -571,8 +571,8 @@ const FilterPills = ({ filters, onRemove }) => {
   const serviceOpt = SERVICE_TYPES.find(o => o.key === filters.service);
   const txnOpt = TXN_TYPES.find(o => o.key === filters.txnType);
   if (filters.date !== 'this_month' && dateOpt) pills.push({ key: 'date', label: dateOpt.label, icon: 'calendar-range', color: D.gold });
-  if (filters.userId !== 'all') pills.push({ key: 'userId', label: 'Specified User', icon: 'account-outline', color: '#F59E0B' });
-  if (filters.service !== 'all' && serviceOpt) pills.push({ key: 'service', label: serviceOpt.label, icon: serviceOpt.icon, color: '#7C3AED' });
+  if (filters.userId !== 'all') pills.push({ key: 'userId', label: 'Specified User', icon: 'account-outline', color: Colors.amber });
+  if (filters.service !== 'all' && serviceOpt) pills.push({ key: 'service', label: serviceOpt.label, icon: serviceOpt.icon, color: Colors.indigo });
   if (filters.txnType !== 'all' && txnOpt) pills.push({
     key: 'txnType', label: txnOpt.label, icon: txnOpt.icon,
     color: filters.txnType === 'credit' ? D.green : filters.txnType === 'debit' ? D.debit : D.gold
@@ -615,7 +615,7 @@ const SummaryStrip = ({ data, fromDate, toDate }) => {
       <View style={SS.statsRow}>
         <View style={SS.statItem}>
           <View style={[SS.statIcon, { backgroundColor: 'rgba(59,130,246,0.12)' }]}>
-            <Icon name="arrow-up" size={rs(14)} color="#3B82F6" />
+            <Icon name="arrow-up" size={rs(14)} color={Colors.blue} />
           </View>
           <Text style={[SS.statVal, { color: D.gold }]}>₹{totalDebit.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
           <Text style={SS.statLbl}>TOTAL DEBIT</Text>
@@ -625,7 +625,7 @@ const SummaryStrip = ({ data, fromDate, toDate }) => {
 
         <View style={SS.statItem}>
           <View style={[SS.statIcon, { backgroundColor: 'rgba(16,185,129,0.12)' }]}>
-            <Icon name="arrow-down" size={rs(14)} color="#10B981" />
+            <Icon name="arrow-down" size={rs(14)} color={Colors.finance_success} />
           </View>
           <Text style={[SS.statVal, { color: D.green }]}>₹{totalCredit.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
           <Text style={SS.statLbl}>TOTAL CREDIT</Text>
@@ -645,7 +645,7 @@ const SummaryStrip = ({ data, fromDate, toDate }) => {
   );
 };
 const SS = StyleSheet.create({
-  wrap: { marginHorizontal: sc(14), marginBottom: vs(10), backgroundColor: D.cardBg, borderRadius: sc(16), overflow: 'hidden', elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4 },
+  wrap: { marginHorizontal: sc(14), marginBottom: vs(10), backgroundColor: D.cardBg, borderRadius: sc(16), overflow: 'hidden', elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4 },
   rangeRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: sc(16), paddingVertical: vs(10), borderBottomWidth: 1, borderBottomColor: D.border },
   rangeTxt: { fontSize: rs(13), fontFamily: Fonts.Bold, color: D.textPri },
   statsRow: { flexDirection: 'row', paddingVertical: vs(14) },
@@ -658,15 +658,15 @@ const SS = StyleSheet.create({
 
 // Detail sheet styles
 const ds = StyleSheet.create({
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
+  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: Colors.blackOpacity_50 },
   sheet: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     backgroundColor: D.cardBg,
     borderTopLeftRadius: sc(24), borderTopRightRadius: sc(24),
     paddingBottom: vs(36),
-    elevation: 24, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.14, shadowRadius: 16,
+    elevation: 24, shadowColor: Colors.black, shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.14, shadowRadius: 16,
   },
-  handle: { width: sc(36), height: vs(4), backgroundColor: 'rgba(0,0,0,0.12)', borderRadius: 2, alignSelf: 'center', marginTop: vs(10), marginBottom: vs(14) },
+  handle: { width: sc(36), height: vs(4), backgroundColor: Colors.blackOpacity_12, borderRadius: 2, alignSelf: 'center', marginTop: vs(10), marginBottom: vs(14) },
   titleSection: { paddingHorizontal: sc(20), paddingBottom: vs(14) },
   title: { fontSize: rs(18), fontFamily: Fonts.Bold, color: D.textPri, marginBottom: vs(3) },
   titleDate: { fontSize: rs(12), color: D.textMuted, fontFamily: Fonts.Medium },
@@ -693,7 +693,7 @@ const ds = StyleSheet.create({
     flex: 1.6, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     paddingVertical: vs(14), borderRadius: sc(14), backgroundColor: D.heroBg,
   },
-  closeTxt: { color: '#fff', fontFamily: Fonts.Bold, fontSize: rs(14) },
+  closeTxt: { color: Colors.white, fontFamily: Fonts.Bold, fontSize: rs(14) },
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -778,11 +778,11 @@ const ExpandContent = ({ item, isDebit }) => {
 };
 const EC = StyleSheet.create({
   wrap: { paddingTop: vs(10) },
-  balanceCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F9FA', borderRadius: sc(12), paddingHorizontal: sc(14), paddingVertical: vs(12), marginBottom: vs(12) },
+  balanceCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: D.surfaceMid, borderRadius: sc(12), paddingHorizontal: sc(14), paddingVertical: vs(12), marginBottom: vs(12) },
   half: { flex: 1 },
   balLbl: { fontSize: rs(9), color: D.textMuted, marginBottom: vs(3), fontFamily: Fonts.Medium },
   balAmt: { fontSize: rs(15), fontFamily: Fonts.Bold, color: D.textPri },
-  balSep: { width: sc(28), height: sc(28), borderRadius: sc(14), alignItems: 'center', justifyContent: 'center', marginHorizontal: sc(8), backgroundColor: 'rgba(0,0,0,0.04)' },
+  balSep: { width: sc(28), height: sc(28), borderRadius: sc(14), alignItems: 'center', justifyContent: 'center', marginHorizontal: sc(8), backgroundColor: Colors.blackOpacity_04 },
   infoRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: vs(12) },
   infoHalf: { flex: 1 },
   infoLbl: { fontSize: rs(8), fontFamily: Fonts.Bold, color: D.textMuted, letterSpacing: 0.8, marginBottom: vs(4), textTransform: 'uppercase' },
@@ -895,7 +895,7 @@ const TransactionCard = ({ item, index, onPressDetail }) => {
         </View>
 
         <TouchableOpacity style={[TC.actionBtn, { backgroundColor: barColor }]} onPress={toggle} activeOpacity={0.85}>
-          <Icon name={expanded ? "chevron-up" : "eye-outline"} size={rs(13)} color="#FFF" style={{ marginRight: sc(6) }} />
+          <Icon name={expanded ? "chevron-up" : "eye-outline"} size={rs(13)} color={Colors.white} style={{ marginRight: sc(6) }} />
           <Text style={TC.actionTxt}>
             {expanded ? 'Hide Details' : 'View Details'}
           </Text>
@@ -921,7 +921,7 @@ const TC = StyleSheet.create({
     marginHorizontal: sc(14), marginBottom: vs(10),
     backgroundColor: D.cardBg, borderRadius: sc(16),
     flexDirection: 'row', overflow: 'hidden',
-    elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 5,
+    elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 5,
   },
   leftBar: { width: sc(4) },
   body: { flex: 1, paddingHorizontal: sc(14), paddingTop: vs(14), paddingBottom: vs(12) },
@@ -936,11 +936,11 @@ const TC = StyleSheet.create({
 
   auditStrip: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#F8F9FC', paddingVertical: vs(8), paddingHorizontal: sc(10), borderRadius: sc(10),
-    borderWidth: 1, borderColor: '#EDF0F5', marginBottom: vs(14)
+    backgroundColor: D.surfaceMid, paddingVertical: vs(8), paddingHorizontal: sc(10), borderRadius: sc(10),
+    borderWidth: 1, borderColor: D.border, marginBottom: vs(14)
   },
   auditCol: { flex: 1, flexDirection: 'row', alignItems: 'center' },
-  auditDivider: { width: 1, height: vs(12), backgroundColor: '#E2E8F0', marginHorizontal: sc(10) },
+  auditDivider: { width: 1, height: vs(12), backgroundColor: D.border, marginHorizontal: sc(10) },
 
   metaKey: { fontSize: rs(8), fontFamily: Fonts.Bold, color: D.textMuted, letterSpacing: 0.8 },
   metaVal: { fontSize: rs(10), fontFamily: Fonts.Medium, color: D.textSec, letterSpacing: 0.1 },
@@ -950,12 +950,12 @@ const TC = StyleSheet.create({
   actionBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     paddingVertical: vs(9), borderRadius: sc(12),
-    elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 3,
+    elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 3,
   },
-  actionTxt: { fontSize: rs(11), fontFamily: Fonts.Bold, letterSpacing: 0.3, color: '#FFF' },
+  actionTxt: { fontSize: rs(11), fontFamily: Fonts.Bold, letterSpacing: 0.3, color: Colors.white },
 
-  refundBadge: { backgroundColor: '#FEF3C7', paddingHorizontal: sc(4), paddingVertical: vs(1), borderRadius: sc(4), borderWidth: 0.5, borderColor: '#F59E0B' },
-  refundBadgeTxt: { fontSize: rs(7), fontFamily: Fonts.Bold, color: '#D97706' },
+  refundBadge: { backgroundColor: D.goldLight, paddingHorizontal: sc(4), paddingVertical: vs(1), borderRadius: sc(4), borderWidth: 0.5, borderColor: D.gold },
+  refundBadgeTxt: { fontSize: rs(7), fontFamily: Fonts.Bold, color: D.debit },
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1151,7 +1151,7 @@ const WalletTransactionScreen = ({ navigation }) => {
               activeOpacity={0.7}
             >
               <Text style={S.heroLabel}>{isAeps ? 'AEPS WALLET' : 'MAIN WALLET'}</Text>
-              <Icon name="chevron-down" size={rs(12)} color="rgba(255,255,255,0.5)" style={{ marginLeft: sc(4) }} />
+              <Icon name="chevron-down" size={rs(12)} color={Colors.whiteOpacity_50} style={{ marginLeft: sc(4) }} />
             </TouchableOpacity>
           </View>
           <View style={S.livePill}>
@@ -1316,39 +1316,39 @@ const S = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: sc(16), paddingVertical: vs(12),
     backgroundColor: D.headerBg,
-    elevation: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.18, shadowRadius: 6,
+    elevation: 6, shadowColor: Colors.black, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.18, shadowRadius: 6,
   },
-  headerIconBtn: { width: sc(32), height: sc(32), borderRadius: sc(16), backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: rs(17), fontFamily: Fonts.Bold, letterSpacing: 0.2 },
+  headerIconBtn: { width: sc(32), height: sc(32), borderRadius: sc(16), backgroundColor: Colors.whiteOpacity_12, alignItems: 'center', justifyContent: 'center' },
+  headerTitle: { flex: 1, textAlign: 'center', color: Colors.white, fontSize: rs(17), fontFamily: Fonts.Bold, letterSpacing: 0.2 },
   headerRight: { flexDirection: 'row', alignItems: 'center' },
 
   // Balance hero card — dark card (screenshot 2)
   heroCard: {
     marginHorizontal: sc(14), marginTop: vs(14), marginBottom: vs(14),
     backgroundColor: D.heroBg, borderRadius: sc(18), padding: sc(18),
-    elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 10,
+    elevation: 4, shadowColor: Colors.black, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 10,
   },
   heroTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: vs(12) },
-  walletToggleBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.08)', paddingHorizontal: sc(10), paddingVertical: vs(4), borderRadius: sc(12), borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-  heroLabel: { color: 'rgba(255,255,255,0.7)', fontSize: rs(10), fontFamily: Fonts.Bold, letterSpacing: 0.5, textTransform: 'uppercase' },
+  walletToggleBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.whiteOpacity_08, paddingHorizontal: sc(10), paddingVertical: vs(4), borderRadius: sc(12), borderWidth: 1, borderColor: Colors.whiteOpacity_10 },
+  heroLabel: { color: Colors.whiteOpacity_70, fontSize: rs(10), fontFamily: Fonts.Bold, letterSpacing: 0.5, textTransform: 'uppercase' },
   livePill: { backgroundColor: D.goldDim, borderWidth: 1, borderColor: `${D.gold}45`, borderRadius: sc(20), paddingHorizontal: sc(10), paddingVertical: vs(3) },
   livePillTxt: { color: D.gold, fontSize: rs(9), fontFamily: Fonts.Bold, letterSpacing: 0.4 },
-  heroAmount: { color: '#fff', fontSize: rs(35), fontFamily: Fonts.Bold, letterSpacing: -0.5 },
+  heroAmount: { color: Colors.white, fontSize: rs(35), fontFamily: Fonts.Bold, letterSpacing: -0.5 },
   heroRupee: { color: D.gold, fontSize: rs(24), fontFamily: Fonts.Bold, marginRight: sc(4) },
-  heroFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: vs(12), paddingTop: vs(12), borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' },
-  heroSub: { color: 'rgba(255,255,255,0.38)', fontSize: rs(10), fontFamily: Fonts.Medium },
+  heroFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: vs(12), paddingTop: vs(12), borderTopWidth: 1, borderTopColor: Colors.whiteOpacity_08 },
+  heroSub: { color: Colors.whiteOpacity_38, fontSize: rs(10), fontFamily: Fonts.Medium },
 
   // Filter card
   filterCard: {
     marginHorizontal: sc(14), marginBottom: vs(12),
     backgroundColor: D.cardBg, borderRadius: sc(16), padding: sc(14),
-    elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 5,
+    elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 5,
   },
   filterTitle: { color: D.textMuted, fontSize: rs(9), fontFamily: Fonts.Bold, letterSpacing: 1.1, marginBottom: vs(10) },
   filterRow: { flexDirection: 'row', alignItems: 'center', marginBottom: vs(10) },
   datePill: {
     flex: 1, flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#F8F9FC', borderRadius: sc(10),
+    backgroundColor: D.surfaceMid, borderRadius: sc(10),
     paddingVertical: vs(10), paddingHorizontal: sc(10),
     borderWidth: 1.5, borderColor: D.gold,
   },
@@ -1359,7 +1359,7 @@ const S = StyleSheet.create({
     backgroundColor: D.heroBg, borderRadius: sc(12),
     paddingVertical: vs(13), minHeight: vs(46),
   },
-  searchBtnTxt: { color: '#fff', fontSize: rs(13), fontFamily: Fonts.Bold, letterSpacing: 0.4 },
+  searchBtnTxt: { color: Colors.white, fontSize: rs(13), fontFamily: Fonts.Bold, letterSpacing: 0.4 },
 
   advFilterBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: D.goldDim, paddingHorizontal: sc(10), paddingVertical: vs(4), borderRadius: sc(8) },
   advFilterTxt: { color: D.gold, fontSize: rs(10), fontFamily: Fonts.Bold },
@@ -1371,8 +1371,8 @@ const S = StyleSheet.create({
   allPillTxt: { color: D.gold, fontSize: rs(11), fontFamily: Fonts.Bold },
 
   // Error
-  errorBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FEF2F2', borderLeftWidth: 4, borderLeftColor: '#DC2626', marginHorizontal: sc(16), marginTop: vs(8), paddingHorizontal: sc(12), paddingVertical: vs(8), borderRadius: sc(10) },
-  errorTxt: { flex: 1, color: '#DC2626', fontSize: rs(12), fontFamily: Fonts.Medium },
+  errorBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.redOpacity_10, borderLeftWidth: 4, borderLeftColor: Colors.red, marginHorizontal: sc(16), marginTop: vs(8), paddingHorizontal: sc(12), paddingVertical: vs(8), borderRadius: sc(10) },
+  errorTxt: { flex: 1, color: Colors.red, fontSize: rs(12), fontFamily: Fonts.Medium },
   retryBtn: { marginLeft: sc(8) },
   retryTxt: { color: D.heroBg, fontSize: rs(12), fontFamily: Fonts.Bold },
 
@@ -1386,22 +1386,22 @@ const S = StyleSheet.create({
   sfSearchBox: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: D.cardBg, borderRadius: sc(12), paddingHorizontal: sc(14), paddingVertical: Platform.OS === 'ios' ? vs(12) : 0, borderWidth: 1, borderColor: D.border },
   sfInput: { flex: 1, height: vs(46), fontSize: rs(13), color: D.textPri, padding: 0, fontFamily: Fonts.Medium },
   sfFilterBtn: { width: sc(48), height: sc(48), alignItems: 'center', justifyContent: 'center' },
-  sfFilterIconBox: { width: sc(44), height: sc(44), borderRadius: sc(12), backgroundColor: D.cardBg, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: D.border, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3 },
+  sfFilterIconBox: { width: sc(44), height: sc(44), borderRadius: sc(12), backgroundColor: D.cardBg, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: D.border, elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3 },
 });
 
 // Calendar styles
 const cal = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: CAL_H_PAD },
-  sheet: { backgroundColor: D.cardBg, borderRadius: sc(24), width: '100%', overflow: 'hidden', elevation: 14, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.22, shadowRadius: 18 },
+  backdrop: { flex: 1, backgroundColor: Colors.blackOpacity_60, justifyContent: 'center', alignItems: 'center', paddingHorizontal: CAL_H_PAD },
+  sheet: { backgroundColor: D.cardBg, borderRadius: sc(24), width: '100%', overflow: 'hidden', elevation: 14, shadowColor: Colors.black, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.22, shadowRadius: 18 },
   header: { backgroundColor: D.cardBg, paddingHorizontal: sc(16), paddingTop: vs(18), paddingBottom: vs(14), borderBottomWidth: 1, borderBottomColor: D.border },
   headerRow1: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: vs(6) },
   headerLabel: { color: D.textMuted, fontSize: rs(10), fontFamily: Fonts.Bold, letterSpacing: 0.6, textTransform: 'uppercase' },
-  closeBtn: { width: sc(26), height: sc(26), borderRadius: sc(13), backgroundColor: '#F2F2F2', alignItems: 'center', justifyContent: 'center' },
+  closeBtn: { width: sc(26), height: sc(26), borderRadius: sc(13), backgroundColor: D.surfaceMid, alignItems: 'center', justifyContent: 'center' },
   selectedDateText: { color: D.textPri, fontSize: rs(20), fontFamily: Fonts.Bold, letterSpacing: 0.2, marginBottom: vs(12) },
   monthNavRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  navBtn: { width: sc(32), height: sc(32), borderRadius: sc(16), backgroundColor: '#F2F2F2', alignItems: 'center', justifyContent: 'center' },
+  navBtn: { width: sc(32), height: sc(32), borderRadius: sc(16), backgroundColor: D.surfaceMid, alignItems: 'center', justifyContent: 'center' },
   monthYearTxt: { color: D.textPri, fontSize: rs(14), fontFamily: Fonts.Bold, letterSpacing: 0.3 },
-  weekRow: { flexDirection: 'row', backgroundColor: '#F8F8F8', paddingVertical: vs(8) },
+  weekRow: { flexDirection: 'row', backgroundColor: D.surfaceMid, paddingVertical: vs(8) },
   weekCell: { width: `${100 / 7}%`, alignItems: 'center' },
   weekTxt: { color: D.textMuted, fontSize: rs(10), fontFamily: Fonts.Bold },
   grid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: CAL_G_PAD, paddingTop: vs(8), paddingBottom: vs(8) },
@@ -1411,8 +1411,8 @@ const cal = StyleSheet.create({
   todayRing: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: CIRCLE_SIZE / 2, borderWidth: 2, borderColor: D.gold },
   dayTxt: { fontSize: rs(13), fontFamily: Fonts.Medium, color: D.textPri, zIndex: 1 },
   footer: { flexDirection: 'row', padding: sc(12), gap: sc(8), borderTopWidth: 1, borderTopColor: D.border },
-  cancelBtn: { flex: 1, paddingVertical: vs(12), borderRadius: sc(12), backgroundColor: '#F4F4F4', alignItems: 'center' },
+  cancelBtn: { flex: 1, paddingVertical: vs(12), borderRadius: sc(12), backgroundColor: D.surfaceMid, alignItems: 'center' },
   cancelTxt: { color: D.textSec, fontSize: rs(13), fontFamily: Fonts.Medium },
   confirmBtn: { flex: 2, flexDirection: 'row', paddingVertical: vs(12), borderRadius: sc(12), backgroundColor: D.heroBg, alignItems: 'center', justifyContent: 'center' },
-  confirmTxt: { color: '#fff', fontSize: rs(13), fontFamily: Fonts.Bold, letterSpacing: 0.3 },
+  confirmTxt: { color: Colors.white, fontSize: rs(13), fontFamily: Fonts.Bold, letterSpacing: 0.3 },
 });

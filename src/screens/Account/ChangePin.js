@@ -305,16 +305,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: '#0F172A',
+    backgroundColor: Colors.slate_900,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(15,14,13,0.04)",
+    borderBottomColor: Colors.blackOpacity_04,
     gap: 12,
   },
   topbarBack: {
     width: 34,
     height: 34,
     borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: Colors.whiteOpacity_10,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -476,7 +476,7 @@ const styles = StyleSheet.create({
   btnSolidTxt: {
     fontFamily: Fonts.SemiBold,
     fontSize: 14,
-    color: "#fff",
+    color: Colors.white,
     letterSpacing: -0.14,
   },
 

@@ -125,16 +125,16 @@ const ServicePicker = ({ visible, services, selected, onSelect, onClose }) => {
 ─────────────────────────────────────────────*/
 
 const STATUS_COLORS = {
-  RESOLVED: { bg: "#D1FAE5", text: "#059669" },
-  PENDING: { bg: "#FEF3C7", text: "#B45309" },
-  OPEN: { bg: "#DBEAFE", text: "#1D4ED8" },
-  CLOSED: { bg: "#F3F4F6", text: "#6B7280" },
+  RESOLVED: { bg: Colors.success_light, text: Colors.success_dark },
+  PENDING: { bg: Colors.warning_light, text: Colors.warning_dark },
+  OPEN: { bg: Colors.info_light, text: Colors.info_dark },
+  CLOSED: { bg: Colors.hex_F3F4F6, text: Colors.hex_6B7280 },
 };
 
 const TicketCard = ({ ticket }) => {
   const [open, setOpen] = useState(false);
   const colors =
-    STATUS_COLORS[ticket.status?.toUpperCase()] || { bg: "#F3F4F6", text: "#6B7280" };
+    STATUS_COLORS[ticket.status?.toUpperCase()] || { bg: Colors.hex_F3F4F6, text: Colors.hex_6B7280 };
 
   const ticketId = ticket.ticketId || ticket._id || "N/A";
   const serviceName = ticket.serviceName || ticket.serviceId?.name || "N/A";
@@ -325,7 +325,7 @@ const FaqSupportScreen = () => {
   /* ── Render ───────────────────────────────── */
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F3EBDD" />
+      <StatusBar barStyle="dark-content" backgroundColor={'#F3EBDD'} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -367,7 +367,7 @@ const FaqSupportScreen = () => {
             value={transactionId}
             onChangeText={setTransactionId}
             placeholder="e.g. TXN123456789"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={Colors.text_placeholder}
             autoCapitalize="characters"
             autoCorrect={false}
           />
@@ -383,7 +383,7 @@ const FaqSupportScreen = () => {
             value={supportDetails}
             onChangeText={setSupportDetails}
             placeholder="E.g. AEPS service not working..."
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={Colors.text_placeholder}
           />
 
           <TouchableOpacity
@@ -393,7 +393,7 @@ const FaqSupportScreen = () => {
             activeOpacity={0.8}
           >
             {submitting ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={Colors.white} />
             ) : (
               <Text style={styles.submitText}>SUBMIT TICKET</Text>
             )}
@@ -409,7 +409,7 @@ const FaqSupportScreen = () => {
         </View>
 
         {loading ? (
-          <ActivityIndicator size="large" color="#D71920" style={{ marginTop: 30 }} />
+          <ActivityIndicator size="large" color={Colors.red} style={{ marginTop: 30 }} />
         ) : tickets.length === 0 ? (
           <View style={styles.emptyWrap}>
             <Text style={styles.emptyIcon}>🎫</Text>
@@ -477,39 +477,39 @@ export default FaqSupportScreen;
 ─────────────────────────────────────────────*/
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#F3EBDD" },
+  safe: { flex: 1, backgroundColor: '#F3EBDD' },
 
   headerWrap: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 4 },
   supportPill: {
-    backgroundColor: "#D71920",
+    backgroundColor: Colors.red,
     paddingHorizontal: 14,
     paddingVertical: 5,
     borderRadius: 20,
     alignSelf: "flex-start",
     marginBottom: 10,
   },
-  supportPillTxt: { color: "#fff", fontFamily: Fonts.Bold, fontSize: 11, letterSpacing: 1 },
-  headingBlack: { fontSize: 34, fontFamily: Fonts.Bold, color: "#111827", lineHeight: 40 },
-  headingRed: { fontSize: 34, fontFamily: Fonts.Bold, color: "#D71920", lineHeight: 40 },
-  subheading: { fontSize: 13, fontFamily: Fonts.Medium, color: "#6B7280", marginTop: 6, marginBottom: 4 },
+  supportPillTxt: { color: Colors.white, fontFamily: Fonts.Bold, fontSize: 11, letterSpacing: 1 },
+  headingBlack: { fontSize: 34, fontFamily: Fonts.Bold, color: Colors.hex_111827, lineHeight: 40 },
+  headingRed: { fontSize: 34, fontFamily: Fonts.Bold, color: Colors.red, lineHeight: 40 },
+  subheading: { fontSize: 13, fontFamily: Fonts.Medium, color: Colors.hex_6B7280, marginTop: 6, marginBottom: 4 },
 
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.white,
     margin: 20,
     padding: 20,
     borderRadius: 22,
-    shadowColor: "#000",
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.08,
     shadowRadius: 10,
     elevation: 4,
   },
-  cardTitle: { fontSize: 16, fontFamily: Fonts.Bold, color: "#111827", marginBottom: 4 },
+  cardTitle: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.hex_111827, marginBottom: 4 },
 
   fieldLabel: {
     fontSize: 11,
     fontFamily: Fonts.Bold,
-    color: "#6B7280",
+    color: Colors.hex_6B7280,
     letterSpacing: 0.8,
     marginTop: 16,
     marginBottom: 6,
@@ -518,41 +518,41 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1.5,
-    borderColor: "#E5E7EB",
+    borderColor: Colors.hex_E5E7EB,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: Platform.OS === "ios" ? 14 : 10,
-    backgroundColor: "#FAFAFA",
+    backgroundColor: Colors.hex_FAFAFA,
     justifyContent: "space-between",
   },
-  inputBoxFocused: { borderColor: "#D71920" },
-  inputText: { flex: 1, color: "#111827", fontSize: 14, fontFamily: Fonts.Medium },
-  placeholderText: { flex: 1, color: "#9CA3AF", fontSize: 14, fontFamily: Fonts.Medium },
-  dropArrow: { color: "#9CA3AF", fontSize: 16, fontFamily: Fonts.Medium },
+  inputBoxFocused: { borderColor: Colors.red },
+  inputText: { flex: 1, color: Colors.hex_111827, fontSize: 14, fontFamily: Fonts.Medium },
+  placeholderText: { flex: 1, color: Colors.text_placeholder, fontSize: 14, fontFamily: Fonts.Medium },
+  dropArrow: { color: Colors.text_placeholder, fontSize: 16, fontFamily: Fonts.Medium },
 
   submitButton: {
-    backgroundColor: "#D71920",
+    backgroundColor: Colors.red,
     paddingVertical: 16,
     borderRadius: 14,
     alignItems: "center",
     marginTop: 22,
   },
   submitButtonDisabled: { opacity: 0.65 },
-  submitText: { color: "#fff", fontFamily: Fonts.Bold, fontSize: 14, letterSpacing: 1 },
+  submitText: { color: Colors.white, fontFamily: Fonts.Bold, fontSize: 14, letterSpacing: 1 },
 
-  refreshBtn: { fontSize: 14, color: "#D71920", fontFamily: Fonts.Bold },
+  refreshBtn: { fontSize: 14, color: Colors.red, fontFamily: Fonts.Bold },
 
   emptyWrap: { alignItems: "center", marginTop: 30 },
   emptyIcon: { fontSize: 40, marginBottom: 8 },
-  emptyText: { color: "#9CA3AF", fontSize: 14, fontFamily: Fonts.Medium },
+  emptyText: { color: Colors.text_placeholder, fontSize: 14, fontFamily: Fonts.Medium },
 
   historyCard: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.white,
     marginHorizontal: 20,
     marginBottom: 14,
     borderRadius: 18,
     padding: 16,
-    shadowColor: "#000",
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 6,
@@ -564,35 +564,35 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 8,
   },
-  ticketId: { fontFamily: Fonts.Bold, fontSize: 14, color: "#111827" },
+  ticketId: { fontFamily: Fonts.Bold, fontSize: 14, color: Colors.hex_111827 },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
   statusText: { fontSize: 11, fontFamily: Fonts.Bold, letterSpacing: 0.5 },
-  rowLabel: { fontFamily: Fonts.Bold, color: "#374151" },
-  rowText: { fontSize: 13, color: "#6B7280", marginTop: 3, fontFamily: Fonts.Medium },
+  rowLabel: { fontFamily: Fonts.Bold, color: Colors.hex_374151 },
+  rowText: { fontSize: 13, color: Colors.hex_6B7280, marginTop: 3, fontFamily: Fonts.Medium },
   expandedWrap: { marginTop: 8 },
-  divider: { height: 1, backgroundColor: "#F3F4F6", marginVertical: 10 },
-  caret: { fontSize: 11, color: "#D71920", fontFamily: Fonts.SemiBold, marginTop: 10, textAlign: "right" },
+  divider: { height: 1, backgroundColor: Colors.hex_F3F4F6, marginVertical: 10 },
+  caret: { fontSize: 11, color: Colors.red, fontFamily: Fonts.SemiBold, marginTop: 10, textAlign: "right" },
 
   actionRow: { paddingHorizontal: 20, marginTop: 10 },
   historyBtn: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.white,
     paddingVertical: 12,
     borderRadius: 14,
     alignItems: "center",
     borderWidth: 1.5,
-    borderColor: "#D71920",
+    borderColor: Colors.red,
   },
-  historyBtnTxt: { color: "#D71920", fontFamily: Fonts.Bold, fontSize: 13, letterSpacing: 1 },
+  historyBtnTxt: { color: Colors.red, fontFamily: Fonts.Bold, fontSize: 13, letterSpacing: 1 },
 });
 
 const pickerStyles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: Colors.blackOpacity_50 || "rgba(0,0,0,0.5)",
     justifyContent: "flex-end",
   },
   sheet: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.white,
     paddingHorizontal: 20,
     paddingBottom: Platform.OS === "ios" ? 36 : 20,
     paddingTop: 12,
@@ -603,33 +603,32 @@ const pickerStyles = StyleSheet.create({
   handle: {
     width: 40,
     height: 4,
-    backgroundColor: "#D1D5DB",
+    backgroundColor: Colors.hex_D1D5DB,
     borderRadius: 2,
     alignSelf: "center",
     marginBottom: 16,
   },
-  title: { fontSize: 17, fontFamily: Fonts.Bold, color: "#111827", marginBottom: 14 },
-  emptyText: { color: "#9CA3AF", fontSize: 14, textAlign: "center", marginVertical: 30, fontFamily: Fonts.Medium },
+  title: { fontSize: 17, fontFamily: Fonts.Bold, color: Colors.hex_111827, marginBottom: 14 },
+  emptyText: { color: Colors.text_placeholder, fontSize: 14, textAlign: "center", marginVertical: 30, fontFamily: Fonts.Medium },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
+    borderBottomColor: Colors.hex_F3F4F6,
   },
-  rowText: { fontSize: 15, color: "#374151", fontFamily: Fonts.Medium },
-  activeRow: { backgroundColor: "#FEF2F2", borderRadius: 12, paddingHorizontal: 10 },
-  activeText: { color: "#D71920", fontFamily: Fonts.Bold },
-  checkmark: { color: "#D71920", fontFamily: Fonts.Bold, fontSize: 16 },
+  rowText: { fontSize: 15, color: Colors.hex_374151, fontFamily: Fonts.Medium },
+  activeRow: { backgroundColor: Colors.hex_FEF2F2, borderRadius: 12, paddingHorizontal: 10 },
+  checkmark: { color: Colors.red, fontFamily: Fonts.Bold, fontSize: 16 },
   closeBtn: {
     marginTop: 16,
     paddingVertical: 14,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: Colors.hex_F3F4F6,
     borderRadius: 14,
     alignItems: "center",
   },
-  closeTxt: { color: "#374151", fontFamily: Fonts.Bold, fontSize: 14 },
+  closeTxt: { color: Colors.hex_374151, fontFamily: Fonts.Bold, fontSize: 14 },
 });
 
 const historyStyles = StyleSheet.create({
@@ -641,12 +640,12 @@ const historyStyles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 12,
   },
-  title: { fontSize: 18, fontFamily: Fonts.Bold, color: "#111827" },
+  title: { fontSize: 18, fontFamily: Fonts.Bold, color: Colors.hex_111827 },
 });
 
 const paginationStyles = StyleSheet.create({
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.white,
     marginHorizontal: 20,
     marginTop: 5,
     marginBottom: 20,
@@ -655,14 +654,14 @@ const paginationStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    shadowColor: "#000",
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 5,
     elevation: 2,
   },
   btn: {
-    backgroundColor: "#D71920",
+    backgroundColor: Colors.red,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 10,
@@ -670,11 +669,11 @@ const paginationStyles = StyleSheet.create({
     alignItems: "center",
   },
   btnDisabled: {
-    backgroundColor: "#E5E7EB",
+    backgroundColor: Colors.hex_E5E7EB,
     opacity: 0.8,
   },
   btnText: {
-    color: "#fff",
+    color: Colors.white,
     fontSize: 12,
     fontFamily: Fonts.Bold,
     letterSpacing: 0.5,
@@ -685,7 +684,7 @@ const paginationStyles = StyleSheet.create({
   infoText: {
     fontSize: 14,
     fontFamily: Fonts.Bold,
-    color: "#374151",
+    color: Colors.hex_374151,
   },
 });
 

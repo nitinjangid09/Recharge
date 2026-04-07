@@ -150,7 +150,7 @@ const FormInput = ({
     <TextInput
       style={styles.input}
       placeholder={placeholder}
-      placeholderTextColor="#999"
+      placeholderTextColor={Colors.text_placeholder}
       keyboardType={keyboardType}
     />
   </View>
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   },
 
   badge: {
-    backgroundColor: "#FFE9DC",
+    backgroundColor: Colors.accent + "18",
     alignSelf: "flex-start",
     paddingHorizontal: 12,
     paddingVertical: 4,
@@ -185,13 +185,13 @@ const styles = StyleSheet.create({
   },
 
   badgeText: {
-    color: "#FF6A1A",
+    color: Colors.accent,
     fontSize: 12,
     fontWeight: "600",
   },
 
   title: {
-    color: "#fff",
+    color: Colors.white,
     fontSize: 26,
     fontWeight: "700",
   },
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
   },
 
   subtitle: {
-    color: "#ffffffcc",
+    color: Colors.whiteOpacity_80,
     marginTop: 4,
     fontSize: 13,
   },
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
 
   sectionText: {
     fontSize: 12,
-    color: "#999",
+    color: Colors.text_placeholder,
     fontWeight: "700",
     letterSpacing: 1,
   },
@@ -242,22 +242,22 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 13,
     fontWeight: "500",
-    color: "#333",
+    color: Colors.text_primary,
   },
 
   required: {
     fontSize: 11,
-    color: "#FF6A1A",
+    color: Colors.accent,
   },
 
   optional: {
     fontSize: 11,
-    color: "#999",
+    color: Colors.text_placeholder,
   },
 
   input: {
     height: 50,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.white,
     borderRadius: 14,
     paddingHorizontal: 15,
     fontSize: 14,
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
 
   pickerContainer: {
     height: 50,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.white,
     borderRadius: 14,
     justifyContent: "center",
     elevation: 2,
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   dobInput: {
     width: "30%",
     height: 50,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.white,
     borderRadius: 14,
     textAlign: "center",
     fontSize: 14,
@@ -307,14 +307,14 @@ const styles = StyleSheet.create({
 
   button: {
     marginTop: 30,
-    backgroundColor: "#FF6A1A",
+    backgroundColor: Colors.accent,
     paddingVertical: 16,
     borderRadius: 30,
     alignItems: "center",
   },
 
   buttonText: {
-    color: "#fff",
+    color: Colors.white,
     fontSize: 16,
     fontWeight: "600",
   },

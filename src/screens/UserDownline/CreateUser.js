@@ -199,13 +199,13 @@ export default function CreateUser({ navigation }) {
                     style={[
                         styles.inputBox,
                         {
-                            borderColor: error ? "#EF4444" : getBorderColor(isFocused),
+                            borderColor: error ? Colors.red : getBorderColor(isFocused),
                             transform: [{ scale: getScale(isFocused) }],
                             backgroundColor: getBgColor(isFocused)
                         }
                     ]}
                 >
-                    <MaterialCommunityIcons name={icon} size={20} color={error ? "#EF4444" : isFocused ? Colors.icon_primary : Colors.icon_secondary} style={styles.inputIcon} />
+                    <MaterialCommunityIcons name={icon} size={20} color={error ? Colors.red : isFocused ? Colors.icon_primary : Colors.icon_secondary} style={styles.inputIcon} />
                     <TextInput
                         placeholder={`Enter ${label}`}
                         placeholderTextColor={Colors.text_placeholder}
@@ -276,14 +276,14 @@ export default function CreateUser({ navigation }) {
                                         justifyContent: 'space-between',
                                         paddingHorizontal: 16 * scale,
                                         backgroundColor: roleOpen ? Colors.white : Colors.input_bg,
-                                        borderColor: errors.role ? "#EF4444" : roleOpen ? Colors.input_border_focus : Colors.input_border
+                                        borderColor: errors.role ? Colors.red : roleOpen ? Colors.input_border_focus : Colors.input_border
                                     }
                                 ]}
                                 onPress={() => { setRoleOpen(!roleOpen); if (errors.role) setErrors(prev => ({ ...prev, role: null })); }}
                                 activeOpacity={0.85}
                             >
                                 <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                                    <MaterialCommunityIcons name="account-group-outline" size={20} color={errors.role ? "#EF4444" : role ? Colors.icon_primary : Colors.icon_secondary} style={styles.inputIcon} />
+                                    <MaterialCommunityIcons name="account-group-outline" size={20} color={errors.role ? Colors.red : role ? Colors.icon_primary : Colors.icon_secondary} style={styles.inputIcon} />
                                     <Text style={[styles.input, { color: role ? Colors.black : Colors.text_placeholder }]}>
                                         {rolesList.find(r => r.value === role)?.label || "Select Role..."}
                                     </Text>
@@ -301,7 +301,7 @@ export default function CreateUser({ navigation }) {
                                                 style={[
                                                     styles.customDropItem,
                                                     index === rolesList.length - 1 && { borderBottomWidth: 0 },
-                                                    role === r.value && { backgroundColor: "rgba(255,255,255,0.12)" }
+                                                    role === r.value && { backgroundColor: Colors.whiteOpacity_12 }
                                                 ]}
                                                 onPress={() => {
                                                     setRole(r.value);
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     subTitle: { fontSize: 13 * scale, fontFamily: Fonts.Medium, color: Colors.text_secondary, textAlign: "center", marginTop: 6 * scale, marginBottom: 20 * scale },
     inputContainer: { marginBottom: 16 * scale },
     label: { fontSize: 13 * scale, fontFamily: Fonts.Bold, color: Colors.text_primary, marginBottom: 6 * scale, marginLeft: 4 * scale },
-    errorTextWrap: { color: "#EF4444", fontSize: 11 * scale, fontFamily: Fonts.Medium, marginTop: 4 * scale, marginLeft: 16 * scale },
+    errorTextWrap: { color: Colors.red, fontSize: 11 * scale, fontFamily: Fonts.Medium, marginTop: 4 * scale, marginLeft: 16 * scale },
     inputBox: {
         flexDirection: "row", alignItems: "center", borderRadius: 30 * scale, height: 50 * scale,
         paddingHorizontal: 16 * scale, borderWidth: 1
@@ -390,11 +390,11 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.circle_bg, bottom: -40 * scale, left: -40 * scale,
     },
     customDropContainer: {
-        backgroundColor: Colors.button_bg || "#1A1A2E",
+        backgroundColor: Colors.button_bg,
         borderRadius: 16 * scale,
         marginTop: 6 * scale,
         elevation: 6,
-        shadowColor: "#000",
+        shadowColor: Colors.black,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.25,
         shadowRadius: 8,
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
         paddingVertical: 14 * scale,
         paddingHorizontal: 16 * scale,
         borderBottomWidth: 1,
-        borderBottomColor: "rgba(255,255,255,0.12)",
+        borderBottomColor: Colors.whiteOpacity_12,
     },
     customDropText: {
         fontSize: 14 * scale,

@@ -151,7 +151,7 @@ const tileStyles = StyleSheet.create({
     textAlign: "center",
     fontSize: 10,
     fontFamily: Fonts.Bold,
-    color: "#444",
+    color: Colors.slate_700,
     marginTop: 5,
     lineHeight: 13,
     includeFontPadding: false,
@@ -282,7 +282,7 @@ const tabStyles = StyleSheet.create({
   text: {
     fontSize: 12,
     fontFamily: Fonts.Medium,
-    color: "#888",
+    color: Colors.gray,
     letterSpacing: 0.4,
     includeFontPadding: false,
     lineHeight: 16,
@@ -375,7 +375,7 @@ export default function PaymentsScreen({ navigation }) {
 
         {/* Header */}
         <LinearGradient
-          colors={["#161616", "#000000"]}
+          colors={[Colors.primary, Colors.black]}
           style={[styles.headerGradient, { paddingTop: insets.top + 10 }]}
           start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
         >
@@ -408,7 +408,7 @@ export default function PaymentsScreen({ navigation }) {
 
             {/* BBPS banner */}
             <LinearGradient
-              colors={["#fde4a8", "#FFF"]}
+              colors={[Colors.gold, Colors.white]}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               style={styles.banner}
             >
@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
     elevation: 8,
-    shadowColor: "#000",
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 5,
@@ -473,15 +473,15 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     elevation: 4,
-    shadowColor: "#000",
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     borderWidth: 1,
     borderColor: "rgba(0,0,0,0.02)",
   },
-  smallText: { color: "#666", fontSize: 11, fontFamily: Fonts.Medium },
-  mainText: { color: "#333", fontSize: 14, fontFamily: Fonts.Bold, marginTop: 4 },
+  smallText: { color: Colors.gray_66, fontSize: 11, fontFamily: Fonts.Medium },
+  mainText: { color: Colors.slate_900, fontSize: 14, fontFamily: Fonts.Bold, marginTop: 4 },
   payNowBtn: { backgroundColor: Colors.bg, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 7, borderWidth: 1, borderColor: ACCENT + "40" },
   payNowTxt: { color: ACCENT, fontFamily: Fonts.Bold, fontSize: 13 },
 
@@ -495,12 +495,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(212,176,106,0.12)",
     elevation: 2,
-    shadowColor: "#000",
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
     shadowRadius: 4,
   },
-  bannerText: { fontSize: 12, color: "#555", fontFamily: Fonts.Medium, lineHeight: 18 },
+  bannerText: { fontSize: 12, color: Colors.slate_700, fontFamily: Fonts.Medium, lineHeight: 18 },
   postpe: { fontSize: 18, fontFamily: Fonts.Bold, color: ACCENT, marginTop: 4 },
   bannerImage: { width: 70, height: 70, resizeMode: "contain" },
 
@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     paddingHorizontal: 12,   // = CARD_H_PAD / 2 each side
     elevation: 2,
-    shadowColor: "#000",
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 6,
@@ -524,11 +524,11 @@ const styles = StyleSheet.create({
   cardHeaderRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 2 },
   cardHeaderLeft: { flexDirection: "row", alignItems: "center", gap: 6 },
   cardHeaderDot: { width: 4, height: 16, borderRadius: 2, backgroundColor: ACCENT },
-  sectionTitle: { fontSize: 13, fontFamily: Fonts.Bold, color: "#222", letterSpacing: 0.6 },
+  sectionTitle: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.slate_900, letterSpacing: 0.6 },
 
 
   loaderBox: { paddingVertical: 40, alignItems: "center", justifyContent: "center", gap: 10 },
-  loaderTxt: { color: "#666", fontSize: 13, fontFamily: Fonts.Medium },
+  loaderTxt: { color: Colors.gray_66, fontSize: 13, fontFamily: Fonts.Medium },
   emptyBox: { paddingVertical: 40, alignItems: "center", gap: 10 },
-  emptyTxt: { color: "#aaa", fontSize: 13, fontFamily: Fonts.Medium },
+  emptyTxt: { color: Colors.gray_BD, fontSize: 13, fontFamily: Fonts.Medium },
 });

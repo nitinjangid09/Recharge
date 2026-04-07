@@ -525,7 +525,7 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
     backgroundColor: Colors.gray_E0,
   },
-  stepDotDone: { backgroundColor: "#16A34A" }, // Success color kept hardcoded as we don't have green
+  stepDotDone: { backgroundColor: Colors.kyc_success },
   stepDotActive: { backgroundColor: Colors.accent },
   stepDotTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(10), fontWeight: "900" },
   stepConnector: {

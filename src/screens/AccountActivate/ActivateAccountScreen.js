@@ -61,7 +61,7 @@ function Toast({ visible, message, type }) {
         }
     }, [visible]);
 
-    const bg = type === 'success' ? '#1aa748' : Colors.hub_red;
+    const bg = type === 'success' ? Colors.green : Colors.hub_red;
     return (
         <Animated.View style={[styles.toast, { backgroundColor: bg, opacity, transform: [{ translateY }] }]}>
             <Text style={styles.toastText}>{type === 'success' ? '✓' : '✗'}  {message}</Text>
@@ -662,7 +662,7 @@ export default function ActivateAccountScreen({ navigation }) {
                             <Text style={styles.heroPillText}>⚡ Instant</Text>
                         </View>
                         <View style={[styles.heroPill, styles.heroPillGreen]}>
-                            <Text style={[styles.heroPillText, { color: '#86efac' }]}>✓ No Hidden Fees</Text>
+                            <Text style={[styles.heroPillText, { color: Colors.success_light }]}>✓ No Hidden Fees</Text>
                         </View>
                     </View>
                 </View>
@@ -748,7 +748,7 @@ const styles = StyleSheet.create({
     heroGlowTop: { position: 'absolute', top: -60, right: -30, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(244,114,43,0.4)', opacity: 0.6 },
     heroGlowBottom: { position: 'absolute', bottom: -80, left: -30, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(59,130,246,0.2)', opacity: 0.5 },
     heroBadge: { fontSize: 9, fontFamily: Fonts.Bold, letterSpacing: 1.8, color: 'rgba(255,255,255,0.45)', marginBottom: 12 },
-    heroAmount: { fontSize: 48, fontFamily: Fonts.Bold, color: '#fff', lineHeight: 52 },
+    heroAmount: { fontSize: 48, fontFamily: Fonts.Bold, color: Colors.white, lineHeight: 52 },
     heroCurrency: { fontSize: 24, fontFamily: Fonts.Medium, color: 'rgba(255,255,255,0.55)' },
     heroSub: { fontSize: 12, color: 'rgba(255,255,255,0.45)', fontFamily: Fonts.Medium, marginBottom: 16, marginTop: 2 },
     heroPills: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
@@ -794,13 +794,13 @@ const styles = StyleSheet.create({
     hubContent: { padding: 20 },
     qrStage: { alignItems: 'center', paddingVertical: 20, gap: 16 },
     qrCardMain: { backgroundColor: Colors.hub_white, borderRadius: 24, padding: 12, borderWidth: 1, borderColor: Colors.hub_hubSkyGlow, shadowColor: Colors.hub_hubSky, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 5 },
-    qrBorder: { borderWidth: 4, borderColor: '#3b82f6', borderRadius: 18, borderStyle: 'solid', padding: 12, width: 220, height: 220, alignItems: 'center', justifyContent: 'space-between' },
+    qrBorder: { borderWidth: 4, borderColor: Colors.info_dark, borderRadius: 18, borderStyle: 'solid', padding: 12, width: 220, height: 220, alignItems: 'center', justifyContent: 'space-between' },
     qrHeader: { flexDirection: 'row', gap: 4 },
-    qrBrand: { fontSize: 14, fontFamily: Fonts.Bold, color: '#1d4ed8' },
-    qrCodePlaceholder: { width: 140, height: 140, backgroundColor: '#f1f5f9', alignItems: 'center', justifyContent: 'center', borderRadius: 8, position: 'relative' },
-    qrScanLine: { position: 'absolute', top: '50%', left: 0, right: 0, height: 2, backgroundColor: '#3b82f6', opacity: 0.5 },
+    qrBrand: { fontSize: 14, fontFamily: Fonts.Bold, color: Colors.info_dark },
+    qrCodePlaceholder: { width: 140, height: 140, backgroundColor: Colors.slate_100, alignItems: 'center', justifyContent: 'center', borderRadius: 8, position: 'relative' },
+    qrScanLine: { position: 'absolute', top: '50%', left: 0, right: 0, height: 2, backgroundColor: Colors.info_dark, opacity: 0.5 },
     qrFooter: { alignItems: 'center' },
-    qrVpa: { fontSize: 12, fontFamily: Fonts.Bold, color: '#475569' },
+    qrVpa: { fontSize: 12, fontFamily: Fonts.Bold, color: Colors.slate_500 },
     qrStatusBadge: { backgroundColor: Colors.hub_greenSoft, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 100, borderWidth: 1, borderColor: 'rgba(34,197,94,0.2)' },
     qrStatusText: { fontSize: 10, fontFamily: Fonts.Bold, color: Colors.hub_green, letterSpacing: 1 },
 
@@ -852,9 +852,9 @@ const styles = StyleSheet.create({
 
     // Coupon input
     couponWrap: { width: '100%', position: 'relative' },
-    couponInput: { width: '100%', height: 54, borderRadius: 18, borderWidth: 2, borderColor: Colors.hub_border, backgroundColor: Colors.hub_muted, paddingHorizontal: 48, fontFamily: Fonts.Bold, fontSize: 18, letterSpacing: 2, textAlign: 'center', color: '#16a34a' },
-    couponClear: { position: 'absolute', right: 14, top: '50%', marginTop: -14, width: 28, height: 28, borderRadius: 10, backgroundColor: '#E2E8F0', alignItems: 'center', justifyContent: 'center' },
-    inputErr: { borderColor: Colors.hub_red, backgroundColor: '#FFF5F5' },
+    couponInput: { width: '100%', height: 54, borderRadius: 18, borderWidth: 2, borderColor: Colors.hub_border, backgroundColor: Colors.hub_muted, paddingHorizontal: 48, fontFamily: Fonts.Bold, fontSize: 18, letterSpacing: 2, textAlign: 'center', color: Colors.success_dark },
+    couponClear: { position: 'absolute', right: 14, top: '50%', marginTop: -14, width: 28, height: 28, borderRadius: 10, backgroundColor: Colors.slate_200, alignItems: 'center', justifyContent: 'center' },
+    inputErr: { borderColor: Colors.hub_red, backgroundColor: Colors.error_light },
     errText: { fontSize: 10, fontFamily: Fonts.Bold, color: Colors.hub_red, textTransform: 'uppercase', letterSpacing: 0.8, alignSelf: 'flex-start', paddingHorizontal: 2 },
 
     // Method pills (online)
@@ -869,8 +869,8 @@ const styles = StyleSheet.create({
     ctaArrow: { color: Colors.hub_white, fontSize: 18, fontFamily: Fonts.Bold },
 
     // Toast
-    toast: { position: 'absolute', bottom: 32, alignSelf: 'center', borderRadius: 18, paddingVertical: 12, paddingHorizontal: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.15, shadowRadius: 24, elevation: 10 },
-    toastText: { color: '#fff', fontSize: 13, fontFamily: Fonts.SemiBold },
+    toast: { position: 'absolute', bottom: 32, alignSelf: 'center', borderRadius: 18, paddingVertical: 12, paddingHorizontal: 20, shadowColor: Colors.black, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.15, shadowRadius: 24, elevation: 10 },
+    toastText: { color: Colors.white, fontSize: 13, fontFamily: Fonts.SemiBold },
 
     // Panel wrap
     panelWrap: { paddingHorizontal: 16 },

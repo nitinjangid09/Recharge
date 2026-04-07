@@ -41,10 +41,10 @@ const rs = (n, lo = n * 0.82, hi = n * 1.28) =>
 // ─────────────────────────────────────────────────────────────────────────────
 const getGreeting = () => {
   const h = new Date().getHours();
-  if (h >= 5 && h < 12) return { text: "Good Morning,", icon: "weather-sunny", color: "#FFC107" };
-  if (h >= 12 && h < 17) return { text: "Good Afternoon,", icon: "weather-partly-cloudy", color: "#FF9800" };
-  if (h >= 17 && h < 21) return { text: "Good Evening,", icon: "weather-sunset", color: "#FF5722" };
-  return { text: "Good Night,", icon: "weather-night", color: "#7C4DFF" };
+  if (h >= 5 && h < 12) return { text: "Good Morning,", icon: "weather-sunny", color: Colors.amber };
+  if (h >= 12 && h < 17) return { text: "Good Afternoon,", icon: "weather-partly-cloudy", color: Colors.finance_accent };
+  if (h >= 17 && h < 21) return { text: "Good Evening,", icon: "weather-sunset", color: '#FF5722' };
+  return { text: "Good Night,", icon: "weather-night", color: Colors.primary };
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -111,9 +111,9 @@ const SESSION_KEYS = [
 
 // Mock recent transactions (replace with API data)
 const RECENT_TXN = [
-  { id: "t1", name: "Jio Recharge", meta: "Mobile · ₹999 Plan", amount: "−₹999", credit: false, icon: "cellphone", color: "#3B82F6", bg: "rgba(59,130,246,0.10)", time: "2h ago" },
-  { id: "t2", name: "Electricity Bill", meta: "BBPS · JVVNL", amount: "−₹1,240", credit: false, icon: "flash", color: "#E8A020", bg: "rgba(232,160,32,0.10)", time: "Yesterday" },
-  { id: "t3", name: "Cashback Credited", meta: "Recharge Offer", amount: "+₹50", credit: true, icon: "trending-up", color: "#22C55E", bg: "rgba(34,197,94,0.10)", time: "2 days ago" },
+  { id: "t1", name: "Jio Recharge", meta: "Mobile · ₹999 Plan", amount: "−₹999", credit: false, icon: "cellphone", color: Colors.info_light, bg: Colors.info_light + "1a", time: "2h ago" },
+  { id: "t2", name: "Electricity Bill", meta: "BBPS · JVVNL", amount: "−₹1,240", credit: false, icon: "flash", color: Colors.warning_dark, bg: Colors.warning_light + "1a", time: "Yesterday" },
+  { id: "t3", name: "Cashback Credited", meta: "Recharge Offer", amount: "+₹50", credit: true, icon: "trending-up", color: Colors.success, bg: Colors.success + "1a", time: "2 days ago" },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -482,14 +482,14 @@ export default function FinanceHome({ navigation }) {
   // ─────────────────────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={[S.safe, { backgroundColor: Colors.bg }]} edges={["bottom"]}>
-      <StatusBar barStyle="light-content" backgroundColor="#161616" translucent />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.ink_dark} translucent />
 
       <View style={[S.root, { backgroundColor: Colors.bg }]}>
 
         {/* ══ COLLAPSING HEADER ══ */}
         <Animated.View style={[S.headerWrap, { height: headerHeight }]}>
           <LinearGradient
-            colors={["#161616", "#000000"]}
+            colors={[Colors.hex_232323, Colors.black]}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
             style={[S.headerGrad, { paddingTop: insets.top + rs(10) }]}
           >
@@ -505,7 +505,7 @@ export default function FinanceHome({ navigation }) {
                   activeOpacity={0.8}
                   style={S.avatarWrap}
                 >
-                  <LinearGradient colors={[Colors.finance_accent, "#8B6914"]} style={S.avatarGrad}>
+                  <LinearGradient colors={[Colors.finance_accent, Colors.hex_B8944D]} style={S.avatarGrad}>
                     <Text style={S.avatarTxt}>{avatar}</Text>
                   </LinearGradient>
                   <View style={[S.kycDot, { backgroundColor: kyc }]} />
@@ -528,12 +528,12 @@ export default function FinanceHome({ navigation }) {
                     onPress={openSearch}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   >
-                    <Icon name="magnify" size={rs(20)} color="#FFF" />
+                    <Icon name="magnify" size={rs(20)} color={Colors.white} />
                   </TouchableOpacity>
                   <TouchableOpacity style={S.glassBtn}
                     onPress={() => navigation.navigate("Notification")}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                    <Icon name="bell-ring-outline" size={rs(20)} color="#FFF" />
+                    <Icon name="bell-ring-outline" size={rs(20)} color={Colors.white} />
                   </TouchableOpacity>
                 </View>
               </Animated.View>
@@ -552,12 +552,12 @@ export default function FinanceHome({ navigation }) {
                   <Icon name="arrow-left" size={rs(22)} color={Colors.finance_accent} />
                 </TouchableOpacity>
                 <View style={S.searchInputWrap}>
-                  <Icon name="magnify" size={rs(15)} color="rgba(255,255,255,0.35)" style={{ marginRight: rs(6) }} />
+                  <Icon name="magnify" size={rs(15)} color={Colors.whiteOpacity_60} style={{ marginRight: rs(6) }} />
                   <TextInput
                     ref={inputRef}
                     style={S.searchInput}
                     placeholder="Type to search…"
-                    placeholderTextColor="rgba(255,255,255,0.3)"
+                    placeholderTextColor={Colors.whiteOpacity_20}
                     value={searchQuery}
                     onChangeText={onSearchChange}
                     returnKeyType="search"
@@ -566,7 +566,7 @@ export default function FinanceHome({ navigation }) {
                   />
                   {searchQuery.length > 0 && (
                     <TouchableOpacity onPress={() => onSearchChange("")} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                      <Icon name="close-circle" size={rs(17)} color="rgba(255,255,255,0.4)" />
+                      <Icon name="close-circle" size={rs(17)} color={Colors.whiteOpacity_60} />
                     </TouchableOpacity>
                   )}
                 </View>
@@ -588,7 +588,7 @@ export default function FinanceHome({ navigation }) {
               >
                 <View style={{ flex: 1 }}>
                   <LinearGradient
-                    colors={["#2C2C2C", "#111111"]}
+                    colors={[Colors.hex_2E2E2E, Colors.black]}
                     start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
                     style={[S.walletCard, { borderColor: "rgba(212,176,106,0.3)" }]}
                   >
@@ -604,7 +604,7 @@ export default function FinanceHome({ navigation }) {
                         activeOpacity={0.7}
                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                       >
-                        <Icon name="swap-horizontal" size={rs(18)} color="#d4b06a" />
+                        <Icon name="swap-horizontal" size={rs(18)} color={Colors.finance_accent} />
                       </TouchableOpacity>
                     </View>
 
@@ -613,7 +613,7 @@ export default function FinanceHome({ navigation }) {
                       <View style={{ flexDirection: "row", alignItems: "center" }}>
                         {!balanceLoading && <Text style={[S.rupee, { color: "#d4b06a" }]}>₹</Text>}
                         {balanceLoading
-                          ? <ActivityIndicator size="small" color="#FFF" style={{ marginLeft: 4 }} />
+                          ? <ActivityIndicator size="small" color={Colors.white} style={{ marginLeft: 4 }} />
                           : <Text style={S.balAmt}>{!showBalance ? "••••••" : formatBalance(mainBalance)}</Text>
                         }
                         {!balanceLoading && (
@@ -622,18 +622,18 @@ export default function FinanceHome({ navigation }) {
                             style={{ marginLeft: rs(8) }}
                             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                           >
-                            <Icon name={!showBalance ? "eye-off" : "eye"} size={rs(18)} color="rgba(255,255,255,0.45)" />
+                            <Icon name={!showBalance ? "eye-off" : "eye"} size={rs(18)} color={Colors.whiteOpacity_60} />
                           </TouchableOpacity>
                         )}
                       </View>
                     </View>
 
                     <TouchableOpacity
-                      style={[S.addBtn, { backgroundColor: "#d4b06a" }]}
+                      style={[S.addBtn, { backgroundColor: Colors.finance_accent }]}
                       onPress={(e) => { e.stopPropagation(); navigation.navigate("OfflineTopup"); }}
                     >
-                      <Icon name="plus" size={rs(12)} color="#000" />
-                      <Text style={[S.addBtnTxt, { color: "#000" }]}>Top Up</Text>
+                      <Icon name="plus" size={rs(12)} color={Colors.black} />
+                      <Text style={[S.addBtnTxt, { color: Colors.black }]}>Top Up</Text>
                     </TouchableOpacity>
 
                     <View style={S.cardFooter}>

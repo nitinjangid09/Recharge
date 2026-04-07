@@ -58,12 +58,12 @@ function RechargeReceipt({ receiptData, onClose, navigation }) {
   });
   const opInitial = (receiptData.operator || "?")[0].toUpperCase();
 
-  const bgColor = Colors.homebg || "#F7F8FA";
-  const primaryColor = Colors.primary || "#002E6E";
-  const accentColor = Colors.finance_accent || "#D4B06A";
-  const cardBg = Colors.white || "#FFFFFF";
-  const textMain = Colors.finance_text || "#111827";
-  const textMuted = Colors.finance_text_light || "#6B7280";
+  const bgColor = Colors.finance_bg_1;
+  const primaryColor = Colors.primary;
+  const accentColor = Colors.finance_accent;
+  const cardBg = Colors.white;
+  const textMain = Colors.finance_text;
+  const textMuted = Colors.finance_text_light;
 
   // ── SHARE: screenshot of receipt card only → share as image (Paytm-style) ─
   const handleShare = async () => {
@@ -135,13 +135,13 @@ function RechargeReceipt({ receiptData, onClose, navigation }) {
       label: "Status",
       isStatusPill: true,
       value: isSuccess ? "Success" : "Failed",
-      color: isSuccess ? "#16A34A" : "#DC2626",
+      color: isSuccess ? Colors.success : Colors.error,
     },
   ];
 
   return (
     <Modal visible={!!receiptData} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={[rc.overlay, { backgroundColor: "rgba(0,0,0,0.52)" }]}>
+      <View style={[rc.overlay, { backgroundColor: Colors.blackOpacity_52 }]}>
         <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose} />
 
         {/* ── Outer sheet: plain View — NOT a ViewShot ── */}
@@ -159,7 +159,7 @@ function RechargeReceipt({ receiptData, onClose, navigation }) {
 
             {/* ── Gradient banner ── */}
             <LinearGradient
-              colors={isSuccess ? ["#16A34A", "#22A06B"] : ["#DC2626", "#E53935"]}
+              colors={isSuccess ? [Colors.success, Colors.success_dark] : [Colors.error, Colors.error_dark]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={rc.banner}
@@ -170,7 +170,7 @@ function RechargeReceipt({ receiptData, onClose, navigation }) {
                 <Icon
                   name={isSuccess ? "check-circle-outline" : "close-circle-outline"}
                   size={36}
-                  color="#FFF"
+                  color={Colors.white}
                 />
               </View>
               <Text style={rc.bannerTitle}>
@@ -226,11 +226,11 @@ function RechargeReceipt({ receiptData, onClose, navigation }) {
               style={[
                 rc.note,
                 isSuccess
-                  ? { backgroundColor: "#F0FDF4", borderColor: "#BBF7D0" }
-                  : { backgroundColor: "#FFF8F0", borderColor: "#FED7AA" },
+                  ? { backgroundColor: Colors.successOpacity_10, borderColor: Colors.success_ring }
+                  : { backgroundColor: Colors.warningOpacity_10, borderColor: Colors.warningOpacity_30 },
               ]}
             >
-              <View style={[rc.noteDot, { backgroundColor: isSuccess ? "#22A06B" : "#E53935" }]} />
+              <View style={[rc.noteDot, { backgroundColor: isSuccess ? Colors.success : Colors.error }]} />
               <Text style={[rc.noteTxt, { color: textMain }]} numberOfLines={2}>
                 {isSuccess
                   ? "Plan benefits added successfully. Data and calling active."
@@ -259,10 +259,10 @@ function RechargeReceipt({ receiptData, onClose, navigation }) {
                 disabled={sharing}
               >
                 {sharing
-                  ? <ActivityIndicator size="small" color="#FFF" style={{ marginRight: 7 }} />
-                  : <Icon name="share-variant" size={17} color="#FFF" style={{ marginRight: 7 }} />
+                  ? <ActivityIndicator size="small" color={Colors.white} style={{ marginRight: 7 }} />
+                  : <Icon name="share-variant" size={17} color={Colors.white} style={{ marginRight: 7 }} />
                 }
-                <Text style={[rc.shareTxt, { color: "#FFF" }]}>
+                <Text style={[rc.shareTxt, { color: Colors.white }]}>
                   {sharing ? "Sharing..." : "Share Receipt"}
                 </Text>
               </TouchableOpacity>
@@ -272,7 +272,7 @@ function RechargeReceipt({ receiptData, onClose, navigation }) {
           {/* ── Raise Complaint (Only on Failure) ── */}
           {!isSuccess && (
             <TouchableOpacity
-              style={[rc.complBtn, { borderColor: accentColor + "60", backgroundColor: "#FFF" }]}
+              style={[rc.complBtn, { borderColor: accentColor + "60", backgroundColor: Colors.white }]}
               activeOpacity={0.85}
               onPress={handleRaiseComplaint}
             >
@@ -296,24 +296,24 @@ const rc = StyleSheet.create({
   blob1: { position: "absolute", width: 160, height: 160, borderRadius: 80, backgroundColor: "rgba(255,255,255,0.07)", top: -55, right: -45 },
   blob2: { position: "absolute", width: 110, height: 110, borderRadius: 55, backgroundColor: "rgba(255,255,255,0.07)", top: 10, left: -35 },
   iconRing: { width: 64, height: 64, borderRadius: 32, backgroundColor: "rgba(255,255,255,0.18)", alignItems: "center", justifyContent: "center", marginBottom: 10 },
-  bannerTitle: { fontSize: 16, fontFamily: Fonts.Bold, color: "#FFF", textAlign: "center", marginBottom: 3 },
+  bannerTitle: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.white, textAlign: "center", marginBottom: 3 },
   bannerDate: { fontSize: 11, fontFamily: Fonts.Medium, color: "rgba(255,255,255,0.72)", textAlign: "center" },
 
-  amountCard: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginHorizontal: 14, marginTop: 14, borderRadius: 14, padding: 14, elevation: 2, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4 },
+  amountCard: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginHorizontal: 14, marginTop: 14, borderRadius: 14, padding: 14, elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4 },
   amountLbl: { fontSize: 9, fontFamily: Fonts.Bold, letterSpacing: 0.8, marginBottom: 3 },
   amountVal: { fontSize: 30, fontFamily: Fonts.Bold },
   opBadge: { flexDirection: "row", alignItems: "center", borderRadius: 20, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1 },
   opCircle: { width: 26, height: 26, borderRadius: 13, alignItems: "center", justifyContent: "center", marginRight: 7 },
-  opInitial: { fontSize: 13, fontFamily: Fonts.Bold, color: "#FFF" },
+  opInitial: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.white },
   opName: { fontSize: 12, fontFamily: Fonts.Bold },
 
-  detailCard: { marginHorizontal: 14, marginTop: 10, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 2, elevation: 2, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4 },
+  detailCard: { marginHorizontal: 14, marginTop: 10, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 2, elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4 },
   row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 9 },
-  rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#F3F4F6" },
+  rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.slate_50 },
   rowLbl: { fontSize: 12, fontFamily: Fonts.Medium, flex: 1 },
   rowVal: { fontSize: 13, fontFamily: Fonts.Bold, textAlign: "right", flex: 1 },
   statusPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
-  statusPillTxt: { fontSize: 9, fontFamily: Fonts.Bold, color: "#FFF", letterSpacing: 0.5 },
+  statusPillTxt: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.white, letterSpacing: 0.5 },
 
   note: { flexDirection: "row", alignItems: "center", marginHorizontal: 14, marginTop: 10, borderRadius: 10, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 9 },
   noteDot: { width: 6, height: 6, borderRadius: 3, marginRight: 8, flexShrink: 0 },
@@ -324,7 +324,7 @@ const rc = StyleSheet.create({
   actLbl: { fontSize: 10, fontFamily: Fonts.Bold, letterSpacing: 1.1, marginHorizontal: 10 },
 
   btnRow: { marginHorizontal: 14, marginBottom: 10 },
-  shareBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", borderRadius: 12, paddingVertical: 14, elevation: 2, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 3 },
+  shareBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", borderRadius: 12, paddingVertical: 14, elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 3 },
   shareTxt: { fontSize: 14, fontFamily: Fonts.Bold },
   complBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", marginHorizontal: 14, borderRadius: 12, paddingVertical: 13, borderWidth: 1 },
   complTxt: { fontSize: 13, fontFamily: Fonts.Bold },
@@ -400,21 +400,21 @@ function BottomSheetModal({
           <View style={styles.sheetTitleRow}>
             <Text style={styles.sheetTitle}>{title}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Icon name="close" size={18} color="#666" />
+              <Icon name="close" size={18} color={Colors.gray_66} />
             </TouchableOpacity>
           </View>
           <View style={styles.sheetSearchRow}>
-            <Icon name="magnify" size={20} color="#666" style={{ marginRight: 8 }} />
+            <Icon name="magnify" size={20} color={Colors.gray_66} style={{ marginRight: 8 }} />
             <TextInput
               style={styles.sheetSearchInput}
               placeholder={searchPlaceholder}
-              placeholderTextColor="#BDBDBD"
+              placeholderTextColor={Colors.text_placeholder}
               value={searchText}
               onChangeText={onSearch}
             />
             {searchText.length > 0 && (
               <TouchableOpacity onPress={() => onSearch("")}>
-                <Icon name="close-circle" size={18} color="#BDBDBD" />
+                <Icon name="close-circle" size={18} color={Colors.text_placeholder} />
               </TouchableOpacity>
             )}
           </View>
@@ -437,12 +437,12 @@ function BottomSheetModal({
                   activeOpacity={0.75}
                 >
                   <View style={[styles.sheetListIconBox, isSel && styles.sheetListIconBoxSel]}>
-                    <Icon name={iconName} size={20} color={isSel ? Colors.finance_accent : "#666"} />
+                    <Icon name={iconName} size={20} color={isSel ? Colors.finance_accent : Colors.gray_66} />
                   </View>
                   <Text style={[styles.sheetListTxt, isSel && styles.sheetListTxtSel]}>{label}</Text>
                   {isSel && (
                     <View style={styles.checkCircle}>
-                      <Icon name="check" size={14} color="#fff" />
+                      <Icon name="check" size={14} color={Colors.white} />
                     </View>
                   )}
                 </TouchableOpacity>
@@ -732,7 +732,7 @@ export default function TopUpScreen({ navigation, route }) {
                       value={mobile}
                       onChangeText={handleMobileChange}
                       placeholder="00000 00000"
-                      placeholderTextColor="#AAA"
+                      placeholderTextColor={Colors.text_placeholder}
                       keyboardType="number-pad"
                       maxLength={10}
                       style={styles.bigInput}
@@ -801,7 +801,7 @@ export default function TopUpScreen({ navigation, route }) {
                     value={amount}
                     onChangeText={(val) => setAmount(val.replace(/[^0-9]/g, ""))}
                     placeholder="0"
-                    placeholderTextColor="rgba(212,176,106,0.3)"
+                    placeholderTextColor={Colors.amberOpacity_30}
                     keyboardType="numeric"
                     style={styles.hugeInput}
                   />
@@ -851,7 +851,7 @@ export default function TopUpScreen({ navigation, route }) {
                   }}
                 >
                   <LinearGradient
-                    colors={[Colors.finance_accent, "#E0C38C"]}
+                    colors={[Colors.finance_accent, Colors.hex_E0C38C]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={styles.viewPlansGradient}
@@ -894,8 +894,8 @@ export default function TopUpScreen({ navigation, route }) {
                       rechargeHistory.map((item) => {
                         const isSuccess = item.status === "SUCCESS";
                         const isFailed = item.status === "FAILED";
-                        const statusColor = isSuccess ? "#16A34A" : isFailed ? "#DC2626" : "#D97706";
-                        const statusBg = isSuccess ? "#F0FDF4" : isFailed ? "#FEF2F2" : "#FFFBEB";
+                        const statusColor = isSuccess ? Colors.success : isFailed ? Colors.error : Colors.warning_dark;
+                        const statusBg = isSuccess ? Colors.successOpacity_10 : isFailed ? Colors.redOpacity_10 : Colors.warningOpacity_10;
                         const opInitial = (item.operatorName || "?")[0].toUpperCase();
                         const dateStr = item.createdAt
                           ? new Date(item.createdAt).toLocaleDateString("en-IN", {
@@ -971,14 +971,14 @@ export default function TopUpScreen({ navigation, route }) {
                 style={[styles.sliderThumb, { transform: [{ translateX: pan }] }]}
                 {...panResponder.panHandlers}
               >
-                <LinearGradient colors={[Colors.finance_accent, "#b8944d"]} style={styles.thumbGrad}>
+                <LinearGradient colors={[Colors.finance_accent, Colors.hex_B8944D]} style={styles.thumbGrad}>
                   <Icon name="chevron-right" size={28} color={Colors.white} />
                 </LinearGradient>
               </Animated.View>
             </View>
           ) : (
             <LinearGradient
-              colors={[Colors.finance_accent, "#b8944d"]}
+              colors={[Colors.finance_accent, Colors.hex_B8944D]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.processingBtn}
@@ -1060,7 +1060,7 @@ export default function TopUpScreen({ navigation, route }) {
         >
           <LinearGradient
             colors={
-              customToast.type === "success" ? ["#4CAF50", "#2E7D32"] : ["#F44336", "#C62828"]
+              customToast.type === "success" ? [Colors.success, Colors.successOpacity_70] : [Colors.error, Colors.redOpacity_70]
             }
             style={styles.customToastGrad}
             start={{ x: 0, y: 0 }}
@@ -1104,22 +1104,22 @@ const styles = StyleSheet.create({
   modernInputWrapper: { borderBottomWidth: 1, borderBottomColor: Colors.primary, paddingBottom: 4 },
   floatingLabel: { fontSize: 10, color: Colors.primary, fontFamily: Fonts.Medium, marginBottom: 2 },
   rowCenter: { flexDirection: "row", alignItems: "center" },
-  prefixText: { fontSize: 16, fontFamily: Fonts.Medium, color: "#AAA", marginRight: 8 },
+  prefixText: { fontSize: 16, fontFamily: Fonts.Medium, color: Colors.text_placeholder, marginRight: 8 },
   bigInput: { flex: 1, fontSize: 18, fontFamily: Fonts.Bold, color: Colors.finance_text, padding: 0, height: 34 },
   contactBtnRound: { width: 30, height: 30, borderRadius: 15, backgroundColor: Colors.finance_accent, alignItems: "center", justifyContent: "center" },
 
   connectionContainer: { backgroundColor: Colors.white, borderRadius: 14, borderWidth: 1, borderColor: Colors.lightGray, marginTop: 5, overflow: "hidden" },
   connectionRow: { flexDirection: "row", alignItems: "center", padding: 10 },
   iconBox: { width: 30, height: 30, borderRadius: 8, backgroundColor: Colors.white, alignItems: "center", justifyContent: "center" },
-  connectionLabel: { fontSize: 9, fontFamily: Fonts.Bold, color: "#777", textTransform: "uppercase" },
-  connectionValues: { fontSize: 12, fontFamily: Fonts.Medium, color: "#000", marginTop: 2 },
-  dividerLine: { height: 1, backgroundColor: "#EEE", marginHorizontal: 14 },
+  connectionLabel: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.text_muted, textTransform: "uppercase" },
+  connectionValues: { fontSize: 12, fontFamily: Fonts.Medium, color: Colors.black, marginTop: 2 },
+  dividerLine: { height: 1, backgroundColor: Colors.ink5, marginHorizontal: 14 },
 
-  premiumAmountCard: { backgroundColor: "#1A1A1A", borderRadius: 20, padding: 14, marginBottom: 14, borderWidth: 1.5, borderColor: "rgba(212,176,106,0.4)" },
+  premiumAmountCard: { backgroundColor: Colors.slate_900, borderRadius: 20, padding: 14, marginBottom: 14, borderWidth: 1.5, borderColor: Colors.finance_accent + "66" },
   amountHeader: { fontSize: 10, color: "rgba(255,255,255,0.6)", fontFamily: Fonts.Medium, textTransform: "uppercase", letterSpacing: 1, textAlign: "center", marginBottom: 8 },
   amountInputRow: { flexDirection: "row", alignItems: "center", marginBottom: 12, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", paddingVertical: 8, paddingHorizontal: 14 },
   currencySymbol: { fontSize: 20, fontFamily: Fonts.Bold, color: Colors.finance_accent, marginRight: 8 },
-  hugeInput: { flex: 1, fontSize: 28, fontFamily: Fonts.Bold, color: "#FFFFFF", padding: 0 },
+  hugeInput: { flex: 1, fontSize: 28, fontFamily: Fonts.Bold, color: Colors.white, padding: 0 },
   suggestionsWrapper: { marginBottom: 12 },
   suggestionsContainer: { flexDirection: "row", alignItems: "center", gap: 8 },
   suggestionChip: { backgroundColor: "rgba(255,255,255,0.05)", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
@@ -1148,28 +1148,28 @@ const styles = StyleSheet.create({
   processingText: { color: Colors.white, fontFamily: Fonts.Bold, fontSize: 14, letterSpacing: 1 },
 
   sheetBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.48)" },
-  bottomSheet: { position: "absolute", bottom: 0, left: 0, right: 0, backgroundColor: "#fff", borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: "75%", borderTopWidth: 1, borderLeftWidth: 1, borderRightWidth: 1, borderColor: "rgba(0,0,0,0.08)", overflow: "hidden" },
-  sheetHeader: { paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: "#F0F0F0", paddingTop: 4 },
-  handleBar: { width: 40, height: 4, borderRadius: 2, backgroundColor: "#E0E0E0", alignSelf: "center", marginTop: 10, marginBottom: 10 },
+  bottomSheet: { position: "absolute", bottom: 0, left: 0, right: 0, backgroundColor: Colors.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: "75%", borderTopWidth: 1, borderLeftWidth: 1, borderRightWidth: 1, borderColor: Colors.blackOpacity_08, overflow: "hidden" },
+  sheetHeader: { paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: Colors.ink5, paddingTop: 4 },
+  handleBar: { width: 40, height: 4, borderRadius: 2, backgroundColor: Colors.ink5, alignSelf: "center", marginTop: 10, marginBottom: 10 },
   sheetTitleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 },
-  sheetTitle: { fontSize: 15, fontFamily: Fonts.Bold, color: "#333" },
-  closeBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: "#F4F4F4", alignItems: "center", justifyContent: "center" },
-  sheetSearchRow: { flexDirection: "row", alignItems: "center", backgroundColor: "#F5F5F5", borderRadius: 10, paddingHorizontal: 10, marginBottom: 4, height: 40 },
-  sheetSearchInput: { flex: 1, fontSize: 13, fontFamily: Fonts.Medium, color: "#212121", padding: 0 },
-  sheetListItem: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "#F5F5F5" },
+  sheetTitle: { fontSize: 15, fontFamily: Fonts.Bold, color: Colors.slate_900 },
+  closeBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: Colors.ink5, alignItems: "center", justifyContent: "center" },
+  sheetSearchRow: { flexDirection: "row", alignItems: "center", backgroundColor: Colors.ink5, borderRadius: 10, paddingHorizontal: 10, marginBottom: 4, height: 40 },
+  sheetSearchInput: { flex: 1, fontSize: 13, fontFamily: Fonts.Medium, color: Colors.gray_21, padding: 0 },
+  sheetListItem: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: Colors.ink5 },
   sheetListItemSel: { backgroundColor: Colors.finance_accent + "15" },
-  sheetListIconBox: { width: 32, height: 32, borderRadius: 10, backgroundColor: "#F5F5F5", alignItems: "center", justifyContent: "center", marginRight: 10 },
+  sheetListIconBox: { width: 32, height: 32, borderRadius: 10, backgroundColor: Colors.ink5, alignItems: "center", justifyContent: "center", marginRight: 10 },
   sheetListIconBoxSel: { backgroundColor: Colors.finance_accent + "25" },
-  sheetListTxt: { flex: 1, fontSize: 13, fontFamily: Fonts.Medium, color: "#212121" },
+  sheetListTxt: { flex: 1, fontSize: 13, fontFamily: Fonts.Medium, color: Colors.gray_21 },
   sheetListTxtSel: { color: Colors.finance_accent, fontFamily: Fonts.Bold },
   checkCircle: { width: 20, height: 20, borderRadius: 10, backgroundColor: Colors.finance_accent, alignItems: "center", justifyContent: "center" },
   emptyWrap: { alignItems: "center", paddingVertical: 30 },
-  emptyTxt: { color: "#BDBDBD", fontSize: 13, fontFamily: Fonts.Medium },
+  emptyTxt: { color: Colors.text_placeholder, fontSize: 13, fontFamily: Fonts.Medium },
 
   customToastBox: { position: "absolute", top: 60, left: 20, right: 20, zIndex: 9999 },
   customToastGrad: { flexDirection: "row", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, gap: 10 },
-  customToastText: { color: "#FFF", fontFamily: Fonts.Bold, fontSize: 13, flex: 1 },
-  fullLoader: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(255,255,255,0.7)", justifyContent: "center", alignItems: "center", zIndex: 1000 },
+  customToastText: { color: Colors.white, fontFamily: Fonts.Bold, fontSize: 13, flex: 1 },
+  fullLoader: { ...StyleSheet.absoluteFillObject, backgroundColor: Colors.whiteOpacity_70, justifyContent: "center", alignItems: "center", zIndex: 1000 },
 
   // ── Recent Recharges History ──
   historyCard_Outer: {
@@ -1179,7 +1179,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(212,176,106,0.25)",
     overflow: "hidden",
     elevation: 2,
-    shadowColor: "#000",
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.07,
     shadowRadius: 6,
@@ -1190,7 +1190,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 14,
     paddingVertical: 11,
-    backgroundColor: "#1A1A1A",
+    backgroundColor: Colors.hex_1A1A1A,
   },
   historyHeaderLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
   historyHeaderIconBox: {
@@ -1222,9 +1222,9 @@ const styles = StyleSheet.create({
   },
   historyOpInitial: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.finance_accent },
   historyOpName: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.finance_text },
-  historyMobile: { fontSize: 11, fontFamily: Fonts.Medium, color: Colors.finance_text_light || "#6B7280" },
-  historyRefId: { fontSize: 10, fontFamily: Fonts.Medium, color: Colors.finance_text_light || "#6B7280", marginTop: 1 },
-  historyDate: { fontSize: 10, fontFamily: Fonts.Medium, color: "#9CA3AF", marginTop: 2 },
+  historyMobile: { fontSize: 11, fontFamily: Fonts.Medium, color: Colors.slate_500 },
+  historyRefId: { fontSize: 10, fontFamily: Fonts.Medium, color: Colors.slate_500, marginTop: 1 },
+  historyDate: { fontSize: 10, fontFamily: Fonts.Medium, color: Colors.text_placeholder, marginTop: 2 },
   historyAmount: { fontSize: 15, fontFamily: Fonts.Bold, color: Colors.finance_text, marginBottom: 4 },
   historyStatusPill: {
     flexDirection: "row", alignItems: "center", gap: 4,

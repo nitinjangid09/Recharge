@@ -24,11 +24,11 @@ const { width } = Dimensions.get("window");
 const S = width / 375;
 
 // ─── Accent shorthand ────────────────────────────────────────────────────
-const ACCENT = Colors.finance_accent || "#D4A843";
-const ACCENT2 = "#B8944D";
-const BG = Colors.finance_bg_1 || "#F7F4EF";
-const TEXT = Colors.finance_text || "#1A1A2E";
-const WHITE = Colors.white || "#FFFFFF";
+const ACCENT = Colors.finance_accent;
+const ACCENT2 = Colors.hex_B8944D;
+const BG = Colors.finance_bg_1;
+const TEXT = Colors.finance_text;
+const WHITE = Colors.white;
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  TAB ITEM — fixed text clipping with explicit line-height + padding
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   tabBarWrapper: {
     backgroundColor: Colors.bg,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(212,176,106,0.15)",
+    borderBottomColor: Colors.amberOpacity_15,
     elevation: 3,
     shadowColor: ACCENT,
     shadowOpacity: 0.08,
@@ -322,12 +322,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18 * S,
     borderRadius: 100,
     borderWidth: 1,
-    borderColor: "rgba(212,176,106,0.35)",
+    borderColor: Colors.amberOpacity_35,
     backgroundColor: WHITE,
     justifyContent: "center",
     alignItems: "center",
     elevation: 1,
-    shadowColor: "#000",
+    shadowColor: Colors.black,
     shadowOpacity: 0.04,
     shadowRadius: 2,
     shadowOffset: { width: 0, height: 1 },
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     borderWidth: 1,
-    borderColor: "rgba(212,176,106,0.18)",
+    borderColor: Colors.amberOpacity_18,
     overflow: "visible",
   },
 
@@ -424,8 +424,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12 * S,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(212,176,106,0.4)",
-    backgroundColor: "#FDF8EE",
+    borderColor: Colors.finance_accent + "66",
+    backgroundColor: Colors.secondary,
     maxWidth: 130 * S,
   },
   validityTxt: {
@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
   // Divider
   cardDivider: {
     height: 1,
-    backgroundColor: "rgba(0,0,0,0.05)",
+    backgroundColor: Colors.blackOpacity_05,
     marginBottom: 10 * S,
   },
 
@@ -471,7 +471,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8 * S,
     borderRadius: 8 * S,
     borderWidth: 1,
-    borderColor: "rgba(212,176,106,0.2)",
+    borderColor: Colors.amberOpacity_20,
   },
   chipTxt: {
     fontSize: 11 * S,
