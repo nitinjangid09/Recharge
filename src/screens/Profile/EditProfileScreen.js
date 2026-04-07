@@ -127,21 +127,13 @@ const EditProfileScreen = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* ── CUSTOM MINIMAL HEADER ── */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <MaterialCommunityIcons name="chevron-left" size={S(22)} color="#111" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Edit Profile</Text>
-        <TouchableOpacity style={styles.headerRightBtn}>
-          <MaterialCommunityIcons name="content-save-outline" size={S(20)} color="#D4B06A" />
-        </TouchableOpacity>
-      </View>
+
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
       >
+        <HeaderBar title="Edit Profile" onBack={() => navigation.goBack()} />
         <ScrollView
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"

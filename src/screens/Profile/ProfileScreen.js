@@ -344,8 +344,8 @@ export default function ProfileScreen({ navigation }) {
               )}
               {roleName && (
                 <View style={[styles.userBadge, { backgroundColor: Colors.ink2, borderColor: Colors.ink3 }]}>
-                  <MaterialCommunityIcons name="shield-account-outline" size={9} color={Colors.surface} style={{ marginRight: 5 }} />
-                  <Text style={[styles.userBadgeTxt, { color: Colors.surface }]}>{roleName}</Text>
+                  <MaterialCommunityIcons name="shield-account-outline" size={9} color={Colors.secondary} style={{ marginRight: 5 }} />
+                  <Text style={[styles.userBadgeTxt, { color: Colors.secondary }]}>{roleName}</Text>
                 </View>
               )}
             </View>
