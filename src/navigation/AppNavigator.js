@@ -6,56 +6,48 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator, View } from 'react-native';
 
 // Screens
-import ProfileScreen from '../screens/ProfileScreen';
-import EditProfileScreen from '../screens/EditProfileScreen';
-import Address from '../screens/Address';
-import FinanceHome from '../screens/FinanceHome';
-import test from '../screens/test';
-import Login from '../screens/Login';
-import Otp from '../screens/Otp';
-import ActivateAccountScreen from '../screens/ActivateAccountScreen';
-import PaymentsScreen from '../screens/PaymentsScreen';
-import StorePlans from '../screens/StorePlans';
-import InvoiceScreen from '../screens/InvoiceScreen';
-import Signup from '../screens/Signup';
-import CreateUser from '../screens/CreateUser';
-import OrderHistoryScreen from '../screens/OrderHistoryScreen';
-import FinanceIntro from '../screens/FinanceIntro';
-import TopUpScreen from '../screens/TopUpScreen';
-import RechargeScreen from '../screens/RechargeScreen';
-import PaymentDetails from '../screens/PaymentDetails';
-import Transaction from '../screens/Transaction';
-import BBPSServices from '../screens/BBPSServices';
-import UserListScreen from '../screens/UserListScreen';
+import ProfileScreen from '../screens/Profile/ProfileScreen';
+import EditProfileScreen from '../screens/Profile/EditProfileScreen';
+import FinanceHome from '../screens/HomeScreen/Home';
 
-import WalletTransactionScreen from '../screens/WalletTranscation'
-import BalanceEnquiry from "../screens/AEPS_Services/BalanceEnquiry";
-import CashWithdraw from "../screens/AEPS_Services/CashWithdraw";
-import MiniStatement from "../screens/AEPS_Services/MiniStatements";
+import Login from '../screens/UserLogin/Login';
+import Otp from '../screens/UserLogin/Otp';
+import ActivateAccountScreen from '../screens/AccountActivate/ActivateAccountScreen';
+import PaymentsScreen from '../screens/Services/BBPS_Services/BBPSService';
+import StorePlans from '../screens/Services/Recharge/RechargePlans';
+import InvoiceScreen from '../screens/Reports/TranscationHistory';
+import Signup from '../screens/UserLogin/Signup';
+import CreateUser from '../screens/UserDownline/CreateUser';
+import FinanceIntro from '../screens/UserLogin/Splash';
+import TopUpScreen from '../screens/Services/Recharge/Recharge';
+
+import UserListScreen from '../screens/UserDownline/UserListScreen';
+
+import WalletTransactionScreen from '../screens/Reports/WalletLedger'
+import BalanceEnquiry from "../screens/Services/AEPS_Services/BalanceEnquiry";
+import CashWithdraw from "../screens/Services/AEPS_Services/CashWithdraw";
+import MiniStatement from "../screens/Services/AEPS_Services/MiniStatements";
 import DmtLogin from "../screens/DMT/DmtLogin"
 import AddBeneficial from "../screens/DMT/AddBeneficial";
 import DmtHome from "../screens/DMT/DmtHome"
-import ReceiptScreen from "../screens/AEPS_Services/PaymentReceipt"
-import AEPSServiceCard from "../screens/AEPS/AEPSServiceCard"
-import LoginActivity from "../screens/Account/LoginActivity"
+import ReceiptScreen from "../screens/Services/AEPS_Services/PaymentReceipt"
 import ChangePassword from "../screens/Account/ChangePassword"
 import ChangePin from "../screens/Account/ChangePin"
 import ForgotPassword from "../screens/Account/ForgotPassword"
 import ForgotPin from "../screens/Account/ForgotPin"
 import MoneyTransfer from "../screens/DMT/MoneyTransfer"
-// import BBPSServices from "../screens/BBPS_Services/BBPSServiceScreen"
-import SupportScreen from "../screens/Account/SupportScreen"
-import FaqSupportScreen from "../screens/HomeScreen/FaQSupport"
-import PaymentVerification from '../screens/Account/PaymentVerification';
+import SupportScreen from "../screens/Support/SupportScreen"
+import FaqSupportScreen from "../screens/Support/FaQSupport"
+import PaymentVerification from '../screens/AccountActivate/PaymentVerification';
 import Offlinekyc from '../screens/kyc/Offlinekyc';
 import KycSubmitted from '../screens/kyc/KycSubmitted';
 import OfflineTopup from '../screens/OfflineTopup';
-import BbpsDynamicServiceScreen from '../screens/BBPS_Services/BbpsDynamicServiceScreen';
-import WalletTransfer from '../screens/WalletTransfer';
+import BbpsDynamicServiceScreen from '../screens/Services/BBPS_Services/BbpsDynamicServiceScreen';
+import WalletTransfer from '../screens/UserDownline/DownlineWalletTransfer';
 import CommisionPlan from '../screens/CommisionPlan';
-import UserWalletRefill from '../screens/UserWalletRefill';
-import OfflineServices from '../screens/OfflineServices';
-import OfflineServiceForm from '../screens/OfflineServiceForm';
+import UserWalletRefill from '../screens/UserDownline/UserWalletRefill';
+import OfflineServices from '../screens/Services/OfflineServices/OfflineServices';
+import OfflineServiceForm from '../screens/Services/OfflineServices/OfflineServiceForm';
 import Notification from '../screens/Notification';
 const Stack = createStackNavigator();
 
@@ -149,24 +141,18 @@ const AppNavigator = () => {
     >
       <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
       <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
-      <Stack.Screen name="Address" component={Address} />
       <Stack.Screen name="FinanceHome" component={FinanceHome} />
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="Otp" component={Otp} />
-      <Stack.Screen name="test" component={test} />
+
       <Stack.Screen name="PaymentsScreen" component={PaymentsScreen} />
       <Stack.Screen name="StorePlans" component={StorePlans} />
       <Stack.Screen name="InvoiceScreen" component={InvoiceScreen} />
-      <Stack.Screen name="OrderHistoryScreen" component={OrderHistoryScreen} />
       <Stack.Screen name="FinanceIntro" component={FinanceIntro} />
       <Stack.Screen name="TopUpScreen" component={TopUpScreen} />
-      <Stack.Screen name="RechargeScreen" component={RechargeScreen} />
-      <Stack.Screen name="PaymentDetails" component={PaymentDetails} />
-      <Stack.Screen name="Transaction" component={Transaction} />
-      <Stack.Screen name="BBPSServices" component={BBPSServices} />
+
       <Stack.Screen name="WalletTransactionScreen" component={WalletTransactionScreen} />
-      <Stack.Screen name="LoginActivity" component={LoginActivity} />
-      <Stack.Screen name="AEPSServiceCard" component={AEPSServiceCard} />
+
       <Stack.Screen name="DmtLogin" component={DmtLogin} />
       <Stack.Screen name="BalanceEnquiry" component={BalanceEnquiry} />
       <Stack.Screen name="CashWithdraw" component={CashWithdraw} />
