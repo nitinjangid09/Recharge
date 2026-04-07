@@ -201,34 +201,41 @@ export default function OfflineTopup({ navigation }) {
 
   const handleCamera = async () => {
     try {
+      // ── API 33+ handles permissions differently, but for older we still need check ──
       const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.CAMERA,
         {
           title: "Camera Permission",
-          message: "App needs camera access to take a photo of your payment proof.",
+          message: "App needs camera access to capture payment proof.",
           buttonNeutral: "Ask Me Later",
           buttonNegative: "Cancel",
           buttonPositive: "OK",
         }
       );
 
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        launchCamera({ mediaType: "photo", quality: 0.7, saveToPhotos: false }, (res) => {
-          if (res.didCancel) {
-            console.log("User cancelled camera");
-          } else if (res.errorCode) {
-            console.log("Camera Error: ", res.errorMessage || res.errorCode);
-            showAlert("error", "Camera Error", res.errorMessage || "Unable to open camera.");
-          } else if (res.assets?.length) {
-            setPaymentProof(res.assets[0].uri);
-            if (errors.paymentProof) setErrors(prev => ({ ...prev, paymentProof: null }));
-          }
+      if (granted === PermissionsAndroid.RESULTS.GRANTED || Platform.OS === 'ios') {
+        const result = await launchCamera({
+          mediaType: "photo",
+          quality: 0.7,
+          saveToPhotos: false,
+          includeBase64: false,
         });
+
+        if (result.didCancel) {
+          console.log("User cancelled camera");
+        } else if (result.errorCode) {
+          console.log("Camera Error: ", result.errorMessage || result.errorCode);
+          showAlert("error", "Camera Error", result.errorMessage || "Unable to open camera.");
+        } else if (result.assets?.length) {
+          setPaymentProof(result.assets[0].uri);
+          if (errors.paymentProof) setErrors(prev => ({ ...prev, paymentProof: null }));
+        }
       } else {
         showAlert("error", "Permission Denied", "Camera permission is required to use this feature.");
       }
     } catch (err) {
       console.warn("Camera Error:", err);
+      showAlert("error", "Error", "Unexpected error opening camera.");
     }
   };
   const handleGallery = () => launchImageLibrary({ mediaType: "photo", quality: 0.7 }, (res) => {

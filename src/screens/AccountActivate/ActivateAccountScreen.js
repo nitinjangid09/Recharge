@@ -19,6 +19,7 @@ import ImagePicker from 'react-native-image-crop-picker';
 import { redeemCoupon, getAllTopupBanks, BASE_URL, addIdChargeRequest } from '../../api/AuthApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '../../constants/Colors';
+import Fonts from '../../constants/Fonts';
 import { Image } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -160,7 +161,7 @@ function CouponPanel({ onSuccess }) {
                 />
                 {code.length > 0 && (
                     <TouchableOpacity style={styles.couponClear} onPress={() => setCode('')}>
-                        <Text style={{ color: C.slate, fontSize: 13, fontWeight: '700' }}>✕</Text>
+                        <Text style={{ color: C.slate, fontSize: 13, fontFamily: Fonts.Bold }}>✕</Text>
                     </TouchableOpacity>
                 )}
             </View>
@@ -774,130 +775,130 @@ const styles = StyleSheet.create({
     hero: { margin: 16, borderRadius: 28, padding: 24, backgroundColor: C.heroFrom, overflow: 'hidden', position: 'relative' },
     heroGlowTop: { position: 'absolute', top: -60, right: -30, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(244,114,43,0.4)', opacity: 0.6 },
     heroGlowBottom: { position: 'absolute', bottom: -80, left: -30, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(59,130,246,0.2)', opacity: 0.5 },
-    heroBadge: { fontSize: 9, fontWeight: '700', letterSpacing: 1.8, color: 'rgba(255,255,255,0.45)', marginBottom: 12 },
-    heroAmount: { fontSize: 48, fontWeight: '800', color: '#fff', lineHeight: 52 },
-    heroCurrency: { fontSize: 24, fontWeight: '500', color: 'rgba(255,255,255,0.55)' },
-    heroSub: { fontSize: 12, color: 'rgba(255,255,255,0.45)', fontWeight: '500', marginBottom: 16, marginTop: 2 },
+    heroBadge: { fontSize: 9, fontFamily: Fonts.Bold, letterSpacing: 1.8, color: 'rgba(255,255,255,0.45)', marginBottom: 12 },
+    heroAmount: { fontSize: 48, fontFamily: Fonts.Bold, color: '#fff', lineHeight: 52 },
+    heroCurrency: { fontSize: 24, fontFamily: Fonts.Medium, color: 'rgba(255,255,255,0.55)' },
+    heroSub: { fontSize: 12, color: 'rgba(255,255,255,0.45)', fontFamily: Fonts.Medium, marginBottom: 16, marginTop: 2 },
     heroPills: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
     heroPill: { backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', borderRadius: 100, paddingVertical: 5, paddingHorizontal: 10 },
     heroPillGreen: { backgroundColor: 'rgba(34,197,94,0.15)', borderColor: 'rgba(34,197,94,0.25)' },
-    heroPillText: { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.6)' },
+    heroPillText: { fontSize: 11, fontFamily: Fonts.SemiBold, color: 'rgba(255,255,255,0.6)' },
 
     // Section label
-    sectionLabel: { fontSize: 9, fontWeight: '700', letterSpacing: 1.8, color: C.slate, paddingHorizontal: 20, marginBottom: 10, textTransform: 'uppercase' },
+    sectionLabel: { fontSize: 9, fontFamily: Fonts.Bold, letterSpacing: 1.8, color: C.slate, paddingHorizontal: 20, marginBottom: 10, textTransform: 'uppercase' },
 
     // Tabs
     tabsContainer: { marginHorizontal: 16, marginBottom: 20, backgroundColor: C.white, borderRadius: 18, padding: 5, flexDirection: 'row', borderWidth: 1.5, borderColor: C.border, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 3, position: 'relative', height: 64 },
     tabIndicator: { position: 'absolute', top: 5, bottom: 5, width: '30%', backgroundColor: C.orange, borderRadius: 13, shadowColor: C.orange, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.22, shadowRadius: 12, elevation: 6 },
     tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, zIndex: 1 },
     tabIcon: { fontSize: 16 },
-    tabLabel: { fontSize: 11, fontWeight: '600', color: C.slate },
-    tabLabelActive: { color: C.white, fontWeight: '700' },
+    tabLabel: { fontSize: 11, fontFamily: Fonts.SemiBold, color: C.slate },
+    tabLabelActive: { color: C.white, fontFamily: Fonts.Bold },
 
     // Hub Container (Bank logic)
     hubContainer: { backgroundColor: C.white, borderRadius: 32, overflow: 'hidden', borderWidth: 1, borderColor: C.border, marginHorizontal: 1 },
     hubSidebar: { backgroundColor: C.hubDark, padding: 24 },
     hubHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20 },
     hubIconCircle: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
-    hubBrand: { fontSize: 12, fontWeight: '800', color: 'rgba(255,255,255,0.6)', letterSpacing: 1.5 },
-    hubTitle: { fontSize: 24, fontWeight: '800', color: C.white, marginBottom: 8 },
-    hubSubtitle: { fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 20, marginBottom: 24 },
+    hubBrand: { fontSize: 12, fontFamily: Fonts.Bold, color: 'rgba(255,255,255,0.6)', letterSpacing: 1.5 },
+    hubTitle: { fontSize: 24, fontFamily: Fonts.Bold, color: C.white, marginBottom: 8 },
+    hubSubtitle: { fontSize: 13, color: 'rgba(255,255,255,0.5)', fontFamily: Fonts.Regular, lineHeight: 20, marginBottom: 24 },
     hubSteps: { gap: 16, marginBottom: 20 },
     hubStepItem: { gap: 8 },
-    hubStepLabel: { fontSize: 9, fontWeight: '800', color: 'rgba(255,255,255,0.4)', letterSpacing: 1 },
+    hubStepLabel: { fontSize: 9, fontFamily: Fonts.Bold, color: 'rgba(255,255,255,0.4)', letterSpacing: 1 },
     hubDropdown: { height: 50, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16 },
-    hubDropdownText: { fontSize: 14, fontWeight: '600', color: C.white },
+    hubDropdownText: { fontSize: 14, fontFamily: Fonts.SemiBold, color: C.white },
     hubDropdownArrow: { fontSize: 10, color: 'rgba(255,255,255,0.3)' },
     bankPickerList: { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 8, marginBottom: 16 },
     bankPickerItem: { padding: 12, borderRadius: 8 },
     bankPickerItemActive: { backgroundColor: 'rgba(255,255,255,0.1)' },
-    bankPickerText: { color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: '600' },
+    bankPickerText: { color: 'rgba(255,255,255,0.6)', fontSize: 13, fontFamily: Fonts.SemiBold },
     bankPickerTextActive: { color: C.white },
     hubFeatureList: { gap: 12, marginTop: 20 },
     hubFeature: { flexDirection: 'row', alignItems: 'center', gap: 10 },
     hubFeatureIcon: { fontSize: 12, color: C.green },
-    hubFeatureText: { fontSize: 12, color: 'rgba(255,255,255,0.7)', fontWeight: '500' },
+    hubFeatureText: { fontSize: 12, color: 'rgba(255,255,255,0.7)', fontFamily: Fonts.Medium },
 
     hubContent: { padding: 20 },
     qrStage: { alignItems: 'center', paddingVertical: 20, gap: 16 },
     qrCardMain: { backgroundColor: C.white, borderRadius: 24, padding: 12, borderWidth: 1, borderColor: C.hubSkyGlow, shadowColor: C.hubSky, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 5 },
     qrBorder: { borderWidth: 4, borderColor: '#3b82f6', borderRadius: 18, borderStyle: 'solid', padding: 12, width: 220, height: 220, alignItems: 'center', justifyContent: 'space-between' },
     qrHeader: { flexDirection: 'row', gap: 4 },
-    qrBrand: { fontSize: 14, fontWeight: '900', color: '#1d4ed8' },
+    qrBrand: { fontSize: 14, fontFamily: Fonts.Bold, color: '#1d4ed8' },
     qrCodePlaceholder: { width: 140, height: 140, backgroundColor: '#f1f5f9', alignItems: 'center', justifyContent: 'center', borderRadius: 8, position: 'relative' },
     qrScanLine: { position: 'absolute', top: '50%', left: 0, right: 0, height: 2, backgroundColor: '#3b82f6', opacity: 0.5 },
     qrFooter: { alignItems: 'center' },
-    qrVpa: { fontSize: 12, fontWeight: '700', color: '#475569' },
+    qrVpa: { fontSize: 12, fontFamily: Fonts.Bold, color: '#475569' },
     qrStatusBadge: { backgroundColor: C.greenSoft, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 100, borderWidth: 1, borderColor: 'rgba(34,197,94,0.2)' },
-    qrStatusText: { fontSize: 10, fontWeight: '800', color: C.green, letterSpacing: 1 },
+    qrStatusText: { fontSize: 10, fontFamily: Fonts.Bold, color: C.green, letterSpacing: 1 },
 
     bankDetailGroup: { gap: 12, marginBottom: 32 },
     bankDetailItem: { gap: 6 },
-    bankDetailLabel: { fontSize: 9, fontWeight: '800', color: C.slate, letterSpacing: 1 },
+    bankDetailLabel: { fontSize: 9, fontFamily: Fonts.Bold, color: C.slate, letterSpacing: 1 },
     bankDetailRow: { height: 50, borderRadius: 12, backgroundColor: C.bg, borderWidth: 1, borderColor: C.border, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16 },
-    bankDetailValue: { fontSize: 14, fontWeight: '700', color: C.dark },
+    bankDetailValue: { fontSize: 14, fontFamily: Fonts.Bold, color: C.dark },
     copyIconText: { fontSize: 16, color: C.slateLight },
 
     confirmPaymentHeading: { marginBottom: 24 },
     headingBadge: { alignSelf: 'flex-start', backgroundColor: C.hubIndigoGlow, paddingVertical: 4, paddingHorizontal: 8, borderRadius: 6, marginBottom: 8 },
-    headingBadgeText: { fontSize: 9, fontWeight: '800', color: C.hubIndigo, letterSpacing: 1 },
-    confirmTitle: { fontSize: 24, fontWeight: '800', color: C.dark, marginBottom: 6 },
-    confirmSubtitle: { fontSize: 13, color: C.slate, lineHeight: 20 },
+    headingBadgeText: { fontSize: 9, fontFamily: Fonts.Bold, color: C.hubIndigo, letterSpacing: 1 },
+    confirmTitle: { fontSize: 24, fontFamily: Fonts.Bold, color: C.dark, marginBottom: 6 },
+    confirmSubtitle: { fontSize: 13, color: C.slate, fontFamily: Fonts.Regular, lineHeight: 20 },
 
     hubForm: { gap: 20 },
     hubFormRow: { flexDirection: 'row', gap: 16 },
     hubFormField: { flex: 1, gap: 8 },
-    hubFieldLabel: { fontSize: 10, fontWeight: '800', color: C.dark, textTransform: 'uppercase' },
+    hubFieldLabel: { fontSize: 10, fontFamily: Fonts.Bold, color: C.dark, textTransform: 'uppercase' },
     hubFieldInputWrap: { height: 50, borderRadius: 12, borderWidth: 1, borderColor: C.border, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 10 },
-    hubFieldCurrency: { fontSize: 14, fontWeight: '700', color: C.hubIndigo },
-    hubFieldInput: { flex: 1, fontSize: 14, fontWeight: '700', color: C.dark },
-    hubFieldPlaceholder: { flex: 1, fontSize: 13, fontWeight: '600', color: C.slateLight },
+    hubFieldCurrency: { fontSize: 14, fontFamily: Fonts.Bold, color: C.hubIndigo },
+    hubFieldInput: { flex: 1, fontSize: 14, fontFamily: Fonts.Bold, color: C.dark },
+    hubFieldPlaceholder: { flex: 1, fontSize: 13, fontFamily: Fonts.SemiBold, color: C.slateLight },
     hubFieldIcon: { fontSize: 12, color: C.slateLight },
-    hubFieldHint: { fontSize: 9, fontWeight: '600', color: C.slate, fontStyle: 'italic' },
+    hubFieldHint: { fontSize: 9, fontFamily: Fonts.SemiBold, color: C.slate, fontStyle: 'italic' },
 
     hubUploadBox: { height: 140, borderRadius: 16, borderStyle: 'dashed', borderWidth: 2, borderColor: C.border, alignItems: 'center', justifyContent: 'center', gap: 8 },
     hubUploadIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' },
-    hubUploadTitle: { fontSize: 14, fontWeight: '700', color: C.dark },
-    hubUploadSub: { fontSize: 10, fontWeight: '600', color: C.slateLight },
+    hubUploadTitle: { fontSize: 14, fontFamily: Fonts.Bold, color: C.dark },
+    hubUploadSub: { fontSize: 10, fontFamily: Fonts.SemiBold, color: C.slateLight },
 
     hubSubmitBtn: { height: 56, borderRadius: 28, backgroundColor: C.hubIndigo, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 12 },
-    hubSubmitText: { fontSize: 16, fontWeight: '800', color: C.white },
-    hubSubmitArrow: { fontSize: 18, color: C.white, fontWeight: '800' },
+    hubSubmitText: { fontSize: 16, fontFamily: Fonts.Bold, color: C.white },
+    hubSubmitArrow: { fontSize: 18, color: C.white, fontFamily: Fonts.Bold },
     hubTrustRow: { flexDirection: 'row', justifyContent: 'center', gap: 12, marginTop: 8 },
-    hubTrustText: { fontSize: 8, fontWeight: '800', color: C.slateLight, letterSpacing: 1 },
+    hubTrustText: { fontSize: 8, fontFamily: Fonts.Bold, color: C.slateLight, letterSpacing: 1 },
 
     // Form Picker lists
     methodPickerList: { position: 'absolute', top: 52, left: 0, right: 0, backgroundColor: C.white, borderRadius: 12, borderWidth: 1, borderColor: C.border, zIndex: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5 },
     methodPickerItem: { padding: 14, borderBottomWidth: 1, borderBottomColor: C.bg },
-    methodPickerText: { fontSize: 13, fontWeight: '700', color: C.dark },
+    methodPickerText: { fontSize: 13, fontFamily: Fonts.Bold, color: C.dark },
 
     // Panel card (shared by coupon + online)
     panelCard: { backgroundColor: Colors.white, borderRadius: 24, borderWidth: 1.5, borderColor: C.border, padding: 24, alignItems: 'center', gap: 14, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 3 },
     iconBox: { width: 72, height: 72, borderRadius: 22, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-    panelTitle: { fontSize: 22, fontWeight: '700', color: C.dark, textAlign: 'center' },
-    panelDesc: { fontSize: 13, color: C.slate, textAlign: 'center', lineHeight: 20, maxWidth: 270 },
+    panelTitle: { fontSize: 22, fontFamily: Fonts.Bold, color: C.dark, textAlign: 'center' },
+    panelDesc: { fontSize: 13, color: C.slate, fontFamily: Fonts.Regular, textAlign: 'center', lineHeight: 20, maxWidth: 270 },
 
     // Coupon input
     couponWrap: { width: '100%', position: 'relative' },
-    couponInput: { width: '100%', height: 54, borderRadius: 18, borderWidth: 2, borderColor: C.border, backgroundColor: C.muted, paddingHorizontal: 48, fontWeight: '700', fontSize: 18, letterSpacing: 2, textAlign: 'center', color: '#16a34a' },
+    couponInput: { width: '100%', height: 54, borderRadius: 18, borderWidth: 2, borderColor: C.border, backgroundColor: C.muted, paddingHorizontal: 48, fontFamily: Fonts.Bold, fontSize: 18, letterSpacing: 2, textAlign: 'center', color: '#16a34a' },
     couponClear: { position: 'absolute', right: 14, top: '50%', marginTop: -14, width: 28, height: 28, borderRadius: 10, backgroundColor: '#E2E8F0', alignItems: 'center', justifyContent: 'center' },
     inputErr: { borderColor: C.red, backgroundColor: '#FFF5F5' },
-    errText: { fontSize: 10, fontWeight: '700', color: C.red, textTransform: 'uppercase', letterSpacing: 0.8, alignSelf: 'flex-start', paddingHorizontal: 2 },
+    errText: { fontSize: 10, fontFamily: Fonts.Bold, color: C.red, textTransform: 'uppercase', letterSpacing: 0.8, alignSelf: 'flex-start', paddingHorizontal: 2 },
 
     // Method pills (online)
     methodPills: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
     methodPill: { backgroundColor: C.muted, borderWidth: 1.5, borderColor: C.border, borderRadius: 10, paddingVertical: 6, paddingHorizontal: 12 },
-    methodPillText: { fontSize: 11, fontWeight: '600', color: C.slate },
+    methodPillText: { fontSize: 11, fontFamily: Fonts.SemiBold, color: C.slate },
 
     // CTA button
     ctaBtn: { width: '100%', height: 56, borderRadius: 26, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', shadowColor: C.orange, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.22, shadowRadius: 16, elevation: 6 },
     ctaLoading: { opacity: 0.75 },
-    ctaBtnLabel: { color: C.white, fontSize: 16, fontWeight: '700', letterSpacing: 0.2 },
-    ctaArrow: { color: C.white, fontSize: 18, fontWeight: '700' },
+    ctaBtnLabel: { color: C.white, fontSize: 16, fontFamily: Fonts.Bold, letterSpacing: 0.2 },
+    ctaArrow: { color: C.white, fontSize: 18, fontFamily: Fonts.Bold },
 
     // Toast
     toast: { position: 'absolute', bottom: 32, alignSelf: 'center', borderRadius: 18, paddingVertical: 12, paddingHorizontal: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.15, shadowRadius: 24, elevation: 10 },
-    toastText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+    toastText: { color: '#fff', fontSize: 13, fontFamily: Fonts.SemiBold },
 
     // Panel wrap
     panelWrap: { paddingHorizontal: 16 },
@@ -906,7 +907,7 @@ const styles = StyleSheet.create({
     trustBar: { marginTop: 32, paddingHorizontal: 20, alignItems: 'center' },
     trustBarHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
     trustBarLine: { flex: 1, height: 1.5, backgroundColor: C.border, opacity: 0.7 },
-    trustBarTitle: { fontSize: 9, fontWeight: '800', color: C.slateLight, letterSpacing: 1.5, textTransform: 'uppercase' },
+    trustBarTitle: { fontSize: 9, fontFamily: Fonts.Bold, color: C.slateLight, letterSpacing: 1.5, textTransform: 'uppercase' },
     trustFooter: { flexDirection: 'row', justifyContent: 'center', gap: 10, flexWrap: 'wrap' },
     trustPill: {
         flexDirection: 'row',
@@ -924,5 +925,5 @@ const styles = StyleSheet.create({
         elevation: 1
     },
     trustPillIcon: { fontSize: 12, marginRight: 6 },
-    trustItem: { fontSize: 9, fontWeight: '700', color: C.slate, textTransform: 'uppercase', letterSpacing: 0.5 },
+    trustItem: { fontSize: 9, fontFamily: Fonts.Bold, color: C.slate, textTransform: 'uppercase', letterSpacing: 0.5 },
 });

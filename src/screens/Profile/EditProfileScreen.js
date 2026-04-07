@@ -127,7 +127,16 @@ const EditProfileScreen = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <HeaderBar title="Edit Profile" onBack={() => navigation.goBack()} />
+      {/* ── CUSTOM MINIMAL HEADER ── */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <MaterialCommunityIcons name="chevron-left" size={S(22)} color="#111" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Edit Profile</Text>
+        <TouchableOpacity style={styles.headerRightBtn}>
+          <MaterialCommunityIcons name="content-save-outline" size={S(20)} color="#D4B06A" />
+        </TouchableOpacity>
+      </View>
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -138,28 +147,30 @@ const EditProfileScreen = ({ navigation, route }) => {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.innerContainer}
         >
-          {/* AVATAR SECTION */}
+          {/* AVATAR SECTION — MATCHING SCREENSHOT */}
           <View style={styles.avatarSection}>
-            <View style={styles.avatarRing}>
-              {profilePic ? (
-                <Image source={{ uri: profilePic }} style={styles.avatarImg} />
-              ) : (
-                <View style={styles.avatarPlaceholder}>
-                  <Text style={styles.avatarInitial}>{initial}</Text>
-                </View>
-              )}
-              <TouchableOpacity style={styles.cameraBtn} onPress={pickImage}>
-                <MaterialCommunityIcons name="camera" size={S(12)} color="#000" />
-              </TouchableOpacity>
+            <View style={styles.avatarRingOuter}>
+              <View style={styles.avatarRingInner}>
+                {profilePic ? (
+                  <Image source={{ uri: profilePic }} style={styles.avatarImg} />
+                ) : (
+                  <View style={styles.avatarPlaceholder}>
+                    <Text style={styles.avatarInitial}>{initial}</Text>
+                  </View>
+                )}
+                <TouchableOpacity style={styles.cameraBtn} onPress={pickImage}>
+                  <MaterialCommunityIcons name="pencil" size={S(10)} color="#FFF" />
+                </TouchableOpacity>
+              </View>
             </View>
             <Text style={styles.tapToUpdate}>Tap to update photo</Text>
           </View>
 
-          {/* FIELDS */}
+          {/* FIELDS — MATCHING SCREENSHOT LOOK */}
           <View style={styles.formSection}>
             <InputBox
               label="Full Name"
-              placeholder="Enter full name"
+              placeholder="Full name"
               value={name}
               setValue={setName}
               icon="account-outline"
@@ -171,6 +182,7 @@ const EditProfileScreen = ({ navigation, route }) => {
               placeholder="Username"
               value={username}
               icon="lock-outline"
+              editable={false}
             />
 
             <InputBox
@@ -178,6 +190,8 @@ const EditProfileScreen = ({ navigation, route }) => {
               placeholder="Email address"
               value={email}
               icon="email-outline"
+              editable={true}
+              setValue={setEmail}
             />
 
             <InputBox
@@ -185,6 +199,7 @@ const EditProfileScreen = ({ navigation, route }) => {
               placeholder="Mobile number"
               value={phone}
               icon="phone-outline"
+              editable={false}
             />
 
             <InputBox
@@ -192,15 +207,16 @@ const EditProfileScreen = ({ navigation, route }) => {
               placeholder="Address"
               value={address}
               icon="map-marker-outline"
+              editable={true}
+              setValue={setAddress}
             />
 
             <InputBox
               label="Aadhar Number"
-              placeholder="Enter Aadhar number"
+              placeholder="Aadhar number"
               value={aadhar}
-              setValue={setAadhar}
-              icon="information-outline"
-              keyboardType="number-pad"
+              icon="identifier"
+              editable={false}
             />
 
             <InputBox
@@ -208,16 +224,16 @@ const EditProfileScreen = ({ navigation, route }) => {
               placeholder="PAN number"
               value={pan}
               icon="file-document-outline"
+              editable={false}
             />
           </View>
 
-          {/* Bottom Spacer */}
-          <View style={{ height: S(30) }} />
+          <View style={{ height: S(40) }} />
         </ScrollView>
 
-        {/* SAVE BUTTON */}
+        {/* SAVE BUTTON — LARGE BLACK BUTTON */}
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.saveBtn} activeOpacity={0.8} onPress={() => navigation.goBack()}>
+          <TouchableOpacity style={styles.saveBtn} activeOpacity={0.85} onPress={() => navigation.goBack()}>
             <MaterialCommunityIcons name="content-save-outline" size={S(18)} color="#FFF" style={{ marginRight: S(8) }} />
             <Text style={styles.saveBtnText}>Save Changes</Text>
           </TouchableOpacity>
@@ -235,123 +251,162 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFFFF",
   },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: S(18),
+    height: S(56),
+    backgroundColor: "#FFF",
+  },
+  backBtn: {
+    width: S(36),
+    height: S(36),
+    borderRadius: S(10),
+    backgroundColor: "#F7F8F9",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerTitle: {
+    fontSize: S(16),
+    fontFamily: Fonts.Bold,
+    color: "#111",
+  },
+  headerRightBtn: {
+    width: S(36),
+    height: S(36),
+    borderRadius: S(10),
+    backgroundColor: "#FFF9F0",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   innerContainer: {
     paddingBottom: S(20),
   },
   avatarSection: {
     alignItems: "center",
-    marginTop: S(10),
-    marginBottom: S(20),
+    marginTop: S(15),
+    marginBottom: S(25),
   },
-  avatarRing: {
-    width: S(100),
-    height: S(100),
-    borderRadius: S(50),
+  avatarRingOuter: {
+    width: S(96),
+    height: S(96),
+    borderRadius: S(48),
     borderWidth: 1.5,
-    borderColor: "#D4B06A90", // Faint gold ring
+    borderColor: "#D4B06A",
     alignItems: "center",
     justifyContent: "center",
-    padding: S(4),
+  },
+  avatarRingInner: {
+    width: S(84),
+    height: S(84),
+    borderRadius: S(42),
+    backgroundColor: "#F7F8F9",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
   },
   avatarImg: {
     width: "100%",
     height: "100%",
-    borderRadius: S(50),
+    borderRadius: S(42),
   },
   avatarPlaceholder: {
     width: "100%",
     height: "100%",
-    borderRadius: S(50),
-    backgroundColor: "#FCECC8",
+    borderRadius: S(42),
+    backgroundColor: "#FFF9F0",
     alignItems: "center",
     justifyContent: "center",
   },
   avatarInitial: {
-    fontSize: S(32),
+    fontSize: S(28),
     fontFamily: Fonts.Bold,
     color: "#D4B06A",
   },
   cameraBtn: {
     position: "absolute",
-    bottom: S(2),
-    right: S(2),
-    backgroundColor: "#FFFFFF",
-    width: S(22),
-    height: S(22),
-    borderRadius: S(11),
+    bottom: S(0),
+    right: S(-4),
+    backgroundColor: "#D4B06A",
+    width: S(20),
+    height: S(20),
+    borderRadius: S(10),
     alignItems: "center",
     justifyContent: "center",
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
+    borderWidth: 2,
+    borderColor: "#FFF",
   },
   tapToUpdate: {
-    fontSize: S(11),
-    color: "#999",
-    marginTop: S(8),
+    fontSize: S(10),
+    color: "#9CA3AF",
+    marginTop: S(12),
     fontFamily: Fonts.Medium,
+    letterSpacing: 0.2,
   },
   formSection: {
     width: "100%",
-    paddingHorizontal: S(18),
+    paddingHorizontal: S(20),
   },
   fieldWrapper: {
-    marginTop: S(14),
+    marginBottom: S(18),
   },
   boxLabel: {
     color: "#D4B06A",
-    fontSize: S(11),
+    fontSize: S(10),
     fontFamily: Fonts.Bold,
     marginBottom: S(6),
     marginLeft: S(2),
+    letterSpacing: 0.3,
   },
   inputContainer: {
-    backgroundColor: "#F6F8FA",
-    borderRadius: S(16),
+    backgroundColor: "#F7F8F9",
+    borderRadius: S(12),
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: S(14),
+    height: S(52),
   },
   boxInput: {
     flex: 1,
-    height: S(46),
     fontSize: S(14),
-    color: "#1A1A2E",
-    fontFamily: Fonts.Medium,
+    color: "#111827",
+    fontFamily: Fonts.Bold,
   },
   inputIcon: {
     marginLeft: S(10),
+    opacity: 0.5,
   },
   disabledBox: {
-    opacity: 0.95,
+    opacity: 0.7,
   },
   disabledText: {
-    color: "#4B5563",
+    color: "#6B7280",
   },
   footer: {
-    paddingHorizontal: S(18),
-    paddingBottom: S(15),
+    paddingHorizontal: S(20),
+    paddingBottom: Platform.OS === 'ios' ? S(30) : S(20),
     backgroundColor: "#FFFFFF",
   },
   saveBtn: {
-    backgroundColor: "#000000",
-    height: S(50),
-    borderRadius: S(25),
+    backgroundColor: "#111827",
+    height: S(56),
+    borderRadius: S(16),
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     elevation: 4,
     shadowColor: "#000",
     shadowOpacity: 0.2,
-    shadowRadius: 6,
+    shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
   },
   saveBtnText: {
     color: "#FFFFFF",
     fontSize: S(15),
     fontFamily: Fonts.Bold,
+    letterSpacing: 0.3,
   },
 });
+
 

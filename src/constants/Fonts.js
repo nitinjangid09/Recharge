@@ -1,6 +1,15 @@
 const Fonts = {
+    // Safety alias
+    fonts: {
+        Bold: "Lufga-Bold",
+        SemiBold: "Lufga-SemiBold",
+        Medium: "Lufga-Medium",
+        Regular: "Lufga-Regular",
+    },
+
     // Lufga Font Family
     Bold: "Lufga-Bold",
+    SemiBold: "Lufga-SemiBold",
     Medium: "Lufga-Medium",
     Regular: "Lufga-Regular",
     Light: "Lufga-Light",

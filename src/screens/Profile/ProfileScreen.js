@@ -681,7 +681,6 @@ const styles = StyleSheet.create({
   sect: {
     fontFamily: Fonts.Bold,
     fontSize: 10,
-    fontWeight: "700",
     letterSpacing: 1,
     textTransform: "uppercase",
     color: Colors.black,

@@ -14,7 +14,8 @@ import {
   Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import Fonts from "../../constants/Fonts";
+import Colors from "../../constants/Colors";
 import {
   fetchUserProfile,
   createSupportRequest,
@@ -487,10 +488,10 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     marginBottom: 10,
   },
-  supportPillTxt: { color: "#fff", fontWeight: "700", fontSize: 11, letterSpacing: 1 },
-  headingBlack: { fontSize: 34, fontWeight: "900", color: "#111827", lineHeight: 40 },
-  headingRed: { fontSize: 34, fontWeight: "900", color: "#D71920", lineHeight: 40 },
-  subheading: { fontSize: 13, color: "#6B7280", marginTop: 6, marginBottom: 4 },
+  supportPillTxt: { color: "#fff", fontFamily: Fonts.Bold, fontSize: 11, letterSpacing: 1 },
+  headingBlack: { fontSize: 34, fontFamily: Fonts.Bold, color: "#111827", lineHeight: 40 },
+  headingRed: { fontSize: 34, fontFamily: Fonts.Bold, color: "#D71920", lineHeight: 40 },
+  subheading: { fontSize: 13, fontFamily: Fonts.Medium, color: "#6B7280", marginTop: 6, marginBottom: 4 },
 
   card: {
     backgroundColor: "#fff",
@@ -503,11 +504,11 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 4,
   },
-  cardTitle: { fontSize: 16, fontWeight: "800", color: "#111827", marginBottom: 4 },
+  cardTitle: { fontSize: 16, fontFamily: Fonts.Bold, color: "#111827", marginBottom: 4 },
 
   fieldLabel: {
     fontSize: 11,
-    fontWeight: "700",
+    fontFamily: Fonts.Bold,
     color: "#6B7280",
     letterSpacing: 0.8,
     marginTop: 16,
@@ -525,9 +526,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   inputBoxFocused: { borderColor: "#D71920" },
-  inputText: { flex: 1, color: "#111827", fontSize: 14 },
-  placeholderText: { flex: 1, color: "#9CA3AF", fontSize: 14 },
-  dropArrow: { color: "#9CA3AF", fontSize: 16 },
+  inputText: { flex: 1, color: "#111827", fontSize: 14, fontFamily: Fonts.Medium },
+  placeholderText: { flex: 1, color: "#9CA3AF", fontSize: 14, fontFamily: Fonts.Medium },
+  dropArrow: { color: "#9CA3AF", fontSize: 16, fontFamily: Fonts.Medium },
 
   submitButton: {
     backgroundColor: "#D71920",
@@ -537,13 +538,13 @@ const styles = StyleSheet.create({
     marginTop: 22,
   },
   submitButtonDisabled: { opacity: 0.65 },
-  submitText: { color: "#fff", fontWeight: "800", fontSize: 14, letterSpacing: 1 },
+  submitText: { color: "#fff", fontFamily: Fonts.Bold, fontSize: 14, letterSpacing: 1 },
 
-  refreshBtn: { fontSize: 14, color: "#D71920", fontWeight: "700" },
+  refreshBtn: { fontSize: 14, color: "#D71920", fontFamily: Fonts.Bold },
 
   emptyWrap: { alignItems: "center", marginTop: 30 },
   emptyIcon: { fontSize: 40, marginBottom: 8 },
-  emptyText: { color: "#9CA3AF", fontSize: 14 },
+  emptyText: { color: "#9CA3AF", fontSize: 14, fontFamily: Fonts.Medium },
 
   historyCard: {
     backgroundColor: "#fff",
@@ -563,14 +564,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 8,
   },
-  ticketId: { fontWeight: "800", fontSize: 14, color: "#111827" },
+  ticketId: { fontFamily: Fonts.Bold, fontSize: 14, color: "#111827" },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
-  statusText: { fontSize: 11, fontWeight: "700", letterSpacing: 0.5 },
-  rowLabel: { fontWeight: "700", color: "#374151" },
-  rowText: { fontSize: 13, color: "#6B7280", marginTop: 3 },
+  statusText: { fontSize: 11, fontFamily: Fonts.Bold, letterSpacing: 0.5 },
+  rowLabel: { fontFamily: Fonts.Bold, color: "#374151" },
+  rowText: { fontSize: 13, color: "#6B7280", marginTop: 3, fontFamily: Fonts.Medium },
   expandedWrap: { marginTop: 8 },
   divider: { height: 1, backgroundColor: "#F3F4F6", marginVertical: 10 },
-  caret: { fontSize: 11, color: "#D71920", fontWeight: "600", marginTop: 10, textAlign: "right" },
+  caret: { fontSize: 11, color: "#D71920", fontFamily: Fonts.SemiBold, marginTop: 10, textAlign: "right" },
 
   actionRow: { paddingHorizontal: 20, marginTop: 10 },
   historyBtn: {
@@ -581,7 +582,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: "#D71920",
   },
-  historyBtnTxt: { color: "#D71920", fontWeight: "800", fontSize: 13, letterSpacing: 1 },
+  historyBtnTxt: { color: "#D71920", fontFamily: Fonts.Bold, fontSize: 13, letterSpacing: 1 },
 });
 
 const pickerStyles = StyleSheet.create({
@@ -607,8 +608,8 @@ const pickerStyles = StyleSheet.create({
     alignSelf: "center",
     marginBottom: 16,
   },
-  title: { fontSize: 17, fontWeight: "800", color: "#111827", marginBottom: 14 },
-  emptyText: { color: "#9CA3AF", fontSize: 14, textAlign: "center", marginVertical: 30 },
+  title: { fontSize: 17, fontFamily: Fonts.Bold, color: "#111827", marginBottom: 14 },
+  emptyText: { color: "#9CA3AF", fontSize: 14, textAlign: "center", marginVertical: 30, fontFamily: Fonts.Medium },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -617,10 +618,10 @@ const pickerStyles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#F3F4F6",
   },
-  rowText: { fontSize: 15, color: "#374151" },
+  rowText: { fontSize: 15, color: "#374151", fontFamily: Fonts.Medium },
   activeRow: { backgroundColor: "#FEF2F2", borderRadius: 12, paddingHorizontal: 10 },
-  activeText: { color: "#D71920", fontWeight: "700" },
-  checkmark: { color: "#D71920", fontWeight: "700", fontSize: 16 },
+  activeText: { color: "#D71920", fontFamily: Fonts.Bold },
+  checkmark: { color: "#D71920", fontFamily: Fonts.Bold, fontSize: 16 },
   closeBtn: {
     marginTop: 16,
     paddingVertical: 14,
@@ -628,7 +629,7 @@ const pickerStyles = StyleSheet.create({
     borderRadius: 14,
     alignItems: "center",
   },
-  closeTxt: { color: "#374151", fontWeight: "700", fontSize: 14 },
+  closeTxt: { color: "#374151", fontFamily: Fonts.Bold, fontSize: 14 },
 });
 
 const historyStyles = StyleSheet.create({
@@ -640,7 +641,7 @@ const historyStyles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 12,
   },
-  title: { fontSize: 18, fontWeight: "800", color: "#111827" },
+  title: { fontSize: 18, fontFamily: Fonts.Bold, color: "#111827" },
 });
 
 const paginationStyles = StyleSheet.create({
@@ -675,7 +676,7 @@ const paginationStyles = StyleSheet.create({
   btnText: {
     color: "#fff",
     fontSize: 12,
-    fontWeight: "800",
+    fontFamily: Fonts.Bold,
     letterSpacing: 0.5,
   },
   infoContainer: {
@@ -683,7 +684,7 @@ const paginationStyles = StyleSheet.create({
   },
   infoText: {
     fontSize: 14,
-    fontWeight: "700",
+    fontFamily: Fonts.Bold,
     color: "#374151",
   },
 });

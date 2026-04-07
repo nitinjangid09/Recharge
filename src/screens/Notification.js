@@ -298,8 +298,8 @@ const styles = StyleSheet.create({
     },
     tabText: {
         fontSize: 12,
-        fontWeight: '600',
         color: GRAY_TEXT,
+        fontFamily: Fonts.Medium,
     },
     tabTextActive: {
         color: GOLD_LIGHT,
@@ -312,11 +312,11 @@ const styles = StyleSheet.create({
     },
     sectionLabel: {
         fontSize: 10,
-        fontWeight: '700',
         color: GRAY_TEXT,
         letterSpacing: 1.2,
         marginBottom: 10,
         paddingLeft: 2,
+        fontFamily: Fonts.Bold,
     },
     notifList: {
         gap: 8,
@@ -379,26 +379,27 @@ const styles = StyleSheet.create({
     },
     notifTitle: {
         fontSize: 13,
-        fontWeight: '600',
         color: Colors.text_primary,
         letterSpacing: -0.1,
         flex: 1,
+        fontFamily: Fonts.Bold,
     },
     notifTime: {
         fontSize: 10,
         color: GRAY_TEXT,
-        fontWeight: '500',
         flexShrink: 0,
         marginLeft: 8,
+        fontFamily: Fonts.Medium,
     },
     notifBody: {
         fontSize: 12,
         color: GRAY_TEXT,
         lineHeight: 18,
+        fontFamily: Fonts.Medium,
     },
     notifBodyBold: {
         color: BLACK_2,
-        fontWeight: '600',
+        fontFamily: Fonts.Bold,
     },
     unreadDot: {
         width: 8,
@@ -419,6 +420,6 @@ const styles = StyleSheet.create({
     },
     badgeText: {
         fontSize: 10,
-        fontWeight: '600',
+        fontFamily: Fonts.Bold,
     },
 });

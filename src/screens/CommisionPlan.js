@@ -21,6 +21,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { getMyCommissionPlan, fetchBbpsCategories } from '../api/AuthApi';
 import Colors from '../constants/Colors';
 import HeaderBar from '../componets/HeaderBar/HeaderBar';
+import Fonts from '../constants/Fonts';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -55,7 +56,7 @@ const CommTable = ({ data, accentColor }) => (
                 {data.length === 0 && (
                     <View style={{ padding: 20, alignItems: 'center' }}>
                         <MaterialCommunityIcons name="table-off" size={28} color={Colors.gray_BD} />
-                        <Text style={{ fontSize: 12, color: Colors.text_secondary, marginTop: 8 }}>
+                        <Text style={{ fontSize: 12, color: Colors.text_secondary, marginTop: 8, fontFamily: Fonts.Medium }}>
                             No data found for this category
                         </Text>
                     </View>
@@ -197,7 +198,7 @@ export default function CommissionPlanScreen({ navigation }) {
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
                     <Text style={{ color: Colors.finance_error, textAlign: 'center' }}>{error}</Text>
                     <TouchableOpacity onPress={fetchPlan} style={{ marginTop: 12, paddingHorizontal: 20, paddingVertical: 10, backgroundColor: Colors.primary, borderRadius: 8 }}>
-                        <Text style={{ color: Colors.white, fontWeight: '700' }}>Retry</Text>
+                        <Text style={{ color: Colors.white, fontWeight: '700', fontFamily: Fonts.Bold }}>Retry</Text>
                     </TouchableOpacity>
                 </View>
             ) : (
@@ -401,14 +402,15 @@ const s = StyleSheet.create({
     planInfo: { flex: 1 },
     planName: {
         fontSize: 13.5,
-        fontWeight: '800',
         color: Colors.black,
         letterSpacing: 0.5,
+        fontFamily: Fonts.Bold,
     },
     planOrg: {
         fontSize: 11.5,
         color: Colors.text_secondary,
         marginTop: 2,
+        fontFamily: Fonts.Medium,
     },
     activeBadge: {
         flexDirection: 'row',
@@ -429,9 +431,9 @@ const s = StyleSheet.create({
     },
     activeTxt: {
         fontSize: 10,
-        fontWeight: '700',
         color: Colors.finance_success,
         letterSpacing: 0.7,
+        fontFamily: Fonts.Bold,
         textTransform: 'uppercase',
     },
     sh: {
@@ -445,9 +447,9 @@ const s = StyleSheet.create({
     shPip: { width: 3, height: 17, borderRadius: 2 },
     shTitle: {
         fontSize: 13.5,
-        fontWeight: '800',
         color: Colors.finance_text,
         letterSpacing: 0.7,
+        fontFamily: Fonts.Bold,
         textTransform: 'uppercase',
     },
     shTag: {
@@ -458,8 +460,8 @@ const s = StyleSheet.create({
     },
     shTagTxt: {
         fontSize: 9.5,
-        fontWeight: '700',
         letterSpacing: 0.8,
+        fontFamily: Fonts.Bold,
         textTransform: 'uppercase',
     },
     segWrapper: { paddingTop: 10, paddingBottom: 12 },
@@ -488,9 +490,9 @@ const s = StyleSheet.create({
     },
     segBtnTxt: {
         fontSize: 11,
-        fontWeight: '700',
         color: Colors.text_secondary,
         letterSpacing: 0.5,
+        fontFamily: Fonts.Bold,
         textTransform: 'uppercase',
     },
     segBtnTxtOn: { color: Colors.white },
@@ -518,9 +520,9 @@ const s = StyleSheet.create({
     th: {
         flex: 1,
         fontSize: 9.5,
-        fontWeight: '700',
         color: Colors.primary,
         letterSpacing: 1,
+        fontFamily: Fonts.Bold,
         textTransform: 'uppercase',
         textAlign: 'center',
     },
@@ -535,20 +537,21 @@ const s = StyleSheet.create({
     tdName: {
         flex: 1,
         fontSize: 12.5,
-        fontWeight: '700',
         color: Colors.finance_text,
+        fontFamily: Fonts.Bold,
         textAlign: 'left',
     },
     tdRange: {
         flex: 1,
         fontSize: 11.5,
         color: Colors.text_secondary,
+        fontFamily: Fonts.Medium,
         textAlign: 'center',
     },
     tdComm: {
         flex: 1,
         fontSize: 13,
-        fontWeight: '800',
+        fontFamily: Fonts.Bold,
         textAlign: 'center',
     },
     badge: {
@@ -570,8 +573,8 @@ const s = StyleSheet.create({
     },
     badgeTxt: {
         fontSize: 9,
-        fontWeight: '700',
         letterSpacing: 0.6,
+        fontFamily: Fonts.Bold,
         textTransform: 'uppercase',
         textAlign: 'center',
     },
@@ -587,6 +590,7 @@ const s = StyleSheet.create({
         paddingVertical: 8,
         fontSize: 13,
         color: Colors.finance_text,
+        fontFamily: Fonts.Medium,
     },
     bbpsBarRow: {
         flexDirection: 'row',
@@ -633,6 +637,7 @@ const s = StyleSheet.create({
         paddingVertical: 10,
         fontSize: 14,
         color: Colors.text_primary,
+        fontFamily: Fonts.Medium,
     },
     searchClear: { padding: 4 },
 
@@ -670,8 +675,8 @@ const s = StyleSheet.create({
     },
     modalTitle: {
         fontSize: 17,
-        fontWeight: '800',
         color: Colors.white,
+        fontFamily: Fonts.Bold,
         letterSpacing: 0.2,
     },
     modalCloseBtn: {
@@ -705,12 +710,12 @@ const s = StyleSheet.create({
     },
     catItemTxt: {
         fontSize: 15,
-        fontWeight: '600',
         color: Colors.black,
+        fontFamily: Fonts.Medium,
     },
     catItemTxtOn: {
         color: Colors.black,
-        fontWeight: '700',
+        fontFamily: Fonts.Bold,
     },
 
     // ── Retry ──
@@ -723,8 +728,8 @@ const s = StyleSheet.create({
     },
     retryTxt: {
         color: Colors.finance_accent,
-        fontWeight: '700',
         fontSize: 15,
+        fontFamily: Fonts.Bold,
         letterSpacing: 0.3,
     },
 });

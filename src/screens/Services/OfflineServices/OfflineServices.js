@@ -335,13 +335,11 @@ const styles = StyleSheet.create({
     },
     statValue: {
         fontSize: 34,
-        fontWeight: '900',
         color: Colors.primary,
         fontFamily: Fonts.Bold,
     },
     statLabel: {
         fontSize: 9,
-        fontWeight: '800',
         color: Colors.text_secondary,
         letterSpacing: 0.9,
         marginTop: 5,
@@ -364,7 +362,6 @@ const styles = StyleSheet.create({
     },
     sectionLabel: {
         fontSize: 10,
-        fontWeight: '900',
         color: Colors.finance_accent,
         letterSpacing: 1.8,
         fontFamily: Fonts.Bold,
@@ -377,7 +374,6 @@ const styles = StyleSheet.create({
     },
     sectionBadgeText: {
         fontSize: 10,
-        fontWeight: '800',
         color: Colors.white,
         fontFamily: Fonts.Bold,
     },
@@ -426,7 +422,6 @@ const styles = StyleSheet.create({
     itrTitle: {
         paddingTop: 12,
         fontSize: 18,
-        fontWeight: '900',
         color: Colors.primary,
         letterSpacing: 0.5,
         marginBottom: 4,
@@ -445,14 +440,12 @@ const styles = StyleSheet.create({
     },
     itrFeeLabel: {
         fontSize: 9,
-        fontWeight: '800',
         color: Colors.finance_accent,
         letterSpacing: 1.4,
         fontFamily: Fonts.Bold,
     },
     itrFee: {
         fontSize: 26,
-        fontWeight: '900',
         color: Colors.primary,
         marginTop: 3,
         fontFamily: Fonts.Bold,
@@ -470,7 +463,6 @@ const styles = StyleSheet.create({
     },
     proceedBtnText: {
         fontSize: 12,
-        fontWeight: '900',
         color: Colors.white,
         letterSpacing: 0.8,
         fontFamily: Fonts.Bold,
@@ -542,7 +534,6 @@ const styles = StyleSheet.create({
     },
     pcNo: {
         fontSize: 11,
-        fontWeight: '800',
         color: Colors.white,
         fontFamily: Fonts.Bold,
     },
@@ -553,7 +544,6 @@ const styles = StyleSheet.create({
     },
     pcTitle: {
         fontSize: 13,
-        fontWeight: '900',
         color: Colors.primary,
         letterSpacing: 0.3,
         marginBottom: 3,
@@ -562,7 +552,6 @@ const styles = StyleSheet.create({
     pcRef: {
         fontSize: 11,
         color: Colors.finance_accent,
-        fontWeight: '700',
         letterSpacing: 0.6,
         fontFamily: Fonts.Medium,
     },
@@ -592,13 +581,11 @@ const styles = StyleSheet.create({
     },
     userAvatarText: {
         fontSize: 10,
-        fontWeight: '800',
         color: Colors.white,
         fontFamily: Fonts.Bold,
     },
     userName: {
         fontSize: 11,
-        fontWeight: '700',
         color: Colors.primary,
         fontFamily: Fonts.Medium,
     },
@@ -614,7 +601,6 @@ const styles = StyleSheet.create({
     },
     pcAmount: {
         fontSize: 12,
-        fontWeight: '800',
         color: Colors.primary,
         fontFamily: Fonts.Bold,
     },
@@ -635,7 +621,6 @@ const styles = StyleSheet.create({
     },
     badgeText: {
         fontSize: 9,
-        fontWeight: '800',
         letterSpacing: 0.4,
         fontFamily: Fonts.Bold,
     },

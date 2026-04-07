@@ -25,9 +25,9 @@ import Fonts from "../../constants/Fonts";
 import Colors from "../../constants/Colors";
 import { getWalletBalance, fetchUserProfile, getAllBanners, getWalletReport, BASE_URL } from "../../api/AuthApi";
 
-import BBPSIconSVG from "../../assets/Icons/BBPS.svg";
-import RechargeIconSVG from "../../assets/Icons/Recharge.svg";
-import OfflineServicesIconSVG from "../../assets/Icons/ofline service.svg";
+import BBPSIconSVG from "../../assets/ServicesIcons/BBPS.svg";
+import RechargeIconSVG from "../../assets/ServicesIcons/Recharge.svg";
+import OfflineServicesIconSVG from "../../assets/ServicesIcons/ofline service.svg";
 
 
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -675,7 +675,7 @@ export default function FinanceHome({ navigation }) {
                     <View style={S.rowBetween}>
                       <View style={S.walletTag}>
                         <Icon name="wallet-outline" size={rs(13)} color="#d4b06a" />
-                        <Text style={S.walletTagTxt}>AEPS Wallet</Text>
+                        <Text style={S.walletTagTxt}>Pre Wallet</Text>
                       </View>
                       <TouchableOpacity
                         style={S.swapBtn}
@@ -688,7 +688,7 @@ export default function FinanceHome({ navigation }) {
                     </View>
 
                     <View style={{ marginTop: rs(8) }}>
-                      <Text style={S.balLabel}>AEPS Balance</Text>
+                      <Text style={S.balLabel}>Pre Balance</Text>
                       <View style={{ flexDirection: "row", alignItems: "center" }}>
                         {!balanceLoading && <Text style={S.rupee}>₹</Text>}
                         {balanceLoading

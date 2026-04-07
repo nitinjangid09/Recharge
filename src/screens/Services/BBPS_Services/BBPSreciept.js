@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import Colors from "../../constants/Colors";
+import Fonts from "../../constants/Fonts";
 
 const BbpsReceiptScreen = ({ route }) => {
   const navigation = useNavigation();
@@ -227,8 +228,8 @@ const styles = StyleSheet.create({
 
   // Header — identical to service screen
   header: { paddingVertical: 22, alignItems: "center" },
-  headerTitle: { fontSize: 22, fontWeight: "700", color: Colors.white || "#FFF", letterSpacing: 0.3 },
-  headerSub: { fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 3 },
+  headerTitle: { fontSize: 22, fontFamily: Fonts.Bold, color: Colors.white || "#FFF", letterSpacing: 0.3 },
+  headerSub: { fontSize: 12, fontFamily: Fonts.Regular, color: "rgba(255,255,255,0.6)", marginTop: 3 },
 
   // Body card — identical to service screen
   body: {
@@ -254,17 +255,17 @@ const styles = StyleSheet.create({
   },
   iconWrapSuccess: { backgroundColor: SUCCESS_BG, borderColor: SUCCESS_RING },
   iconWrapFailed: { backgroundColor: FAILED_BG, borderColor: FAILED_RING },
-  iconEmoji: { fontSize: 34, fontWeight: "800" },
+  iconEmoji: { fontSize: 34, fontFamily: Fonts.Bold },
 
   // Status text
-  statusTitle: { fontSize: 20, fontWeight: "700", marginBottom: 4 },
+  statusTitle: { fontSize: 20, fontFamily: Fonts.Bold, marginBottom: 4 },
   successColor: { color: SUCCESS_GREEN },
   failedColor: { color: FAILED_RED },
   amountText: {
-    fontSize: 30, fontWeight: "800", color: Colors.black || "#1A1A2E", marginTop: 4, marginBottom: 4,
+    fontSize: 30, fontFamily: Fonts.Bold, color: Colors.black || "#1A1A2E", marginTop: 4, marginBottom: 4,
   },
   failureReason: {
-    fontSize: 13, color: "#6B7280", textAlign: "center",
+    fontSize: 13, fontFamily: Fonts.Regular, color: "#6B7280", textAlign: "center",
     marginTop: 6, marginHorizontal: 20, lineHeight: 20,
   },
 
@@ -283,8 +284,8 @@ const styles = StyleSheet.create({
   },
   cardHeaderSuccess: { backgroundColor: SUCCESS_BG },
   cardHeaderFailed: { backgroundColor: FAILED_BG },
-  cardHeaderTxt: { fontSize: 13, fontWeight: "700", color: Colors.black || "#1A1A2E" },
-  cardHeaderSub: { fontSize: 11, color: "#9CA3AF" },
+  cardHeaderTxt: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.black || "#1A1A2E" },
+  cardHeaderSub: { fontSize: 11, fontFamily: Fonts.Regular, color: "#9CA3AF" },
 
   cardBody: { paddingHorizontal: 18, paddingBottom: 10, paddingTop: 6 },
 
@@ -295,12 +296,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: "#E5E7EB",
   },
-  detailLabel: { fontSize: 13, color: "#6B7280", flex: 1 },
+  detailLabel: { fontSize: 13, fontFamily: Fonts.Regular, color: "#6B7280", flex: 1 },
   detailValue: {
-    fontSize: 13, fontWeight: "600", color: Colors.black || "#1A1A2E",
+    fontSize: 13, fontFamily: Fonts.SemiBold, color: Colors.black || "#1A1A2E",
     flex: 1.5, textAlign: "right",
   },
-  detailValueHighlight: { fontSize: 15, fontWeight: "700", color: Colors.primary },
+  detailValueHighlight: { fontSize: 15, fontFamily: Fonts.Bold, color: Colors.primary },
   detailValueMono: { fontFamily: "monospace", fontSize: 12 },
 
   // Status badge
@@ -309,7 +310,7 @@ const styles = StyleSheet.create({
   },
   badgeSuccess: { backgroundColor: SUCCESS_BG },
   badgeFailed: { backgroundColor: FAILED_BG },
-  badgeTxt: { fontSize: 11, fontWeight: "700", letterSpacing: 0.6 },
+  badgeTxt: { fontSize: 11, fontFamily: Fonts.Bold, letterSpacing: 0.6 },
   badgeTxtSuccess: { color: SUCCESS_GREEN },
   badgeTxtFailed: { color: FAILED_RED },
 
@@ -320,12 +321,12 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: FAILED_RED,
     paddingVertical: 16, borderRadius: 16, alignItems: "center", elevation: 1,
   },
-  retryBtnTxt: { color: FAILED_RED, fontSize: 15, fontWeight: "700" },
+  retryBtnTxt: { color: FAILED_RED, fontSize: 15, fontFamily: Fonts.Bold },
 
   doneBtn: {
     paddingVertical: 16, borderRadius: 16, alignItems: "center", elevation: 5,
   },
   doneBtnSuccess: { backgroundColor: Colors.accent || Colors.primary },
   doneBtnNeutral: { backgroundColor: Colors.primary },
-  doneBtnTxt: { color: Colors.white || "#FFF", fontSize: 16, fontWeight: "700", letterSpacing: 0.3 },
+  doneBtnTxt: { color: Colors.white || "#FFF", fontSize: 16, fontFamily: Fonts.Bold, letterSpacing: 0.3 },
 });

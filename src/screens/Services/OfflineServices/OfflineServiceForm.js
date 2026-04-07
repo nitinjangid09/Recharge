@@ -106,30 +106,9 @@ export default function OfflineServiceForm({ navigation, route }) {
             saveToPhotos: false,
         };
 
-        const callback = (res) => {
-            if (res.didCancel) return;
-            if (res.errorCode) {
-                console.log("[ImagePicker] error:", res.errorMessage || res.errorCode);
-                showAlert('error', 'Camera Error', res.errorMessage || 'Could not open camera.');
-                return;
-            }
-
-            if (res.assets && res.assets.length > 0) {
-                const asset = res.assets[0];
-                setDocuments(prev => ({
-                    ...prev,
-                    [key]: {
-                        uri: asset.uri,
-                        name: asset.fileName || asset.uri.split('/').pop() || `${key}.jpg`,
-                        type: asset.type || 'image/jpeg',
-                    }
-                }));
-                setShowImageModal(false);
-            }
-        };
-
         if (source === 'camera') {
             try {
+                // ── Standard Android permission request ──
                 const granted = await PermissionsAndroid.request(
                     PermissionsAndroid.PERMISSIONS.CAMERA,
                     {
@@ -140,16 +119,47 @@ export default function OfflineServiceForm({ navigation, route }) {
                         buttonPositive: "OK",
                     }
                 );
-                if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-                    launchCamera(options, callback);
+                if (granted === PermissionsAndroid.RESULTS.GRANTED || Platform.OS === 'ios') {
+                    const result = await launchCamera(options);
+                    if (result.didCancel) return;
+                    if (result.errorCode) {
+                        console.log("[ImagePicker] error:", result.errorMessage || result.errorCode);
+                        showAlert('error', 'Camera Error', result.errorMessage || 'Could not open camera.');
+                        return;
+                    }
+                    if (result.assets && result.assets.length > 0) {
+                        const asset = result.assets[0];
+                        setDocuments(prev => ({
+                            ...prev,
+                            [key]: {
+                                uri: asset.uri,
+                                name: asset.fileName || asset.uri.split('/').pop() || `${key}.jpg`,
+                                type: asset.type || 'image/jpeg',
+                            }
+                        }));
+                        setShowImageModal(false);
+                    }
                 } else {
                     showAlert('error', 'Permission Denied', 'Camera permission is required to take photos.');
                 }
             } catch (err) {
                 console.warn("[CameraPermission] Error:", err);
+                showAlert('error', 'Error', 'Unexpected error opening camera.');
             }
         } else {
-            launchImageLibrary(options, callback);
+            const result = await launchImageLibrary(options);
+            if (!result.didCancel && result.assets && result.assets.length > 0) {
+                const asset = result.assets[0];
+                setDocuments(prev => ({
+                    ...prev,
+                    [key]: {
+                        uri: asset.uri,
+                        name: asset.fileName || asset.uri.split('/').pop() || `${key}.jpg`,
+                        type: asset.type || 'image/jpeg',
+                    }
+                }));
+                setShowImageModal(false);
+            }
         }
     };
 
@@ -359,7 +369,6 @@ const styles = StyleSheet.create({
     },
     infoTitle: {
         fontSize: 18,
-        fontWeight: '900',
         color: Colors.white,
         fontFamily: Fonts.Bold,
         marginBottom: 8,
@@ -382,14 +391,12 @@ const styles = StyleSheet.create({
     },
     feeLabel: {
         fontSize: 10,
-        fontWeight: '800',
         color: Colors.finance_accent,
         marginRight: 6,
         fontFamily: Fonts.Bold,
     },
     feeAmount: {
         fontSize: 16,
-        fontWeight: '900',
         color: Colors.white,
         fontFamily: Fonts.Bold,
     },
@@ -397,7 +404,6 @@ const styles = StyleSheet.create({
     section: { marginBottom: 25 },
     sectionTitle: {
         fontSize: 16,
-        fontWeight: '900',
         color: Colors.primary,
         marginBottom: 15,
         fontFamily: Fonts.Bold,
@@ -408,7 +414,6 @@ const styles = StyleSheet.create({
     inputWrap: { marginBottom: 15 },
     label: {
         fontSize: 13,
-        fontWeight: '700',
         color: Colors.primary,
         marginBottom: 8,
         fontFamily: Fonts.Bold,
@@ -433,7 +438,6 @@ const styles = StyleSheet.create({
     docItem: { width: '48%', marginBottom: 15 },
     docLabel: {
         fontSize: 12,
-        fontWeight: '700',
         color: Colors.primary,
         marginBottom: 8,
         fontFamily: Fonts.Bold,
@@ -478,25 +482,24 @@ const styles = StyleSheet.create({
 
     submitBtnFixed: {
         position: 'absolute',
-        bottom: 20,
+        bottom: 25,
         left: 20,
         right: 20,
-        marginHorizontal: 20,
         backgroundColor: Colors.finance_accent,
-        paddingVertical: 18,
+        height: 56,
         borderRadius: 15,
         alignItems: 'center',
+        justifyContent: 'center',
         shadowColor: Colors.finance_accent,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 6,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.4,
+        shadowRadius: 10,
+        elevation: 8,
     },
     submitBtnText: {
         fontSize: 14,
-        fontWeight: '900',
         color: Colors.primary,
         fontFamily: Fonts.Bold,
-        letterSpacing: 0.5,
+        letterSpacing: 0.8,
     },
 });
