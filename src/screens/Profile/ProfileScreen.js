@@ -17,29 +17,6 @@ import CustomAlert from "../../componets/Alerts/CustomAlert";
 import Colors from "../../constants/Colors";
 import Fonts from "../../constants/Fonts";
 
-/* ─────────────────────────────────────────────
-   DESIGN TOKENS  (mirrors Camlenio HTML tokens)
-───────────────────────────────────────────── */
-const T = {
-  ink: "#0F0E0D",
-  ink2: "#3A3835",
-  ink3: "#7A756E",
-  ink4: "#B5AFA7",
-  ink5: "#E2DDD8",
-  surface: "#FAFAF8",
-  surface2: "#F4F2EE",
-  surface3: "#EDE9E3",
-  amber: "#C96A00",
-  amber2: "#E07A00",
-  amberBg: "rgba(201,106,0,0.07)",
-  amberRing: "rgba(201,106,0,0.18)",
-  red: "#C13B3B",
-  redBg: "rgba(193,59,59,0.07)",
-  green: "#1A7F5A",
-  greenBg: "rgba(26,127,90,0.07)",
-  heroStart: "#0F0E0D",
-  heroEnd: "#211F1C",
-};
 
 /* ─────────────────────────────────────────────
    AVATAR INITIAL COMPONENT
@@ -74,7 +51,7 @@ const AvatarRing = ({ initials, size = 80, onEditPress }) => {
           height: size,
           borderRadius: size / 2,
           borderWidth: 2.5,
-          borderColor: T.amber,
+          borderColor: Colors.amber,
           transform: [{ rotate }],
           borderStyle: "solid",
           // Conic-gradient simulation: amber top, fade bottom
@@ -90,14 +67,14 @@ const AvatarRing = ({ initials, size = 80, onEditPress }) => {
           alignItems: "center",
           justifyContent: "center",
           borderWidth: 2.5,
-          borderColor: T.heroStart,
+          borderColor: Colors.heroStart,
         }}
       >
         <Text
           style={{
             fontFamily: Fonts.Bold,
             fontSize: size * 0.32,
-            color: T.amber2,
+            color: Colors.amber2,
             letterSpacing: -0.5,
           }}
         >
@@ -123,7 +100,7 @@ const AvatarRing = ({ initials, size = 80, onEditPress }) => {
 ───────────────────────────────────────────── */
 const HeroStat = ({ value, label, isAmber }) => (
   <View style={styles.hstat}>
-    <Text style={[styles.hstatVal, isAmber && { color: T.amber2 }]}>{value}</Text>
+    <Text style={[styles.hstatVal, isAmber && { color: Colors.amber2 }]}>{value}</Text>
     <Text style={styles.hstatKey}>{label}</Text>
   </View>
 );
@@ -144,7 +121,7 @@ const Tile = ({ icon, label, onPress }) => {
     <TouchableOpacity activeOpacity={0.8} onPress={press} style={{ flex: 1 }}>
       <Animated.View style={[styles.tile, { transform: [{ scale }] }]}>
         <View style={styles.tileIc}>
-          <MaterialCommunityIcons name={icon} size={17} color={T.ink2} />
+          <MaterialCommunityIcons name={icon} size={17} color={Colors.ink2} />
         </View>
         <Text style={styles.tileLbl} numberOfLines={1} adjustsFontSizeToFit>
           {label}
@@ -159,8 +136,8 @@ const Tile = ({ icon, label, onPress }) => {
 ───────────────────────────────────────────── */
 const Row = ({ icon, label, sub, badge, isDanger, isFirst, isLast, onPress }) => {
   const bg = useRef(new Animated.Value(0)).current;
-  const iconBg = bg.interpolate({ inputRange: [0, 1], outputRange: [T.surface2, isDanger ? T.redBg : T.amberBg] });
-  const iconColor = bg.interpolate({ inputRange: [0, 1], outputRange: [T.ink2, isDanger ? T.red : T.amber] });
+  const iconBg = bg.interpolate({ inputRange: [0, 1], outputRange: [Colors.surface2, isDanger ? Colors.redBg : Colors.amberBg] });
+  const iconColor = bg.interpolate({ inputRange: [0, 1], outputRange: [Colors.ink2, isDanger ? Colors.red : Colors.amber] });
 
   const onIn = () => Animated.timing(bg, { toValue: 1, duration: 120, useNativeDriver: false }).start();
   const onOut = () => Animated.timing(bg, { toValue: 0, duration: 160, useNativeDriver: false }).start();
@@ -187,7 +164,7 @@ const Row = ({ icon, label, sub, badge, isDanger, isFirst, isLast, onPress }) =>
         </Animated.View>
 
         <View style={styles.rowBody}>
-          <Text style={[styles.rowLabel, isDanger && { color: T.red }]}>{label}</Text>
+          <Text style={[styles.rowLabel, isDanger && { color: Colors.red }]}>{label}</Text>
           {sub ? <Text style={styles.rowSub}>{sub}</Text> : null}
         </View>
 
@@ -200,7 +177,7 @@ const Row = ({ icon, label, sub, badge, isDanger, isFirst, isLast, onPress }) =>
           <MaterialCommunityIcons
             name="chevron-right"
             size={14}
-            color={isDanger ? T.red : T.ink4}
+            color={isDanger ? Colors.red : Colors.ink4}
             style={{ opacity: isDanger ? 0.4 : 1 }}
           />
         </View>
@@ -344,7 +321,7 @@ export default function ProfileScreen({ navigation }) {
           {/* Nav row */}
           <View style={styles.heroNav}>
             <Text style={styles.heroLogo}>
-              cam<Text style={{ color: T.amber2 }}>lenio</Text>
+              cam<Text style={{ color: Colors.amber2 }}>lenio</Text>
             </Text>
           </View>
 
@@ -361,14 +338,14 @@ export default function ProfileScreen({ navigation }) {
             <View style={styles.badgeRow}>
               {userName && (
                 <View style={styles.userBadge}>
-                  <MaterialCommunityIcons name="identifier" size={9} color={T.amber} style={{ marginRight: 5 }} />
+                  <MaterialCommunityIcons name="identifier" size={9} color={Colors.amber} style={{ marginRight: 5 }} />
                   <Text style={styles.userBadgeTxt}>{userName}</Text>
                 </View>
               )}
               {roleName && (
-                <View style={[styles.userBadge, { backgroundColor: T.ink2, borderColor: T.ink3 }]}>
-                  <MaterialCommunityIcons name="shield-account-outline" size={9} color={T.surface} style={{ marginRight: 5 }} />
-                  <Text style={[styles.userBadgeTxt, { color: T.surface }]}>{roleName}</Text>
+                <View style={[styles.userBadge, { backgroundColor: Colors.ink2, borderColor: Colors.ink3 }]}>
+                  <MaterialCommunityIcons name="shield-account-outline" size={9} color={Colors.surface} style={{ marginRight: 5 }} />
+                  <Text style={[styles.userBadgeTxt, { color: Colors.surface }]}>{roleName}</Text>
                 </View>
               )}
             </View>
@@ -490,7 +467,7 @@ export default function ProfileScreen({ navigation }) {
       {/* Loader overlay */}
       {loading && (
         <View style={styles.loaderOverlay}>
-          <ActivityIndicator size="large" color={T.amber} />
+          <ActivityIndicator size="large" color={Colors.amber} />
           <Text style={styles.loaderText}>Please wait…</Text>
         </View>
       )}
@@ -504,7 +481,7 @@ export default function ProfileScreen({ navigation }) {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: T.surface2,
+    backgroundColor: Colors.surface2,
   },
   scroll: {
     flex: 1,
@@ -513,7 +490,7 @@ const styles = StyleSheet.create({
 
   /* ── Hero ── */
   hero: {
-    backgroundColor: T.heroStart,
+    backgroundColor: Colors.heroStart,
     paddingHorizontal: 22,
     paddingTop: 18,
     paddingBottom: 32,
@@ -564,9 +541,9 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: T.amber,
+    backgroundColor: Colors.amber,
     borderWidth: 2.5,
-    borderColor: T.heroStart,
+    borderColor: Colors.heroStart,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -596,17 +573,17 @@ const styles = StyleSheet.create({
   userBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: T.amberBg,
+    backgroundColor: Colors.amberBg,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: T.amberRing,
+    borderColor: Colors.amberRing,
   },
   userBadgeTxt: {
     fontFamily: Fonts.Bold,
     fontSize: 10.5,
-    color: T.amber,
+    color: Colors.amber,
     letterSpacing: 0.3,
   },
   hstatVal: {
@@ -645,7 +622,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 5,
     height: 82, // Fixed height to keep all tiles uniform
-    shadowColor: T.ink,
+    shadowColor: Colors.ink,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 12,
@@ -657,14 +634,14 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 9,
-    backgroundColor: T.surface2,
+    backgroundColor: Colors.surface2,
     alignItems: "center",
     justifyContent: "center",
   },
   tileLbl: {
     fontFamily: Fonts.Bold,
     fontSize: 9.5, // Slightly smaller to help fit
-    color: T.ink3,
+    color: Colors.ink3,
     letterSpacing: 0.2,
     textTransform: "uppercase",
     textAlign: "center",
@@ -691,7 +668,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.white,
     borderRadius: 14,
-    shadowColor: T.ink,
+    shadowColor: Colors.ink,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
     shadowRadius: 6,
@@ -708,7 +685,7 @@ const styles = StyleSheet.create({
   },
   rowDivider: {
     borderTopWidth: 0.5,
-    borderTopColor: T.ink5,
+    borderTopColor: Colors.ink5,
   },
   rowIcon: {
     width: 34,
@@ -722,13 +699,13 @@ const styles = StyleSheet.create({
   rowLabel: {
     fontFamily: Fonts.Medium,
     fontSize: 14,
-    color: T.ink,
+    color: Colors.ink,
     letterSpacing: -0.14,
   },
   rowSub: {
     fontFamily: Fonts.Regular,
     fontSize: 11,
-    color: T.ink3,
+    color: Colors.ink3,
     marginTop: 1,
   },
   rowRight: {
@@ -737,7 +714,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   openBadge: {
-    backgroundColor: T.amberBg,
+    backgroundColor: Colors.amberBg,
     borderRadius: 999,
     paddingHorizontal: 7,
     paddingVertical: 2,
@@ -745,7 +722,7 @@ const styles = StyleSheet.create({
   openBadgeTxt: {
     fontFamily: Fonts.Bold,
     fontSize: 9,
-    color: T.amber,
+    color: Colors.amber,
     letterSpacing: 0.2,
   },
 

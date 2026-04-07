@@ -24,34 +24,6 @@ import { Image } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// ─── Colours ────────────────────────────────────────────────────
-const C = {
-    orange: '#F4722B',
-    orangeGlow: 'rgba(244,114,43,0.18)',
-    orangeSoft: '#FFF1E8',
-    orangeBorder: 'rgba(244,114,43,0.25)',
-    green: '#22C55E',
-    greenSoft: '#F0FDF4',
-    greenGlow: 'rgba(34,197,94,0.15)',
-    bg: '#FAF8F4',
-    white: '#FFFFFF',
-    dark: '#141414',
-    border: '#E8EDF2',
-    muted: '#F1F5F9',
-    slate: '#64748B',
-    slateLight: '#94A3B8',
-    lightText: '#CBD5E1',
-    red: '#EF4444',
-    redSoft: '#FFF5F5',
-    heroFrom: '#1a0a02',
-    heroTo: '#2d1000',
-    // Hub specific
-    hubDark: '#0F172A',
-    hubIndigo: '#4F46E5',
-    hubIndigoGlow: 'rgba(79, 70, 229, 0.15)',
-    hubSky: '#0EA5E9',
-    hubSkyGlow: 'rgba(14, 165, 233, 0.15)',
-};
 
 // Dynamic banks will be fetched from API
 
@@ -89,7 +61,7 @@ function Toast({ visible, message, type }) {
         }
     }, [visible]);
 
-    const bg = type === 'success' ? '#1aa748' : C.red;
+    const bg = type === 'success' ? '#1aa748' : Colors.hub_red;
     return (
         <Animated.View style={[styles.toast, { backgroundColor: bg, opacity, transform: [{ translateY }] }]}>
             <Text style={styles.toastText}>{type === 'success' ? '✓' : '✗'}  {message}</Text>
@@ -132,7 +104,7 @@ function CouponPanel({ onSuccess }) {
                 style={[
                     styles.iconBox,
                     {
-                        backgroundColor: C.greenSoft,
+                        backgroundColor: Colors.hub_greenSoft,
                         borderColor: 'rgba(34,197,94,0.18)',
                         transform: [{ translateY: float }],
                     },
@@ -150,7 +122,7 @@ function CouponPanel({ onSuccess }) {
                 <TextInput
                     style={[styles.couponInput, err ? styles.inputErr : null]}
                     placeholder="e.g. FREE24, VIPPRO"
-                    placeholderTextColor={C.lightText}
+                    placeholderTextColor={Colors.hub_lightText}
                     value={code}
                     onChangeText={t => {
                         setCode(t.toUpperCase());
@@ -161,14 +133,14 @@ function CouponPanel({ onSuccess }) {
                 />
                 {code.length > 0 && (
                     <TouchableOpacity style={styles.couponClear} onPress={() => setCode('')}>
-                        <Text style={{ color: C.slate, fontSize: 13, fontFamily: Fonts.Bold }}>✕</Text>
+                        <Text style={{ color: Colors.hub_slate, fontSize: 13, fontFamily: Fonts.Bold }}>✕</Text>
                     </TouchableOpacity>
                 )}
             </View>
             {!!err && <Text style={styles.errText}>{err}</Text>}
 
             <TouchableOpacity
-                style={[styles.ctaBtn, { backgroundColor: C.green }, loading && styles.ctaLoading]}
+                style={[styles.ctaBtn, { backgroundColor: Colors.hub_green }, loading && styles.ctaLoading]}
                 onPress={apply}
                 activeOpacity={0.88}
             >
@@ -205,8 +177,8 @@ function OnlinePanel({ onSuccess, feeAmount }) {
                 style={[
                     styles.iconBox,
                     {
-                        backgroundColor: C.orangeSoft,
-                        borderColor: C.orangeBorder,
+                        backgroundColor: Colors.hub_orangeSoft,
+                        borderColor: Colors.hub_orangeBorder,
                         transform: [{ translateY: float }],
                     },
                 ]}
@@ -228,7 +200,7 @@ function OnlinePanel({ onSuccess, feeAmount }) {
             </View>
 
             <TouchableOpacity
-                style={[styles.ctaBtn, { backgroundColor: C.orange }, loading && styles.ctaLoading]}
+                style={[styles.ctaBtn, { backgroundColor: Colors.hub_orange }, loading && styles.ctaLoading]}
                 onPress={pay}
                 activeOpacity={0.88}
             >
@@ -273,7 +245,7 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
     if (!bank) {
         return (
             <View style={[styles.hubContainer, { padding: 40, alignItems: 'center' }]}>
-                <Text style={{ color: C.slate }}>Loading bank details...</Text>
+                <Text style={{ color: Colors.hub_slate }}>Loading bank details...</Text>
             </View>
         );
     }
@@ -425,7 +397,7 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
                                         resizeMode="contain"
                                     />
                                 ) : (
-                                    <Text style={{ fontSize: 14, color: C.slate }}>No QR Code</Text>
+                                    <Text style={{ fontSize: 14, color: Colors.hub_slate }}>No QR Code</Text>
                                 )}
                                 <View style={styles.qrScanLine} />
                             </View>
@@ -544,7 +516,7 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
                                 <TextInput
                                     style={styles.hubFieldInput}
                                     placeholder="Enter UTR No"
-                                    placeholderTextColor={C.slateLight}
+                                    placeholderTextColor={Colors.hub_slateLight}
                                     value={utr}
                                     onChangeText={t => setUtr(t.toUpperCase())}
                                     autoCapitalize="characters"
@@ -772,7 +744,7 @@ const styles = StyleSheet.create({
     scrollContent: { paddingBottom: 60 },
 
     // Hero
-    hero: { margin: 16, borderRadius: 28, padding: 24, backgroundColor: C.heroFrom, overflow: 'hidden', position: 'relative' },
+    hero: { margin: 16, borderRadius: 28, padding: 24, backgroundColor: Colors.hub_heroFrom, overflow: 'hidden', position: 'relative' },
     heroGlowTop: { position: 'absolute', top: -60, right: -30, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(244,114,43,0.4)', opacity: 0.6 },
     heroGlowBottom: { position: 'absolute', bottom: -80, left: -30, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(59,130,246,0.2)', opacity: 0.5 },
     heroBadge: { fontSize: 9, fontFamily: Fonts.Bold, letterSpacing: 1.8, color: 'rgba(255,255,255,0.45)', marginBottom: 12 },
@@ -785,43 +757,43 @@ const styles = StyleSheet.create({
     heroPillText: { fontSize: 11, fontFamily: Fonts.SemiBold, color: 'rgba(255,255,255,0.6)' },
 
     // Section label
-    sectionLabel: { fontSize: 9, fontFamily: Fonts.Bold, letterSpacing: 1.8, color: C.slate, paddingHorizontal: 20, marginBottom: 10, textTransform: 'uppercase' },
+    sectionLabel: { fontSize: 9, fontFamily: Fonts.Bold, letterSpacing: 1.8, color: Colors.hub_slate, paddingHorizontal: 20, marginBottom: 10, textTransform: 'uppercase' },
 
     // Tabs
-    tabsContainer: { marginHorizontal: 16, marginBottom: 20, backgroundColor: C.white, borderRadius: 18, padding: 5, flexDirection: 'row', borderWidth: 1.5, borderColor: C.border, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 3, position: 'relative', height: 64 },
-    tabIndicator: { position: 'absolute', top: 5, bottom: 5, width: '30%', backgroundColor: C.orange, borderRadius: 13, shadowColor: C.orange, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.22, shadowRadius: 12, elevation: 6 },
+    tabsContainer: { marginHorizontal: 16, marginBottom: 20, backgroundColor: Colors.hub_white, borderRadius: 18, padding: 5, flexDirection: 'row', borderWidth: 1.5, borderColor: Colors.hub_border, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 3, position: 'relative', height: 64 },
+    tabIndicator: { position: 'absolute', top: 5, bottom: 5, width: '30%', backgroundColor: Colors.hub_orange, borderRadius: 13, shadowColor: Colors.hub_orange, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.22, shadowRadius: 12, elevation: 6 },
     tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, zIndex: 1 },
     tabIcon: { fontSize: 16 },
-    tabLabel: { fontSize: 11, fontFamily: Fonts.SemiBold, color: C.slate },
-    tabLabelActive: { color: C.white, fontFamily: Fonts.Bold },
+    tabLabel: { fontSize: 11, fontFamily: Fonts.SemiBold, color: Colors.hub_slate },
+    tabLabelActive: { color: Colors.hub_white, fontFamily: Fonts.Bold },
 
     // Hub Container (Bank logic)
-    hubContainer: { backgroundColor: C.white, borderRadius: 32, overflow: 'hidden', borderWidth: 1, borderColor: C.border, marginHorizontal: 1 },
-    hubSidebar: { backgroundColor: C.hubDark, padding: 24 },
+    hubContainer: { backgroundColor: Colors.hub_white, borderRadius: 32, overflow: 'hidden', borderWidth: 1, borderColor: Colors.hub_border, marginHorizontal: 1 },
+    hubSidebar: { backgroundColor: Colors.hub_hubDark, padding: 24 },
     hubHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20 },
     hubIconCircle: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
     hubBrand: { fontSize: 12, fontFamily: Fonts.Bold, color: 'rgba(255,255,255,0.6)', letterSpacing: 1.5 },
-    hubTitle: { fontSize: 24, fontFamily: Fonts.Bold, color: C.white, marginBottom: 8 },
+    hubTitle: { fontSize: 24, fontFamily: Fonts.Bold, color: Colors.hub_white, marginBottom: 8 },
     hubSubtitle: { fontSize: 13, color: 'rgba(255,255,255,0.5)', fontFamily: Fonts.Regular, lineHeight: 20, marginBottom: 24 },
     hubSteps: { gap: 16, marginBottom: 20 },
     hubStepItem: { gap: 8 },
     hubStepLabel: { fontSize: 9, fontFamily: Fonts.Bold, color: 'rgba(255,255,255,0.4)', letterSpacing: 1 },
     hubDropdown: { height: 50, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16 },
-    hubDropdownText: { fontSize: 14, fontFamily: Fonts.SemiBold, color: C.white },
+    hubDropdownText: { fontSize: 14, fontFamily: Fonts.SemiBold, color: Colors.hub_white },
     hubDropdownArrow: { fontSize: 10, color: 'rgba(255,255,255,0.3)' },
     bankPickerList: { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 8, marginBottom: 16 },
     bankPickerItem: { padding: 12, borderRadius: 8 },
     bankPickerItemActive: { backgroundColor: 'rgba(255,255,255,0.1)' },
     bankPickerText: { color: 'rgba(255,255,255,0.6)', fontSize: 13, fontFamily: Fonts.SemiBold },
-    bankPickerTextActive: { color: C.white },
+    bankPickerTextActive: { color: Colors.hub_white },
     hubFeatureList: { gap: 12, marginTop: 20 },
     hubFeature: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-    hubFeatureIcon: { fontSize: 12, color: C.green },
+    hubFeatureIcon: { fontSize: 12, color: Colors.hub_green },
     hubFeatureText: { fontSize: 12, color: 'rgba(255,255,255,0.7)', fontFamily: Fonts.Medium },
 
     hubContent: { padding: 20 },
     qrStage: { alignItems: 'center', paddingVertical: 20, gap: 16 },
-    qrCardMain: { backgroundColor: C.white, borderRadius: 24, padding: 12, borderWidth: 1, borderColor: C.hubSkyGlow, shadowColor: C.hubSky, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 5 },
+    qrCardMain: { backgroundColor: Colors.hub_white, borderRadius: 24, padding: 12, borderWidth: 1, borderColor: Colors.hub_hubSkyGlow, shadowColor: Colors.hub_hubSky, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 5 },
     qrBorder: { borderWidth: 4, borderColor: '#3b82f6', borderRadius: 18, borderStyle: 'solid', padding: 12, width: 220, height: 220, alignItems: 'center', justifyContent: 'space-between' },
     qrHeader: { flexDirection: 'row', gap: 4 },
     qrBrand: { fontSize: 14, fontFamily: Fonts.Bold, color: '#1d4ed8' },
@@ -829,72 +801,72 @@ const styles = StyleSheet.create({
     qrScanLine: { position: 'absolute', top: '50%', left: 0, right: 0, height: 2, backgroundColor: '#3b82f6', opacity: 0.5 },
     qrFooter: { alignItems: 'center' },
     qrVpa: { fontSize: 12, fontFamily: Fonts.Bold, color: '#475569' },
-    qrStatusBadge: { backgroundColor: C.greenSoft, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 100, borderWidth: 1, borderColor: 'rgba(34,197,94,0.2)' },
-    qrStatusText: { fontSize: 10, fontFamily: Fonts.Bold, color: C.green, letterSpacing: 1 },
+    qrStatusBadge: { backgroundColor: Colors.hub_greenSoft, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 100, borderWidth: 1, borderColor: 'rgba(34,197,94,0.2)' },
+    qrStatusText: { fontSize: 10, fontFamily: Fonts.Bold, color: Colors.hub_green, letterSpacing: 1 },
 
     bankDetailGroup: { gap: 12, marginBottom: 32 },
     bankDetailItem: { gap: 6 },
-    bankDetailLabel: { fontSize: 9, fontFamily: Fonts.Bold, color: C.slate, letterSpacing: 1 },
-    bankDetailRow: { height: 50, borderRadius: 12, backgroundColor: C.bg, borderWidth: 1, borderColor: C.border, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16 },
-    bankDetailValue: { fontSize: 14, fontFamily: Fonts.Bold, color: C.dark },
-    copyIconText: { fontSize: 16, color: C.slateLight },
+    bankDetailLabel: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.hub_slate, letterSpacing: 1 },
+    bankDetailRow: { height: 50, borderRadius: 12, backgroundColor: Colors.hub_bg, borderWidth: 1, borderColor: Colors.hub_border, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16 },
+    bankDetailValue: { fontSize: 14, fontFamily: Fonts.Bold, color: Colors.hub_dark },
+    copyIconText: { fontSize: 16, color: Colors.hub_slateLight },
 
     confirmPaymentHeading: { marginBottom: 24 },
-    headingBadge: { alignSelf: 'flex-start', backgroundColor: C.hubIndigoGlow, paddingVertical: 4, paddingHorizontal: 8, borderRadius: 6, marginBottom: 8 },
-    headingBadgeText: { fontSize: 9, fontFamily: Fonts.Bold, color: C.hubIndigo, letterSpacing: 1 },
-    confirmTitle: { fontSize: 24, fontFamily: Fonts.Bold, color: C.dark, marginBottom: 6 },
-    confirmSubtitle: { fontSize: 13, color: C.slate, fontFamily: Fonts.Regular, lineHeight: 20 },
+    headingBadge: { alignSelf: 'flex-start', backgroundColor: Colors.hub_hubIndigoGlow, paddingVertical: 4, paddingHorizontal: 8, borderRadius: 6, marginBottom: 8 },
+    headingBadgeText: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.hub_hubIndigo, letterSpacing: 1 },
+    confirmTitle: { fontSize: 24, fontFamily: Fonts.Bold, color: Colors.hub_dark, marginBottom: 6 },
+    confirmSubtitle: { fontSize: 13, color: Colors.hub_slate, fontFamily: Fonts.Regular, lineHeight: 20 },
 
     hubForm: { gap: 20 },
     hubFormRow: { flexDirection: 'row', gap: 16 },
     hubFormField: { flex: 1, gap: 8 },
-    hubFieldLabel: { fontSize: 10, fontFamily: Fonts.Bold, color: C.dark, textTransform: 'uppercase' },
-    hubFieldInputWrap: { height: 50, borderRadius: 12, borderWidth: 1, borderColor: C.border, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 10 },
-    hubFieldCurrency: { fontSize: 14, fontFamily: Fonts.Bold, color: C.hubIndigo },
-    hubFieldInput: { flex: 1, fontSize: 14, fontFamily: Fonts.Bold, color: C.dark },
-    hubFieldPlaceholder: { flex: 1, fontSize: 13, fontFamily: Fonts.SemiBold, color: C.slateLight },
-    hubFieldIcon: { fontSize: 12, color: C.slateLight },
-    hubFieldHint: { fontSize: 9, fontFamily: Fonts.SemiBold, color: C.slate, fontStyle: 'italic' },
+    hubFieldLabel: { fontSize: 10, fontFamily: Fonts.Bold, color: Colors.hub_dark, textTransform: 'uppercase' },
+    hubFieldInputWrap: { height: 50, borderRadius: 12, borderWidth: 1, borderColor: Colors.hub_border, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 10 },
+    hubFieldCurrency: { fontSize: 14, fontFamily: Fonts.Bold, color: Colors.hub_hubIndigo },
+    hubFieldInput: { flex: 1, fontSize: 14, fontFamily: Fonts.Bold, color: Colors.hub_dark },
+    hubFieldPlaceholder: { flex: 1, fontSize: 13, fontFamily: Fonts.SemiBold, color: Colors.hub_slateLight },
+    hubFieldIcon: { fontSize: 12, color: Colors.hub_slateLight },
+    hubFieldHint: { fontSize: 9, fontFamily: Fonts.SemiBold, color: Colors.hub_slate, fontStyle: 'italic' },
 
-    hubUploadBox: { height: 140, borderRadius: 16, borderStyle: 'dashed', borderWidth: 2, borderColor: C.border, alignItems: 'center', justifyContent: 'center', gap: 8 },
-    hubUploadIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' },
-    hubUploadTitle: { fontSize: 14, fontFamily: Fonts.Bold, color: C.dark },
-    hubUploadSub: { fontSize: 10, fontFamily: Fonts.SemiBold, color: C.slateLight },
+    hubUploadBox: { height: 140, borderRadius: 16, borderStyle: 'dashed', borderWidth: 2, borderColor: Colors.hub_border, alignItems: 'center', justifyContent: 'center', gap: 8 },
+    hubUploadIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.hub_bg, alignItems: 'center', justifyContent: 'center' },
+    hubUploadTitle: { fontSize: 14, fontFamily: Fonts.Bold, color: Colors.hub_dark },
+    hubUploadSub: { fontSize: 10, fontFamily: Fonts.SemiBold, color: Colors.hub_slateLight },
 
-    hubSubmitBtn: { height: 56, borderRadius: 28, backgroundColor: C.hubIndigo, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 12 },
-    hubSubmitText: { fontSize: 16, fontFamily: Fonts.Bold, color: C.white },
-    hubSubmitArrow: { fontSize: 18, color: C.white, fontFamily: Fonts.Bold },
+    hubSubmitBtn: { height: 56, borderRadius: 28, backgroundColor: Colors.hub_hubIndigo, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 12 },
+    hubSubmitText: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.hub_white },
+    hubSubmitArrow: { fontSize: 18, color: Colors.hub_white, fontFamily: Fonts.Bold },
     hubTrustRow: { flexDirection: 'row', justifyContent: 'center', gap: 12, marginTop: 8 },
-    hubTrustText: { fontSize: 8, fontFamily: Fonts.Bold, color: C.slateLight, letterSpacing: 1 },
+    hubTrustText: { fontSize: 8, fontFamily: Fonts.Bold, color: Colors.hub_slateLight, letterSpacing: 1 },
 
     // Form Picker lists
-    methodPickerList: { position: 'absolute', top: 52, left: 0, right: 0, backgroundColor: C.white, borderRadius: 12, borderWidth: 1, borderColor: C.border, zIndex: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5 },
-    methodPickerItem: { padding: 14, borderBottomWidth: 1, borderBottomColor: C.bg },
-    methodPickerText: { fontSize: 13, fontFamily: Fonts.Bold, color: C.dark },
+    methodPickerList: { position: 'absolute', top: 52, left: 0, right: 0, backgroundColor: Colors.hub_white, borderRadius: 12, borderWidth: 1, borderColor: Colors.hub_border, zIndex: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5 },
+    methodPickerItem: { padding: 14, borderBottomWidth: 1, borderBottomColor: Colors.hub_bg },
+    methodPickerText: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.hub_dark },
 
     // Panel card (shared by coupon + online)
-    panelCard: { backgroundColor: Colors.white, borderRadius: 24, borderWidth: 1.5, borderColor: C.border, padding: 24, alignItems: 'center', gap: 14, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 3 },
+    panelCard: { backgroundColor: Colors.white, borderRadius: 24, borderWidth: 1.5, borderColor: Colors.hub_border, padding: 24, alignItems: 'center', gap: 14, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 3 },
     iconBox: { width: 72, height: 72, borderRadius: 22, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-    panelTitle: { fontSize: 22, fontFamily: Fonts.Bold, color: C.dark, textAlign: 'center' },
-    panelDesc: { fontSize: 13, color: C.slate, fontFamily: Fonts.Regular, textAlign: 'center', lineHeight: 20, maxWidth: 270 },
+    panelTitle: { fontSize: 22, fontFamily: Fonts.Bold, color: Colors.hub_dark, textAlign: 'center' },
+    panelDesc: { fontSize: 13, color: Colors.hub_slate, fontFamily: Fonts.Regular, textAlign: 'center', lineHeight: 20, maxWidth: 270 },
 
     // Coupon input
     couponWrap: { width: '100%', position: 'relative' },
-    couponInput: { width: '100%', height: 54, borderRadius: 18, borderWidth: 2, borderColor: C.border, backgroundColor: C.muted, paddingHorizontal: 48, fontFamily: Fonts.Bold, fontSize: 18, letterSpacing: 2, textAlign: 'center', color: '#16a34a' },
+    couponInput: { width: '100%', height: 54, borderRadius: 18, borderWidth: 2, borderColor: Colors.hub_border, backgroundColor: Colors.hub_muted, paddingHorizontal: 48, fontFamily: Fonts.Bold, fontSize: 18, letterSpacing: 2, textAlign: 'center', color: '#16a34a' },
     couponClear: { position: 'absolute', right: 14, top: '50%', marginTop: -14, width: 28, height: 28, borderRadius: 10, backgroundColor: '#E2E8F0', alignItems: 'center', justifyContent: 'center' },
-    inputErr: { borderColor: C.red, backgroundColor: '#FFF5F5' },
-    errText: { fontSize: 10, fontFamily: Fonts.Bold, color: C.red, textTransform: 'uppercase', letterSpacing: 0.8, alignSelf: 'flex-start', paddingHorizontal: 2 },
+    inputErr: { borderColor: Colors.hub_red, backgroundColor: '#FFF5F5' },
+    errText: { fontSize: 10, fontFamily: Fonts.Bold, color: Colors.hub_red, textTransform: 'uppercase', letterSpacing: 0.8, alignSelf: 'flex-start', paddingHorizontal: 2 },
 
     // Method pills (online)
     methodPills: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
-    methodPill: { backgroundColor: C.muted, borderWidth: 1.5, borderColor: C.border, borderRadius: 10, paddingVertical: 6, paddingHorizontal: 12 },
-    methodPillText: { fontSize: 11, fontFamily: Fonts.SemiBold, color: C.slate },
+    methodPill: { backgroundColor: Colors.hub_muted, borderWidth: 1.5, borderColor: Colors.hub_border, borderRadius: 10, paddingVertical: 6, paddingHorizontal: 12 },
+    methodPillText: { fontSize: 11, fontFamily: Fonts.SemiBold, color: Colors.hub_slate },
 
     // CTA button
-    ctaBtn: { width: '100%', height: 56, borderRadius: 26, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', shadowColor: C.orange, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.22, shadowRadius: 16, elevation: 6 },
+    ctaBtn: { width: '100%', height: 56, borderRadius: 26, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', shadowColor: Colors.hub_orange, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.22, shadowRadius: 16, elevation: 6 },
     ctaLoading: { opacity: 0.75 },
-    ctaBtnLabel: { color: C.white, fontSize: 16, fontFamily: Fonts.Bold, letterSpacing: 0.2 },
-    ctaArrow: { color: C.white, fontSize: 18, fontFamily: Fonts.Bold },
+    ctaBtnLabel: { color: Colors.hub_white, fontSize: 16, fontFamily: Fonts.Bold, letterSpacing: 0.2 },
+    ctaArrow: { color: Colors.hub_white, fontSize: 18, fontFamily: Fonts.Bold },
 
     // Toast
     toast: { position: 'absolute', bottom: 32, alignSelf: 'center', borderRadius: 18, paddingVertical: 12, paddingHorizontal: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.15, shadowRadius: 24, elevation: 10 },
@@ -906,18 +878,18 @@ const styles = StyleSheet.create({
     // Trust Bar (Enterprise Grade)
     trustBar: { marginTop: 32, paddingHorizontal: 20, alignItems: 'center' },
     trustBarHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
-    trustBarLine: { flex: 1, height: 1.5, backgroundColor: C.border, opacity: 0.7 },
-    trustBarTitle: { fontSize: 9, fontFamily: Fonts.Bold, color: C.slateLight, letterSpacing: 1.5, textTransform: 'uppercase' },
+    trustBarLine: { flex: 1, height: 1.5, backgroundColor: Colors.hub_border, opacity: 0.7 },
+    trustBarTitle: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.hub_slateLight, letterSpacing: 1.5, textTransform: 'uppercase' },
     trustFooter: { flexDirection: 'row', justifyContent: 'center', gap: 10, flexWrap: 'wrap' },
     trustPill: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: C.white,
+        backgroundColor: Colors.hub_white,
         paddingVertical: 8,
         paddingHorizontal: 12,
         borderRadius: 100,
         borderWidth: 1,
-        borderColor: C.border,
+        borderColor: Colors.hub_border,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.04,
@@ -925,5 +897,5 @@ const styles = StyleSheet.create({
         elevation: 1
     },
     trustPillIcon: { fontSize: 12, marginRight: 6 },
-    trustItem: { fontSize: 9, fontFamily: Fonts.Bold, color: C.slate, textTransform: 'uppercase', letterSpacing: 0.5 },
+    trustItem: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.hub_slate, textTransform: 'uppercase', letterSpacing: 0.5 },
 });

@@ -31,33 +31,14 @@ const MIN_SIZE_BYTES = 10 * 1024;   // 10 KB
 const MAX_SIZE_BYTES = 200 * 1024;  // 200 KB
 const SIZE_LABEL = "10 KB – 200 KB";
 
-// ─── Design tokens ────────────────────────────────────────────────────────
-const T = {
-  accent: "#C9A84C",
-  accentLight: "#F5E7C6",
-  accentDark: "#7A6020",
-  success: "#16A34A",
-  error: "#DC2626",
-  warning: "#D97706",
-  text: "#111827",
-  textSub: "#6B7280",
-  textMuted: "#9CA3AF",
-  bg: "#F4F5F7",
-  surface: "#FFFFFF",
-  border: "#E5E7EB",
-  inputBg: "#FAFAFA",
-  lockedBg: "#F3F4F6",
-  lockedBorder: "#D1D5DB",
-  lockedText: "#6B7280",
-};
 
 const resolveColors = () => ({
-  accent: typeof Colors.finance_accent === "string" && Colors.finance_accent.length > 2 ? Colors.finance_accent : T.accent,
-  success: typeof Colors.finance_success === "string" && Colors.finance_success.length > 2 ? Colors.finance_success : T.success,
-  error: typeof Colors.finance_error === "string" && Colors.finance_error.length > 2 ? Colors.finance_error : T.error,
-  text: typeof Colors.finance_text === "string" && Colors.finance_text.length > 2 ? Colors.finance_text : T.text,
-  bg: typeof Colors.finance_bg_1 === "string" && Colors.finance_bg_1.length > 2 ? Colors.finance_bg_1 : T.bg,
-  white: typeof Colors.white === "string" && Colors.white.length > 2 ? Colors.white : T.surface,
+  accent: typeof Colors.finance_accent === "string" && Colors.finance_accent.length > 2 ? Colors.finance_accent : Colors.kyc_accent,
+  success: typeof Colors.finance_success === "string" && Colors.finance_success.length > 2 ? Colors.finance_success : Colors.kyc_success,
+  error: typeof Colors.finance_error === "string" && Colors.finance_error.length > 2 ? Colors.finance_error : Colors.kyc_error,
+  text: typeof Colors.finance_text === "string" && Colors.finance_text.length > 2 ? Colors.finance_text : Colors.kyc_text,
+  bg: typeof Colors.finance_bg_1 === "string" && Colors.finance_bg_1.length > 2 ? Colors.finance_bg_1 : Colors.kyc_bg,
+  white: typeof Colors.white === "string" && Colors.white.length > 2 ? Colors.white : Colors.kyc_surface,
 });
 
 // ─── Step config ──────────────────────────────────────────────────────────
@@ -296,7 +277,7 @@ export default function Offlinekyc({ navigation, route }) {
     if (acc === conf) return "match";
     return "mismatch";
   })();
-  const accMatchColor = { idle: T.border, match: T.success, mismatch: T.error }[accMatchStatus];
+  const accMatchColor = { idle: Colors.kyc_border, match: Colors.kyc_success, mismatch: Colors.kyc_error }[accMatchStatus];
   const accMatchIcon = { match: "check-circle", mismatch: "close-circle" }[accMatchStatus];
 
   // ── Pre-fill from route / AsyncStorage ────────────────────────────────
@@ -683,25 +664,25 @@ export default function Offlinekyc({ navigation, route }) {
   // RENDER
   // ─────────────────────────────────────────────────────────────────────
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: T.bg }]} edges={["bottom"]}>
-      <StatusBar barStyle="dark-content" backgroundColor={T.bg} />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: Colors.kyc_bg }]} edges={["bottom"]}>
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.kyc_bg} />
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + vs(10), paddingHorizontal: hs(16) }]}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.navigate("Login")} activeOpacity={0.7}>
-          <Icon name="chevron-left" size={rs(22)} color={T.text} />
+          <Icon name="chevron-left" size={rs(22)} color={Colors.kyc_text} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <LinearGradient colors={[T.accent, T.accentDark]} style={styles.headerLogo}>
-            <Icon name="shield-account-outline" size={rs(17)} color={T.surface} />
+          <LinearGradient colors={[Colors.kyc_accent, Colors.kyc_accentDark]} style={styles.headerLogo}>
+            <Icon name="shield-account-outline" size={rs(17)} color={Colors.kyc_surface} />
           </LinearGradient>
           <View>
             <Text style={[styles.headerTitle, { fontFamily: Fonts.Bold, fontSize: rs(16) }]}>KYC Verification</Text>
             <Text style={[styles.headerSub, { fontSize: rs(10) }]}>{STEPS[step].label} Details — Step {step + 1} of 3</Text>
           </View>
         </View>
-        <View style={[styles.stepBadge, { backgroundColor: T.accent + "1A" }]}>
-          <Text style={[styles.stepBadgeText, { color: T.accent, fontFamily: Fonts.Bold, fontSize: rs(11) }]}>{step + 1} / 3</Text>
+        <View style={[styles.stepBadge, { backgroundColor: Colors.kyc_accent + "1A" }]}>
+          <Text style={[styles.stepBadgeText, { color: Colors.kyc_accent, fontFamily: Fonts.Bold, fontSize: rs(11) }]}>{step + 1} / 3</Text>
         </View>
       </View>
 
@@ -710,7 +691,7 @@ export default function Offlinekyc({ navigation, route }) {
         <View style={styles.progressTrack}>
           <Animated.View style={[styles.progressFill, {
             width: progressAnim.interpolate({ inputRange: [0, 1], outputRange: ["0%", "100%"] }),
-            backgroundColor: T.accent,
+            backgroundColor: Colors.kyc_accent,
           }]} />
         </View>
         <View style={styles.stepDots}>
@@ -720,13 +701,13 @@ export default function Offlinekyc({ navigation, route }) {
             return (
               <View key={s.key} style={styles.stepDotItem}>
                 <LinearGradient
-                  colors={done ? [T.success, "#15803D"] : active ? [T.accent, T.accentDark] : [T.border, T.border]}
+                  colors={done ? [Colors.kyc_success, "#15803D"] : active ? [Colors.kyc_accent, Colors.kyc_accentDark] : [Colors.kyc_border, Colors.kyc_border]}
                   style={[styles.stepDotCircle, { width: rs(active ? 36 : 28), height: rs(active ? 36 : 28), borderRadius: rs(active ? 18 : 14) }]}
                 >
-                  <Icon name={done ? "check" : s.icon} size={rs(done ? 14 : active ? 16 : 13)} color={done || active ? T.surface : T.textMuted} />
+                  <Icon name={done ? "check" : s.icon} size={rs(done ? 14 : active ? 16 : 13)} color={done || active ? Colors.kyc_surface : Colors.kyc_textMuted} />
                 </LinearGradient>
                 <Text style={[styles.stepDotLabel, { fontSize: rs(9), fontFamily: active ? Fonts.Bold : Fonts.Medium },
-                done && { color: T.success }, active && { color: T.accent }]}>
+                done && { color: Colors.kyc_success }, active && { color: Colors.kyc_accent }]}>
                   {s.label}
                 </Text>
               </View>
@@ -868,12 +849,12 @@ export default function Offlinekyc({ navigation, route }) {
 
                 {/* ── Size hint ───────────────────────────────────────── */}
                 <View style={styles.sizeHintBanner}>
-                  <Icon name="information-outline" size={rs(13)} color={T.accent} />
+                  <Icon name="information-outline" size={rs(13)} color={Colors.kyc_accent} />
                   <Text style={[styles.sizeHintText, { fontSize: rs(11) }]}>
                     Image must be between{" "}
-                    <Text style={{ fontFamily: Fonts.Bold, color: T.text }}>10 KB</Text>
+                    <Text style={{ fontFamily: Fonts.Bold, color: Colors.kyc_text }}>10 KB</Text>
                     {" "}and{" "}
-                    <Text style={{ fontFamily: Fonts.Bold, color: T.text }}>200 KB</Text>.
+                    <Text style={{ fontFamily: Fonts.Bold, color: Colors.kyc_text }}>200 KB</Text>.
                     {" "}Clear, well-lit JPG or PNG only.
                   </Text>
                 </View>
@@ -893,8 +874,8 @@ export default function Offlinekyc({ navigation, route }) {
                         <TouchableOpacity
                           style={[
                             styles.docBox,
-                            img && { borderStyle: "solid", borderColor: T.success, backgroundColor: T.success + "08" },
-                            hasErr && { borderStyle: "solid", borderColor: T.error, backgroundColor: T.error + "06" },
+                            img && { borderStyle: "solid", borderColor: Colors.kyc_success, backgroundColor: Colors.kyc_success + "08" },
+                            hasErr && { borderStyle: "solid", borderColor: Colors.kyc_error, backgroundColor: Colors.kyc_error + "06" },
                           ]}
                           onPress={() => { if (!lockedFiles[slot.key]) pickImage(slot.key); }}
                           activeOpacity={lockedFiles[slot.key] ? 1 : 0.75}
@@ -903,17 +884,17 @@ export default function Offlinekyc({ navigation, route }) {
                             <>
                               <Image source={{ uri: img.uri }} style={styles.docThumb} resizeMode="cover" />
                               <LinearGradient colors={["transparent", "rgba(0,0,0,0.72)"]} style={styles.docOverlay}>
-                                <Icon name="check-circle" size={rs(13)} color={T.success} />
+                                <Icon name="check-circle" size={rs(13)} color={Colors.kyc_success} />
                                 <Text style={[styles.docDoneLabel, { fontSize: rs(9) }]}>UPLOADED</Text>
                                 <Text style={styles.docFileName} numberOfLines={1}>{img.name}</Text>
                               </LinearGradient>
                               {!lockedFiles[slot.key] && (
-                                <TouchableOpacity style={[styles.docCornerBtn, { backgroundColor: T.accent, right: vs(30) }]} onPress={() => pickImage(slot.key)}>
+                                <TouchableOpacity style={[styles.docCornerBtn, { backgroundColor: Colors.kyc_accent, right: vs(30) }]} onPress={() => pickImage(slot.key)}>
                                   <Icon name="pencil" size={rs(10)} color="#FFF" />
                                 </TouchableOpacity>
                               )}
                               {!lockedFiles[slot.key] && (
-                                <TouchableOpacity style={[styles.docCornerBtn, { backgroundColor: T.error, right: vs(6) }]} onPress={() => removeFile(slot.key)}>
+                                <TouchableOpacity style={[styles.docCornerBtn, { backgroundColor: Colors.kyc_error, right: vs(6) }]} onPress={() => removeFile(slot.key)}>
                                   <Icon name="close" size={rs(10)} color="#FFF" />
                                 </TouchableOpacity>
                               )}
@@ -928,9 +909,9 @@ export default function Offlinekyc({ navigation, route }) {
                                 <Text style={[styles.docSlotSub, { fontSize: rs(10) }]}>{slot.sub}</Text>
                                 <Text style={[styles.docSizeLabel, { fontSize: rs(9) }]}>{SIZE_LABEL}</Text>
                               </View>
-                              <View style={[styles.docUploadTag, { backgroundColor: T.accent + "18", borderColor: T.accent + "40" }]}>
-                                <Icon name="camera-plus-outline" size={rs(11)} color={T.accent} />
-                                <Text style={[styles.docUploadTagText, { color: T.accent, fontFamily: Fonts.Bold, fontSize: rs(9) }]}>Upload</Text>
+                              <View style={[styles.docUploadTag, { backgroundColor: Colors.kyc_accent + "18", borderColor: Colors.kyc_accent + "40" }]}>
+                                <Icon name="camera-plus-outline" size={rs(11)} color={Colors.kyc_accent} />
+                                <Text style={[styles.docUploadTagText, { color: Colors.kyc_accent, fontFamily: Fonts.Bold, fontSize: rs(9) }]}>Upload</Text>
                               </View>
                             </View>
                           )}
@@ -955,17 +936,17 @@ export default function Offlinekyc({ navigation, route }) {
                 </TouchableOpacity>
 
                 <FieldWrap onLayout={e => fieldCoords.current.ifscCode = e.nativeEvent.layout.y} label="IFSC Code" required error={errors.ifscCode}>
-                  <View style={[styles.inputRow, errors.ifscCode && { borderColor: T.error, backgroundColor: T.error + "06" }, lockedBanking.ifscCode && styles.inputRowLocked]}>
+                  <View style={[styles.inputRow, errors.ifscCode && { borderColor: Colors.kyc_error, backgroundColor: Colors.kyc_error + "06" }, lockedBanking.ifscCode && styles.inputRowLocked]}>
                     <TextInput style={[styles.input, { letterSpacing: 1 }, lockedBanking.ifscCode && styles.inputLocked]}
                       value={banking.ifscCode}
                       onChangeText={lockedBanking.ifscCode ? undefined : (v => setBanking(b => ({ ...b, ifscCode: v.toUpperCase().replace(/[^A-Z0-9]/g, "") })))}
                       editable={!lockedBanking.ifscCode}
-                      placeholder="SBIN0001234" placeholderTextColor={T.textMuted} maxLength={11} autoCapitalize="characters" />
+                      placeholder="SBIN0001234" placeholderTextColor={Colors.kyc_textMuted} maxLength={11} autoCapitalize="characters" />
                   </View>
                 </FieldWrap>
 
                 <FieldWrap onLayout={e => fieldCoords.current.accountNumber = e.nativeEvent.layout.y} label="Account Number" required error={errors.accountNumber}>
-                  <View style={[styles.inputRow, errors.accountNumber && { borderColor: T.error, backgroundColor: T.error + "06" }, lockedBanking.accountNumber && styles.inputRowLocked]}>
+                  <View style={[styles.inputRow, errors.accountNumber && { borderColor: Colors.kyc_error, backgroundColor: Colors.kyc_error + "06" }, lockedBanking.accountNumber && styles.inputRowLocked]}>
                     <TextInput
                       style={[styles.input, { paddingRight: hs(44) }, lockedBanking.accountNumber && styles.inputLocked]}
                       value={banking.accountNumber} editable={!lockedBanking.accountNumber}
@@ -973,11 +954,11 @@ export default function Offlinekyc({ navigation, route }) {
                         if (/^\d*$/.test(v) && v.length <= 18)
                           setBanking(b => ({ ...b, accountNumber: v, confirmAccountNumber: "" }));
                       })}
-                      placeholder="Enter account number" placeholderTextColor={T.textMuted}
+                      placeholder="Enter account number" placeholderTextColor={Colors.kyc_textMuted}
                       keyboardType="number-pad" secureTextEntry={!showAcc} maxLength={18}
                     />
                     <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowAcc(p => !p)}>
-                      <Icon name={showAcc ? "eye-off-outline" : "eye-outline"} size={rs(18)} color={T.textMuted} />
+                      <Icon name={showAcc ? "eye-off-outline" : "eye-outline"} size={rs(18)} color={Colors.kyc_textMuted} />
                     </TouchableOpacity>
                   </View>
                 </FieldWrap>
@@ -995,11 +976,11 @@ export default function Offlinekyc({ navigation, route }) {
                         if (/^\d*$/.test(v) && v.length <= 18)
                           setBanking(b => ({ ...b, confirmAccountNumber: v }));
                       })}
-                      placeholder="Re-enter account number" placeholderTextColor={T.textMuted}
+                      placeholder="Re-enter account number" placeholderTextColor={Colors.kyc_textMuted}
                       keyboardType="number-pad" secureTextEntry={!showConfirmAcc} maxLength={18}
                     />
                     <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowConfirmAcc(p => !p)}>
-                      <Icon name={showConfirmAcc ? "eye-off-outline" : "eye-outline"} size={rs(18)} color={T.textMuted} />
+                      <Icon name={showConfirmAcc ? "eye-off-outline" : "eye-outline"} size={rs(18)} color={Colors.kyc_textMuted} />
                     </TouchableOpacity>
                   </View>
                   {accMatchStatus !== "idle" && (
@@ -1018,12 +999,12 @@ export default function Offlinekyc({ navigation, route }) {
                   <Field label="Branch Name" value={banking.branchName} onChange={v => setBanking(b => ({ ...b, branchName: v }))} error={errors.branchName} placeholder="e.g. Main Branch" locked={lockedBanking.branchName} />
                 </TwoCol>
 
-                <LinearGradient colors={[T.accent + "1A", T.accent + "08"]} style={styles.securityBanner}>
-                  <View style={[styles.securityIcon, { backgroundColor: T.accent + "25" }]}>
-                    <Icon name="shield-lock-outline" size={rs(20)} color={T.accent} />
+                <LinearGradient colors={[Colors.kyc_accent + "1A", Colors.kyc_accent + "08"]} style={styles.securityBanner}>
+                  <View style={[styles.securityIcon, { backgroundColor: Colors.kyc_accent + "25" }]}>
+                    <Icon name="shield-lock-outline" size={rs(20)} color={Colors.kyc_accent} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.securityTitle, { color: T.accent, fontFamily: Fonts.Bold, fontSize: rs(12) }]}>256-bit Encrypted</Text>
+                    <Text style={[styles.securityTitle, { color: Colors.kyc_accent, fontFamily: Fonts.Bold, fontSize: rs(12) }]}>256-bit Encrypted</Text>
                     <Text style={[styles.securityBody, { fontSize: rs(11), fontFamily: Fonts.Regular }]}>Banking details are encrypted and used only for payouts.</Text>
                   </View>
                 </LinearGradient>
@@ -1039,20 +1020,20 @@ export default function Offlinekyc({ navigation, route }) {
             <View style={[styles.actionRow, { width: isWide ? contentWidth : "100%" }]}>
               {step > 0
                 ? <TouchableOpacity style={styles.prevBtn} onPress={handlePrev} activeOpacity={0.75}>
-                  <Icon name="arrow-left" size={rs(17)} color={T.text} />
+                  <Icon name="arrow-left" size={rs(17)} color={Colors.kyc_text} />
                   <Text style={[styles.prevBtnText, { fontFamily: Fonts.Medium, fontSize: rs(14) }]}>Back</Text>
                 </TouchableOpacity>
                 : <View style={{ flex: 1 }} />
               }
               <TouchableOpacity style={styles.nextBtnOuter} onPress={step < 2 ? handleNext : handleSubmit} activeOpacity={0.85} disabled={loading}>
-                <LinearGradient colors={[T.accent, T.accentDark]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.nextBtnGrad}>
+                <LinearGradient colors={[Colors.kyc_accent, Colors.kyc_accentDark]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.nextBtnGrad}>
                   {loading
-                    ? <ActivityIndicator color={T.surface} size="small" />
+                    ? <ActivityIndicator color={Colors.kyc_surface} size="small" />
                     : <>
-                      <Text style={[styles.nextBtnText, { color: T.surface, fontFamily: Fonts.Bold, fontSize: rs(14) }]}>
+                      <Text style={[styles.nextBtnText, { color: Colors.kyc_surface, fontFamily: Fonts.Bold, fontSize: rs(14) }]}>
                         {step < 2 ? "Next" : "Submit KYC"}
                       </Text>
-                      <Icon name={step < 2 ? "arrow-right" : "check-circle-outline"} size={rs(17)} color={T.surface} style={{ marginLeft: hs(6) }} />
+                      <Icon name={step < 2 ? "arrow-right" : "check-circle-outline"} size={rs(17)} color={Colors.kyc_surface} style={{ marginLeft: hs(6) }} />
                     </>
                   }
                 </LinearGradient>
@@ -1067,12 +1048,12 @@ export default function Offlinekyc({ navigation, route }) {
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <View style={styles.modalIconWrap}>
-              <Icon name="check-decagram" size={rs(44)} color={T.success} />
+              <Icon name="check-decagram" size={rs(44)} color={Colors.kyc_success} />
             </View>
             <Text style={styles.modalTitle}>KYC Submitted Successfully</Text>
             <Text style={styles.modalSub}>Your KYC details are under review. We'll notify you once approved!</Text>
             <TouchableOpacity style={styles.modalBtn} activeOpacity={0.8} onPress={() => { setShowSuccessModal(false); navigation.replace("FinanceHome"); }}>
-              <LinearGradient colors={[T.accent, T.accentDark]} style={styles.modalBtnGrad}>
+              <LinearGradient colors={[Colors.kyc_accent, Colors.kyc_accentDark]} style={styles.modalBtnGrad}>
                 <Text style={styles.modalBtnText}>Continue to Home</Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -1084,13 +1065,13 @@ export default function Offlinekyc({ navigation, route }) {
       <Modal transparent visible={showFailModal} animationType="fade" onRequestClose={() => setShowFailModal(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
-            <View style={[styles.modalIconWrap, { backgroundColor: T.error + "15" }]}>
-              <Icon name="alert-circle-outline" size={rs(44)} color={T.error} />
+            <View style={[styles.modalIconWrap, { backgroundColor: Colors.kyc_error + "15" }]}>
+              <Icon name="alert-circle-outline" size={rs(44)} color={Colors.kyc_error} />
             </View>
             <Text style={styles.modalTitle}>Submission Failed</Text>
             <Text style={styles.modalSub}>{failMsg || "Something went wrong. Please check your details and try again."}</Text>
             <TouchableOpacity style={styles.modalBtn} activeOpacity={0.8} onPress={() => setShowFailModal(false)}>
-              <LinearGradient colors={[T.error, "#BE123C"]} style={styles.modalBtnGrad}>
+              <LinearGradient colors={[Colors.kyc_error, "#BE123C"]} style={styles.modalBtnGrad}>
                 <Text style={styles.modalBtnText}>Try Again</Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -1128,14 +1109,14 @@ function SearchModal({ visible, title, loading, search, setSearch, items, getLab
           <View style={{ width: "100%", flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: vs(12) }}>
             <Text style={[styles.modalTitle, { marginBottom: 0 }]}>{title}</Text>
             <TouchableOpacity onPress={onRefresh} disabled={loading}>
-              <Icon name="refresh" size={rs(22)} color={loading ? T.textMuted : T.accent} />
+              <Icon name="refresh" size={rs(22)} color={loading ? Colors.kyc_textMuted : Colors.kyc_accent} />
             </TouchableOpacity>
           </View>
-          <View style={{ width: "100%", paddingBottom: vs(12), borderBottomWidth: 1, borderBottomColor: T.border, marginBottom: vs(8) }}>
+          <View style={{ width: "100%", paddingBottom: vs(12), borderBottomWidth: 1, borderBottomColor: Colors.kyc_border, marginBottom: vs(8) }}>
             <TextInput
-              style={{ borderWidth: 1, borderColor: T.border, borderRadius: hs(8), paddingHorizontal: hs(12), paddingVertical: Platform.OS === "ios" ? vs(12) : Math.max(8, vs(8)), color: T.text, fontSize: rs(13), fontFamily: Fonts.Regular }}
+              style={{ borderWidth: 1, borderColor: Colors.kyc_border, borderRadius: hs(8), paddingHorizontal: hs(12), paddingVertical: Platform.OS === "ios" ? vs(12) : Math.max(8, vs(8)), color: Colors.kyc_text, fontSize: rs(13), fontFamily: Fonts.Regular }}
               placeholder={`Search ${title.split(" ")[1]?.toLowerCase() || ""}…`}
-              placeholderTextColor={T.textMuted} value={search} onChangeText={setSearch}
+              placeholderTextColor={Colors.kyc_textMuted} value={search} onChangeText={setSearch}
             />
           </View>
           <ScrollView style={{ width: "100%" }} showsVerticalScrollIndicator={false}>
@@ -1143,7 +1124,7 @@ function SearchModal({ visible, title, loading, search, setSearch, items, getLab
             {!loading && items.length === 0 && <Text style={styles.modalEmpty}>No results found.</Text>}
             {items.map((item, i) => (
               <TouchableOpacity key={i} style={styles.modalListItem} onPress={() => onSelect(item)}>
-                <Text style={{ fontSize: rs(13), color: T.text, fontFamily: Fonts.Medium }}>{getLabel(item)}</Text>
+                <Text style={{ fontSize: rs(13), color: Colors.kyc_text, fontFamily: Fonts.Medium }}>{getLabel(item)}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -1169,8 +1150,8 @@ function FieldWrap({ label, required = true, error, hint, children, onLayout }) 
       <Text style={[styles.fieldLabel, { fontSize: rs(10) }]}>
         {label}
         {required
-          ? <Text style={{ color: T.error }}> *</Text>
-          : <Text style={{ color: T.textMuted, fontSize: rs(9) }}> (Optional)</Text>
+          ? <Text style={{ color: Colors.kyc_error }}> *</Text>
+          : <Text style={{ color: Colors.kyc_textMuted, fontSize: rs(9) }}> (Optional)</Text>
         }
       </Text>
       {children}
@@ -1185,27 +1166,27 @@ function Field({ label, value, onChange, placeholder, error, keyboardType, multi
     <FieldWrap label={label} required={required} error={error} hint={locked ? undefined : hint} onLayout={onLayout}>
       <View style={[
         styles.inputRow,
-        error && !locked && { borderColor: T.error, backgroundColor: T.error + "06" },
+        error && !locked && { borderColor: Colors.kyc_error, backgroundColor: Colors.kyc_error + "06" },
         locked && styles.inputRowLocked,
         multiline && { alignItems: "flex-start" },
       ]}>
         <TextInput
           style={[styles.input, { fontSize: rs(13) }, multiline && { height: vs(72), textAlignVertical: "top", paddingTop: vs(10) }, locked && styles.inputLocked]}
           value={value} onChangeText={locked ? undefined : onChange} editable={!locked}
-          placeholder={placeholder ?? ""} placeholderTextColor={T.textMuted}
+          placeholder={placeholder ?? ""} placeholderTextColor={Colors.kyc_textMuted}
           keyboardType={keyboardType ?? "default"} multiline={multiline} maxLength={maxLength}
           secureTextEntry={secureTextEntry} autoCapitalize="none" pointerEvents={locked ? "none" : "auto"}
         />
         {locked && (
           <View style={styles.lockedBadge}>
-            <Icon name="lock-outline" size={rs(10)} color={T.accent} />
+            <Icon name="lock-outline" size={rs(10)} color={Colors.kyc_accent} />
             <Text style={[styles.lockedBadgeTxt, { fontSize: rs(9) }]}>Auto-filled</Text>
           </View>
         )}
       </View>
       {locked && (
         <View style={styles.lockedHintRow}>
-          <Icon name="shield-check-outline" size={rs(10)} color={T.success} />
+          <Icon name="shield-check-outline" size={rs(10)} color={Colors.kyc_success} />
           <Text style={[styles.lockedHintTxt, { fontSize: rs(9) }]}>Verified from your account — cannot be changed</Text>
         </View>
       )}
@@ -1216,20 +1197,20 @@ function Field({ label, value, onChange, placeholder, error, keyboardType, multi
 function GenderSelect({ value, onChange, error, onLayout, locked = false }) {
   return (
     <View style={styles.fieldWrap} onLayout={onLayout}>
-      <Text style={[styles.fieldLabel, { fontSize: rs(10) }]}>Gender <Text style={{ color: T.error }}>*</Text></Text>
+      <Text style={[styles.fieldLabel, { fontSize: rs(10) }]}>Gender <Text style={{ color: Colors.kyc_error }}>*</Text></Text>
       <View style={styles.genderRow}>
         {[{ label: "Male", icon: "gender-male" }, { label: "Female", icon: "gender-female" }, { label: "Other", icon: "gender-non-binary" }].map(opt => (
           <TouchableOpacity key={opt.label} onPress={() => { if (!locked) onChange(opt.label); }} activeOpacity={locked ? 1 : 0.8}
-            style={[styles.genderBtn, value === opt.label && { backgroundColor: T.accent + "1C", borderColor: T.accent }, locked && value === opt.label && { borderStyle: "dashed", backgroundColor: T.lockedBg, borderColor: T.lockedBorder }]}>
-            <Icon name={opt.icon} size={rs(12)} color={value === opt.label ? (locked ? T.lockedText : T.accent) : T.textMuted} />
-            <Text style={[styles.genderBtnText, { fontSize: rs(10), fontFamily: Fonts.Medium }, value === opt.label && { color: locked ? T.lockedText : T.accent, fontFamily: Fonts.Bold }]}>{opt.label}</Text>
-            {locked && value === opt.label && <Icon name="lock-outline" size={rs(9)} color={T.accent} style={{ marginLeft: hs(2) }} />}
+            style={[styles.genderBtn, value === opt.label && { backgroundColor: Colors.kyc_accent + "1C", borderColor: Colors.kyc_accent }, locked && value === opt.label && { borderStyle: "dashed", backgroundColor: Colors.kyc_lockedBg, borderColor: Colors.kyc_lockedBorder }]}>
+            <Icon name={opt.icon} size={rs(12)} color={value === opt.label ? (locked ? Colors.kyc_lockedText : Colors.kyc_accent) : Colors.kyc_textMuted} />
+            <Text style={[styles.genderBtnText, { fontSize: rs(10), fontFamily: Fonts.Medium }, value === opt.label && { color: locked ? Colors.kyc_lockedText : Colors.kyc_accent, fontFamily: Fonts.Bold }]}>{opt.label}</Text>
+            {locked && value === opt.label && <Icon name="lock-outline" size={rs(9)} color={Colors.kyc_accent} style={{ marginLeft: hs(2) }} />}
           </TouchableOpacity>
         ))}
       </View>
       {locked && (
         <View style={styles.lockedHintRow}>
-          <Icon name="shield-check-outline" size={rs(10)} color={T.success} />
+          <Icon name="shield-check-outline" size={rs(10)} color={Colors.kyc_success} />
           <Text style={[styles.lockedHintTxt, { fontSize: rs(9) }]}>Verified from your account — cannot be changed</Text>
         </View>
       )}
@@ -1241,8 +1222,8 @@ function GenderSelect({ value, onChange, error, onLayout, locked = false }) {
 function SectionBanner({ icon, title, sub }) {
   return (
     <View style={styles.sectionBanner}>
-      <LinearGradient colors={[T.accent + "30", T.accent + "10"]} style={styles.sectionBannerIcon}>
-        <Icon name={icon} size={rs(20)} color={T.accent} />
+      <LinearGradient colors={[Colors.kyc_accent + "30", Colors.kyc_accent + "10"]} style={styles.sectionBannerIcon}>
+        <Icon name={icon} size={rs(20)} color={Colors.kyc_accent} />
       </LinearGradient>
       <View style={{ flex: 1 }}>
         <Text style={[styles.sectionBannerTitle, { fontFamily: Fonts.Bold, fontSize: rs(16) }]}>{title}</Text>
@@ -1265,8 +1246,8 @@ function Divider({ label }) {
 function ErrLabel({ msg }) {
   return (
     <View style={styles.errRow}>
-      <Icon name="alert-circle-outline" size={rs(11)} color={T.error} />
-      <Text style={[styles.errText, { color: T.error, fontSize: rs(10) }]}> {msg}</Text>
+      <Icon name="alert-circle-outline" size={rs(11)} color={Colors.kyc_error} />
+      <Text style={[styles.errText, { color: Colors.kyc_error, fontSize: rs(10) }]}> {msg}</Text>
     </View>
   );
 }
@@ -1277,85 +1258,85 @@ function ErrLabel({ msg }) {
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   header: { flexDirection: "row", alignItems: "center", paddingBottom: vs(10) },
-  backBtn: { width: hs(38), height: hs(38), borderRadius: hs(12), backgroundColor: T.surface, alignItems: "center", justifyContent: "center", marginRight: hs(10), elevation: 2, shadowColor: "#000", shadowOpacity: 0.07, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } },
+  backBtn: { width: hs(38), height: hs(38), borderRadius: hs(12), backgroundColor: Colors.kyc_surface, alignItems: "center", justifyContent: "center", marginRight: hs(10), elevation: 2, shadowColor: "#000", shadowOpacity: 0.07, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } },
   headerCenter: { flex: 1, flexDirection: "row", alignItems: "center", gap: hs(10) },
   headerLogo: { width: hs(34), height: hs(34), borderRadius: hs(10), alignItems: "center", justifyContent: "center" },
-  headerTitle: { color: T.text, lineHeight: rs(20) },
-  headerSub: { color: T.textSub, marginTop: 1 },
+  headerTitle: { color: Colors.kyc_text, lineHeight: rs(20) },
+  headerSub: { color: Colors.kyc_textSub, marginTop: 1 },
   stepBadge: { paddingHorizontal: hs(10), paddingVertical: vs(4), borderRadius: hs(10) },
   stepBadgeText: { letterSpacing: 0.4 },
   progressWrap: { paddingBottom: vs(14) },
-  progressTrack: { height: 3, backgroundColor: T.border, borderRadius: 2, marginBottom: vs(10), overflow: "hidden" },
+  progressTrack: { height: 3, backgroundColor: Colors.kyc_border, borderRadius: 2, marginBottom: vs(10), overflow: "hidden" },
   progressFill: { height: "100%", borderRadius: 2 },
   stepDots: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   stepDotItem: { alignItems: "center", flex: 1 },
   stepDotCircle: { alignItems: "center", justifyContent: "center", marginBottom: vs(4) },
-  stepDotLabel: { color: T.textMuted, textAlign: "center", letterSpacing: 0.4 },
+  stepDotLabel: { color: Colors.kyc_textMuted, textAlign: "center", letterSpacing: 0.4 },
   scrollContent: { paddingTop: vs(4) },
-  card: { backgroundColor: T.surface, borderRadius: hs(20), padding: hs(18), marginBottom: vs(14), elevation: 3, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 10 },
-  sectionBanner: { flexDirection: "row", alignItems: "center", gap: hs(12), marginBottom: vs(18), padding: hs(12), backgroundColor: T.accent + "0C", borderRadius: hs(14), borderLeftWidth: 3, borderLeftColor: T.accent },
+  card: { backgroundColor: Colors.kyc_surface, borderRadius: hs(20), padding: hs(18), marginBottom: vs(14), elevation: 3, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 10 },
+  sectionBanner: { flexDirection: "row", alignItems: "center", gap: hs(12), marginBottom: vs(18), padding: hs(12), backgroundColor: Colors.kyc_accent + "0C", borderRadius: hs(14), borderLeftWidth: 3, borderLeftColor: Colors.kyc_accent },
   sectionBannerIcon: { width: hs(42), height: hs(42), borderRadius: hs(12), alignItems: "center", justifyContent: "center" },
-  sectionBannerTitle: { color: T.text },
-  sectionBannerSub: { color: T.textSub, marginTop: 2 },
+  sectionBannerTitle: { color: Colors.kyc_text },
+  sectionBannerSub: { color: Colors.kyc_textSub, marginTop: 2 },
   fieldWrap: { marginBottom: vs(12) },
-  fieldLabel: { color: T.textSub, fontFamily: Fonts.Bold, letterSpacing: 0.7, marginBottom: vs(5), textTransform: "uppercase" },
-  inputRow: { flexDirection: "row", alignItems: "center", backgroundColor: T.inputBg, borderWidth: 1.2, borderColor: T.border, borderRadius: hs(10), paddingHorizontal: hs(12) },
-  input: { flex: 1, paddingVertical: vs(10), color: T.text, fontFamily: Fonts.Medium },
-  fieldHint: { color: T.textMuted, marginTop: vs(3), fontFamily: Fonts.Regular },
+  fieldLabel: { color: Colors.kyc_textSub, fontFamily: Fonts.Bold, letterSpacing: 0.7, marginBottom: vs(5), textTransform: "uppercase" },
+  inputRow: { flexDirection: "row", alignItems: "center", backgroundColor: Colors.kyc_inputBg, borderWidth: 1.2, borderColor: Colors.kyc_border, borderRadius: hs(10), paddingHorizontal: hs(12) },
+  input: { flex: 1, paddingVertical: vs(10), color: Colors.kyc_text, fontFamily: Fonts.Medium },
+  fieldHint: { color: Colors.kyc_textMuted, marginTop: vs(3), fontFamily: Fonts.Regular },
   errRow: { flexDirection: "row", alignItems: "center", marginTop: vs(3) },
   errText: { fontFamily: Fonts.Medium },
-  inputRowLocked: { backgroundColor: T.lockedBg, borderColor: T.lockedBorder, borderStyle: "dashed" },
-  inputLocked: { color: T.lockedText },
-  lockedBadge: { flexDirection: "row", alignItems: "center", gap: 3, backgroundColor: T.accent + "18", borderRadius: hs(6), paddingHorizontal: hs(6), paddingVertical: vs(3), marginRight: hs(2) },
-  lockedBadgeTxt: { color: T.accent, fontFamily: Fonts.Bold, letterSpacing: 0.2 },
+  inputRowLocked: { backgroundColor: Colors.kyc_lockedBg, borderColor: Colors.kyc_lockedBorder, borderStyle: "dashed" },
+  inputLocked: { color: Colors.kyc_lockedText },
+  lockedBadge: { flexDirection: "row", alignItems: "center", gap: 3, backgroundColor: Colors.kyc_accent + "18", borderRadius: hs(6), paddingHorizontal: hs(6), paddingVertical: vs(3), marginRight: hs(2) },
+  lockedBadgeTxt: { color: Colors.kyc_accent, fontFamily: Fonts.Bold, letterSpacing: 0.2 },
   lockedHintRow: { flexDirection: "row", alignItems: "center", gap: hs(4), marginTop: vs(3) },
-  lockedHintTxt: { color: T.success, fontFamily: Fonts.Regular, flex: 1 },
+  lockedHintTxt: { color: Colors.kyc_success, fontFamily: Fonts.Regular, flex: 1 },
   eyeBtn: { padding: hs(4) },
   accMatchStrip: { flexDirection: "row", alignItems: "center", gap: hs(6), marginTop: vs(5), paddingHorizontal: hs(10), paddingVertical: vs(6), borderRadius: hs(8), borderWidth: 1 },
   accMatchTxt: { fontSize: rs(10), fontFamily: Fonts.Bold, flex: 1, letterSpacing: 0.2, includeFontPadding: false, lineHeight: rs(14) },
   genderRow: { flexDirection: "row", gap: hs(5) },
-  genderBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: vs(9), borderRadius: hs(8), backgroundColor: T.inputBg, borderWidth: 1.2, borderColor: T.border, gap: hs(4) },
-  genderBtnText: { color: T.textMuted },
+  genderBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: vs(9), borderRadius: hs(8), backgroundColor: Colors.kyc_inputBg, borderWidth: 1.2, borderColor: Colors.kyc_border, gap: hs(4) },
+  genderBtnText: { color: Colors.kyc_textMuted },
   divider: { flexDirection: "row", alignItems: "center", marginVertical: vs(14), gap: hs(8) },
-  dividerLine: { flex: 1, height: 1.2, backgroundColor: T.border },
-  dividerLabel: { color: T.textMuted, letterSpacing: 1 },
-  sizeHintBanner: { flexDirection: "row", alignItems: "flex-start", gap: hs(7), backgroundColor: T.accent + "10", borderRadius: hs(8), borderLeftWidth: 3, borderLeftColor: T.accent, paddingHorizontal: hs(10), paddingVertical: vs(7), marginBottom: vs(10) },
-  sizeHintText: { flex: 1, color: T.textSub, fontFamily: Fonts.Regular, lineHeight: rs(16) },
+  dividerLine: { flex: 1, height: 1.2, backgroundColor: Colors.kyc_border },
+  dividerLabel: { color: Colors.kyc_textMuted, letterSpacing: 1 },
+  sizeHintBanner: { flexDirection: "row", alignItems: "flex-start", gap: hs(7), backgroundColor: Colors.kyc_accent + "10", borderRadius: hs(8), borderLeftWidth: 3, borderLeftColor: Colors.kyc_accent, paddingHorizontal: hs(10), paddingVertical: vs(7), marginBottom: vs(10) },
+  sizeHintText: { flex: 1, color: Colors.kyc_textSub, fontFamily: Fonts.Regular, lineHeight: rs(16) },
   docGrid: {},
   docSlotWrap: { marginBottom: vs(10) },
-  docBox: { height: vs(90), borderRadius: hs(14), borderWidth: 1.5, borderStyle: "dashed", borderColor: T.border, overflow: "hidden", backgroundColor: T.inputBg },
+  docBox: { height: vs(90), borderRadius: hs(14), borderWidth: 1.5, borderStyle: "dashed", borderColor: Colors.kyc_border, overflow: "hidden", backgroundColor: Colors.kyc_inputBg },
   docThumb: { width: "100%", height: "100%", borderRadius: hs(12) },
   docOverlay: { position: "absolute", bottom: 0, left: 0, right: 0, flexDirection: "row", alignItems: "center", paddingHorizontal: hs(10), paddingVertical: vs(6), gap: hs(6) },
-  docDoneLabel: { color: T.success, fontFamily: Fonts.Bold, letterSpacing: 0.4 },
+  docDoneLabel: { color: Colors.kyc_success, fontFamily: Fonts.Bold, letterSpacing: 0.4 },
   docFileName: { flex: 1, color: "#FFF", fontFamily: Fonts.Regular, fontSize: rs(9) },
   docCornerBtn: { position: "absolute", top: vs(6), width: hs(22), height: hs(22), borderRadius: hs(11), alignItems: "center", justifyContent: "center" },
   docEmptyContent: { flex: 1, flexDirection: "row", alignItems: "center", paddingHorizontal: hs(14), gap: hs(12) },
   docIconCircle: { width: hs(42), height: hs(42), borderRadius: hs(21), alignItems: "center", justifyContent: "center" },
-  docSlotLabel: { color: T.text },
-  docSlotSub: { color: T.textMuted, marginTop: 2, fontFamily: Fonts.Regular },
-  docSizeLabel: { color: T.textMuted, marginTop: vs(2), fontFamily: Fonts.Regular },
+  docSlotLabel: { color: Colors.kyc_text },
+  docSlotSub: { color: Colors.kyc_textMuted, marginTop: 2, fontFamily: Fonts.Regular },
+  docSizeLabel: { color: Colors.kyc_textMuted, marginTop: vs(2), fontFamily: Fonts.Regular },
   docUploadTag: { flexDirection: "row", alignItems: "center", paddingHorizontal: hs(8), paddingVertical: vs(4), borderRadius: hs(10), borderWidth: 1, gap: hs(4) },
   docUploadTagText: {},
   securityBanner: { flexDirection: "row", alignItems: "flex-start", borderRadius: hs(12), padding: hs(12), marginTop: vs(12), gap: hs(10) },
   securityIcon: { width: hs(36), height: hs(36), borderRadius: hs(10), alignItems: "center", justifyContent: "center" },
   securityTitle: { marginBottom: vs(2) },
-  securityBody: { color: T.textSub, lineHeight: rs(16) },
+  securityBody: { color: Colors.kyc_textSub, lineHeight: rs(16) },
   reviewBanner: { flexDirection: "row", alignItems: "flex-start", backgroundColor: "#EFF6FF", borderRadius: hs(10), borderLeftWidth: 3, borderLeftColor: "#3B82F6", padding: hs(10), marginTop: vs(10), gap: hs(8) },
   reviewText: { flex: 1, color: "#1D4ED8", lineHeight: rs(16) },
   actionRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: vs(4), marginBottom: vs(8), gap: hs(12) },
-  prevBtn: { flexDirection: "row", alignItems: "center", paddingVertical: vs(12), paddingHorizontal: hs(18), borderRadius: hs(12), borderWidth: 1.2, borderColor: T.border, backgroundColor: T.surface, gap: hs(6), elevation: 1 },
-  prevBtnText: { color: T.text },
-  nextBtnOuter: { borderRadius: hs(14), overflow: "hidden", elevation: 5, shadowColor: T.accent, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
+  prevBtn: { flexDirection: "row", alignItems: "center", paddingVertical: vs(12), paddingHorizontal: hs(18), borderRadius: hs(12), borderWidth: 1.2, borderColor: Colors.kyc_border, backgroundColor: Colors.kyc_surface, gap: hs(6), elevation: 1 },
+  prevBtnText: { color: Colors.kyc_text },
+  nextBtnOuter: { borderRadius: hs(14), overflow: "hidden", elevation: 5, shadowColor: Colors.kyc_accent, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
   nextBtnGrad: { flexDirection: "row", alignItems: "center", paddingVertical: vs(14), paddingHorizontal: hs(26) },
   nextBtnText: {},
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", paddingHorizontal: hs(24) },
-  modalCard: { backgroundColor: T.surface, width: "100%", borderRadius: hs(24), padding: hs(24), alignItems: "center", elevation: 10, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12 },
-  modalIconWrap: { width: rs(72), height: rs(72), borderRadius: rs(36), backgroundColor: T.success + "15", justifyContent: "center", alignItems: "center", marginBottom: vs(16) },
-  modalTitle: { color: T.text, fontSize: rs(18), fontFamily: Fonts.Bold, textAlign: "center", marginBottom: vs(8) },
-  modalSub: { color: T.textSub, fontSize: rs(12), fontFamily: Fonts.Regular, textAlign: "center", lineHeight: rs(18), marginBottom: vs(24) },
+  modalCard: { backgroundColor: Colors.kyc_surface, width: "100%", borderRadius: hs(24), padding: hs(24), alignItems: "center", elevation: 10, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12 },
+  modalIconWrap: { width: rs(72), height: rs(72), borderRadius: rs(36), backgroundColor: Colors.kyc_success + "15", justifyContent: "center", alignItems: "center", marginBottom: vs(16) },
+  modalTitle: { color: Colors.kyc_text, fontSize: rs(18), fontFamily: Fonts.Bold, textAlign: "center", marginBottom: vs(8) },
+  modalSub: { color: Colors.kyc_textSub, fontSize: rs(12), fontFamily: Fonts.Regular, textAlign: "center", lineHeight: rs(18), marginBottom: vs(24) },
   modalBtn: { width: "100%", borderRadius: hs(12), overflow: "hidden" },
   modalBtnGrad: { paddingVertical: vs(14), alignItems: "center", justifyContent: "center" },
-  modalBtnText: { color: T.surface, fontFamily: Fonts.Bold, fontSize: rs(14) },
-  modalEmpty: { textAlign: "center", marginTop: vs(40), color: T.textMuted, fontFamily: Fonts.Regular, fontSize: rs(13) },
-  modalListItem: { paddingVertical: vs(14), borderBottomWidth: 1, borderBottomColor: T.border },
+  modalBtnText: { color: Colors.kyc_surface, fontFamily: Fonts.Bold, fontSize: rs(14) },
+  modalEmpty: { textAlign: "center", marginTop: vs(40), color: Colors.kyc_textMuted, fontFamily: Fonts.Regular, fontSize: rs(13) },
+  modalListItem: { paddingVertical: vs(14), borderBottomWidth: 1, borderBottomColor: Colors.kyc_border },
 });

@@ -20,21 +20,6 @@ import Colors from "../../constants/Colors";
 
 const { width } = Dimensions.get("window");
 
-/* ─────────────────────────────────────────────
-   DESIGN TOKENS
-───────────────────────────────────────────── */
-const T = {
-  ink: "#0F0E0D",
-  ink2: "#3A3835",
-  ink3: "#7A756E",
-  ink4: "#B5AFA7",
-  ink5: "#E2DDD8",
-  surface2: "#F4F2EE",
-  amber: "#C96A00",
-  amber2: "#E07A00",
-  amberBg: "rgba(201,106,0,0.07)",
-  red: "#C13B3B",
-};
 
 /* ─────────────────────────────────────────────
    FLOATING-LABEL INPUT
@@ -62,10 +47,10 @@ const FloatInput = ({
 
   const labelTop = labelAnim.interpolate({ inputRange: [0, 1], outputRange: [18, 9] });
   const labelSize = labelAnim.interpolate({ inputRange: [0, 1], outputRange: [14, 10.5] });
-  const labelColor = labelAnim.interpolate({ inputRange: [0, 1], outputRange: [T.ink3, T.amber] });
+  const labelColor = labelAnim.interpolate({ inputRange: [0, 1], outputRange: [Colors.ink3, Colors.amber] });
   const borderColor = borderAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [error ? T.red : T.ink5, T.amber],
+    outputRange: [error ? Colors.red : Colors.ink5, Colors.amber],
   });
 
   return (
@@ -76,7 +61,7 @@ const FloatInput = ({
           {
             borderColor,
             shadowOpacity: focused ? 1 : 0,
-            shadowColor: error ? T.red : T.amber,
+            shadowColor: error ? Colors.red : Colors.amber,
             shadowOffset: { width: 0, height: 0 },
             shadowRadius: 6,
             elevation: focused ? 2 : 0,
@@ -216,7 +201,7 @@ const ForgotPinScreen = ({ navigation }) => {
           {/* ── pw-head ── */}
           <View style={styles.pwHead}>
             <View style={styles.pwHeadIc}>
-              <Icon name="pin-outline" size={20} color={T.amber} />
+              <Icon name="pin-outline" size={20} color={Colors.amber} />
             </View>
             <Text style={styles.pwHeadTitle}>Forgot Pin</Text>
             <Text style={styles.pwHeadSub}>
@@ -236,7 +221,7 @@ const ForgotPinScreen = ({ navigation }) => {
 
             {/* Tip box */}
             <View style={styles.tipBox}>
-              <Icon name="information-outline" size={14} color={T.ink4} style={{ marginTop: 1 }} />
+              <Icon name="information-outline" size={14} color={Colors.ink4} style={{ marginTop: 1 }} />
               <Text style={styles.tipText}>
                 Make sure to enter the email linked to your account. Check your spam folder if you don't receive the OTP.
               </Text>
@@ -267,7 +252,7 @@ const ForgotPinScreen = ({ navigation }) => {
           <Animated.View style={[styles.modalBox, { transform: [{ scale: modalScale }] }]}>
 
             <View style={styles.modalHeadIc}>
-              <Icon name="shield-key-outline" size={22} color={T.amber} />
+              <Icon name="shield-key-outline" size={22} color={Colors.amber} />
             </View>
             <Text style={styles.modalTitle}>Enter OTP</Text>
             <Text style={styles.modalSub}>
@@ -366,14 +351,14 @@ const styles = StyleSheet.create({
     paddingTop: 28,
     paddingBottom: 24,
     borderBottomWidth: 1,
-    borderBottomColor: T.ink5,
+    borderBottomColor: Colors.ink5,
     backgroundColor: Colors.bg,
   },
   pwHeadIc: {
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: T.amberBg,
+    backgroundColor: Colors.amberBg,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 14,
@@ -381,14 +366,14 @@ const styles = StyleSheet.create({
   pwHeadTitle: {
     fontFamily: Fonts.Bold,
     fontSize: 24,
-    color: T.ink,
+    color: Colors.ink,
     letterSpacing: -0.72,
     marginBottom: 4,
   },
   pwHeadSub: {
     fontFamily: Fonts.Regular,
     fontSize: 13,
-    color: T.ink3,
+    color: Colors.ink3,
     lineHeight: 19.5,
   },
 
@@ -407,7 +392,7 @@ const styles = StyleSheet.create({
     height: 56,
     backgroundColor: Colors.white,
     borderWidth: 1.5,
-    borderColor: T.ink5,
+    borderColor: Colors.ink5,
     borderRadius: 14,
     flexDirection: "row",
     alignItems: "center",
@@ -416,13 +401,13 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 14,
     fontFamily: Fonts.Regular,
-    color: T.ink3,
+    color: Colors.ink3,
     pointerEvents: "none",
   },
   fError: {
     fontFamily: Fonts.Medium,
     fontSize: 10,
-    color: T.red,
+    color: Colors.red,
     marginTop: 4,
     marginLeft: 14,
   },
@@ -434,7 +419,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     fontFamily: Fonts.Medium,
     fontSize: 14,
-    color: T.ink,
+    color: Colors.ink,
   },
 
   /* ── Tip box ── */
@@ -447,13 +432,13 @@ const styles = StyleSheet.create({
     marginTop: 2,
     marginBottom: 0,
     borderWidth: 1,
-    borderColor: T.ink5,
+    borderColor: Colors.ink5,
   },
   tipText: {
     flex: 1,
     fontFamily: Fonts.Regular,
     fontSize: 12,
-    color: T.ink3,
+    color: Colors.ink3,
     lineHeight: 18,
   },
 
@@ -465,12 +450,12 @@ const styles = StyleSheet.create({
   btnSolid: {
     height: 52,
     borderRadius: 999,
-    backgroundColor: T.ink,
+    backgroundColor: Colors.ink,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 7,
-    shadowColor: T.ink,
+    shadowColor: Colors.ink,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 16,
@@ -503,7 +488,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 14,
-    backgroundColor: T.amberBg,
+    backgroundColor: Colors.amberBg,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 14,
@@ -511,7 +496,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontFamily: Fonts.Bold,
     fontSize: 20,
-    color: T.ink,
+    color: Colors.ink,
     letterSpacing: -0.5,
     marginBottom: 6,
     textAlign: "center",
@@ -519,24 +504,24 @@ const styles = StyleSheet.create({
   modalSub: {
     fontFamily: Fonts.Regular,
     fontSize: 13,
-    color: T.ink3,
+    color: Colors.ink3,
     textAlign: "center",
     lineHeight: 19,
     marginBottom: 22,
   },
   modalEmail: {
     fontFamily: Fonts.SemiBold,
-    color: T.amber,
+    color: Colors.amber,
   },
   verifyBtn: {
     width: "100%",
     height: 52,
     borderRadius: 999,
-    backgroundColor: T.ink,
+    backgroundColor: Colors.ink,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 6,
-    shadowColor: T.ink,
+    shadowColor: Colors.ink,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 16,
@@ -557,16 +542,16 @@ const styles = StyleSheet.create({
   modalDivider: {
     width: 1,
     height: 14,
-    backgroundColor: T.ink5,
+    backgroundColor: Colors.ink5,
   },
   resendTxt: {
     fontFamily: Fonts.SemiBold,
     fontSize: 13,
-    color: T.amber,
+    color: Colors.amber,
   },
   cancelTxt: {
     fontFamily: Fonts.Medium,
     fontSize: 13,
-    color: T.ink3,
+    color: Colors.ink3,
   },
 });
