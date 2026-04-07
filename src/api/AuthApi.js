@@ -695,6 +695,24 @@ export const fetchKycStatus = async () => {
 };
 
 /**
+ * fetchSubmittedKyc
+ * GET /user/kyc/submitted-kyc
+ * Fetches previous KYC submission data for re-KYC pre-filling.
+ */
+export const fetchSubmittedKyc = async ({ headerToken }) => {
+  try {
+    const url = `${BASE_URL}/user/kyc/submitted-kyc`;
+    const response = await axios.get(url, {
+      headers: { Authorization: `Bearer ${headerToken}`, "Content-Type": "application/json" }
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Fetch Submitted KYC Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch previous KYC submission" };
+  }
+};
+
+/**
  * getLocalKycStatus
  * Reads cached KYC status from AsyncStorage instantly — no network call.
  * @returns "pending" | "approved" | "rejected" | "not_submitted"

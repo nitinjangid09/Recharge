@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   FlatList,
   ActivityIndicator,
   ScrollView,
+  RefreshControl,
   Dimensions,
   StatusBar,
 } from 'react-native';
@@ -28,6 +29,7 @@ const UserListScreen = ({ navigation }) => {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -52,8 +54,14 @@ const UserListScreen = ({ navigation }) => {
       setError('An error occurred while fetching users');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    fetchUsers();
+  }, []);
 
   const handleSearch = (text) => {
     setSearchQuery(text);
@@ -185,6 +193,15 @@ const UserListScreen = ({ navigation }) => {
           renderItem={renderUserCard}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={Colors.primary}
+              colors={[Colors.primary]}
+            />
+          }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Icon name="account-search-outline" size={64} color={Colors.circle_bg} />

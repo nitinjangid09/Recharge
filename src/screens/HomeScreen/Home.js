@@ -312,25 +312,55 @@ export default function FinanceHome({ navigation }) {
     try {
       const today = new Date().toISOString().split("T")[0];
       const prevDate = new Date();
-      prevDate.setDate(prevDate.getDate() - 30); // Last 30 days
+      prevDate.setDate(prevDate.getDate() - 7); // Last 7 days for home screen
       const from = prevDate.toISOString().split("T")[0];
 
       const res = await getWalletReport({ from, to: today, headerToken: tok });
       if (res?.success && Array.isArray(res.data)) {
         // Last 5 transactions
-        const last5 = res.data.slice(0, 5).map(txn => {
-          const isCredit = txn.type === "CREDIT";
-          const amount = parseFloat(txn.amount || 0);
+        const last5 = res.data.slice(0, 8).map(txn => {
+          const isCredit = txn.type?.toLowerCase() === "credit";
+          const amount = parseFloat(txn.txnAmount || 0);
+          const isRefund = txn.isRefunded === true || txn.serviceCategory === 'REFUND';
+
+          // Intelligent Icon & Color Mapping
+          let icon = "swap-horizontal";
+          let color = Colors.finance_accent;
+          let bg = "rgba(212,176,106,0.12)";
+
+          const cat = (txn.serviceCategory || "").toUpperCase();
+          const srv = (txn.serviceName || "").toUpperCase();
+
+          if (cat === "REFUND") {
+            icon = "refresh";
+            color = "#22C55E";
+            bg = "rgba(34,197,94,0.12)";
+          } else if (cat === "AEPS") {
+            icon = "fingerprint";
+            color = "#6366F1";
+            bg = "rgba(99,102,241,0.12)";
+          } else if (srv.includes("JIO") || srv.includes("AIRTEL") || srv.includes("VI") || srv.includes("BSNL")) {
+            icon = "cellphone-wireless";
+            color = "#3B82F6";
+            bg = "rgba(59,130,246,0.12)";
+          } else if (cat === "BBPS") {
+            icon = "lightning-bolt";
+            color = "#E8A020";
+            bg = "rgba(232,160,32,0.12)";
+          }
+
           return {
             id: txn._id,
-            name: txn.remarks || "Transaction",
-            meta: txn.transactionType || "Wallet",
-            amount: `${isCredit ? "+" : "−"}₹${amount.toFixed(2)}`,
+            name: txn.serviceName || "Transaction",
+            meta: txn.message || txn.serviceCategory || "Wallet Transaction",
+            amount: `${isCredit ? "+" : "−"}₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
             credit: isCredit,
-            icon: isCredit ? "trending-up" : "trending-down",
-            color: isCredit ? "#22C55E" : "#EF4444",
-            bg: isCredit ? "rgba(34,197,94,0.10)" : "rgba(239,68,68,0.10)",
-            time: new Date(txn.createdAt).toLocaleDateString([], { day: '2-digit', month: 'short' })
+            isRefund: isRefund,
+            icon: icon,
+            color: color,
+            bg: bg,
+            time: new Date(txn.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            date: new Date(txn.date).toLocaleDateString([], { day: '2-digit', month: 'short' }),
           };
         });
         setRecentTransactions(last5);
@@ -920,21 +950,28 @@ export default function FinanceHome({ navigation }) {
               ) : (
                 recentTransactions.map((txn, i) => (
                   <View
-                    key={txn.id}
+                    key={txn.id || i}
                     style={S.txnItem}
                   >
                     <View style={[S.txnIcon, { backgroundColor: txn.bg }]}>
                       <Icon name={txn.icon} size={rs(18)} color={txn.color} />
                     </View>
                     <View style={S.txnInfo}>
-                      <Text style={S.txnName} numberOfLines={1}>{txn.name}</Text>
-                      <Text style={S.txnMeta}>{txn.meta}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: rs(2) }}>
+                        <Text style={S.txnName} numberOfLines={1}>{txn.name}</Text>
+                        {txn.isRefund && (
+                          <View style={S.refundBadge}>
+                            <Text style={S.refundBadgeTxt}>REFUND</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text style={S.txnMeta} numberOfLines={1}>{txn.meta}</Text>
                     </View>
                     <View style={{ alignItems: "flex-end" }}>
                       <Text style={[S.txnAmount, txn.credit ? S.txnCredit : S.txnDebit]}>
                         {txn.amount}
                       </Text>
-                      <Text style={S.txnTime}>{txn.time}</Text>
+                      <Text style={S.txnTime}>{txn.date} · {txn.time}</Text>
                     </View>
                   </View>
                 ))
@@ -1423,6 +1460,22 @@ const S = StyleSheet.create({
   txnDebit: { color: "#EF4444" },
   txnCredit: { color: "#22C55E" },
   txnTime: { fontSize: rs(10), color: "#9BA5B8", textAlign: "right", marginTop: rs(3) },
+
+  refundBadge: {
+    marginLeft: rs(6),
+    backgroundColor: "rgba(34,197,94,0.12)",
+    paddingHorizontal: rs(6),
+    paddingVertical: rs(2),
+    borderRadius: rs(4),
+    borderWidth: 0.5,
+    borderColor: "rgba(34,197,94,0.3)",
+  },
+  refundBadgeTxt: {
+    fontSize: rs(8),
+    fontFamily: Fonts.Bold,
+    color: "#22C55E",
+    letterSpacing: 0.5,
+  },
 
   // ── BOTTOM NAV — unchanged ──
   navWrap: { position: "absolute", width: "100%", alignItems: "center" },

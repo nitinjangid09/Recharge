@@ -342,91 +342,100 @@ export default function Offlinekyc({ navigation, route }) {
         const buildFile = (rel, name) =>
           rel ? { uri: `${IMG_BASE}${rel}`, name: rel.split("/").pop() || name, type: "image/jpeg" } : null;
 
-        if (personalApproved) {
-          setPersonal(p => ({
-            ...p,
-            firstName: d.firstName || p.firstName,
-            lastName: d.lastName || p.lastName,
-            fatherName: d.fatherName || p.fatherName,
-            gender: d.gender || p.gender,
-            email: d.email || p.email,
-            phone: d.phone || p.phone,
-            dob: dobFormatted || p.dob,
-            personalAddress: d.personalAddress?.address || p.personalAddress,
-            personalCity: d.personalAddress?.city || p.personalCity,
-            personalState: d.personalAddress?.state || p.personalState,
-            personalPincode: d.personalAddress?.pincode || p.personalPincode,
-          }));
-          setLockedPersonal({
-            firstName: !!d.firstName, lastName: !!d.lastName,
-            fatherName: !!d.fatherName, gender: !!d.gender,
-            email: !!d.email, phone: !!d.phone,
-            dob: !!d.dob, personalAddress: !!d.personalAddress?.address,
-            personalCity: !!d.personalAddress?.city,
-            personalState: !!d.personalAddress?.state,
-            personalPincode: !!d.personalAddress?.pincode,
-          });
+        // 1. Personal Details Pre-fill
+        setPersonal(p => ({
+          ...p,
+          firstName: d.firstName || p.firstName,
+          lastName: d.lastName || p.lastName,
+          fatherName: d.fatherName || p.fatherName,
+          gender: d.gender || p.gender,
+          email: d.email || p.email,
+          phone: d.phone || p.phone,
+          dob: dobFormatted || p.dob,
+          personalAddress: d.personalAddress?.address ?? p.personalAddress,
+          personalCity: d.personalAddress?.city ?? p.personalCity,
+          personalState: d.personalAddress?.state ?? p.personalState,
+          personalPincode: d.personalAddress?.pincode ?? p.personalPincode,
+        }));
+        setLockedPersonal({
+          firstName: personalApproved && !!d.firstName,
+          lastName: personalApproved && !!d.lastName,
+          fatherName: personalApproved && !!d.fatherName,
+          gender: personalApproved && !!d.gender,
+          email: personalApproved && !!d.email,
+          phone: personalApproved && !!d.phone,
+          dob: personalApproved && !!d.dob,
+          personalAddress: personalApproved && !!d.personalAddress?.address,
+          personalCity: personalApproved && !!d.personalAddress?.city,
+          personalState: personalApproved && !!d.personalAddress?.state,
+          personalPincode: personalApproved && !!d.personalAddress?.pincode,
+        });
+
+        // 2. Business Details Pre-fill
+        setBusiness(b => ({
+          ...b,
+          shopName: d.shopName || b.shopName,
+          businessPanNumber: d.businessPanNumber || b.businessPanNumber,
+          gstNumber: d.gstNumber || b.gstNumber,
+          businessAddress: d.businessAddress?.address ?? b.businessAddress,
+          businessCity: d.businessAddress?.city ?? b.businessCity,
+          businessState: d.businessAddress?.state ?? b.businessState,
+          businessPincode: d.businessAddress?.pincode ?? b.businessPincode,
+          panNumber: d.panNumber || b.panNumber,
+          aadharNumber: d.aadharNumber || b.aadharNumber,
+        }));
+        setLockedBusiness(lb => ({
+          ...lb,
+          shopName: businessApproved && !!d.shopName,
+          businessPanNumber: businessApproved && !!d.businessPanNumber,
+          gstNumber: businessApproved && !!d.gstNumber,
+          businessAddress: businessApproved && !!d.businessAddress?.address,
+          businessCity: businessApproved && !!d.businessAddress?.city,
+          businessState: businessApproved && !!d.businessAddress?.state,
+          businessPincode: businessApproved && !!d.businessAddress?.pincode,
+          panNumber: identityApproved && !!d.panNumber,
+          aadharNumber: identityApproved && !!d.aadharNumber,
+        }));
+
+        // 3. Document Files Pre-fill
+        if (d.shopImageUrl) {
+          setFiles(f => ({ ...f, shopImage: buildFile(d.shopImageUrl, "shopImage.jpg") }));
+          setLockedFiles(lf => ({ ...lf, shopImage: businessApproved }));
+        }
+        if (d.aadharFileUrl) {
+          setFiles(f => ({ ...f, aadharFile: buildFile(d.aadharFileUrl, "aadharFile.jpg") }));
+          setLockedFiles(lf => ({ ...lf, aadharFile: identityApproved }));
+        }
+        if (d.panFileUrl) {
+          setFiles(f => ({ ...f, panFile: buildFile(d.panFileUrl, "panFile.jpg") }));
+          setLockedFiles(lf => ({ ...lf, panFile: identityApproved }));
         }
 
-        if (businessApproved) {
-          setBusiness(b => ({
-            ...b,
-            shopName: d.shopName || b.shopName,
-            businessPanNumber: d.businessPanNumber || b.businessPanNumber,
-            gstNumber: d.gstNumber || b.gstNumber,
-            businessAddress: d.businessAddress?.address || b.businessAddress,
-            businessCity: d.businessAddress?.city || b.businessCity,
-            businessState: d.businessAddress?.state || b.businessState,
-            businessPincode: d.businessAddress?.pincode || b.businessPincode,
-          }));
-          setLockedBusiness(lb => ({
-            ...lb,
-            shopName: !!d.shopName, businessPanNumber: !!d.businessPanNumber,
-            gstNumber: !!d.gstNumber, businessAddress: !!d.businessAddress?.address,
-            businessCity: !!d.businessAddress?.city,
-            businessState: !!d.businessAddress?.state,
-            businessPincode: !!d.businessAddress?.pincode,
-          }));
-          if (d.shopImageUrl) {
-            setFiles(f => ({ ...f, shopImage: buildFile(d.shopImageUrl, "shopImage.jpg") }));
-            setLockedFiles(lf => ({ ...lf, shopImage: true }));
-          }
-        }
+        // 4. Banking Details
+        setBanking(bk => ({
+          ...bk,
+          accountHolderName: d.accountHolderName || bk.accountHolderName,
+          bankName: d.bankName || bk.bankName,
+          accountNumber: d.accountNumber || bk.accountNumber,
+          confirmAccountNumber: d.accountNumber || bk.confirmAccountNumber,
+          ifscCode: d.ifscCode || bk.ifscCode,
+          branchName: d.branchName || bk.branchName,
+        }));
+        setLockedBanking({
+          accountHolderName: bankApproved && !!d.accountHolderName,
+          bankName: bankApproved && !!d.bankName,
+          accountNumber: bankApproved && !!d.accountNumber,
+          ifscCode: bankApproved && !!d.ifscCode,
+          branchName: bankApproved && !!d.branchName,
+        });
 
-        if (identityApproved) {
-          setBusiness(b => ({
-            ...b,
-            panNumber: d.panNumber || b.panNumber,
-            aadharNumber: d.aadharNumber || b.aadharNumber,
-          }));
-          setLockedBusiness(lb => ({ ...lb, panNumber: !!d.panNumber, aadharNumber: !!d.aadharNumber }));
-          if (d.aadharFileUrl) {
-            setFiles(f => ({ ...f, aadharFile: buildFile(d.aadharFileUrl, "aadharFile.jpg") }));
-            setLockedFiles(lf => ({ ...lf, aadharFile: true }));
-          }
-          if (d.panFileUrl) {
-            setFiles(f => ({ ...f, panFile: buildFile(d.panFileUrl, "panFile.jpg") }));
-            setLockedFiles(lf => ({ ...lf, panFile: true }));
-          }
+        if (d.rejectionReason) {
+            setFailMsg(`Previous Submission rejected: ${d.rejectionReason}`);
+            setShowFailModal(true);
         }
-
-        if (bankApproved) {
-          setBanking(bk => ({
-            ...bk,
-            accountHolderName: d.accountHolderName || bk.accountHolderName,
-            bankName: d.bankName || bk.bankName,
-            accountNumber: d.accountNumber || bk.accountNumber,
-            confirmAccountNumber: d.accountNumber || bk.confirmAccountNumber,
-            ifscCode: d.ifscCode || bk.ifscCode,
-            branchName: d.branchName || bk.branchName,
-          }));
-          setLockedBanking({
-            accountHolderName: !!d.accountHolderName, bankName: !!d.bankName,
-            accountNumber: !!d.accountNumber, ifscCode: !!d.ifscCode,
-            branchName: !!d.branchName,
-          });
-        }
-      } catch (err) { console.log("[KYC] fetchSubmittedKyc error:", err); }
+      } catch (err) {
+        console.log("[KYC] fetchSubmittedKyc error:", err);
+      }
     })();
   }, []);
 
@@ -1052,7 +1061,7 @@ export default function Offlinekyc({ navigation, route }) {
             </View>
             <Text style={styles.modalTitle}>KYC Submitted Successfully</Text>
             <Text style={styles.modalSub}>Your KYC details are under review. We'll notify you once approved!</Text>
-            <TouchableOpacity style={styles.modalBtn} activeOpacity={0.8} onPress={() => { setShowSuccessModal(false); navigation.replace("FinanceHome"); }}>
+            <TouchableOpacity style={styles.modalBtn} activeOpacity={0.8} onPress={() => { setShowSuccessModal(false); navigation.replace("KycSubmitted"); }}>
               <LinearGradient colors={[Colors.kyc_accent, Colors.kyc_accentDark]} style={styles.modalBtnGrad}>
                 <Text style={styles.modalBtnText}>Continue to Home</Text>
               </LinearGradient>
@@ -1119,7 +1128,7 @@ function SearchModal({ visible, title, loading, search, setSearch, items, getLab
               placeholderTextColor={Colors.kyc_textMuted} value={search} onChangeText={setSearch}
             />
           </View>
-          <ScrollView style={{ width: "100%" }} showsVerticalScrollIndicator={false}>
+          <ScrollView style={{ width: "100%" }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             {loading && items.length === 0 && <Text style={styles.modalEmpty}>Loading…</Text>}
             {!loading && items.length === 0 && <Text style={styles.modalEmpty}>No results found.</Text>}
             {items.map((item, i) => (

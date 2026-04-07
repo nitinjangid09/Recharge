@@ -6,6 +6,7 @@ import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
   Animated, Easing, StatusBar, Alert, Dimensions,
   ActivityIndicator, Share, Modal, ScrollView, Platform, TextInput,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -987,6 +988,7 @@ const WalletTransactionScreen = ({ navigation }) => {
   const [mainBalance, setMainBalance] = useState('0.00');
   const [balanceLoading, setBalanceLoading] = useState(false);
   const [isAeps, setIsAeps] = useState(false); // Default to Main as it's the "Wallet Ledger"
+  const [refreshing, setRefreshing] = useState(false);
 
   // Detail sheet
   const [detailItem, setDetailItem] = useState(null);
@@ -1083,8 +1085,14 @@ const WalletTransactionScreen = ({ navigation }) => {
       console.log('[WalletLedger] network error:', e?.message);
       setError('Network error. Please check your connection.');
       setTransactions([]);
-    } finally { setLoading(false); }
+    } finally { setLoading(false); setRefreshing(false); }
   };
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([loadBalances(), doFetch(startDateRef.current, endDateRef.current)]);
+    setRefreshing(false);
+  }, []);
 
   const handleSearch = () => doFetch(startDateRef.current, endDateRef.current);
   const openCal = (target) => { setCalTarget(target); setCalVisible(true); };
@@ -1268,6 +1276,15 @@ const WalletTransactionScreen = ({ navigation }) => {
         }
         contentContainerStyle={{ paddingBottom: vs(40) }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={D.gold}
+            colors={[D.gold]}
+            progressBackgroundColor={D.headerBg}
+          />
+        }
       />
 
       <CalendarModal

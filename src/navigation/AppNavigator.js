@@ -83,10 +83,14 @@ const AppNavigator = () => {
                 setInitialRoute('FinanceHome');
               } else if (kycStatus === "submitted") {
                 setInitialRoute('KycSubmitted');
+              } else if (kycStatus === "rekyc") {
+                setInitialRoute('Offlinekyc');
               } else if (kycStatus === "pending" || kycStatus === "rejected") {
                 if (isPaymentDone === false) {
                   if (idPaymentStatus === "complete") {
                     setInitialRoute('PaymentVerification');
+                  } else if (idPaymentStatus === "reject") {
+                    setInitialRoute('ActivateAccountScreen');
                   } else {
                     setInitialRoute('ActivateAccountScreen');
                   }

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Animated,
   ActivityIndicator,
   Alert,
+  RefreshControl,
 } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -211,6 +212,7 @@ export default function ProfileScreen({ navigation }) {
   /* State */
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertTitle, setAlertTitle] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
@@ -258,8 +260,14 @@ export default function ProfileScreen({ navigation }) {
       Alert.alert("Error", "Network or server issue");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadUserProfile();
+  }, []);
 
   /* Logout */
   const handleLogout = async () => {
@@ -304,7 +312,16 @@ export default function ProfileScreen({ navigation }) {
       <ScrollView
         style={styles.scroll}
         showsVerticalScrollIndicator={false}
-        bounces={false}
+        bounces={true}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.amber}
+            colors={[Colors.amber]}
+            progressBackgroundColor="#2A2825"
+          />
+        }
       >
         {/* ── HERO ZONE ── */}
         <Animated.View

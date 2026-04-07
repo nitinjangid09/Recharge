@@ -14,6 +14,7 @@ import {
   PixelRatio,
   PermissionsAndroid,
   Alert,
+  RefreshControl,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -169,6 +170,7 @@ export default function OfflineTopup({ navigation }) {
   const [errors, setErrors] = useState({});
   const [requests, setRequests] = useState([]);
   const [requestsLoading, setRequestsLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const activeModeHint = PAYMENT_MODES.find(m => m.key === mode)?.hint || "";
 
@@ -212,8 +214,15 @@ export default function OfflineTopup({ navigation }) {
       console.log("Fetch requests error:", e);
     } finally {
       setRequestsLoading(false);
+      setRefreshing(false); // Reset both loaders
     }
   };
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([fetchBanks(), fetchRequests()]);
+    setRefreshing(false);
+  }, []);
 
   useEffect(() => {
     fetchBanks();
@@ -306,7 +315,19 @@ export default function OfflineTopup({ navigation }) {
 
   return (
     <SafeAreaView style={st.container}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={st.scroll}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={st.scroll}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={ACCENT}
+            colors={[ACCENT]}
+            progressBackgroundColor="#FFF"
+          />
+        }
+      >
         <HeaderBar title="Topup Request" onBack={() => navigation.goBack()} />
 
         <View style={st.card}>

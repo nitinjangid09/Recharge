@@ -5,6 +5,7 @@ import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
   TextInput, ActivityIndicator, Modal, Animated, Dimensions, Platform,
+  RefreshControl,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -732,6 +733,7 @@ export default function InvoiceScreen({ navigation }) {
   const [search, setSearch] = useState('');
   const [tabData, setTabData] = useState({});
   const [loadingTab, setLoadingTab] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [errorTab, setErrorTab] = useState(null);
   const [selectedTxn, setSelectedTxn] = useState(null);
   const [sheetVisible, setSheetVisible] = useState(false);
@@ -765,8 +767,14 @@ export default function InvoiceScreen({ navigation }) {
       setTabData(prev => ({ ...prev, [tabValue]: [] }));
     } finally {
       setLoadingTab(false);
+      setRefreshing(false);
     }
   }, [dateFilter, fromDate, toDate]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadTab(activeTab);
+  }, [activeTab, loadTab]);
 
   useEffect(() => { loadTab(activeTab); }, [activeTab, dateFilter, fromDate, toDate]);
 
@@ -934,6 +942,15 @@ export default function InvoiceScreen({ navigation }) {
           contentContainerStyle={S.listContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={D.gold}
+              colors={[D.gold]}
+              progressBackgroundColor={D.headerBg}
+            />
+          }
         >
           {filtered.length === 0 ? (
             <View style={S.center}>
