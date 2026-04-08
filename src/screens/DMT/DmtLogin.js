@@ -200,7 +200,7 @@ const DmtLogin = () => {
       return showAlert("error", "Invalid OTP", "Enter valid 6-digit OTP");
     }
     setOtpVisible(false);
-    navigation.navigate("DmtHome");
+    navigation.replace("DmtHome");
   };
 
   return (

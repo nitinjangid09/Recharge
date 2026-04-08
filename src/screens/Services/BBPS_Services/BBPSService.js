@@ -396,7 +396,9 @@ export default function PaymentsScreen({ navigation }) {
           start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
         >
           <View style={styles.header}>
-            <Icon name="menu" size={24} color={Colors.white} />
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Icon name="arrow-left" size={24} color={Colors.white} />
+            </TouchableOpacity>
             <View style={{ alignItems: "center" }}>
               <Text style={styles.headerTitle}>PAY WITH THANKS</Text>
               <Text style={styles.subTitle}>UPI, bills, recharges & utilities</Text>
