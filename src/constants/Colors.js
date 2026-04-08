@@ -26,6 +26,8 @@ const Colors = {
   red: base.red,
   green: base.green,
   amber: base.amber,
+  success: base.green,
+  error: base.red,
   
   // ─── Theme Foundations ─────────────────────────────────────────────────────
   primary: base.ink_main,

@@ -159,7 +159,9 @@ function RechargeReceipt({ receiptData, onClose, navigation }) {
 
             {/* ── Gradient banner ── */}
             <LinearGradient
-              colors={isSuccess ? [Colors.success, Colors.success_dark] : [Colors.error, Colors.error_dark]}
+              colors={isSuccess
+                ? [Colors.success || "#22C55E", Colors.success_dark || "#059669"]
+                : [Colors.error || "#EF4444", Colors.error_dark || "#DC2626"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={rc.banner}
@@ -690,10 +692,10 @@ export default function TopUpScreen({ navigation, route }) {
 
   return (
     <SafeAreaView
-      style={[styles.safeArea, { backgroundColor: Colors.finance_bg_1 }]}
-      edges={["bottom"]}
+      style={styles.safeArea}
+
     >
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.finance_bg_1} translucent={false} />
+      <StatusBar translucent={false} />
       <View style={styles.container}>
 
         <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
@@ -851,7 +853,7 @@ export default function TopUpScreen({ navigation, route }) {
                   }}
                 >
                   <LinearGradient
-                    colors={[Colors.finance_accent, Colors.hex_E0C38C]}
+                    colors={[Colors.finance_accent || "#d4b06a", Colors.hex_E0C38C || "#E0C38C"]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={styles.viewPlansGradient}
@@ -971,14 +973,14 @@ export default function TopUpScreen({ navigation, route }) {
                 style={[styles.sliderThumb, { transform: [{ translateX: pan }] }]}
                 {...panResponder.panHandlers}
               >
-                <LinearGradient colors={[Colors.finance_accent, Colors.hex_B8944D]} style={styles.thumbGrad}>
+                <LinearGradient colors={[Colors.finance_accent || "#d4b06a", Colors.hex_B8944D || "#B8944D"]} style={styles.thumbGrad}>
                   <Icon name="chevron-right" size={28} color={Colors.white} />
                 </LinearGradient>
               </Animated.View>
             </View>
           ) : (
             <LinearGradient
-              colors={[Colors.finance_accent, Colors.hex_B8944D]}
+              colors={[Colors.finance_accent || "#d4b06a", Colors.hex_B8944D || "#B8944D"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.processingBtn}
@@ -1060,7 +1062,9 @@ export default function TopUpScreen({ navigation, route }) {
         >
           <LinearGradient
             colors={
-              customToast.type === "success" ? [Colors.success, Colors.successOpacity_70] : [Colors.error, Colors.redOpacity_70]
+              customToast.type === "success"
+                ? [Colors.success || "#22C55E", Colors.successOpacity_70 || "rgba(34, 197, 94, 0.7)"]
+                : [Colors.error || "#EF4444", Colors.redOpacity_70 || "rgba(239, 68, 68, 0.7)"]
             }
             style={styles.customToastGrad}
             start={{ x: 0, y: 0 }}
