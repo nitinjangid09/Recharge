@@ -343,7 +343,7 @@ const StatusChips = ({ value, onChange }) => {
               activeOpacity={0.72}
               style={[
                 CHI.chip,
-                { backgroundColor: isActive ? activeBg : Colors.cardBg, borderColor: activeBorder },
+                { backgroundColor: isActive ? activeBg : Colors.white, borderColor: activeBorder },
               ]}
             >
               <Icon name={chip.icon} size={12} color={activeIcon} style={CHI.chipIcon} />
@@ -420,7 +420,7 @@ const SummaryStrip = ({ summary }) => {
 const ST = StyleSheet.create({
   wrap: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: Colors.cardBg,
+    backgroundColor: Colors.white,
     marginHorizontal: 16,
     marginBottom: 10,
     borderRadius: 12, paddingVertical: 10,
@@ -739,7 +739,6 @@ export default function InvoiceScreen({ navigation }) {
                   style={{ marginRight: 5 }}
                 />
                 <Text style={[S.tabTxt, isActive && S.tabTxtActive]}>{tab.label}</Text>
-                {!tab.fetchFn && <View style={S.soonDot} />}
               </TouchableOpacity>
             );
           })}
@@ -749,11 +748,11 @@ export default function InvoiceScreen({ navigation }) {
       {/* ── Search & Filter Row ───────────────────────────────────────────── */}
       <View style={S.sfRow}>
         <View style={S.sfSearchBox}>
-          <Icon name="magnify" size={16} color={Colors.textMuted} style={{ marginRight: 8 }} />
+          <Icon name="magnify" size={16} color={Colors.gray} style={{ marginRight: 8 }} />
           <TextInput
             style={S.sfInput}
             placeholder="Search transactions..."
-            placeholderTextColor={Colors.textMuted}
+            placeholderTextColor={Colors.gray}
             value={search}
             onChangeText={setSearch}
           />
@@ -762,7 +761,7 @@ export default function InvoiceScreen({ navigation }) {
               onPress={() => setSearch('')}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Icon name="close-circle" size={15} color={Colors.textMuted} />
+              <Icon name="close-circle" size={15} color={Colors.text_primary} />
             </TouchableOpacity>
           )}
         </View>
@@ -946,10 +945,6 @@ const S = StyleSheet.create({
   tabItemActive: { borderBottomWidth: 2, borderBottomColor: Colors.finance_accent },
   tabTxt: { fontSize: 13, fontFamily: Fonts.Medium, color: Colors.textMuted },
   tabTxtActive: { fontFamily: Fonts.Bold, color: Colors.finance_accent },
-  soonDot: {
-    width: 5, height: 5, borderRadius: 3,
-    backgroundColor: Colors.amber, marginLeft: 4, marginBottom: 6,
-  },
 
   // Search & Filter
   sfRow: {
@@ -958,7 +953,7 @@ const S = StyleSheet.create({
   },
   sfSearchBox: {
     flex: 1, flexDirection: 'row', alignItems: 'center',
-    backgroundColor: Colors.cardBg, height: 42,
+    backgroundColor: Colors.white, height: 42,
     borderRadius: 10, paddingHorizontal: 12,
     borderWidth: 1, borderColor: Colors.border,
     elevation: 2, shadowColor: Colors.shadow, shadowOffset: { width: 0, height: 2 },
@@ -966,13 +961,13 @@ const S = StyleSheet.create({
   },
   sfInput: {
     flex: 1, fontSize: 13,
-    fontFamily: Fonts.Medium, color: Colors.text_primary, padding: 0,
+    fontFamily: Fonts.Medium, color: Colors.primary, padding: 0,
   },
   sfFilterBtn: {
     width: 42, height: 42, alignItems: 'center', justifyContent: 'center',
   },
   sfFilterIconBox: {
-    width: 42, height: 42, borderRadius: 10, backgroundColor: Colors.cardBg,
+    width: 42, height: 42, borderRadius: 10, backgroundColor: Colors.white,
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 1, borderColor: Colors.border,
     elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 1 },

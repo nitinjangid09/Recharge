@@ -247,12 +247,17 @@ const styles = StyleSheet.create({
     marginBottom: 20 * scale,
   },
   backBtn: {
+    backgroundColor: Colors.primary,
     width: 40 * scale,
     height: 40 * scale,
     borderRadius: 12 * scale,
-    backgroundColor: Colors.blackOpacity_10,
     justifyContent: 'center',
     alignItems: 'center',
+    elevation: 4,
+    shadowColor: Colors.black,
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
   },
   logoCircle: {
     width: 44 * scale,

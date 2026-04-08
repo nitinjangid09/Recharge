@@ -192,6 +192,7 @@ export default function Offlinekyc({ navigation, route }) {
   const [errors, setErrors] = useState({});
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showFailModal, setShowFailModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [failMsg, setFailMsg] = useState("");
   const [alert, setAlert] = useState({ visible: false, type: "info", title: "", message: "" });
   const [pickerSourceField, setPickerSourceField] = useState(null); // The field we are picking for

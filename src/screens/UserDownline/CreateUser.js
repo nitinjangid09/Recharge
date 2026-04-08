@@ -249,16 +249,16 @@ export default function CreateUser({ navigation }) {
                 >
                     <View style={styles.header}>
                         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-                            <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.white} />
+                            <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
                         </TouchableOpacity>
                         <View style={styles.logoContainer}>
                             <Text style={styles.logoText}>U</Text>
                         </View>
-                        <Text style={styles.appName}>Create User</Text>
+                        <Text style={styles.appName}>Add New User</Text>
                     </View>
 
                     <Animated.View style={[styles.card, { transform: [{ translateX: shakeAnim }] }]}>
-                        <Text style={styles.welcome}>New User</Text>
+                        <Text style={styles.welcome}>Add New User</Text>
                         <Text style={styles.subTitle}>Fill details to add a new member</Text>
 
                         {renderInput("First Name", "account", firstName, (t) => setFirstName(t.replace(/[^a-zA-Z\s]/g, "")), "firstName")}
