@@ -333,7 +333,7 @@ const TxnCard = ({ txn, onPress }) => {
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
-      <View style={[TC.card, { borderColor: cfg.bg }]}>
+      <View style={[TC.card]}>
         {/* Left Status Bar */}
 
 
@@ -393,14 +393,14 @@ const TxnCard = ({ txn, onPress }) => {
 
 const TC = StyleSheet.create({
   card: {
-    backgroundColor: "white",
+    backgroundColor: Colors.white,
     borderRadius: 16,
     marginBottom: 10,
     flexDirection: 'row',
     overflow: 'hidden',
-    borderWidth: 1.2,
+
     elevation: 3,
-    shadowColor: '#000',
+
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -1022,7 +1022,7 @@ export default function InvoiceScreen({ navigation }) {
 //  SCREEN STYLES
 // ══════════════════════════════════════════════════════════════════════════════
 const S = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: D.pageBg },
+  safe: { flex: 1, backgroundColor: Colors.bg },
 
   // Header
   header: {

@@ -15,6 +15,7 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import CustomAlert from "../../componets/Alerts/CustomAlert";
 import Fonts from "../../constants/Fonts";
 import Colors from "../../constants/Colors";
+import HeaderBar from "../../componets/HeaderBar/HeaderBar";
 
 
 /* ─────────────────────────────────────────────
@@ -102,18 +103,6 @@ const FloatPinInput = ({
   );
 };
 
-/* ─────────────────────────────────────────────
-   TOPBAR
-───────────────────────────────────────────── */
-const Topbar = ({ onBack }) => (
-  <View style={styles.topbar}>
-    <TouchableOpacity style={styles.topbarBack} onPress={onBack}>
-      <Icon name="chevron-left" size={18} color={Colors.white} />
-    </TouchableOpacity>
-    <Text style={styles.topbarTitle}>Change PIN</Text>
-    <View style={{ width: 34 }} />
-  </View>
-);
 
 /* ─────────────────────────────────────────────
    MAIN SCREEN
@@ -184,7 +173,7 @@ const ChangePinScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <Topbar onBack={() => navigation?.goBack()} />
+      <HeaderBar title="Change PIN" onBack={() => navigation?.goBack()} />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -299,33 +288,6 @@ const styles = StyleSheet.create({
     paddingBottom: 48,
   },
 
-  /* ── Topbar ── */
-  topbar: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: Colors.slate_900,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.blackOpacity_04,
-    gap: 12,
-  },
-  topbarBack: {
-    width: 34,
-    height: 34,
-    borderRadius: 8,
-    backgroundColor: Colors.whiteOpacity_10,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  topbarTitle: {
-    flex: 1,
-    textAlign: "center",
-    fontFamily: Fonts.SemiBold,
-    fontSize: 18,
-    color: Colors.white,
-    letterSpacing: -0.3,
-  },
 
   /* ── pw-head ── */
   pwHead: {

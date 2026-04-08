@@ -17,6 +17,7 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import CustomAlert from "../../componets/Alerts/CustomAlert";
 import Fonts from "../../constants/Fonts";
 import Colors from "../../constants/Colors";
+import HeaderBar from "../../componets/HeaderBar/HeaderBar";
 
 const { width } = Dimensions.get("window");
 
@@ -146,18 +147,6 @@ const OtpInput = ({ code, setCode, maximumLength = 6 }) => {
   );
 };
 
-/* ─────────────────────────────────────────────
-   TOPBAR
-───────────────────────────────────────────── */
-const Topbar = ({ onBack }) => (
-  <View style={styles.topbar}>
-    <TouchableOpacity style={styles.topbarBack} onPress={onBack}>
-      <Icon name="chevron-left" size={18} color={Colors.white} />
-    </TouchableOpacity>
-    <Text style={styles.topbarTitle}>Forgot Pin</Text>
-    <View style={{ width: 34 }} />
-  </View>
-);
 
 /* ─────────────────────────────────────────────
    MAIN SCREEN
@@ -233,7 +222,7 @@ const ForgotPinScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <Topbar onBack={() => navigation?.goBack()} />
+      <HeaderBar title="Forgot Pin" onBack={() => navigation?.goBack()} />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -360,33 +349,6 @@ const styles = StyleSheet.create({
     paddingBottom: 48,
   },
 
-  /* ── Topbar ── */
-  topbar: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: "#0F172A",
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(15,14,13,0.04)",
-    gap: 12,
-  },
-  topbarBack: {
-    width: 34,
-    height: 34,
-    borderRadius: 8,
-    backgroundColor: "rgba(255,255,255,0.1)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  topbarTitle: {
-    flex: 1,
-    textAlign: "center",
-    fontFamily: Fonts.SemiBold,
-    fontSize: 15,
-    color: Colors.white,
-    letterSpacing: -0.3,
-  },
 
   /* ── pw-head ── */
   pwHead: {
