@@ -24,6 +24,7 @@ import Fonts from '../../constants/Fonts';
 import HeaderBar from '../../componets/HeaderBar/HeaderBar';
 import { getDownlineUsers, getUserWalletRefillProfile, refillUserWallet, getUserWalletRefillHistory } from '../../api/AuthApi';
 import CustomAlert from '../../componets/Alerts/CustomAlert';
+import FullScreenLoader from '../../componets/FullScreenLoader';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 /** Recursively flatten the downline tree (including self) into a flat array */
@@ -255,6 +256,7 @@ function WalletScreen({ navigation }) {
 
     return (
         <View style={{ flex: 1, backgroundColor: Colors.homebg }}>
+            <FullScreenLoader visible={loadingUsers || submittingRefill} label={submittingRefill ? "Processing refill..." : "Fetching users..."} />
             <HeaderBar
                 title="User Wallet Refill"
                 onBack={() => navigation.goBack()}

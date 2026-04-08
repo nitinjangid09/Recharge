@@ -20,6 +20,7 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import LinearGradient from "react-native-linear-gradient";
 import Colors from "../../constants/Colors";
 import Fonts from "../../constants/Fonts";
+import FullScreenLoader from "../../componets/FullScreenLoader";
 
 // ─── Responsive scale ─────────────────────────────────────────────────────
 const { width: W } = Dimensions.get("window");
@@ -92,6 +93,7 @@ const SupportScreen = () => {
   return (
     <SafeAreaView style={st.safe} edges={["top"]}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.slate_900} />
+      <FullScreenLoader visible={refreshing} label="Connecting to support..." />
 
       {/* ════════════════════════════════════════════════
           FIXED HEADER (dark, always on top)

@@ -28,6 +28,7 @@ import {
   fetchParticularCategoryBillers,
   fetchBillerInfo,
 } from "../../../api/AuthApi";
+import FullScreenLoader from "../../../componets/FullScreenLoader";
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 
@@ -100,91 +101,7 @@ const validateDob = (str) => {
 const daysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Full-Screen Loader Overlay
-// ─────────────────────────────────────────────────────────────────────────────
-const FullScreenLoader = ({ visible, label = "Loading..." }) => {
-  const spin = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    if (visible) {
-      Animated.loop(
-        Animated.timing(spin, {
-          toValue: 1,
-          duration: 900,
-          easing: Easing.linear,
-          useNativeDriver: true,
-        })
-      ).start();
-    } else {
-      spin.stopAnimation();
-      spin.setValue(0);
-    }
-  }, [visible]);
-
-  if (!visible) return null;
-
-  const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] });
-
-  return (
-    <View style={loaderStyles.overlay} pointerEvents="box-only">
-      <View style={loaderStyles.card}>
-        <Animated.View style={{ transform: [{ rotate }] }}>
-          <View style={loaderStyles.ring}>
-            <View style={loaderStyles.innerRing} />
-          </View>
-        </Animated.View>
-        <Text style={loaderStyles.label}>{label}</Text>
-      </View>
-    </View>
-  );
-};
-
-const loaderStyles = StyleSheet.create({
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: Colors.blackOpacity_45,
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 999,
-  },
-  card: {
-    backgroundColor: Colors.white,
-    borderRadius: 24,
-    paddingVertical: 36,
-    paddingHorizontal: 44,
-    alignItems: "center",
-    elevation: 24,
-    shadowColor: Colors.black,
-    shadowOpacity: 0.18,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 6 },
-    gap: 16,
-  },
-  ring: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    borderWidth: 4,
-    borderColor: Colors.primary,
-    borderTopColor: "transparent",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  innerRing: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    borderWidth: 3,
-    borderColor: Colors.finance_accent + "88",
-    borderBottomColor: "transparent",
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.slate_700,
-    letterSpacing: 0.3,
-  },
-});
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Calendar Picker Modal

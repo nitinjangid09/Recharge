@@ -20,6 +20,7 @@ import Colors from "../../../constants/Colors";
 import Fonts from "../../../constants/Fonts";
 import HeaderBar from "../../../componets/HeaderBar/HeaderBar";
 import { fetchPlans } from "../../../api/AuthApi";
+import FullScreenLoader from "../../../componets/FullScreenLoader";
 
 const { width } = Dimensions.get("window");
 const S = width / 375;
@@ -254,33 +255,28 @@ export default function StorePlans({ navigation, route }) {
       </View>
 
       {/* ── Plans list ───────────────────────────────────────────────── */}
-      {loading ? (
-        <View style={styles.loaderWrap}>
-          <ActivityIndicator size="large" color={ACCENT} />
-          <Text style={styles.loaderTxt}>Fetching plans…</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={filteredPlans}
-          renderItem={renderPlan}
-          keyExtractor={keyExtractor}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={<EmptyState />}
-          initialNumToRender={6}
-          maxToRenderPerBatch={8}
-          windowSize={10}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor={ACCENT}
-              colors={[ACCENT]}
-              progressBackgroundColor="#2C2C2C"
-            />
-          }
-        />
-      )}
+      <FullScreenLoader visible={loading} label="Fetching plans..." />
+
+      <FlatList
+        data={filteredPlans}
+        renderItem={renderPlan}
+        keyExtractor={keyExtractor}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={<EmptyState />}
+        initialNumToRender={6}
+        maxToRenderPerBatch={8}
+        windowSize={10}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={ACCENT}
+            colors={[ACCENT]}
+            progressBackgroundColor="#2C2C2C"
+          />
+        }
+      />
     </SafeAreaView>
   );
 }

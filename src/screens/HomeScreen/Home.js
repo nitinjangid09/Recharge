@@ -24,6 +24,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import Fonts from "../../constants/Fonts";
 import Colors from "../../constants/Colors";
 import { getWalletBalance, fetchUserProfile, getAllBanners, getWalletReport, BASE_URL } from "../../api/AuthApi";
+import FullScreenLoader from "../../componets/FullScreenLoader";
 
 import BBPSIconSVG from "../../assets/ServicesIcons/BBPS.svg";
 import RechargeIconSVG from "../../assets/ServicesIcons/Recharge.svg";
@@ -499,10 +500,7 @@ export default function FinanceHome({ navigation }) {
     return (
       <SafeAreaView style={[S.safe, { backgroundColor: Colors.bg }]} edges={["top", "bottom"]}>
         <StatusBar barStyle="light-content" backgroundColor={Colors.bg} />
-        <View style={[S.splash, { backgroundColor: Colors.bg }]}>
-          <ActivityIndicator size="large" color={Colors.finance_accent} />
-          <Text style={S.splashTxt}>Loading…</Text>
-        </View>
+        <FullScreenLoader visible={true} label="Initializing dashboard..." />
       </SafeAreaView>
     );
   }
@@ -513,6 +511,7 @@ export default function FinanceHome({ navigation }) {
   return (
     <SafeAreaView style={[S.safe, { backgroundColor: Colors.bg }]} edges={["bottom"]}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.ink_dark} translucent />
+      <FullScreenLoader visible={refreshing} label="Refreshing data..." />
 
       <View style={[S.root, { backgroundColor: Colors.bg }]}>
 

@@ -38,6 +38,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import RNHTMLtoPDF from "react-native-html-to-pdf";
 import ViewShot from "react-native-view-shot";
+import FullScreenLoader from "../../../componets/FullScreenLoader";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -1054,11 +1055,7 @@ export default function TopUpScreen({ navigation, route }) {
       />
 
       {/* FULL SCREEN LOADER */}
-      {loading && (
-        <View style={styles.fullLoader}>
-          <ActivityIndicator size="large" color={Colors.finance_accent} />
-        </View>
-      )}
+      <FullScreenLoader visible={loading} label="Processing..." />
 
       {/* CUSTOM TOAST */}
       {customToast.visible && (

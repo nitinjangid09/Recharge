@@ -11,6 +11,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Colors from "../../../constants/Colors";
 import Fonts from "../../../constants/Fonts";
 import { fetchBbpsCategories } from "../../../api/AuthApi";
+import FullScreenLoader from "../../../componets/FullScreenLoader";
 
 // ─── SVG icon imports ─────────────────────────────────────────────────────
 import BroadbandPostpaidIcon from "../../../assets/BBPSIcon/Broadband Postpaid.svg";
@@ -318,12 +319,7 @@ const BillServicesCard = ({ navigation, categories, groups, activeGroup, setActi
       <TabBar groups={groups} activeGroup={activeGroup} onSelect={setActiveGroup} />
 
       {/* Content */}
-      {loading ? (
-        <View style={styles.loaderBox}>
-          <ActivityIndicator size="large" color={ACCENT} />
-          <Text style={styles.loaderTxt}>Fetching services…</Text>
-        </View>
-      ) : filtered.length === 0 ? (
+      {filtered.length === 0 && !loading ? (
         <View style={styles.emptyBox}>
           <Icon name="apps-box" size={36} color={ACCENT + "50"} />
           <Text style={styles.emptyTxt}>No services in this category</Text>
@@ -379,6 +375,7 @@ export default function PaymentsScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container} edges={["bottom"]}>
+      <FullScreenLoader visible={loading} label="Fetching bill services..." />
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
