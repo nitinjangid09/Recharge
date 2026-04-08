@@ -20,7 +20,7 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import LinearGradient from "react-native-linear-gradient";
 import Colors from "../../constants/Colors";
 import Fonts from "../../constants/Fonts";
-import FullScreenLoader from "../../componets/FullScreenLoader";
+import FullScreenLoader from "../../componets/Loader/FullScreenLoader";
 
 // ─── Responsive scale ─────────────────────────────────────────────────────
 const { width: W } = Dimensions.get("window");

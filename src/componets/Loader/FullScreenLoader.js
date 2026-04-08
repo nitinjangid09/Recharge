@@ -6,7 +6,7 @@ import {
   Animated,
   Easing,
 } from "react-native";
-import Colors from "../constants/Colors";
+import Colors from "../../constants/Colors";
 
 const FullScreenLoader = ({ visible, label = "Loading..." }) => {
   const spin = useRef(new Animated.Value(0)).current;

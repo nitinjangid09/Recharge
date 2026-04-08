@@ -24,7 +24,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import Fonts from "../../constants/Fonts";
 import Colors from "../../constants/Colors";
 import { getWalletBalance, fetchUserProfile, getAllBanners, getWalletReport, BASE_URL } from "../../api/AuthApi";
-import FullScreenLoader from "../../componets/FullScreenLoader";
+import FullScreenLoader from "../../componets/Loader/FullScreenLoader";
 
 import BBPSIconSVG from "../../assets/ServicesIcons/BBPS.svg";
 import RechargeIconSVG from "../../assets/ServicesIcons/Recharge.svg";

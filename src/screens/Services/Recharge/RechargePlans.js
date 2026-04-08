@@ -20,7 +20,7 @@ import Colors from "../../../constants/Colors";
 import Fonts from "../../../constants/Fonts";
 import HeaderBar from "../../../componets/HeaderBar/HeaderBar";
 import { fetchPlans } from "../../../api/AuthApi";
-import FullScreenLoader from "../../../componets/FullScreenLoader";
+import FullScreenLoader from "../../../componets/Loader/FullScreenLoader";
 
 const { width } = Dimensions.get("window");
 const S = width / 375;

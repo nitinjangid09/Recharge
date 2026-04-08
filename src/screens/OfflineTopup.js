@@ -28,6 +28,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import CustomAlert from "../componets/Alerts/CustomAlert";
 import ImageUploadAlert from "../componets/Alerts/Imageuploadalert";
+import ReceiptModal from "../componets/ReceiptModal/ReceiptModal";
 
 // ─── Responsive scale ─────────────────────────────────────────────────────
 const { width: W } = Dimensions.get("window");
@@ -171,6 +172,7 @@ export default function OfflineTopup({ navigation }) {
   const [requests, setRequests] = useState([]);
   const [requestsLoading, setRequestsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [receiptData, setReceiptData] = useState(null);
 
   const activeModeHint = PAYMENT_MODES.find(m => m.key === mode)?.hint || "";
 
@@ -301,7 +303,20 @@ export default function OfflineTopup({ navigation }) {
       const headerToken = await AsyncStorage.getItem("header_token");
       const result = await addOfflineTopupRequest({ amount, mode, receiverBank, utrNumber, paymentDate, paymentProof, headerToken });
       if (result?.success) {
-        showAlert("success", "Request Submitted!", "Your topup request has been submitted successfully.");
+        setReceiptData({
+            status: "success",
+            title: "Request Submitted",
+            amount: amount,
+            date: paymentDate,
+            txn_ref: utrNumber,
+            details: [
+                { label: "Bank", value: selectedBankName },
+                { label: "Payment Mode", value: mode.toUpperCase() },
+                { label: "UTR Number", value: utrNumber },
+                { label: "Amount", value: `₹${amount}` },
+            ],
+            note: "Your topup request has been submitted and is pending approval (usually within 2-4 hours)."
+        });
         fetchRequests(); // Automatically refresh list
       } else {
         showAlert("error", "Submission Failed", result?.message || "Unable to submit. Please try again.");
@@ -638,6 +653,13 @@ export default function OfflineTopup({ navigation }) {
         onCamera={handleCamera}
         onGallery={handleGallery}
         onFile={handleFile}
+      />
+
+      <ReceiptModal
+          visible={!!receiptData}
+          onClose={() => setReceiptData(null)}
+          navigation={navigation}
+          data={receiptData}
       />
     </SafeAreaView>
   );

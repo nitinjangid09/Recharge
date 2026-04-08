@@ -24,7 +24,8 @@ import Fonts from '../../constants/Fonts';
 import HeaderBar from '../../componets/HeaderBar/HeaderBar';
 import { getDownlineUsers, getUserWalletRefillProfile, refillUserWallet, getUserWalletRefillHistory } from '../../api/AuthApi';
 import CustomAlert from '../../componets/Alerts/CustomAlert';
-import FullScreenLoader from '../../componets/FullScreenLoader';
+import FullScreenLoader from '../../componets/Loader/FullScreenLoader';
+import ReceiptModal from '../../componets/ReceiptModal/ReceiptModal';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 /** Recursively flatten the downline tree (including self) into a flat array */
@@ -110,6 +111,7 @@ function WalletScreen({ navigation }) {
     const [refreshing, setRefreshing] = useState(false);
 
     const [alert, setAlert] = useState({ visible: false, type: 'info', title: '', message: '' });
+    const [receiptData, setReceiptData] = useState(null);
 
     const quickAmounts = ['500', '1000', '2000', '5000'];
     const labels = ['₹500', '₹1K', '₹2K', '₹5K'];
@@ -238,7 +240,20 @@ function WalletScreen({ navigation }) {
             });
 
             if (res?.success) {
-                showAlert('success', 'Refill Success', res.message || `Wallet of ${selectedUser.name} refilled successfully!`);
+                setReceiptData({
+                    status: "success",
+                    title: "Refill Successful",
+                    amount: amount,
+                    txn_ref: res.data?.txn_ref || idempotencyKey,
+                    date: formatDate(new Date().toISOString()),
+                    details: [
+                        { label: "Target User", value: selectedUser.name },
+                        { label: "User ID", value: selectedUser.code },
+                        { label: "New Main Balance", value: `₹${parseFloat(userProfile?.mainWallet ?? 0) + Number(amount)}` },
+                        { label: "Refill ID", value: res.data?.txn_ref || idempotencyKey, small: true },
+                    ],
+                    note: res.message || `Wallet of ${selectedUser.name} refilled successfully!`
+                });
                 setAmount('');
                 setSelectedQuick(null);
                 // Refresh balance immediately
@@ -476,6 +491,13 @@ function WalletScreen({ navigation }) {
                 title={alert.title}
                 message={alert.message}
                 onClose={() => setAlert({ ...alert, visible: false })}
+            />
+
+            <ReceiptModal
+                visible={!!receiptData}
+                onClose={() => setReceiptData(null)}
+                navigation={navigation}
+                data={receiptData}
             />
         </View>
     );

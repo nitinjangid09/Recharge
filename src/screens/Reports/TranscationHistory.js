@@ -15,6 +15,7 @@ import Fonts from '../../constants/Fonts';
 import { getRechargeReport, getDownlineUsers } from '../../api/AuthApi';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import HeaderBar from '../../componets/HeaderBar/HeaderBar';
+import ReceiptModal from '../../componets/ReceiptModal/ReceiptModal';
 
 const { height: SH, width: SW } = Dimensions.get('window');
 
@@ -131,101 +132,7 @@ const dateRangeStart = (f) => {
 // ══════════════════════════════════════════════════════════════════════════════
 //  TRANSACTION DETAIL BOTTOM SHEET
 // ══════════════════════════════════════════════════════════════════════════════
-const TxnDetailSheet = ({ visible, txn, onClose }) => {
-  const slideAnim = useRef(new Animated.Value(SH)).current;
-  const backdropAnim = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    if (visible) {
-      Animated.parallel([
-        Animated.spring(slideAnim, { toValue: 0, bounciness: 2, speed: 14, useNativeDriver: true }),
-        Animated.timing(backdropAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
-      ]).start();
-    } else {
-      Animated.parallel([
-        Animated.timing(slideAnim, { toValue: SH, duration: 250, useNativeDriver: true }),
-        Animated.timing(backdropAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-      ]).start();
-    }
-  }, [visible]);
-
-  if (!txn) return null;
-
-  const st = STATUS_CONFIG[txn.status] || STATUS_CONFIG.Pending;
-  const comm = txn.extra?.netCommission ?? 0;
-  const tds = txn.extra?.tds ?? 0;
-
-  const topCards = [
-    { label: 'AMOUNT', val: `₹${txn.amount}`, sub: 'RECHARGE VALUE', color: '#000', icon: 'credit-card-outline' },
-    { label: 'STATUS', val: txn.status.toUpperCase(), sub: 'CURRENT POOL', color: st.color, icon: 'pulse' },
-    { label: 'COMMISSION', val: `₹${comm.toFixed(2)}`, sub: 'YIELD EARNT', color: '#3F51B5', icon: 'lightning-bolt' },
-    { label: 'TDS', val: `₹${tds.toFixed(2)}`, sub: 'REGULATORY TAX', color: '#D32F2F', icon: 'shield-check-outline' },
-  ];
-
-  const auditRows = [
-    { label: 'DATE', val: txn.date, icon: 'calendar-blank' },
-    { label: 'USER ID', val: txn.id.slice(0, 10).toUpperCase(), icon: 'tag-outline' },
-    { label: 'NAME', val: 'Agent User', icon: 'account-outline' },
-    { label: 'OPERATOR / MOBILE', val: `${txn.operatorName || '---'} / ${txn.extra?.mobile || '---'}`, icon: 'cellphone' },
-    { label: 'RECHARGE AMOUNT', val: `₹${txn.amount}`, icon: 'credit-card-outline' },
-    { label: 'COMMISSION', val: `₹${comm.toFixed(2)}`, icon: 'lightning-bolt' },
-    { label: 'TDS', val: `₹${tds.toFixed(2)}`, icon: 'shield-check-outline' },
-    { label: 'STATUS', val: txn.status.toUpperCase(), icon: 'pulse', valColor: st.color },
-    { label: 'DESCRIPTION', val: txn.desc || '---', icon: 'file-document-outline' },
-  ];
-
-  return (
-    <Modal transparent visible={visible} animationType="none" onRequestClose={onClose}>
-      <Animated.View style={[SH_S.backdrop, { opacity: backdropAnim }]}>
-        <TouchableOpacity style={StyleSheet.absoluteFill} onPress={onClose} activeOpacity={1} />
-      </Animated.View>
-
-      <Animated.View style={[SH_S.sheet, { transform: [{ translateY: slideAnim }] }]}>
-        <View style={SH_S.handle} />
-
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
-
-          <View style={SH_S.auditContainer}>
-            <View style={SH_S.auditHeader}>
-              <View style={SH_S.auditIconBox}>
-                <Icon name="microscope" size={20} color="#fff" />
-              </View>
-              <View>
-                <Text style={SH_S.auditTitle}>TRANSACTION AUDIT</Text>
-                <Text style={SH_S.auditSub}>VERIFIED LOG INFORMATION</Text>
-              </View>
-            </View>
-
-            <View style={SH_S.divider} />
-
-            <View style={SH_S.grid}>
-              {auditRows.map((row, i) => (
-                <View key={i} style={SH_S.gridItem}>
-                  <View style={SH_S.gridIconBox}>
-                    <Icon name={row.icon} size={18} color="#3F51B5" />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={SH_S.gridLabel}>{row.label}</Text>
-                    <Text
-                      style={[SH_S.gridVal, row.valColor && { color: row.valColor }]}
-                      numberOfLines={1}
-                    >
-                      {row.val}
-                    </Text>
-                  </View>
-                </View>
-              ))}
-            </View>
-          </View>
-        </ScrollView>
-
-        <TouchableOpacity style={SH_S.doneBtn} onPress={onClose} activeOpacity={0.8}>
-          <Text style={SH_S.doneTxt}>Close Details</Text>
-        </TouchableOpacity>
-      </Animated.View>
-    </Modal>
-  );
-};
 
 const SH_S = StyleSheet.create({
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(15,23,42,0.4)' },
@@ -1008,11 +915,35 @@ export default function InvoiceScreen({ navigation }) {
         }}
       />
 
-      {/* ── Transaction detail sheet ────────────────────────────────────────── */}
-      <TxnDetailSheet
+      <ReceiptModal
         visible={sheetVisible}
-        txn={selectedTxn}
         onClose={() => setSheetVisible(false)}
+        navigation={navigation}
+        data={selectedTxn ? {
+          status: selectedTxn.status.toLowerCase() === "success" ? "success" : selectedTxn.status.toLowerCase() === "failed" ? "failed" : "pending",
+          title: `Transaction ${selectedTxn.status}`,
+          amount: selectedTxn.amount,
+          date: selectedTxn.date,
+          operator: selectedTxn.operatorName,
+          txn_ref: selectedTxn.id,
+          details: [
+            { label: "Category", value: selectedTxn.category },
+            { label: "Operator", value: selectedTxn.operatorName || "N/A" },
+            { label: "Phone", value: selectedTxn.extra?.mobile || "N/A" },
+            { label: "Commission", value: `₹${(selectedTxn.extra?.netCommission ?? 0).toFixed(2)}` },
+            { label: "TDS", value: `₹${(selectedTxn.extra?.tds ?? 0).toFixed(2)}` },
+            { label: "Reference ID", value: selectedTxn.id, small: true },
+            {
+              label: "Status",
+              isStatusPill: true,
+              value: selectedTxn.status,
+              color: STATUS_CONFIG[selectedTxn.status]?.color || D.amber,
+            },
+          ],
+          note: selectedTxn.status === "Success" 
+            ? "Transaction completed successfully." 
+            : "If amount debited and status is failed, it will be refunded shortly."
+        } : null}
       />
     </SafeAreaView>
   );

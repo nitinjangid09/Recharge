@@ -17,6 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Colors from "../../constants/Colors";
 import Fonts from "../../constants/Fonts";
 import CustomAlert from "../../componets/Alerts/CustomAlert";
+import ReceiptModal from "../../componets/ReceiptModal/ReceiptModal";
 import { fadeIn, slideUp, buttonPress } from "../../utils/ScreenAnimations";
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
@@ -46,6 +47,7 @@ const MoneyTransferScreen = ({ route }) => {
   // Alert
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertData, setAlertData] = useState({ type: "", title: "", message: "" });
+  const [receiptData, setReceiptData] = useState(null);
   const showAlert = (type, title, message) => {
     setAlertData({ type, title, message });
     setAlertVisible(true);
@@ -111,9 +113,27 @@ const MoneyTransferScreen = ({ route }) => {
   const handleTransfer = () => {
     if (validateOtp()) {
       setOtpModal(false);
+      const finalAmount = amount;
       setAmount("");
       setOtp("");
-      showAlert("success", "Transfer Successful", `₹${amount} transferred to ${account.name} successfully!`);
+      setReceiptData({
+        status: "success",
+        title: "Transfer Successful",
+        amount: finalAmount,
+        date: new Date().toLocaleDateString("en-IN", {
+          day: "2-digit", month: "short", year: "numeric",
+          hour: "2-digit", minute: "2-digit", hour12: false,
+        }),
+        txn_ref: "DMT" + Date.now(),
+        details: [
+          { label: "Recipient", value: account.name },
+          { label: "Bank", value: account.bank },
+          { label: "Account No.", value: account.accountNumber },
+          { label: "IFSC", value: account.ifsc },
+          { label: "Service", value: "DMT Money Transfer" },
+        ],
+        note: `₹${finalAmount} transferred to ${account.name} successfully!`
+      });
     }
   };
 
@@ -372,6 +392,13 @@ const MoneyTransferScreen = ({ route }) => {
         title={alertData.title}
         message={alertData.message}
         onClose={() => setAlertVisible(false)}
+      />
+
+      <ReceiptModal
+        visible={!!receiptData}
+        onClose={() => setReceiptData(null)}
+        navigation={navigation}
+        data={receiptData}
       />
     </SafeAreaView>
   );

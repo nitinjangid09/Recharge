@@ -11,7 +11,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Colors from "../../../constants/Colors";
 import Fonts from "../../../constants/Fonts";
 import { fetchBbpsCategories } from "../../../api/AuthApi";
-import FullScreenLoader from "../../../componets/FullScreenLoader";
+import FullScreenLoader from "../../../componets/Loader/FullScreenLoader";
 
 // ─── SVG icon imports ─────────────────────────────────────────────────────
 import BroadbandPostpaidIcon from "../../../assets/BBPSIcon/Broadband Postpaid.svg";

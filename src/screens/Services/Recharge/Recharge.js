@@ -38,301 +38,14 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import RNHTMLtoPDF from "react-native-html-to-pdf";
 import ViewShot from "react-native-view-shot";
-import FullScreenLoader from "../../../componets/FullScreenLoader";
+import FullScreenLoader from "../../../componets/Loader/FullScreenLoader";
+import ReceiptModal from "../../../componets/ReceiptModal/ReceiptModal";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 
 
-function RechargeReceipt({ receiptData, onClose, navigation }) {
-  if (!receiptData) return null;
 
-  const isSuccess = receiptData.status === "success";
-  const [downloading, setDownloading] = useState(false);
-  const [sharing, setSharing] = useState(false);
-
-  // ← wraps ONLY the receipt card; buttons live outside this ref
-  const receiptCardRef = useRef(null);
-
-  const dateStr = new Date().toLocaleString("en-IN", {
-    day: "2-digit", month: "short", year: "numeric",
-    hour: "2-digit", minute: "2-digit", hour12: false,
-  });
-  const opInitial = (receiptData.operator || "?")[0].toUpperCase();
-
-  const bgColor = Colors.finance_bg_1;
-  const primaryColor = Colors.primary;
-  const accentColor = Colors.finance_accent;
-  const cardBg = Colors.white;
-  const textMain = Colors.finance_text;
-  const textMuted = Colors.finance_text_light;
-
-  // ── SHARE: screenshot of receipt card only → share as image (Paytm-style) ─
-  const handleShare = async () => {
-    try {
-      setSharing(true);
-
-      // 1. Capture ONLY the receipt card (banner + amount + rows + note).
-      //    result: "tmpfile" writes a real PNG to the temp dir and returns file:// URI.
-      //    Buttons are OUTSIDE ViewShot so they will NOT appear in the image.
-      const uri = await receiptCardRef.current.capture({
-        format: "png",
-        quality: 1,
-        result: "tmpfile",
-      });
-
-      // 2. B2B caption — pre-fills message field in WhatsApp, Telegram, etc.
-      const shareMessage =
-        `Hey, I paid ₹${receiptData.amount} to recharge ${receiptData.operator}` +
-        ` on +91${receiptData.mobile} using B2B App`;
-
-      // 3. Open native share sheet with image + caption below it
-      await RNShare.open({
-        url: `file://${uri}`,
-        type: "image/png",
-        message: shareMessage,   // caption below image in WhatsApp etc.
-        title: shareMessage,   // subject line for email
-        failOnCancel: false,
-      });
-
-    } catch (err) {
-      // User dismissed the sheet → silent.  Any real error → text-only fallback.
-      if (err?.message && !err.message.includes("cancel") && !err.message.includes("dismiss")) {
-        try {
-          await RNShare.open({
-            message:
-              `Hey, I paid ₹${receiptData.amount} to recharge ${receiptData.operator}` +
-              ` on +91${receiptData.mobile} using B2B App`,
-            failOnCancel: false,
-          });
-        } catch (_) { }
-      }
-    } finally {
-      setSharing(false);
-    }
-  };
-
-  // ── DOWNLOAD: same ref, different result format → base64 → HTML → PDF ────
-
-  const handleRaiseComplaint = () => {
-    onClose();
-    navigation.navigate("FaqSupportScreen", {
-      txn_ref: receiptData.txn_ref || "N/A",
-      mobile: receiptData.mobile,
-      operator: receiptData.operator,
-      amount: receiptData.amount,
-      status: receiptData.status,
-      message: receiptData.message,
-    });
-  };
-
-  const rows = [
-    { label: "Mobile Number", value: receiptData.mobile },
-    { label: "Operator", value: `${receiptData.operator} (Prepaid)` },
-    { label: "Payment Mode", value: "Main Wallet" },
-    ...(receiptData.txn_ref && receiptData.txn_ref !== "N/A"
-      ? [{ label: "Transaction ID", value: receiptData.txn_ref, small: true }]
-      : []),
-    {
-      label: "Status",
-      isStatusPill: true,
-      value: isSuccess ? "Success" : "Failed",
-      color: isSuccess ? Colors.success : Colors.error,
-    },
-  ];
-
-  return (
-    <Modal visible={!!receiptData} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={[rc.overlay, { backgroundColor: Colors.blackOpacity_52 }]}>
-        <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose} />
-
-        {/* ── Outer sheet: plain View — NOT a ViewShot ── */}
-        <View style={[rc.sheet, { backgroundColor: bgColor }]}>
-
-          {/* ╔═══════════════════════════════════════════════════════════╗
-              ║  ViewShot boundary starts here                            ║
-              ║  Everything inside is captured when Share/Download fires  ║
-              ╚═══════════════════════════════════════════════════════════╝ */}
-          <ViewShot
-            ref={receiptCardRef}
-            options={{ format: "png", quality: 1 }}
-            style={{ backgroundColor: bgColor }}
-          >
-
-            {/* ── Gradient banner ── */}
-            <LinearGradient
-              colors={isSuccess
-                ? [Colors.success || "#22C55E", Colors.success_dark || "#059669"]
-                : [Colors.error || "#EF4444", Colors.error_dark || "#DC2626"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={rc.banner}
-            >
-              <View style={rc.blob1} />
-              <View style={rc.blob2} />
-              <View style={rc.iconRing}>
-                <Icon
-                  name={isSuccess ? "check-circle-outline" : "close-circle-outline"}
-                  size={36}
-                  color={Colors.white}
-                />
-              </View>
-              <Text style={rc.bannerTitle}>
-                {receiptData.message || (isSuccess ? "Recharge Successful" : "Recharge Failed")}
-              </Text>
-              <Text style={rc.bannerDate}>{dateStr}</Text>
-            </LinearGradient>
-
-            {/* ── Amount + operator badge ── */}
-            <View style={[rc.amountCard, { backgroundColor: cardBg }]}>
-              <View>
-                <Text style={[rc.amountLbl, { color: textMuted }]}>AMOUNT PAID</Text>
-                <Text style={[rc.amountVal, { color: textMain }]}>₹{receiptData.amount}</Text>
-              </View>
-              <View style={[rc.opBadge, { backgroundColor: accentColor + "18", borderColor: accentColor + "45" }]}>
-                <View style={[rc.opCircle, { backgroundColor: accentColor }]}>
-                  <Text style={rc.opInitial}>{opInitial}</Text>
-                </View>
-                <Text style={[rc.opName, { color: textMain }]}>{receiptData.operator}</Text>
-              </View>
-            </View>
-
-            {/* ── Detail rows ── */}
-            <View style={[rc.detailCard, { backgroundColor: cardBg }]}>
-              {rows.map((row, i) => (
-                <View key={i} style={[rc.row, i < rows.length - 1 && rc.rowBorder]}>
-                  <Text style={[rc.rowLbl, { color: textMuted }]}>{row.label}</Text>
-                  {row.isStatusPill ? (
-                    <View style={[rc.statusPill, { backgroundColor: row.color }]}>
-                      <Text style={rc.statusPillTxt}>{row.value.toUpperCase()}</Text>
-                    </View>
-                  ) : (
-                    <Text
-                      style={[
-                        rc.rowVal,
-                        { color: textMain },
-                        row.small && { fontSize: 11 },
-                        row.valueColor && { color: row.valueColor },
-                        row.bold && { fontFamily: Fonts.Bold },
-                      ]}
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                    >
-                      {row.value}
-                    </Text>
-                  )}
-                </View>
-              ))}
-            </View>
-
-            {/* ── Note strip ── */}
-            <View
-              style={[
-                rc.note,
-                isSuccess
-                  ? { backgroundColor: Colors.successOpacity_10, borderColor: Colors.success_ring }
-                  : { backgroundColor: Colors.warningOpacity_10, borderColor: Colors.warningOpacity_30 },
-              ]}
-            >
-              <View style={[rc.noteDot, { backgroundColor: isSuccess ? Colors.success : Colors.error }]} />
-              <Text style={[rc.noteTxt, { color: textMain }]} numberOfLines={2}>
-                {isSuccess
-                  ? "Plan benefits added successfully. Data and calling active."
-                  : "Amount debited. Commission plan not configured. Raise a complaint for refund."}
-              </Text>
-            </View>
-
-            {/* Bottom spacer — ensures note strip isn't clipped in the PNG */}
-            <View style={{ height: 14, backgroundColor: bgColor }} />
-
-          </ViewShot>
-          {/* ╔═══════════════════════════════════════════════════════════╗
-              ║  ViewShot boundary ends here                              ║
-              ║  Everything below is NOT included in the captured image   ║
-              ╚═══════════════════════════════════════════════════════════╝ */}
-
-          <View style={{ height: 16 }} />
-
-          {/* ── Share (Only on Success) ── */}
-          {isSuccess && (
-            <View style={rc.btnRow}>
-              <TouchableOpacity
-                style={[rc.shareBtn, { backgroundColor: accentColor }]}
-                activeOpacity={0.85}
-                onPress={handleShare}
-                disabled={sharing}
-              >
-                {sharing
-                  ? <ActivityIndicator size="small" color={Colors.white} style={{ marginRight: 7 }} />
-                  : <Icon name="share-variant" size={17} color={Colors.white} style={{ marginRight: 7 }} />
-                }
-                <Text style={[rc.shareTxt, { color: Colors.white }]}>
-                  {sharing ? "Sharing..." : "Share Receipt"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* ── Raise Complaint (Only on Failure) ── */}
-          {!isSuccess && (
-            <TouchableOpacity
-              style={[rc.complBtn, { borderColor: accentColor + "60", backgroundColor: Colors.white }]}
-              activeOpacity={0.85}
-              onPress={handleRaiseComplaint}
-            >
-              <Icon name="message-alert-outline" size={15} color={accentColor} style={{ marginRight: 7 }} />
-              <Text style={[rc.complTxt, { color: accentColor }]}>Raise Complaint</Text>
-            </TouchableOpacity>
-          )}
-
-        </View>
-      </View>
-    </Modal>
-  );
-}
-
-// Receipt StyleSheet
-const rc = StyleSheet.create({
-  overlay: { flex: 1, justifyContent: "flex-end" },
-  sheet: { borderTopLeftRadius: 28, borderTopRightRadius: 28, overflow: "hidden", paddingBottom: 20 },
-
-  banner: { alignItems: "center", paddingTop: 26, paddingBottom: 22, paddingHorizontal: 20, overflow: "hidden" },
-  blob1: { position: "absolute", width: 160, height: 160, borderRadius: 80, backgroundColor: "rgba(255,255,255,0.07)", top: -55, right: -45 },
-  blob2: { position: "absolute", width: 110, height: 110, borderRadius: 55, backgroundColor: "rgba(255,255,255,0.07)", top: 10, left: -35 },
-  iconRing: { width: 64, height: 64, borderRadius: 32, backgroundColor: "rgba(255,255,255,0.18)", alignItems: "center", justifyContent: "center", marginBottom: 10 },
-  bannerTitle: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.white, textAlign: "center", marginBottom: 3 },
-  bannerDate: { fontSize: 11, fontFamily: Fonts.Medium, color: "rgba(255,255,255,0.72)", textAlign: "center" },
-
-  amountCard: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginHorizontal: 14, marginTop: 14, borderRadius: 14, padding: 14, elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4 },
-  amountLbl: { fontSize: 9, fontFamily: Fonts.Bold, letterSpacing: 0.8, marginBottom: 3 },
-  amountVal: { fontSize: 30, fontFamily: Fonts.Bold },
-  opBadge: { flexDirection: "row", alignItems: "center", borderRadius: 20, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1 },
-  opCircle: { width: 26, height: 26, borderRadius: 13, alignItems: "center", justifyContent: "center", marginRight: 7 },
-  opInitial: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.white },
-  opName: { fontSize: 12, fontFamily: Fonts.Bold },
-
-  detailCard: { marginHorizontal: 14, marginTop: 10, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 2, elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4 },
-  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 9 },
-  rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.slate_50 },
-  rowLbl: { fontSize: 12, fontFamily: Fonts.Medium, flex: 1 },
-  rowVal: { fontSize: 13, fontFamily: Fonts.Bold, textAlign: "right", flex: 1 },
-  statusPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
-  statusPillTxt: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.white, letterSpacing: 0.5 },
-
-  note: { flexDirection: "row", alignItems: "center", marginHorizontal: 14, marginTop: 10, borderRadius: 10, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 9 },
-  noteDot: { width: 6, height: 6, borderRadius: 3, marginRight: 8, flexShrink: 0 },
-  noteTxt: { flex: 1, fontSize: 11, fontFamily: Fonts.Medium, lineHeight: 16 },
-
-  actRow: { flexDirection: "row", alignItems: "center", marginHorizontal: 14, marginTop: 14, marginBottom: 10 },
-  actLine: { flex: 1, height: 1 },
-  actLbl: { fontSize: 10, fontFamily: Fonts.Bold, letterSpacing: 1.1, marginHorizontal: 10 },
-
-  btnRow: { marginHorizontal: 14, marginBottom: 10 },
-  shareBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", borderRadius: 12, paddingVertical: 14, elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 3 },
-  shareTxt: { fontSize: 14, fontFamily: Fonts.Bold },
-  complBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", marginHorizontal: 14, borderRadius: 12, paddingVertical: 13, borderWidth: 1 },
-  complTxt: { fontSize: 13, fontFamily: Fonts.Bold },
-});
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  BottomSheetModal
@@ -1094,11 +807,31 @@ export default function TopUpScreen({ navigation, route }) {
         </Animated.View>
       )}
 
-      {/* RECEIPT MODAL */}
-      <RechargeReceipt
-        receiptData={receiptData}
+      <ReceiptModal
+        visible={!!receiptData}
         onClose={() => setReceiptData(null)}
         navigation={navigation}
+        data={receiptData ? {
+          ...receiptData,
+          title: receiptData.message || (receiptData.status === "success" ? "Recharge Successful" : "Recharge Failed"),
+          details: [
+            { label: "Mobile Number", value: receiptData.mobile },
+            { label: "Operator", value: `${receiptData.operator} (Prepaid)` },
+            { label: "Payment Mode", value: "Main Wallet" },
+            ...(receiptData.txn_ref && receiptData.txn_ref !== "N/A"
+              ? [{ label: "Transaction ID", value: receiptData.txn_ref, small: true }]
+              : []),
+            {
+              label: "Status",
+              isStatusPill: true,
+              value: receiptData.status === "success" ? "Success" : "Failed",
+              color: receiptData.status === "success" ? Colors.success : Colors.error,
+            },
+          ],
+          note: receiptData.status === "success"
+            ? "Plan benefits added successfully. Data and calling active."
+            : "Amount debited. Commission plan not configured. Raise a complaint for refund."
+        } : null}
       />
 
     </SafeAreaView>

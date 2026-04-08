@@ -28,7 +28,8 @@ import {
   fetchParticularCategoryBillers,
   fetchBillerInfo,
 } from "../../../api/AuthApi";
-import FullScreenLoader from "../../../componets/FullScreenLoader";
+import FullScreenLoader from "../../../componets/Loader/FullScreenLoader";
+import ReceiptModal from "../../../componets/ReceiptModal/ReceiptModal";
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 
@@ -446,6 +447,7 @@ const BbpsDynamicServiceScreen = () => {
   const [selectedPayAmount, setSelectedPayAmount] = useState(null);
   const [isCustomAmount, setIsCustomAmount] = useState(false);
   const [customAmountStr, setCustomAmountStr] = useState("");
+  const [receiptData, setReceiptData] = useState(null);
 
   // Combined loader state for the full-screen spinner
   const isGlobalLoading = servicesLoading || billersLoading || detailsLoading;
@@ -627,7 +629,26 @@ const BbpsDynamicServiceScreen = () => {
         headerToken: token,
       };
       const res = await payBbpsBill(payload);
-      if (res?.success) navigateToReceipt(fetchedBill, res);
+      if (res?.success) {
+          setReceiptData({
+              status: "success",
+              title: "Payment Successful",
+              amount: selectedPayAmount,
+              date: new Date().toLocaleDateString("en-IN", {
+                  day: "2-digit", month: "short", year: "numeric",
+                  hour: "2-digit", minute: "2-digit", hour12: false,
+              }),
+              operator: selectedBiller.biller_name || selectedBiller.name,
+              txn_ref: res.data?.transactionId || res.transactionId || "TXN" + Date.now(),
+              details: [
+                  { label: "Biller", value: selectedBiller.biller_name || selectedBiller.name },
+                  { label: "Service", value: selectedService.name },
+                  ...Object.entries(formData).map(([k, v]) => ({ label: k.replace(/([A-Z])/g, " $1").replace(/_/g, " ").trim(), value: String(v) })),
+                  { label: "Transaction ID", value: res.data?.transactionId || res.transactionId || "TXN" + Date.now(), small: true },
+              ],
+              note: res.message || "Your bill has been paid successfully."
+          });
+      }
       else showAlert("Failed", res?.message, "error");
     } catch { showAlert("Error", "Network error while processing payment.", "error"); }
     finally { setDetailsLoading(false); }
@@ -917,6 +938,13 @@ const BbpsDynamicServiceScreen = () => {
           )}
         </ScrollView>
       </View>
+
+      <ReceiptModal
+          visible={!!receiptData}
+          onClose={() => setReceiptData(null)}
+          navigation={navigation}
+          data={receiptData}
+      />
     </SafeAreaView>
   );
 };

@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import HeaderBar from '../componets/HeaderBar/HeaderBar';
-import FullScreenLoader from '../componets/FullScreenLoader';
+import FullScreenLoader from '../componets/Loader/FullScreenLoader';
 import Colors from '../constants/Colors';
 import Fonts from '../constants/Fonts';
 

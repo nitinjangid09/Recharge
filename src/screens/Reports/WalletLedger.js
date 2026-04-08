@@ -16,6 +16,7 @@ import Fonts from '../../constants/Fonts';
 import { getWalletReport, getWalletBalance, getDownlineUsers } from '../../api/AuthApi';
 import { fadeIn, slideUp, buttonPress, FadeSlideUp } from '../../utils/ScreenAnimations';
 import HeaderBar from '../../componets/HeaderBar/HeaderBar';
+import ReceiptModal from '../../componets/ReceiptModal/ReceiptModal';
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get('window');
@@ -295,110 +296,7 @@ const CalendarModal = ({ visible, initialDate, title, onConfirm, onCancel }) => 
 //  • 5 detail rows: Status / Reference ID / Date & Time / Transaction Type / Amount
 //  • Receipt (gold tinted) + Close (black) buttons
 // ══════════════════════════════════════════════════════════════════════════════
-const TxnDetailSheet = ({ visible, item, onClose }) => {
-  const slideAnim = useRef(new Animated.Value(SH)).current;
-  const backdropAnim = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    if (visible) {
-      Animated.parallel([
-        Animated.spring(slideAnim, { toValue: 0, bounciness: 4, speed: 14, useNativeDriver: true }),
-        Animated.timing(backdropAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
-      ]).start();
-    } else {
-      Animated.parallel([
-        Animated.timing(slideAnim, { toValue: SH, duration: 240, useNativeDriver: true }),
-        Animated.timing(backdropAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-      ]).start();
-    }
-  }, [visible]);
-
-  if (!item) return null;
-
-  const isDebit = item.type === 'debit';
-  const amtColor = isDebit ? D.debit : D.amountCredit; // green for credit (screenshot 1)
-  const amtPrefix = isDebit ? '−₹' : '+₹';
-  const typeLabel = isDebit ? 'Debit' : 'Credit';
-  const isRefunded = item.isRefunded;
-  const statusTxt = isRefunded ? 'Refunded' : (isDebit ? 'Debited' : '✓ Credited');
-  const statusColor = isRefunded ? D.gold : (isDebit ? D.debit : D.green);
-  const dateStr = formatApiDate(item.createdAt);
-
-  // Matches screenshot 1 row order exactly
-  const rows = [
-    { label: 'Status', val: statusTxt, valColor: statusColor },
-    { label: 'Reference ID', val: item.referenceId ?? '—', mono: true },
-    { label: 'Date & Time', val: dateStr },
-    { label: 'Transaction Type', val: typeLabel, bold: true },
-    { label: 'Category', val: item.category ?? '—' },
-    { label: 'Amount', val: `₹${item.amount?.toFixed(2) ?? '—'}`, valColor: amtColor, bold: true },
-  ];
-
-  return (
-    <Modal transparent visible={visible} animationType="none" onRequestClose={onClose}>
-      {/* Dim backdrop */}
-      <Animated.View style={[ds.backdrop, { opacity: backdropAnim }]}>
-        <TouchableOpacity style={StyleSheet.absoluteFill} onPress={onClose} activeOpacity={1} />
-      </Animated.View>
-
-      {/* Sheet */}
-      <Animated.View style={[ds.sheet, { transform: [{ translateY: slideAnim }] }]}>
-        {/* Drag handle */}
-        <View style={ds.handle} />
-
-        {/* Title + date */}
-        <View style={ds.titleSection}>
-          <Text style={ds.title}>{item.description}</Text>
-          <Text style={ds.titleDate}>{dateStr}</Text>
-        </View>
-        <View style={ds.sep} />
-
-        {/* Amount hero — 💰 emoji + big coloured amount + sub text */}
-        <View style={ds.amountHero}>
-          <Text style={{ fontSize: 40, marginBottom: vs(6) }}>💰</Text>
-          <Text style={[ds.amountBig, { color: amtColor }]}>
-            {amtPrefix}{item.amount?.toFixed(2)}
-          </Text>
-          <Text style={ds.amountSub}>{item.description}</Text>
-        </View>
-
-        {/* Detail rows */}
-        <View style={ds.rowsWrap}>
-          {rows.map((row, i) => (
-            <View key={i} style={[ds.row, i === rows.length - 1 && { borderBottomWidth: 0 }]}>
-              <Text style={ds.rowLabel}>{row.label}</Text>
-              <Text style={[
-                ds.rowVal,
-                row.mono && ds.rowValMono,
-                row.bold && { fontFamily: Fonts.Bold },
-                row.valColor && { color: row.valColor },
-              ]}>
-                {row.val}
-              </Text>
-            </View>
-          ))}
-        </View>
-
-        {/* Buttons — Receipt (gold) + Close (black) — matches screenshot 1 exactly */}
-        <View style={ds.btnRow}>
-          <TouchableOpacity
-            style={ds.receiptBtn}
-            onPress={() => downloadReceipt(item)}
-            activeOpacity={0.8}
-          >
-            <Icon name="receipt" size={rs(15)} color={D.gold} style={{ marginRight: sc(6) }} />
-            <Text style={ds.receiptTxt}>Receipt</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={ds.closeBtn} onPress={onClose} activeOpacity={0.85}>
-            <Icon name="check" size={rs(14)} color={Colors.white} style={{ marginRight: sc(5) }} />
-            <Text style={ds.closeTxt}>Close</Text>
-          </TouchableOpacity>
-        </View>
-      </Animated.View>
-    </Modal>
-  );
-};
 
 // ─── Filter Sheet Component ───────────────────────────────────────────────────
 const FilterSheet = ({ visible, onClose, onApply, activeFilters, startDate, endDate, onOpenCal, userOptions }) => {
@@ -1295,11 +1193,27 @@ const WalletTransactionScreen = ({ navigation }) => {
         onCancel={onCalCancel}
       />
 
-      {/* Transaction detail bottom sheet */}
-      <TxnDetailSheet
+      <ReceiptModal
         visible={detailVisible}
-        item={detailItem}
         onClose={() => setDetailVisible(false)}
+        navigation={navigation}
+        data={detailItem ? {
+          status: detailItem.isRefunded ? "pending" : (detailItem.type === "debit" ? "success" : "success"), // In ledger most are success
+          title: detailItem.description || "Wallet Transaction",
+          amount: detailItem.amount?.toFixed(2),
+          date: formatApiDate(detailItem.createdAt),
+          txn_ref: detailItem.referenceId,
+          details: [
+            { label: "Status", value: detailItem.isRefunded ? 'Refunded' : (detailItem.type === 'debit' ? 'Debited' : 'Credited'), isStatusPill: true, color: detailItem.isRefunded ? D.gold : (detailItem.type === 'debit' ? D.debit : D.green) },
+            { label: "Reference ID", value: detailItem.referenceId ?? '—', small: true },
+            { label: "Transaction Type", value: detailItem.type === 'debit' ? 'Debit' : 'Credit' },
+            { label: "Category", value: detailItem.category ?? '—' },
+            { label: "Wallet", value: detailItem.wallet?.toUpperCase() ?? 'MAIN' },
+            { label: "Opening Bal.", value: `₹${detailItem.openingBalance?.toFixed(2) ?? '0.00'}` },
+            { label: "Closing Bal.", value: `₹${detailItem.closingBalance?.toFixed(2) ?? '0.00'}` },
+          ],
+          note: detailItem.isRefunded ? "Amount has been refunded to your wallet." : "Transaction reflected in your wallet ledger."
+        } : null}
       />
 
       {/* Filter bottom sheet */}
