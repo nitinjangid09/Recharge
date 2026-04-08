@@ -1,7 +1,7 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as NavigationService from "../utils/NavigationService";
-import { Alert } from "react-native";
+import { AlertService } from "../componets/Alerts/CustomAlert";
 
 export const BASE_URL = "http://192.168.1.16:8000";
 
@@ -10,28 +10,27 @@ const performAutoLogout = async (reason = "Session expired. Please login again."
   try {
     console.log("[AUTH] performAutoLogout triggered. Reason:", reason);
 
-    // Clear all sensitive storage
+    // 1. Clear sensitive storage
     await AsyncStorage.multiRemove([
-      "header_token",
-      "header_key",
-      "kyc_status",
-      "is_payment_done",
-      "id_payment_status",
-      "token"
+      "header_token", "header_key", "kyc_status",
+      "is_payment_done", "id_payment_status", "token"
     ]);
 
-    // Show alert and redirect
-    Alert.alert("Session Expired", reason, [
-      {
-        text: "Login Again",
-        onPress: () => {
-          NavigationService.reset("FinanceIntro");
-        }
-      }
-    ]);
+    // 2. Immediate Navigation to Login
+    NavigationService.reset("Login");
+
+    // 3. Show alert on top of the login screen so they know why they are there
+    setTimeout(() => {
+      AlertService.showAlert({
+        type: "error",
+        title: "Session Expired",
+        message: reason,
+      });
+    }, 500);
+
   } catch (err) {
     console.log("[AUTH] Logout error:", err);
-    NavigationService.reset("FinanceIntro");
+    NavigationService.reset("Login");
   }
 };
 
@@ -40,15 +39,20 @@ axios.interceptors.response.use(
   (response) => {
     // Some APIs return 200 but with success: false and a specific message
     const data = response.data;
-    if (data && data.success === false && (
-      data.message?.toLowerCase().includes("token expired") ||
-      data.message?.toLowerCase().includes("invalid token") ||
-      data.message?.toLowerCase().includes("session expired")
+    const isError = data?.success === false || data?.status === "ERROR" || data?.status === "FAILED";
+    const msg = data?.message?.toLowerCase() || "";
+    
+    if (data && isError && (
+      msg.includes("token expired") ||
+      msg.includes("invalid token") ||
+      msg.includes("session expired") ||
+      msg.includes("unauthorized")
     )) {
-      performAutoLogout(data.message);
+      performAutoLogout(data.message || "Session expired");
     }
     return response;
   },
+
   (error) => {
     if (error.response) {
       const { status, data } = error.response;
@@ -77,6 +81,20 @@ const safeTransform = (raw) => {
     console.log("[API] JSON parse failed:", raw.slice(0, 200));
     return { success: false, message: "Unexpected server response." };
   }
+};
+
+/**
+ * handleFetchResponse
+ * Standard wrapper for manual fetch calls to handle session expiry (401)
+ * since axios interceptors don't catch native fetch calls.
+ */
+const handleFetchResponse = async (response) => {
+  if (response.status === 401) {
+    const data = await response.json().catch(() => ({}));
+    performAutoLogout(data?.message || "Session expired. Please login again.");
+    return { success: false, message: "Unauthorized" };
+  }
+  return response;
 };
 
 /**
@@ -627,6 +645,10 @@ export const submitOfflineKyc = async ({ personal, business, files, banking }) =
         body: form,
       }
     );
+    if (fetchResponse.status === 401) {
+       performAutoLogout("Session expired during KYC submission.");
+       return { success: false, message: "Session expired. Please login again." };
+    }
 
     const rawText = await fetchResponse.text();
 
@@ -1136,7 +1158,7 @@ export const payBbpsBill = async (payload) => {
 
     const { headerToken, ...bodyObj } = payload;
 
-    const response = await fetch(url, {
+    let response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -1145,6 +1167,9 @@ export const payBbpsBill = async (payload) => {
       },
       body: JSON.stringify(bodyObj),
     });
+    response = await handleFetchResponse(response);
+    if (response.status === 401) return { success: false, message: "Unauthorized" };
+
     const text = await response.text();
     if (text.trimStart().startsWith("<")) {
       return { success: false, message: "Server error. Please try again." };
@@ -1201,7 +1226,7 @@ export const transferAepsToMainWallet = async ({ amount, headerToken }) => {
     const url = `${BASE_URL}/user/wallet/aeps-to-main`;
     const idempotencyKey = generateIdempotencyKey();
 
-    const response = await fetch(url, {
+    let response = await fetch(url, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -1210,6 +1235,8 @@ export const transferAepsToMainWallet = async ({ amount, headerToken }) => {
       },
       body: JSON.stringify({ amount: Number(amount) }),
     });
+    response = await handleFetchResponse(response);
+    if (response.status === 401) return { success: false, message: "Unauthorized" };
 
     const text = await response.text();
     if (text.trim().startsWith("<")) {

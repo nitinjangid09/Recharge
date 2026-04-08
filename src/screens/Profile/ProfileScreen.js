@@ -7,7 +7,6 @@ import {
   ScrollView,
   Animated,
   ActivityIndicator,
-  Alert,
   RefreshControl,
 } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
@@ -248,16 +247,16 @@ export default function ProfileScreen({ navigation }) {
     try {
       setLoading(true);
       const headerToken = await AsyncStorage.getItem("header_token");
-      if (!headerToken) { setLoading(false); Alert.alert("Error", "Unable to load profile"); return; }
+      if (!headerToken) { setLoading(false); showAlert("Error", "Unable to load profile"); return; }
       const result = await fetchUserProfile({ headerToken });
       if (result?.success === true) {
         setProfileData(result.data);
         await AsyncStorage.setItem("profile_data", JSON.stringify(result.data));
       } else {
-        Alert.alert("Error", result?.message || "Profile fetch failed");
+        showAlert("Error", result?.message || "Profile fetch failed");
       }
     } catch {
-      Alert.alert("Error", "Network or server issue");
+      showAlert("Error", "Network or server issue");
     } finally {
       setLoading(false);
       setRefreshing(false);

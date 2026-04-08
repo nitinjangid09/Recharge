@@ -142,6 +142,7 @@ const Colors = {
   hub_green: base.green,
   hub_greenSoft: '#F0FDF4',
   hub_greenGlow: 'rgba(34,197,94,0.15)',
+  hub_greenDim: 'rgba(22,163,74,0.13)',
   hub_bg: '#FAF8F4',
   hub_white: base.white,
   hub_dark: '#141414',
@@ -249,6 +250,16 @@ const Colors = {
   whiteOpacity_38: "rgba(255,255,255,0.38)",
   blackOpacity_35: "rgba(0,0,0,0.35)",
   successOpacity_10: "rgba(34, 197, 94, 0.10)",
+
+  // ─── Transaction History specific aliases ────────────────────────────────
+  pageBg: "#F2EDE4",
+  headerBg: base.ink_main,
+  surfaceMid: "#F8FAFC",
+  goldDim: "rgba(212,168,67,0.14)",
+  redSoft: "#FEF2F2",
+  redDim: "rgba(220, 38, 38, 0.13)",
+  amberDim: "rgba(217, 119, 6, 0.13)",
+  amberSoft: "#FFFBEB",
 };
 
 export default Colors;

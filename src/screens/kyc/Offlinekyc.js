@@ -4,7 +4,7 @@ import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   ScrollView, Animated, Dimensions, StatusBar,
   KeyboardAvoidingView, Platform, ActivityIndicator,
-  Alert, Image, PixelRatio, useWindowDimensions, Modal, ToastAndroid,
+  Image, PixelRatio, useWindowDimensions, Modal,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -14,6 +14,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import Colors from "../../constants/Colors";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
+import CustomAlert from "../../componets/Alerts/CustomAlert";
 import RNFS from "react-native-fs";
 
 // ─── Responsive helpers ───────────────────────────────────────────────────
@@ -105,34 +106,29 @@ const validateImageSize = async (image) => {
   const sizeBytes = await getFileSizeBytes(image);
 
   if (sizeBytes === null) {
-    // Can't measure → allow rather than falsely blocking the user
     console.warn("[KYC] Image size indeterminate — skipping size check");
-    return true;
+    return { isValid: true };
   }
 
   const sizeKB = (sizeBytes / 1024).toFixed(1);
 
   if (sizeBytes < MIN_SIZE_BYTES) {
-    const msg = `Image too small (${sizeKB} KB).\nMinimum allowed: 10 KB.\nPlease choose a clearer, higher-quality photo.`;
-    if (Platform.OS === "android") {
-      ToastAndroid.showWithGravityAndOffset(msg, ToastAndroid.LONG, ToastAndroid.BOTTOM, 0, 80);
-    } else {
-      Alert.alert("Image Too Small", msg, [{ text: "OK" }]);
-    }
-    return false;
+    return {
+      isValid: false,
+      title: "Image Too Small",
+      error: `Image too small (${sizeKB} KB).\nMinimum allowed: 10 KB.\nPlease choose a clearer, higher-quality photo.`
+    };
   }
 
   if (sizeBytes > MAX_SIZE_BYTES) {
-    const msg = `Image too large (${sizeKB} KB).\nMaximum allowed: 200 KB.\nPlease select a more compressed photo.`;
-    if (Platform.OS === "android") {
-      ToastAndroid.showWithGravityAndOffset(msg, ToastAndroid.LONG, ToastAndroid.BOTTOM, 0, 80);
-    } else {
-      Alert.alert("Image Too Large", msg, [{ text: "OK" }]);
-    }
-    return false;
+    return {
+      isValid: false,
+      title: "Image Too Large",
+      error: `Image too large (${sizeKB} KB).\nMaximum allowed: 200 KB.\nPlease select a more compressed photo.`
+    };
   }
 
-  return true; // ✓ within 10 KB – 200 KB
+  return { isValid: true };
 };
 
 /**
@@ -151,31 +147,18 @@ export const pickAndValidateImage = async (sourceType) => {
     };
 
     const handler = async (res) => {
-      if (res.didCancel) {
-        resolve(null);
-        return;
-      }
+      if (res.didCancel) return resolve(null);
 
       if (res.errorCode) {
         const msg = res.errorMessage || "Could not open image. Please try again.";
-        console.warn("[KYC] pickAndValidateImage error:", msg);
-        if (Platform.OS === "android") {
-          ToastAndroid.showWithGravityAndOffset(msg, ToastAndroid.LONG, ToastAndroid.BOTTOM, 0, 80);
-        } else {
-          Alert.alert("Image Error", msg, [{ text: "OK" }]);
-        }
-        resolve(null);
-        return;
+        return resolve({ error: msg, title: "Image Error" });
       }
 
       if (res.assets && res.assets.length > 0) {
         const asset = res.assets[0];
-        const isValid = await validateImageSize(asset);
-        if (!isValid) {
-          resolve(null);
-          return;
-        }
-        resolve(asset);
+        const result = await validateImageSize(asset);
+        if (!result.isValid) return resolve(result);
+        resolve({ asset });
       } else {
         resolve(null);
       }
@@ -208,9 +191,15 @@ export default function Offlinekyc({ navigation, route }) {
   const [showConfirmAcc, setShowConfirmAcc] = useState(false);
   const [errors, setErrors] = useState({});
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showFailModal, setShowFailModal] = useState(false);
   const [failMsg, setFailMsg] = useState("");
+  const [alert, setAlert] = useState({ visible: false, type: "info", title: "", message: "" });
+  const [pickerSourceField, setPickerSourceField] = useState(null); // The field we are picking for
+  const [showSourcePicker, setShowSourcePicker] = useState(false);
+
+  const showAlert = (type, title, message) => {
+    setAlert({ visible: true, type, title, message });
+  };
 
   const [stateList, setStateList] = useState([]);
   const [showStateModal, setShowStateModal] = useState(false);
@@ -587,41 +576,28 @@ export default function Offlinekyc({ navigation, route }) {
   // IMAGE PICKER  (10 KB – 200 KB enforced inside pickAndValidateImage)
   // ─────────────────────────────────────────────────────────────────────────
   const pickImage = (fileKey) => {
-    Alert.alert("Upload Photo", "Choose source", [
-      {
-        text: "📷 Camera",
-        onPress: async () => {
-          const image = await pickAndValidateImage("camera");
-          if (!image) return;
-          setFiles(f => ({
-            ...f,
-            [fileKey]: {
-              uri: image.uri,
-              name: image.fileName || image.uri.split("/").pop() || `${fileKey}_${Date.now()}.jpg`,
-              type: image.type || "image/jpeg",
-            },
-          }));
-          setErrors(e => ({ ...e, [fileKey]: undefined }));
-        },
-      },
-      {
-        text: "🖼️ Gallery",
-        onPress: async () => {
-          const image = await pickAndValidateImage("gallery");
-          if (!image) return;
-          setFiles(f => ({
-            ...f,
-            [fileKey]: {
-              uri: image.uri,
-              name: image.fileName || image.uri.split("/").pop() || `${fileKey}_${Date.now()}.jpg`,
-              type: image.type || "image/jpeg",
-            },
-          }));
-          setErrors(e => ({ ...e, [fileKey]: undefined }));
-        },
-      },
-      { text: "Cancel", style: "cancel" },
-    ]);
+    setPickerSourceField(fileKey);
+    setShowSourcePicker(true);
+  };
+
+  const handlePickSource = async (sourceType) => {
+    setShowSourcePicker(false);
+    const result = await pickAndValidateImage(sourceType);
+    if (!result) return; // cancelled
+    if (result.error) {
+      showAlert("error", result.title || "Image Error", result.error);
+      return;
+    }
+    const { asset } = result;
+    setFiles(f => ({
+      ...f,
+      [pickerSourceField]: {
+        uri: asset.uri,
+        name: asset.fileName || asset.uri.split("/").pop() || `${pickerSourceField}_${Date.now()}.jpg`,
+        type: asset.type || "image/jpeg",
+      }
+    }));
+    setErrors(e => ({ ...e, [pickerSourceField]: undefined }));
   };
 
 
@@ -1103,7 +1079,45 @@ export default function Offlinekyc({ navigation, route }) {
         items={bankList.filter(b => b.bankName?.toLowerCase().includes(bankSearch.trim().toLowerCase()))} getLabel={b => b.bankName}
         onSelect={bn => { setBanking(b => ({ ...b, bankName: bn.bankName })); setShowBankModal(false); setBankSearch(""); }}
         onClose={() => { setShowBankModal(false); setBankSearch(""); }} onRefresh={handleFetchBanks} />
+      <SourcePicker
+        visible={showSourcePicker}
+        onSelect={handlePickSource}
+        onClose={() => setShowSourcePicker(false)}
+      />
+
+      <CustomAlert
+        visible={alert.visible}
+        type={alert.type}
+        title={alert.title}
+        message={alert.message}
+        onClose={() => setAlert({ ...alert, visible: false })}
+      />
     </SafeAreaView>
+  );
+}
+
+function SourcePicker({ visible, onSelect, onClose }) {
+  return (
+    <Modal visible={visible} transparent animationType="slide">
+      <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose}>
+        <View style={styles.modalCard}>
+          <Text style={styles.modalTitle}>Choose Source</Text>
+          <View style={{ flexDirection: "row", gap: hs(16), marginTop: vs(10), width: "100%" }}>
+            <TouchableOpacity style={{ flex: 1, alignItems: "center", gap: 8, padding: hs(16), backgroundColor: Colors.kyc_accent + "10", borderRadius: hs(16) }} onPress={() => onSelect("camera")}>
+              <Icon name="camera-outline" size={rs(30)} color={Colors.kyc_accent} />
+              <Text style={{ fontFamily: Fonts.Bold, color: Colors.kyc_accent }}>Camera</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={{ flex: 1, alignItems: "center", gap: 8, padding: hs(16), backgroundColor: Colors.kyc_accent + "10", borderRadius: hs(16) }} onPress={() => onSelect("gallery")}>
+              <Icon name="image-multiple-outline" size={rs(30)} color={Colors.kyc_accent} />
+              <Text style={{ fontFamily: Fonts.Bold, color: Colors.kyc_accent }}>Gallery</Text>
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity style={{ marginTop: vs(20), padding: hs(12) }} onPress={onClose}>
+            <Text style={{ color: Colors.kyc_textMuted, fontFamily: Fonts.Bold }}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    </Modal>
   );
 }
 

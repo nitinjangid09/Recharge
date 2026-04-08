@@ -11,7 +11,6 @@ import {
   Dimensions,
   ActivityIndicator,
   StatusBar,
-  Alert,
   TextInput,
   FlatList,
   Keyboard,
@@ -25,6 +24,7 @@ import Fonts from "../../constants/Fonts";
 import Colors from "../../constants/Colors";
 import { getWalletBalance, fetchUserProfile, getAllBanners, getWalletReport, BASE_URL } from "../../api/AuthApi";
 import FullScreenLoader from "../../componets/Loader/FullScreenLoader";
+import CustomAlert from "../../componets/Alerts/CustomAlert";
 
 import BBPSIconSVG from "../../assets/ServicesIcons/BBPS.svg";
 import RechargeIconSVG from "../../assets/ServicesIcons/Recharge.svg";
@@ -225,6 +225,12 @@ export default function FinanceHome({ navigation }) {
 
   const [recentTransactions, setRecentTransactions] = useState([]);
   const [recentLoading, setRecentLoading] = useState(false);
+
+  const [alert, setAlert] = useState({ visible: false, type: "info", title: "", message: "", onConfirm: null, confirmText: "OK" });
+
+  const showAlert = (type, title, message, onConfirm = null, confirmText = "OK") => {
+    setAlert({ visible: true, type, title, message, onConfirm, confirmText });
+  };
 
   const hasService = (n) =>
     assignedServices.some((s) => s.name?.toLowerCase() === n.toLowerCase());
@@ -429,10 +435,10 @@ export default function FinanceHome({ navigation }) {
       case "ms": navigation.navigate("MiniStatement"); break;
       case "ap":
         kycStatus !== "approved"
-          ? Alert.alert("KYC Required", "Complete your KYC to use Aadhaar Pay.", [
-            { text: "Cancel", style: "cancel" },
-            { text: "Complete KYC", onPress: () => navigation.navigate("Offlinekyc") },
-          ])
+          ? showAlert("warning", "KYC Required", "Complete your KYC to use Aadhaar Pay.", () => {
+            setAlert(p => ({ ...p, visible: false }));
+            navigation.navigate("Offlinekyc");
+          }, "Complete KYC")
           : navigation.navigate("AadhaarPay");
         break;
       default: break;
@@ -1007,8 +1013,17 @@ export default function FinanceHome({ navigation }) {
         </View>
 
       </View>
-    </SafeAreaView>
-  );
+
+        <CustomAlert
+          visible={alert.visible}
+          type={alert.type}
+          title={alert.title}
+          message={alert.message}
+          onClose={() => setAlert(p => ({ ...p, visible: false }))}
+          onConfirm={alert.onConfirm}
+          />
+      </SafeAreaView>
+    );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

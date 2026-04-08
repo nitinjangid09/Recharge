@@ -1,12 +1,3 @@
-/**
- * CustomAlert.jsx
- *
- * Usage — Standard alert only:
- *   <CustomAlert visible type="success" title="Done!" message="Saved." onClose={fn} />
- *
- * (Upload functionality moved to ImageUploadAlert.js)
- */
-
 import React, { useEffect, useRef } from "react";
 import {
   View,
@@ -21,6 +12,27 @@ import {
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Colors from "../../constants/Colors";
 import Fonts from "../../constants/Fonts";
+
+// ─── Alert Service (Consolidated) ──────────────────────────────────────────
+let alertReference = null;
+
+export const AlertService = {
+  setAlertReference: (ref) => {
+    alertReference = ref;
+  },
+  showAlert: (config) => {
+    if (alertReference) {
+      alertReference.show(config);
+    } else {
+      console.warn("[AlertService] No global alert provider registered.");
+    }
+  },
+  hideAlert: () => {
+    if (alertReference) {
+      alertReference.hide();
+    }
+  },
+};
 
 const { width } = Dimensions.get("window");
 const S = width / 375;
@@ -51,6 +63,9 @@ const CustomAlert = ({
   title,
   message,
   onClose,
+  onConfirm,
+  confirmText = "OK",
+  cancelText = "Cancel",
 }) => {
   const accentColor = getColor(type);
 
@@ -90,13 +105,31 @@ const CustomAlert = ({
           <Text style={[styles.alertTitle, { color: accentColor }]}>{title}</Text>
           <Text style={styles.alertMessage}>{message}</Text>
 
-          <TouchableOpacity
-            style={[styles.alertBtn, { backgroundColor: accentColor }]}
-            onPress={onClose}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.alertBtnTxt}>OK</Text>
-          </TouchableOpacity>
+          <View style={styles.btnRow}>
+            {onConfirm && (
+              <TouchableOpacity
+                style={[styles.alertBtn, styles.cancelBtn, { borderColor: accentColor + "34" }]}
+                onPress={onClose}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.alertBtnTxt, { color: "#64748B" }]}>{cancelText}</Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              style={[styles.alertBtn, onConfirm ? { flex: 1.2 } : { width: "80%" }, { backgroundColor: accentColor }]}
+              onPress={() => {
+                if (onConfirm) {
+                  onConfirm();
+                } else {
+                  onClose();
+                }
+              }}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.alertBtnTxt}>{onConfirm ? confirmText : "OK"}</Text>
+            </TouchableOpacity>
+          </View>
         </Animated.View>
       </View>
     </Modal>
@@ -156,11 +189,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24 * S,
     fontFamily: Fonts.Medium,
   },
+  btnRow: {
+    flexDirection: "row",
+    gap: 12 * S,
+    width: "100%",
+    paddingHorizontal: 24 * S,
+    justifyContent: "center",
+  },
   alertBtn: {
-    width: "80%",
     paddingVertical: 14 * S,
     borderRadius: 14 * S,
     alignItems: "center",
+    justifyContent: "center",
+  },
+  cancelBtn: {
+    flex: 1,
+    backgroundColor: "transparent",
+    borderWidth: 1.5,
   },
   alertBtnTxt: {
     color: "#fff",

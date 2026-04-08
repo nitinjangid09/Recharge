@@ -21,6 +21,7 @@ import {
   createSupportRequest,
   getMySupportRequests,
 } from "../../api/AuthApi";
+import CustomAlert from "../../componets/Alerts/CustomAlert";
 
 /* ─────────────────────────────────────────────
    Helpers
@@ -217,6 +218,7 @@ const FaqSupportScreen = () => {
   // Pagination states
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [alert, setAlert] = useState({ visible: false, type: "info", title: "", message: "" });
 
   useEffect(() => {
     loadData();
@@ -285,15 +287,18 @@ const FaqSupportScreen = () => {
       setLoading(false);
     }
   };
+  const showAlert = (type, title, message) => {
+    setAlert({ visible: true, type, title, message });
+  };
 
   /* ── Submit ───────────────────────────────── */
   const handleSubmit = async () => {
     if (!selectedService)
-      return Alert.alert("Validation", "Please select a service type.");
+      return showAlert("warning", "Validation", "Please select a service type.");
 
     // Validate support details as required field
     if (!supportDetails.trim())
-      return Alert.alert("Validation", "Error: Missing required field - support details.");
+      return showAlert("warning", "Validation", "Error: Missing required field - support details.");
 
     setSubmitting(true);
     try {
@@ -307,16 +312,16 @@ const FaqSupportScreen = () => {
       });
 
       if (result.success) {
-        Alert.alert("Success ✓", result.message || "Ticket raised successfully.");
+        showAlert("success", "Success ✓", result.message || "Ticket raised successfully.");
         setSelectedService(null);
         setTransactionId("");
         setSupportDetails("");
         loadData(1); // Refresh back to page 1
       } else {
-        Alert.alert("Error", result.message || "Something went wrong.");
+        showAlert("error", "Error", result.message || "Something went wrong.");
       }
     } catch (err) {
-      Alert.alert("Error", "Unexpected error submitting ticket.");
+      showAlert("error", "Error", "Unexpected error submitting ticket.");
     } finally {
       setSubmitting(false);
     }
@@ -464,6 +469,14 @@ const FaqSupportScreen = () => {
         selected={selectedService}
         onSelect={setSelectedService}
         onClose={() => setPickerOpen(false)}
+      />
+
+      <CustomAlert
+        visible={alert.visible}
+        type={alert.type}
+        title={alert.title}
+        message={alert.message}
+        onClose={() => setAlert({ ...alert, visible: false })}
       />
 
     </SafeAreaView>

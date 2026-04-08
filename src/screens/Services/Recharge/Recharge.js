@@ -15,8 +15,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   BackHandler,
-  Alert,
-  ToastAndroid,
   StatusBar,
   PermissionsAndroid,
   RefreshControl,
@@ -36,10 +34,10 @@ import {
 } from "../../../api/AuthApi";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import RNHTMLtoPDF from "react-native-html-to-pdf";
 import ViewShot from "react-native-view-shot";
 import FullScreenLoader from "../../../componets/Loader/FullScreenLoader";
 import ReceiptModal from "../../../componets/ReceiptModal/ReceiptModal";
+import CustomAlert from "../../../componets/Alerts/CustomAlert";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -201,7 +199,7 @@ export default function TopUpScreen({ navigation, route }) {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  const [customToast, setCustomToast] = useState({ visible: false, message: "", type: "success" });
+  const [alert, setAlert] = useState({ visible: false, type: "info", title: "", message: "" });
   const toastAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -217,20 +215,8 @@ export default function TopUpScreen({ navigation, route }) {
     if (route.params?.operatorCode) setOperatorCode(route.params.operatorCode);
   }, [route.params]);
 
-  const showCustomToast = (msg, type = "success") => {
-    setCustomToast({ visible: true, message: msg, type });
-    Animated.timing(toastAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start(() => {
-      setTimeout(() => {
-        Animated.timing(toastAnim, { toValue: 0, duration: 300, useNativeDriver: true }).start(() =>
-          setCustomToast({ visible: false, message: "", type: "success" })
-        );
-      }, 2500);
-    });
-  };
-
-  const showToast = (msg) => {
-    if (Platform.OS === "android") ToastAndroid.show(msg, ToastAndroid.SHORT);
-    else Alert.alert("Info", msg);
+  const showAlert = (type, title, message) => {
+    setAlert({ visible: true, type, title, message });
   };
 
   useEffect(() => {
@@ -350,10 +336,10 @@ export default function TopUpScreen({ navigation, route }) {
           const w = trackWidthRef.current;
           const snap = () => Animated.spring(pan, { toValue: 0, useNativeDriver: false }).start();
           if (w > 0 && g.dx >= (w - THUMB_WIDTH) * 0.8) {
-            if (mobile.length !== 10) { showCustomToast("Enter 10-digit mobile number", "error"); snap(); return; }
-            if (!operator) { showCustomToast("Select Operator", "error"); snap(); return; }
-            if (!circle) { showCustomToast("Select Circle", "error"); snap(); return; }
-            if (!amount || Number(amount) <= 0) { showCustomToast("Enter valid amount", "error"); snap(); return; }
+            if (mobile.length !== 10) { showAlert("warning", "Validation", "Enter 10-digit mobile number"); snap(); return; }
+            if (!operator) { showAlert("warning", "Validation", "Select Operator"); snap(); return; }
+            if (!circle) { showAlert("warning", "Validation", "Select Circle"); snap(); return; }
+            if (!amount || Number(amount) <= 0) { showAlert("warning", "Validation", "Enter valid amount"); snap(); return; }
             Animated.timing(pan, { toValue: w - THUMB_WIDTH, duration: 200, useNativeDriver: false })
               .start(() => { setCompleted(true); handleRecharge(); });
           } else {
@@ -401,11 +387,11 @@ export default function TopUpScreen({ navigation, route }) {
           });
         } else {
           setOperator(""); setCircle("");
-          showCustomToast(result?.message || "Unable to detect operator", "error");
+          showAlert("error", "Error", result?.message || "Unable to detect operator");
         }
       } catch {
         setOperator(""); setCircle("");
-        showToast("Something went wrong");
+        showAlert("error", "Error", "Something went wrong");
       } finally {
         setLoading(false);
       }
@@ -561,9 +547,9 @@ export default function TopUpScreen({ navigation, route }) {
                 <TouchableOpacity
                   style={styles.viewPlansBtn}
                   onPress={async () => {
-                    if (mobile.length !== 10) { showCustomToast("Enter 10-digit mobile number", "error"); return; }
-                    if (!operator) { showCustomToast("Select Operator", "error"); return; }
-                    if (!circle) { showCustomToast("Select Circle", "error"); return; }
+                    if (mobile.length !== 10) { showAlert("warning", "Validation", "Enter 10-digit mobile number"); return; }
+                    if (!operator) { showAlert("warning", "Validation", "Select Operator"); return; }
+                    if (!circle) { showAlert("warning", "Validation", "Select Circle"); return; }
                     try {
                       setLoading(true);
                       const headerToken = await AsyncStorage.getItem("header_token");
@@ -574,10 +560,10 @@ export default function TopUpScreen({ navigation, route }) {
                           plans: result.data?.plans || [], operatorCode,
                         });
                       } else {
-                        showCustomToast(result?.message || "Unable to load plans", "error");
+                        showAlert("error", "Error", result?.message || "Unable to load plans");
                       }
                     } catch {
-                      showCustomToast("Something went wrong", "error");
+                      showAlert("error", "Error", "Something went wrong");
                     } finally {
                       setLoading(false);
                     }
@@ -770,43 +756,6 @@ export default function TopUpScreen({ navigation, route }) {
       {/* FULL SCREEN LOADER */}
       <FullScreenLoader visible={loading} label="Processing..." />
 
-      {/* CUSTOM TOAST */}
-      {customToast.visible && (
-        <Animated.View
-          style={[
-            styles.customToastBox,
-            {
-              opacity: toastAnim,
-              transform: [
-                {
-                  translateY: toastAnim.interpolate({
-                    inputRange: [0, 1], outputRange: [-40, 0],
-                  }),
-                },
-              ],
-            },
-          ]}
-        >
-          <LinearGradient
-            colors={
-              customToast.type === "success"
-                ? [Colors.success || "#22C55E", Colors.successOpacity_70 || "rgba(34, 197, 94, 0.7)"]
-                : [Colors.error || "#EF4444", Colors.redOpacity_70 || "rgba(239, 68, 68, 0.7)"]
-            }
-            style={styles.customToastGrad}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          >
-            <Icon
-              name={customToast.type === "success" ? "check-circle" : "alert-circle"}
-              size={20}
-              color={Colors.white}
-            />
-            <Text style={styles.customToastText}>{customToast.message}</Text>
-          </LinearGradient>
-        </Animated.View>
-      )}
-
       <ReceiptModal
         visible={!!receiptData}
         onClose={() => setReceiptData(null)}
@@ -832,6 +781,14 @@ export default function TopUpScreen({ navigation, route }) {
             ? "Plan benefits added successfully. Data and calling active."
             : "Amount debited. Commission plan not configured. Raise a complaint for refund."
         } : null}
+      />
+
+      <CustomAlert
+        visible={alert.visible}
+        type={alert.type}
+        title={alert.title}
+        message={alert.message}
+        onClose={() => setAlert({ ...alert, visible: false })}
       />
 
     </SafeAreaView>

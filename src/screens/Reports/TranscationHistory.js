@@ -19,44 +19,6 @@ import ReceiptModal from '../../componets/ReceiptModal/ReceiptModal';
 
 const { height: SH, width: SW } = Dimensions.get('window');
 
-const D = {
-  // Page / structural
-  pageBg: '#F2EDE4',          // warm cream bg
-  headerBg: '#1C1C1E',          // very dark header bar
-  cardBg: '#FFFFFF',          // white cards
-  heroBg: '#1C1C1E',
-  surfaceMid: '#F8FAFC',
-
-  // Brand accent — gold/amber
-  gold: Colors.finance_accent || '#D4A843',
-  goldDim: 'rgba(212,168,67,0.14)',
-  goldLight: '#FEF3C7',
-
-  // Type colours (Success)
-  green: '#16A34A',
-  greenLight: '#22C55E',
-  greenDim: 'rgba(22,163,74,0.13)',
-  greenBg: '#F0FDF4',
-
-  // Failed / Negative colours
-  red: '#DC2626',
-  redSoft: '#FEF2F2',
-  redDim: 'rgba(220, 38, 38, 0.13)',
-
-  // Amber / Pending 
-  amber: '#D97706',
-  amberDim: 'rgba(217, 119, 6, 0.13)',
-  amberSoft: '#FFFBEB',
-
-  textPri: '#1A1D2E',
-  textSec: '#475569',
-  textMuted: '#94A3B8',
-
-  border: '#E2E8F0',
-  divider: '#F1F5F9',
-  shadow: '#000000',
-};
-
 // ─── All logic unchanged ──────────────────────────────────────────────────────
 const fetchRechargeTransactions = async ({ from, to, headerToken }) => {
   const json = await getRechargeReport({ from, to, headerToken });
@@ -93,9 +55,9 @@ const TABS = [
 ];
 
 const STATUS_CONFIG = {
-  Success: { color: D.green, bg: D.greenBg, border: D.greenDim, icon: 'check-circle-outline', label: 'Success' },
-  Pending: { color: D.amber, bg: D.amberSoft, border: D.amberDim, icon: 'clock-outline', label: 'Pending' },
-  Failed: { color: D.red, bg: D.redSoft, border: D.redDim, icon: 'close-circle-outline', label: 'Failed' },
+  Success: { color: Colors.green, bg: Colors.greenBg, border: Colors.hub_greenDim, icon: 'check-circle-outline', label: 'Success' },
+  Pending: { color: Colors.amber, bg: Colors.amberSoft, border: Colors.amberDim, icon: 'clock-outline', label: 'Pending' },
+  Failed: { color: Colors.red, bg: Colors.redSoft, border: Colors.redDim, icon: 'close-circle-outline', label: 'Failed' },
 };
 
 const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -135,16 +97,16 @@ const dateRangeStart = (f) => {
 
 
 const SH_S = StyleSheet.create({
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(15,23,42,0.4)' },
+  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: Colors.blackOpacity_45 },
   sheet: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: '#F8F9FB',
+    backgroundColor: Colors.surfaceMid,
     borderTopLeftRadius: 30, borderTopRightRadius: 30,
     maxHeight: SH * 0.85,
     paddingTop: 12,
   },
   handle: {
-    width: 36, height: 4, backgroundColor: '#DDD',
+    width: 36, height: 4, backgroundColor: Colors.gray_EB,
     borderRadius: 2, alignSelf: 'center', marginBottom: 20,
   },
   topCardsGrid: {
@@ -164,57 +126,57 @@ const SH_S = StyleSheet.create({
     overflow: 'hidden',
   },
   topCardHeader: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 },
-  topCardLabel: { fontSize: 7, fontFamily: Fonts.Bold, color: 'rgba(255,255,255,0.8)', letterSpacing: 0.3 },
-  topCardVal: { fontSize: 14, fontFamily: Fonts.Bold, color: '#FFF', marginBottom: 0.5 },
-  topCardSub: { fontSize: 6.5, fontFamily: Fonts.Bold, color: 'rgba(255,255,255,0.6)', letterSpacing: 0.2 },
+  topCardLabel: { fontSize: 7, fontFamily: Fonts.Bold, color: Colors.whiteOpacity_80, letterSpacing: 0.3 },
+  topCardVal: { fontSize: 14, fontFamily: Fonts.Bold, color: Colors.white, marginBottom: 0.5 },
+  topCardSub: { fontSize: 6.5, fontFamily: Fonts.Bold, color: Colors.whiteOpacity_60, letterSpacing: 0.2 },
   topCardBgIcon: { position: 'absolute', right: -6, top: 2, transform: [{ scale: 0.7 }] },
 
   auditContainer: {
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.white,
     marginHorizontal: 16,
     borderRadius: 24,
     padding: 20,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.03)',
+    borderColor: Colors.blackOpacity_03,
     elevation: 2,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 10,
+    shadowColor: Colors.black, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 10,
   },
   auditHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 },
   auditIconBox: {
-    width: 40, height: 40, borderRadius: 20, backgroundColor: '#3F51B5',
+    width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.hub_hubIndigo,
     alignItems: 'center', justifyContent: 'center',
   },
-  auditTitle: { fontSize: 14, fontFamily: Fonts.Bold, color: '#1A1D2E', letterSpacing: 0.5 },
-  auditSub: { fontSize: 10, fontFamily: Fonts.Bold, color: '#94A3B8', letterSpacing: 0.3 },
-  divider: { height: 1, backgroundColor: '#F1F5F9', marginBottom: 16 },
+  auditTitle: { fontSize: 14, fontFamily: Fonts.Bold, color: Colors.text_primary, letterSpacing: 0.5 },
+  auditSub: { fontSize: 10, fontFamily: Fonts.Bold, color: Colors.slate_400, letterSpacing: 0.3 },
+  divider: { height: 1, backgroundColor: Colors.slate_100, marginBottom: 16 },
 
   grid: { gap: 8 },
   gridItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.slate_50,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: Colors.slate_100,
     borderRadius: 14,
     padding: 12,
     gap: 12,
   },
   gridIconBox: {
-    width: 32, height: 32, borderRadius: 10, backgroundColor: '#EFF6FF',
+    width: 32, height: 32, borderRadius: 10, backgroundColor: Colors.whiteOpacity_15,
     alignItems: 'center', justifyContent: 'center',
   },
-  gridLabel: { fontSize: 8.5, fontFamily: Fonts.Bold, color: '#64748B', letterSpacing: 0.5, marginBottom: 2 },
-  gridVal: { fontSize: 12, fontFamily: Fonts.Bold, color: '#0F172A' },
+  gridLabel: { fontSize: 8.5, fontFamily: Fonts.Bold, color: Colors.slate_500, letterSpacing: 0.5, marginBottom: 2 },
+  gridVal: { fontSize: 12, fontFamily: Fonts.Bold, color: Colors.slate_900 },
 
   doneBtn: {
     margin: 16,
-    backgroundColor: '#3F51B5',
+    backgroundColor: Colors.hub_hubIndigo,
     paddingVertical: 16,
     borderRadius: 16,
     alignItems: 'center',
     marginBottom: Platform.OS === 'ios' ? 34 : 20,
   },
-  doneTxt: { color: '#FFF', fontFamily: Fonts.Bold, fontSize: 15 },
+  doneTxt: { color: Colors.white, fontFamily: Fonts.Bold, fontSize: 15 },
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -235,7 +197,7 @@ const TxnCard = ({ txn, onPress }) => {
   const isFailed = txn.status?.toLowerCase() === 'failed';
   const isSuccess = txn.status?.toLowerCase() === 'success';
   const extra = txn.extra || {};
-  const amtColor = isFailed ? D.red : D.green;
+  const amtColor = isFailed ? Colors.red : Colors.green;
   const amtPrefix = isFailed ? '−₹' : '+₹';
 
   return (
@@ -263,8 +225,8 @@ const TxnCard = ({ txn, onPress }) => {
 
             <View style={TC.rightCol}>
               <View style={[TC.statusBadge, { backgroundColor: cfg.color, borderColor: cfg.color }]}>
-                <Icon name={cfg.icon} size={10} color="#FFF" style={{ marginRight: 4 }} />
-                <Text style={[TC.statusTxt, { color: '#FFF' }]}>{cfg.label.toUpperCase()}</Text>
+                <Icon name={cfg.icon} size={10} color={Colors.white} style={{ marginRight: 4 }} />
+                <Text style={[TC.statusTxt, { color: Colors.white }]}>{cfg.label.toUpperCase()}</Text>
               </View>
               <Text style={[TC.amount, { color: amtColor }]}>
                 {amtPrefix}{Number(txn.amount).toLocaleString('en-IN')}
@@ -278,14 +240,14 @@ const TxnCard = ({ txn, onPress }) => {
             <View style={TC.featureRow}>
               {extra.isRefunded && (
                 <View style={TC.plainItem}>
-                  <Icon name="keyboard-return" size={12} color="#4338CA" style={{ marginRight: 4 }} />
-                  <Text style={[TC.plainTxt, { color: '#3730A3' }]}>Refunded</Text>
+                  <Icon name="keyboard-return" size={12} color={Colors.hub_hubIndigo} style={{ marginRight: 4 }} />
+                  <Text style={[TC.plainTxt, { color: Colors.ink2 }]}>Refunded</Text>
                 </View>
               )}
               {isSuccess && extra.netCommission > 0 && (
                 <View style={TC.plainItem}>
-                  <Icon name="medal-outline" size={13} color="#059669" style={{ marginRight: 4 }} />
-                  <Text style={[TC.plainTxt, { color: '#065F46' }]}>
+                  <Icon name="medal-outline" size={13} color={Colors.kyc_success} style={{ marginRight: 4 }} />
+                  <Text style={[TC.plainTxt, { color: Colors.green_profile }]}>
                     Earned ₹{extra.netCommission.toFixed(2)}
                   </Text>
                 </View>
@@ -307,7 +269,7 @@ const TC = StyleSheet.create({
     overflow: 'hidden',
 
     elevation: 3,
-
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -319,8 +281,8 @@ const TC = StyleSheet.create({
   mainRow: { flexDirection: 'row', alignItems: 'center', zIndex: 1 },
   iconBox: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 1.2 },
   centerCol: { flex: 1, marginLeft: 12, justifyContent: 'center' },
-  title: { fontSize: 13, fontFamily: Fonts.Bold, color: D.textPri, marginBottom: 3 },
-  refId: { fontSize: 10, fontFamily: Fonts.Medium, color: D.textMuted },
+  title: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.text_primary, marginBottom: 3 },
+  refId: { fontSize: 10, fontFamily: Fonts.Medium, color: Colors.textMuted },
 
   rightCol: { alignItems: 'flex-end', justifyContent: 'center' },
   statusBadge: {
@@ -331,11 +293,11 @@ const TC = StyleSheet.create({
   statusTxt: { fontSize: 8.5, fontFamily: Fonts.Bold, letterSpacing: 0.8 },
 
   amount: { fontSize: 16, fontFamily: Fonts.Bold, letterSpacing: -0.4, marginBottom: 3 },
-  dateTxt: { fontSize: 9.5, fontFamily: Fonts.Medium, color: D.textMuted },
+  dateTxt: { fontSize: 9.5, fontFamily: Fonts.Medium, color: Colors.textMuted },
 
   featureRow: {
     flexDirection: 'row', marginTop: 10, paddingTop: 10,
-    borderTopWidth: 1, borderTopColor: '#F1F5F9', gap: 14
+    borderTopWidth: 1, borderTopColor: Colors.slate_100, gap: 14
   },
   plainItem: { flexDirection: 'row', alignItems: 'center' },
   plainTxt: { fontSize: 10.5, fontFamily: Fonts.Bold, letterSpacing: -0.1 },
@@ -369,10 +331,10 @@ const StatusChips = ({ value, onChange }) => {
         {chips.map(chip => {
           const isActive = value === chip.key;
           const cfg = chip.key !== 'All' ? STATUS_CONFIG[chip.key] : null;
-          const activeBg = chip.key === 'All' ? D.headerBg : cfg?.color;
-          const activeIcon = isActive ? '#fff' : (cfg?.color || D.textSec);
-          const activeTxt = isActive ? '#fff' : D.textSec;
-          const activeBorder = isActive ? 'transparent' : D.border;
+          const activeBg = chip.key === 'All' ? Colors.headerBg : cfg?.color;
+          const activeIcon = isActive ? Colors.white : (cfg?.color || Colors.text_secondary);
+          const activeTxt = isActive ? Colors.white : Colors.text_secondary;
+          const activeBorder = isActive ? 'transparent' : Colors.border;
 
           return (
             <TouchableOpacity
@@ -381,7 +343,7 @@ const StatusChips = ({ value, onChange }) => {
               activeOpacity={0.72}
               style={[
                 CHI.chip,
-                { backgroundColor: isActive ? activeBg : D.cardBg, borderColor: activeBorder },
+                { backgroundColor: isActive ? activeBg : Colors.cardBg, borderColor: activeBorder },
               ]}
             >
               <Icon name={chip.icon} size={12} color={activeIcon} style={CHI.chipIcon} />
@@ -429,14 +391,14 @@ const CHI = StyleSheet.create({
 // ══════════════════════════════════════════════════════════════════════════════
 const SummaryStrip = ({ summary }) => {
   const items = [
-    { label: 'Total', value: summary.total, color: D.textPri },
-    { label: 'Success', value: summary.success, color: D.green },
-    { label: 'Pending', value: summary.pending, color: D.amber },
-    { label: 'Failed', value: summary.failed, color: D.red },
+    { label: 'Total', value: summary.total, color: Colors.text_primary },
+    { label: 'Success', value: summary.success, color: Colors.green },
+    { label: 'Pending', value: summary.pending, color: Colors.amber },
+    { label: 'Failed', value: summary.failed, color: Colors.red },
     {
       label: 'Amount',
       value: `₹${summary.amount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`,
-      color: D.gold,
+      color: Colors.finance_accent,
     },
   ];
 
@@ -458,22 +420,22 @@ const SummaryStrip = ({ summary }) => {
 const ST = StyleSheet.create({
   wrap: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: D.cardBg,
+    backgroundColor: Colors.cardBg,
     marginHorizontal: 16,
     marginBottom: 10,
     borderRadius: 12, paddingVertical: 10,
-    borderWidth: 1, borderColor: D.border,
+    borderWidth: 1, borderColor: Colors.border,
     elevation: 2,
-    shadowColor: D.shadow, shadowOffset: { width: 0, height: 2 },
+    shadowColor: Colors.shadow, shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05, shadowRadius: 4,
   },
   cell: { flex: 1, alignItems: 'center' },
   value: { fontSize: 13, fontFamily: Fonts.Bold, includeFontPadding: false, marginBottom: 2 },
   label: {
-    fontSize: 9, fontFamily: Fonts.Bold, color: D.textMuted,
+    fontSize: 9, fontFamily: Fonts.Bold, color: Colors.textMuted,
     letterSpacing: 0.4, textTransform: 'uppercase', includeFontPadding: false,
   },
-  div: { width: 1, height: 20, backgroundColor: D.border },
+  div: { width: 1, height: 20, backgroundColor: Colors.border },
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -542,7 +504,7 @@ const FilterSheet = ({ visible, onClose, onApply, activeFilters, onOpenPicker, u
         <View style={FST.header}>
           <Text style={FST.title}>Filters</Text>
           <TouchableOpacity onPress={() => setLocal({ date: 'Last 30 Days', status: 'All', userId: 'All' })} style={FST.resetBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Icon name="refresh" size={12} color={D.gold} style={{ marginRight: 4 }} />
+            <Icon name="refresh" size={12} color={Colors.finance_accent} style={{ marginRight: 4 }} />
             <Text style={FST.resetTxt}>Reset all</Text>
           </TouchableOpacity>
         </View>
@@ -553,8 +515,8 @@ const FilterSheet = ({ visible, onClose, onApply, activeFilters, onOpenPicker, u
               const changed = local[sec.stateKey] !== sec.defaultKey;
               return (
                 <TouchableOpacity key={sec.key} style={[FST.navItem, isActive && FST.navItemActive]} onPress={() => setActiveSection(sec.key)} activeOpacity={0.7}>
-                  <View style={[FST.navIconBox, isActive && { backgroundColor: D.goldDim }]}>
-                    <Icon name={sec.icon} size={15} color={isActive ? D.gold : D.textMuted} />
+                  <View style={[FST.navIconBox, isActive && { backgroundColor: Colors.finance_accentDim }]}>
+                    <Icon name={sec.icon} size={15} color={isActive ? Colors.finance_accent : Colors.textMuted} />
                   </View>
                   <Text style={[FST.navTxt, isActive && FST.navTxtActive]}>{sec.label.split(' ')[0]}</Text>
                   {changed && <View style={FST.navDot} />}
@@ -568,12 +530,12 @@ const FilterSheet = ({ visible, onClose, onApply, activeFilters, onOpenPicker, u
             {activeSection === 'date' && isCustomDate && (
               <View style={FST.customDateRow}>
                 <TouchableOpacity style={FST.datePill} activeOpacity={0.8} onPress={() => onOpenPicker('from')}>
-                  <Icon name="calendar" size={14} color={D.gold} style={{ marginRight: 6 }} />
+                  <Icon name="calendar" size={14} color={Colors.finance_accent} style={{ marginRight: 6 }} />
                   <Text style={FST.datePillTxt}>From</Text>
                 </TouchableOpacity>
                 <View style={{ width: 8 }} />
                 <TouchableOpacity style={FST.datePill} activeOpacity={0.8} onPress={() => onOpenPicker('to')}>
-                  <Icon name="calendar" size={14} color={D.gold} style={{ marginRight: 6 }} />
+                  <Icon name="calendar" size={14} color={Colors.finance_accent} style={{ marginRight: 6 }} />
                   <Text style={FST.datePillTxt}>To</Text>
                 </TouchableOpacity>
               </View>
@@ -583,8 +545,8 @@ const FilterSheet = ({ visible, onClose, onApply, activeFilters, onOpenPicker, u
               const isSel = local[currentSection.stateKey] === opt.key;
               return (
                 <TouchableOpacity key={opt.key} style={[FST.optRow, isSel && FST.optRowActive]} onPress={() => setLocal(p => ({ ...p, [currentSection.stateKey]: opt.key }))} activeOpacity={0.7}>
-                  <View style={[FST.optIconBox, isSel && { backgroundColor: D.goldDim }]}>
-                    <Icon name={opt.icon} size={14} color={isSel ? D.gold : D.textMuted} />
+                  <View style={[FST.optIconBox, isSel && { backgroundColor: Colors.finance_accentDim }]}>
+                    <Icon name={opt.icon} size={14} color={isSel ? Colors.finance_accent : Colors.textMuted} />
                   </View>
                   <Text style={[FST.optTxt, isSel && FST.optTxtActive]}>{opt.label}</Text>
                   <View style={isSel ? FST.radioOn : FST.radioOff}>
@@ -773,7 +735,7 @@ export default function InvoiceScreen({ navigation }) {
                 <Icon
                   name={tab.icon}
                   size={13}
-                  color={isActive ? D.gold : D.textMuted}
+                  color={isActive ? Colors.finance_accent : Colors.textMuted}
                   style={{ marginRight: 5 }}
                 />
                 <Text style={[S.tabTxt, isActive && S.tabTxtActive]}>{tab.label}</Text>
@@ -787,11 +749,11 @@ export default function InvoiceScreen({ navigation }) {
       {/* ── Search & Filter Row ───────────────────────────────────────────── */}
       <View style={S.sfRow}>
         <View style={S.sfSearchBox}>
-          <Icon name="magnify" size={16} color={D.textMuted} style={{ marginRight: 8 }} />
+          <Icon name="magnify" size={16} color={Colors.textMuted} style={{ marginRight: 8 }} />
           <TextInput
             style={S.sfInput}
             placeholder="Search transactions..."
-            placeholderTextColor={D.textMuted}
+            placeholderTextColor={Colors.textMuted}
             value={search}
             onChangeText={setSearch}
           />
@@ -800,13 +762,13 @@ export default function InvoiceScreen({ navigation }) {
               onPress={() => setSearch('')}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Icon name="close-circle" size={15} color={D.textMuted} />
+              <Icon name="close-circle" size={15} color={Colors.textMuted} />
             </TouchableOpacity>
           )}
         </View>
         <TouchableOpacity style={S.sfFilterBtn} activeOpacity={0.7} onPress={() => setFilterVisible(true)}>
           <View style={S.sfFilterIconBox}>
-            <Icon name="tune-variant" size={18} color={D.gold} />
+            <Icon name="tune-variant" size={18} color={Colors.finance_accent} />
           </View>
         </TouchableOpacity>
       </View>
@@ -820,25 +782,25 @@ export default function InvoiceScreen({ navigation }) {
       {/* ── Body ───────────────────────────────────────────────────────────── */}
       {loadingTab ? (
         <View style={S.center}>
-          <ActivityIndicator size="large" color={D.gold} />
+          <ActivityIndicator size="large" color={Colors.finance_accent} />
           <Text style={S.centerTxt}>Fetching transactions…</Text>
         </View>
       ) : errorTab ? (
         <View style={S.center}>
           <View style={S.errorIcon}>
-            <Icon name="alert-circle-outline" size={28} color={D.red} />
+            <Icon name="alert-circle-outline" size={28} color={Colors.red} />
           </View>
           <Text style={S.errorTitle}>Failed to load</Text>
           <Text style={S.errorSub}>{errorTab}</Text>
           <TouchableOpacity style={S.retryBtn} onPress={retryTab} activeOpacity={0.85}>
-            <Icon name="refresh" size={14} color="#fff" style={{ marginRight: 6 }} />
+            <Icon name="refresh" size={14} color={Colors.white} style={{ marginRight: 6 }} />
             <Text style={S.retryTxt}>Retry</Text>
           </TouchableOpacity>
         </View>
       ) : !tabHasApi ? (
         <View style={S.center}>
-          <View style={[S.errorIcon, { backgroundColor: D.goldDim }]}>
-            <Icon name="clock-outline" size={28} color={D.gold} />
+          <View style={[S.errorIcon, { backgroundColor: Colors.finance_accentDim }]}>
+            <Icon name="clock-outline" size={28} color={Colors.finance_accent} />
           </View>
           <Text style={S.errorTitle}>Coming Soon</Text>
           <Text style={S.errorSub}>{activeTabCfg?.label} transactions will appear here.</Text>
@@ -853,16 +815,16 @@ export default function InvoiceScreen({ navigation }) {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor={D.gold}
-              colors={[D.gold]}
-              progressBackgroundColor={D.headerBg}
+              tintColor={Colors.finance_accent}
+              colors={[Colors.finance_accent]}
+              progressBackgroundColor={Colors.headerBg}
             />
           }
         >
           {filtered.length === 0 ? (
             <View style={S.center}>
-              <View style={[S.errorIcon, { backgroundColor: D.goldDim }]}>
-                <Icon name="file-search-outline" size={28} color={D.gold} />
+              <View style={[S.errorIcon, { backgroundColor: Colors.finance_accentDim }]}>
+                <Icon name="file-search-outline" size={28} color={Colors.finance_accent} />
               </View>
               <Text style={S.errorTitle}>No results</Text>
               <Text style={S.errorSub}>Try adjusting your filters or search term</Text>
@@ -937,11 +899,11 @@ export default function InvoiceScreen({ navigation }) {
               label: "Status",
               isStatusPill: true,
               value: selectedTxn.status,
-              color: STATUS_CONFIG[selectedTxn.status]?.color || D.amber,
+              color: STATUS_CONFIG[selectedTxn.status]?.color || Colors.amber,
             },
           ],
-          note: selectedTxn.status === "Success" 
-            ? "Transaction completed successfully." 
+          note: selectedTxn.status === "Success"
+            ? "Transaction completed successfully."
             : "If amount debited and status is failed, it will be refunded shortly."
         } : null}
       />
@@ -957,36 +919,36 @@ const S = StyleSheet.create({
 
   // Header
   header: {
-    backgroundColor: D.headerBg,
+    backgroundColor: Colors.headerBg,
     paddingHorizontal: 16, paddingVertical: 10,
     flexDirection: 'row', alignItems: 'center',
     elevation: 4,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowColor: Colors.black, shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15, shadowRadius: 8,
   },
   hBtn: {
     width: 36, height: 36, borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.10)',
+    backgroundColor: Colors.whiteOpacity_10,
     alignItems: 'center', justifyContent: 'center',
   },
   hTitle: {
     flex: 1, textAlign: 'center',
-    color: '#fff', fontSize: 16, fontFamily: Fonts.Bold, letterSpacing: 0.3,
+    color: Colors.white, fontSize: 16, fontFamily: Fonts.Bold, letterSpacing: 0.3,
   },
 
   // Tab bar
-  tabBar: { backgroundColor: D.cardBg, borderBottomWidth: 1, borderBottomColor: D.border },
+  tabBar: { backgroundColor: Colors.cardBg, borderBottomWidth: 1, borderBottomColor: Colors.border },
   tabScroll: { paddingHorizontal: 12, alignItems: 'center' },
   tabItem: {
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 14, paddingVertical: 8, marginRight: 2,
   },
-  tabItemActive: { borderBottomWidth: 2, borderBottomColor: D.gold },
-  tabTxt: { fontSize: 13, fontFamily: Fonts.Medium, color: D.textMuted },
-  tabTxtActive: { fontFamily: Fonts.Bold, color: D.gold },
+  tabItemActive: { borderBottomWidth: 2, borderBottomColor: Colors.finance_accent },
+  tabTxt: { fontSize: 13, fontFamily: Fonts.Medium, color: Colors.textMuted },
+  tabTxtActive: { fontFamily: Fonts.Bold, color: Colors.finance_accent },
   soonDot: {
     width: 5, height: 5, borderRadius: 3,
-    backgroundColor: D.amber, marginLeft: 4, marginBottom: 6,
+    backgroundColor: Colors.amber, marginLeft: 4, marginBottom: 6,
   },
 
   // Search & Filter
@@ -996,24 +958,24 @@ const S = StyleSheet.create({
   },
   sfSearchBox: {
     flex: 1, flexDirection: 'row', alignItems: 'center',
-    backgroundColor: D.cardBg, height: 42,
+    backgroundColor: Colors.cardBg, height: 42,
     borderRadius: 10, paddingHorizontal: 12,
-    borderWidth: 1, borderColor: D.border,
-    elevation: 2, shadowColor: D.shadow, shadowOffset: { width: 0, height: 2 },
+    borderWidth: 1, borderColor: Colors.border,
+    elevation: 2, shadowColor: Colors.shadow, shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05, shadowRadius: 4,
   },
   sfInput: {
     flex: 1, fontSize: 13,
-    fontFamily: Fonts.Medium, color: D.textPri, padding: 0,
+    fontFamily: Fonts.Medium, color: Colors.text_primary, padding: 0,
   },
   sfFilterBtn: {
     width: 42, height: 42, alignItems: 'center', justifyContent: 'center',
   },
   sfFilterIconBox: {
-    width: 42, height: 42, borderRadius: 10, backgroundColor: D.cardBg,
+    width: 42, height: 42, borderRadius: 10, backgroundColor: Colors.cardBg,
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: D.border,
-    elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+    borderWidth: 1, borderColor: Colors.border,
+    elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1, shadowRadius: 3,
   },
 
@@ -1022,57 +984,57 @@ const S = StyleSheet.create({
 
   // States
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 48 },
-  centerTxt: { marginTop: 12, fontSize: 13, fontFamily: Fonts.Medium, color: D.textMuted },
+  centerTxt: { marginTop: 12, fontSize: 13, fontFamily: Fonts.Medium, color: Colors.textMuted },
   errorIcon: {
     width: 60, height: 60, borderRadius: 18,
-    backgroundColor: D.redSoft,
+    backgroundColor: Colors.redSoft,
     alignItems: 'center', justifyContent: 'center', marginBottom: 14,
   },
-  errorTitle: { fontSize: 15, fontFamily: Fonts.Bold, color: D.textPri, marginBottom: 6 },
+  errorTitle: { fontSize: 15, fontFamily: Fonts.Bold, color: Colors.text_primary, marginBottom: 6 },
   errorSub: {
-    fontSize: 13, fontFamily: Fonts.Medium, color: D.textMuted,
+    fontSize: 13, fontFamily: Fonts.Medium, color: Colors.textMuted,
     textAlign: 'center', marginHorizontal: 32, marginBottom: 20,
   },
   retryBtn: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: D.headerBg,
+    backgroundColor: Colors.headerBg,
     paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10,
   },
-  retryTxt: { fontSize: 13, fontFamily: Fonts.Bold, color: '#fff' },
+  retryTxt: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.white },
 });
 
 const FST = StyleSheet.create({
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(15,23,42,0.55)' },
-  sheet: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: D.cardBg, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: SH * 0.78, elevation: 24, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.14, shadowRadius: 16 },
-  handle: { width: 32, height: 4, backgroundColor: 'rgba(0,0,0,0.12)', borderRadius: 2, alignSelf: 'center', marginTop: 10, marginBottom: 2 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: D.border },
-  title: { fontSize: 17, fontFamily: Fonts.Bold, color: D.textPri },
-  resetBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: D.goldDim },
-  resetTxt: { fontSize: 12, fontFamily: Fonts.Bold, color: D.gold },
+  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: Colors.blackOpacity_52 },
+  sheet: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: Colors.cardBg, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: SH * 0.78, elevation: 24, shadowColor: Colors.black, shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.14, shadowRadius: 16 },
+  handle: { width: 32, height: 4, backgroundColor: Colors.blackOpacity_12, borderRadius: 2, alignSelf: 'center', marginTop: 10, marginBottom: 2 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: Colors.border },
+  title: { fontSize: 17, fontFamily: Fonts.Bold, color: Colors.text_primary },
+  resetBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: Colors.finance_accentDim },
+  resetTxt: { fontSize: 12, fontFamily: Fonts.Bold, color: Colors.finance_accent },
   body: { flexDirection: 'row', maxHeight: SH * 0.52 },
-  navCol: { width: 82, borderRightWidth: 1, borderRightColor: D.border, paddingTop: 10 },
+  navCol: { width: 82, borderRightWidth: 1, borderRightColor: Colors.border, paddingTop: 10 },
   navItem: { paddingVertical: 18, alignItems: 'center', paddingHorizontal: 6 },
-  navItemActive: { backgroundColor: D.cardBg },
-  navIconBox: { width: 34, height: 34, borderRadius: 10, backgroundColor: D.surfaceMid || '#F8FAFC', alignItems: 'center', justifyContent: 'center', marginBottom: 5 },
-  navTxt: { fontSize: 9, fontFamily: Fonts.Medium, color: D.textMuted, textAlign: 'center', letterSpacing: 0.3 },
-  navTxtActive: { color: D.gold, fontFamily: Fonts.Bold },
-  navDot: { position: 'absolute', top: 12, right: 10, width: 6, height: 6, borderRadius: 3, backgroundColor: D.gold },
+  navItemActive: { backgroundColor: Colors.cardBg },
+  navIconBox: { width: 34, height: 34, borderRadius: 10, backgroundColor: Colors.surfaceMid || '#F8FAFC', alignItems: 'center', justifyContent: 'center', marginBottom: 5 },
+  navTxt: { fontSize: 9, fontFamily: Fonts.Medium, color: Colors.textMuted, textAlign: 'center', letterSpacing: 0.3 },
+  navTxtActive: { color: Colors.finance_accent, fontFamily: Fonts.Bold },
+  navDot: { position: 'absolute', top: 12, right: 10, width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.finance_accent },
   optCol: { flex: 1, paddingHorizontal: 14 },
-  optSectionLabel: { fontSize: 9, fontFamily: Fonts.Bold, color: D.textMuted, letterSpacing: 1.2, marginBottom: 10, textTransform: 'uppercase' },
+  optSectionLabel: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.textMuted, letterSpacing: 1.2, marginBottom: 10, textTransform: 'uppercase' },
   optRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, gap: 10, borderRadius: 10, paddingHorizontal: 4 },
-  optRowActive: { backgroundColor: D.goldDim, marginHorizontal: -4, paddingHorizontal: 8 },
-  optIconBox: { width: 32, height: 32, borderRadius: 9, backgroundColor: D.surfaceMid || '#F8FAFC', alignItems: 'center', justifyContent: 'center' },
-  optTxt: { flex: 1, fontSize: 13, fontFamily: Fonts.Medium, color: D.textSec },
-  optTxtActive: { color: D.gold, fontFamily: Fonts.Bold },
-  radioOff: { width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: D.border },
-  radioOn: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: D.gold, alignItems: 'center', justifyContent: 'center' },
-  radioInner: { width: 8, height: 8, borderRadius: 4, backgroundColor: D.gold },
+  optRowActive: { backgroundColor: Colors.finance_accentDim, marginHorizontal: -4, paddingHorizontal: 8 },
+  optIconBox: { width: 32, height: 32, borderRadius: 9, backgroundColor: Colors.surfaceMid || '#F8FAFC', alignItems: 'center', justifyContent: 'center' },
+  optTxt: { flex: 1, fontSize: 13, fontFamily: Fonts.Medium, color: Colors.text_secondary },
+  optTxtActive: { color: Colors.finance_accent, fontFamily: Fonts.Bold },
+  radioOff: { width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: Colors.border },
+  radioOn: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: Colors.finance_accent, alignItems: 'center', justifyContent: 'center' },
+  radioInner: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.finance_accent },
   customDateRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, paddingHorizontal: 4 },
-  datePill: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: D.gold, backgroundColor: D.goldDim },
-  datePillTxt: { color: D.gold, fontSize: 13, fontFamily: Fonts.Medium },
-  footer: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: Platform.OS === 'ios' ? 34 : 16, borderTopWidth: 1, borderTopColor: D.border },
-  applyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: D.headerBg, borderRadius: 14, paddingVertical: 15 },
-  applyTxt: { color: '#fff', fontSize: 14, fontFamily: Fonts.Bold },
-  badge: { marginLeft: 8, backgroundColor: D.gold, minWidth: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
-  badgeTxt: { color: '#fff', fontSize: 9, fontFamily: Fonts.Bold },
+  datePill: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: Colors.finance_accent, backgroundColor: Colors.finance_accentDim },
+  datePillTxt: { color: Colors.finance_accent, fontSize: 13, fontFamily: Fonts.Medium },
+  footer: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: Platform.OS === 'ios' ? 34 : 16, borderTopWidth: 1, borderTopColor: Colors.border },
+  applyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.headerBg, borderRadius: 14, paddingVertical: 15 },
+  applyTxt: { color: Colors.white, fontSize: 14, fontFamily: Fonts.Bold },
+  badge: { marginLeft: 8, backgroundColor: Colors.finance_accent, minWidth: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  badgeTxt: { color: Colors.white, fontSize: 9, fontFamily: Fonts.Bold },
 });
