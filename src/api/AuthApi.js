@@ -1,7 +1,67 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as NavigationService from "../utils/NavigationService";
+import { Alert } from "react-native";
 
 export const BASE_URL = "http://192.168.1.16:8000";
+
+// ─── Auto Logout Helper ───────────────────────────────────────────────────────
+const performAutoLogout = async (reason = "Session expired. Please login again.") => {
+  try {
+    console.log("[AUTH] performAutoLogout triggered. Reason:", reason);
+
+    // Clear all sensitive storage
+    await AsyncStorage.multiRemove([
+      "header_token",
+      "header_key",
+      "kyc_status",
+      "is_payment_done",
+      "id_payment_status",
+      "token"
+    ]);
+
+    // Show alert and redirect
+    Alert.alert("Session Expired", reason, [
+      {
+        text: "Login Again",
+        onPress: () => {
+          NavigationService.reset("FinanceIntro");
+        }
+      }
+    ]);
+  } catch (err) {
+    console.log("[AUTH] Logout error:", err);
+    NavigationService.reset("FinanceIntro");
+  }
+};
+
+// ─── Axios Global Interceptor ─────────────────────────────────────────────────
+axios.interceptors.response.use(
+  (response) => {
+    // Some APIs return 200 but with success: false and a specific message
+    const data = response.data;
+    if (data && data.success === false && (
+      data.message?.toLowerCase().includes("token expired") ||
+      data.message?.toLowerCase().includes("invalid token") ||
+      data.message?.toLowerCase().includes("session expired")
+    )) {
+      performAutoLogout(data.message);
+    }
+    return response;
+  },
+  (error) => {
+    if (error.response) {
+      const { status, data } = error.response;
+
+      // Standard 401 Unauthorized
+      if (status === 401) {
+        performAutoLogout(data?.message || "Session expired. Please login again.");
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 
 
 const safeTransform = (raw) => {

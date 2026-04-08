@@ -5,11 +5,12 @@ import Toast from "react-native-toast-message";
 
 import AppNavigator from "./src/navigation/AppNavigator";
 import { toastConfig } from "./src/utils/toastConfig";
+import { navigationRef } from "./src/utils/NavigationService";
 
 const App = () => {
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
+      <NavigationContainer ref={navigationRef}>
         <AppNavigator />
         <Toast config={toastConfig} />
       </NavigationContainer>

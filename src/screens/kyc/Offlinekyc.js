@@ -430,8 +430,8 @@ export default function Offlinekyc({ navigation, route }) {
         });
 
         if (d.rejectionReason) {
-            setFailMsg(`Previous Submission rejected: ${d.rejectionReason}`);
-            setShowFailModal(true);
+          setFailMsg(`Previous Submission rejected: ${d.rejectionReason}`);
+          setShowFailModal(true);
         }
       } catch (err) {
         console.log("[KYC] fetchSubmittedKyc error:", err);
