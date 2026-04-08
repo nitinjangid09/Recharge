@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   Clipboard,
   Dimensions,
   PixelRatio,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
@@ -58,6 +59,7 @@ const STATS = [
 // ═══════════════════════════════════════════════════════════════════════════
 const SupportScreen = () => {
   const navigation = useNavigation();
+  const [refreshing, setRefreshing] = useState(false);
 
   const fade = useRef(new Animated.Value(0)).current;
   const heroSlide = useRef(new Animated.Value(S(-16))).current;
@@ -81,6 +83,11 @@ const SupportScreen = () => {
 
   const handleCall = () => bounce(scaleCall, () => Linking.openURL(`tel:${CONTACT.phone}`));
   const handleEmail = () => bounce(scaleMail, () => Linking.openURL(`mailto:${CONTACT.email}`));
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 1500);
+  }, []);
 
   return (
     <SafeAreaView style={st.safe} edges={["top"]}>
@@ -119,7 +126,15 @@ const SupportScreen = () => {
         style={st.scroll}
         contentContainerStyle={st.scrollContent}
         showsVerticalScrollIndicator={false}
-        bounces={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.finance_accent}
+            colors={[Colors.finance_accent]}
+            progressBackgroundColor={Colors.slate_900}
+          />
+        }
       >
 
         {/* ① Hero block */}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
     View,
     Text,
@@ -7,6 +7,7 @@ import {
     StyleSheet,
     StatusBar,
     Platform,
+    RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import HeaderBar from '../componets/HeaderBar/HeaderBar';
@@ -166,6 +167,15 @@ const SectionLabel = ({ label }) => (
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function NotificationsScreen({ navigation }) {
     const [activeTab, setActiveTab] = useState('All');
+    const [refreshing, setRefreshing] = useState(false);
+
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+        // Simulate a refresh delay since the data is currently static constants
+        setTimeout(() => {
+            setRefreshing(false);
+        }, 1500);
+    }, []);
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -182,6 +192,15 @@ export default function NotificationsScreen({ navigation }) {
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        tintColor={Colors.finance_accent}
+                        colors={[Colors.finance_accent]}
+                        progressBackgroundColor={Colors.white}
+                    />
+                }
             >
                 {/* ── Inbox Stats ── */}
                 <View style={styles.statsHeader}>

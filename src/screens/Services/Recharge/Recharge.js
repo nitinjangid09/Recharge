@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import {
   ToastAndroid,
   StatusBar,
   PermissionsAndroid,
+  RefreshControl,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -484,6 +485,7 @@ export default function TopUpScreen({ navigation, route }) {
   const [completed, setCompleted] = useState(false);
   const [rechargeHistory, setRechargeHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const [customToast, setCustomToast] = useState({ visible: false, message: "", type: "success" });
   const toastAnim = useRef(new Animated.Value(0)).current;
@@ -524,6 +526,12 @@ export default function TopUpScreen({ navigation, route }) {
     ]).start();
     fetchOperatorCircle();
     fetchRechargeHistory();
+  }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([fetchOperatorCircle(), fetchRechargeHistory()]);
+    setRefreshing(false);
   }, []);
 
   const fetchRechargeHistory = async () => {
@@ -710,6 +718,15 @@ export default function TopUpScreen({ navigation, route }) {
           <ScrollView
             contentContainerStyle={{ paddingBottom: 100, paddingTop: 20 }}
             showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor={Colors.finance_accent}
+                colors={[Colors.finance_accent]}
+                progressBackgroundColor="#2C2C2C"
+              />
+            }
           >
             <Animated.View
               style={[

@@ -11,6 +11,7 @@ import {
   Animated,
   Dimensions,
   Platform,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import LinearGradient from "react-native-linear-gradient";
@@ -170,6 +171,7 @@ export default function StorePlans({ navigation, route }) {
   const [types, setTypes] = useState([]);
   const [activeType, setActiveType] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // ── Bootstrap data ────────────────────────────────────────────────────
   useEffect(() => {
@@ -197,6 +199,12 @@ export default function StorePlans({ navigation, route }) {
     }
     setLoading(false);
   };
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadPlans();
+    setRefreshing(false);
+  }, [mobile, circle, operator]);
 
   // ── Filter plans for active tab ───────────────────────────────────────
   const filteredPlans = plans?.length > 0
@@ -262,6 +270,15 @@ export default function StorePlans({ navigation, route }) {
           initialNumToRender={6}
           maxToRenderPerBatch={8}
           windowSize={10}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={ACCENT}
+              colors={[ACCENT]}
+              progressBackgroundColor="#2C2C2C"
+            />
+          }
         />
       )}
     </SafeAreaView>

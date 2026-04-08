@@ -4,7 +4,7 @@
  * Color system: Gold / Black / Beige
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     View,
     Text,
@@ -15,6 +15,7 @@ import {
     Platform,
     Alert,
     ActivityIndicator,
+    RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -105,6 +106,7 @@ function WalletScreen({ navigation }) {
     const [submittingRefill, setSubmittingRefill] = useState(false);
     const [history, setHistory] = useState([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
     const [alert, setAlert] = useState({ visible: false, type: 'info', title: '', message: '' });
 
@@ -153,8 +155,16 @@ function WalletScreen({ navigation }) {
             console.log('[UserWalletRefill] fetchHistory error:', err);
         } finally {
             setLoadingHistory(false);
+            setRefreshing(false);
         }
     };
+
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+        fetchUsers();
+        fetchHistory();
+        fetchProfile();
+    }, [selectedUser]);
 
     useEffect(() => {
         fetchUsers();
@@ -249,7 +259,19 @@ function WalletScreen({ navigation }) {
                 title="User Wallet Refill"
                 onBack={() => navigation.goBack()}
             />
-            <ScrollView showsVerticalScrollIndicator={false} style={styles.screenScroll}>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                style={styles.screenScroll}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        tintColor={Colors.finance_accent}
+                        colors={[Colors.finance_accent]}
+                        progressBackgroundColor={Colors.white}
+                    />
+                }
+            >
                 <View style={{ height: 16 }} />
 
                 {/* Wallet Hero Card */}

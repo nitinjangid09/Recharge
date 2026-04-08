@@ -14,6 +14,7 @@ import {
   Animated,
   Easing,
   Dimensions,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -517,6 +518,7 @@ const BbpsDynamicServiceScreen = () => {
   const [servicesLoading, setServicesLoading] = useState(false);
   const [billersLoading, setBillersLoading] = useState(false);
   const [detailsLoading, setDetailsLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [detailsError, setDetailsError] = useState(null);
 
   const [alert, setAlert] = useState({ visible: false, title: "", message: "", type: "error" });
@@ -536,6 +538,12 @@ const BbpsDynamicServiceScreen = () => {
     else loadServices();
   }, [serviceType]);
 
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    if (serviceType) loadBillers(serviceType);
+    else loadServices();
+  }, [serviceType]);
+
   // ─── loaders ──────────────────────────────────────────────────────────────
   const loadServices = async () => {
     setServicesLoading(true);
@@ -549,6 +557,7 @@ const BbpsDynamicServiceScreen = () => {
       { id: 6, name: "Broadband Postpaid", cat_key: "BROADBAND" },
     ]);
     setServicesLoading(false);
+    setRefreshing(false);
   };
 
   const loadBillers = async (cat_key) => {
@@ -567,6 +576,7 @@ const BbpsDynamicServiceScreen = () => {
       setDetailsError("Network error. Please try again.");
     } finally {
       setBillersLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -797,6 +807,15 @@ const BbpsDynamicServiceScreen = () => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingBottom: 80 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={Colors.finance_accent}
+              colors={[Colors.finance_accent]}
+              progressBackgroundColor={Colors.white}
+            />
+          }
         >
           {/* Service banner */}
           {selectedService && (
