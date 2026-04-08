@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator, View } from 'react-native';
+import { fetchUserProfile } from '../api/AuthApi';
 
 // Screens
 import ProfileScreen from '../screens/Profile/ProfileScreen';
@@ -64,11 +65,7 @@ const AppNavigator = () => {
           console.log("🔐 Token Found → Fetching Profile Status");
 
           try {
-            const response = await fetch('http://192.168.1.16:8000/fetch-user-profile', {
-              method: 'GET',
-              headers: { Authorization: `Bearer ${token}` },
-            });
-            const result = await response.json();
+            const result = await fetchUserProfile({ headerToken: token });
 
             if (result?.success && result?.data) {
               const { kycStatus, isPaymentDone, idPaymentStatus } = result.data;

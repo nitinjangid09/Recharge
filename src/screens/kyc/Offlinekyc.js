@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import { submitOfflineKyc, fetchStateList, fetchCityList, fetchGlobalBankList, fetchSubmittedKyc } from "../../api/AuthApi";
+import { submitOfflineKyc, fetchStateList, fetchCityList, fetchGlobalBankList, fetchSubmittedKyc, BASE_URL } from "../../api/AuthApi";
 import Fonts from "../../constants/Fonts";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "../../constants/Colors";
@@ -338,7 +338,7 @@ export default function Offlinekyc({ navigation, route }) {
         const identityApproved = d.identityDetailStatus === "approved";
         const bankApproved = d.bankDetailStatus === "approved";
 
-        const IMG_BASE = "http://192.168.1.16:8000";
+        const IMG_BASE = BASE_URL;
         const buildFile = (rel, name) =>
           rel ? { uri: `${IMG_BASE}${rel}`, name: rel.split("/").pop() || name, type: "image/jpeg" } : null;
 
