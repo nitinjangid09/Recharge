@@ -630,24 +630,24 @@ const BbpsDynamicServiceScreen = () => {
       };
       const res = await payBbpsBill(payload);
       if (res?.success) {
-          setReceiptData({
-              status: "success",
-              title: "Payment Successful",
-              amount: selectedPayAmount,
-              date: new Date().toLocaleDateString("en-IN", {
-                  day: "2-digit", month: "short", year: "numeric",
-                  hour: "2-digit", minute: "2-digit", hour12: false,
-              }),
-              operator: selectedBiller.biller_name || selectedBiller.name,
-              txn_ref: res.data?.transactionId || res.transactionId || "TXN" + Date.now(),
-              details: [
-                  { label: "Biller", value: selectedBiller.biller_name || selectedBiller.name },
-                  { label: "Service", value: selectedService.name },
-                  ...Object.entries(formData).map(([k, v]) => ({ label: k.replace(/([A-Z])/g, " $1").replace(/_/g, " ").trim(), value: String(v) })),
-                  { label: "Transaction ID", value: res.data?.transactionId || res.transactionId || "TXN" + Date.now(), small: true },
-              ],
-              note: res.message || "Your bill has been paid successfully."
-          });
+        setReceiptData({
+          status: "success",
+          title: "Payment Successful",
+          amount: selectedPayAmount,
+          date: new Date().toLocaleDateString("en-IN", {
+            day: "2-digit", month: "short", year: "numeric",
+            hour: "2-digit", minute: "2-digit", hour12: false,
+          }),
+          operator: selectedBiller.biller_name || selectedBiller.name,
+          txn_ref: res.data?.transactionId || res.transactionId || "TXN" + Date.now(),
+          details: [
+            { label: "Biller", value: selectedBiller.biller_name || selectedBiller.name },
+            { label: "Service", value: selectedService.name },
+            ...Object.entries(formData).map(([k, v]) => ({ label: k.replace(/([A-Z])/g, " $1").replace(/_/g, " ").trim(), value: String(v) })),
+            { label: "Transaction ID", value: res.data?.transactionId || res.transactionId || "TXN" + Date.now(), small: true },
+          ],
+          note: res.message || "Your bill has been paid successfully."
+        });
       }
       else showAlert("Failed", res?.message, "error");
     } catch { showAlert("Error", "Network error while processing payment.", "error"); }
@@ -940,10 +940,10 @@ const BbpsDynamicServiceScreen = () => {
       </View>
 
       <ReceiptModal
-          visible={!!receiptData}
-          onClose={() => setReceiptData(null)}
-          navigation={navigation}
-          data={receiptData}
+        visible={!!receiptData}
+        onClose={() => setReceiptData(null)}
+        navigation={navigation}
+        data={receiptData}
       />
     </SafeAreaView>
   );
@@ -963,7 +963,7 @@ const ddStyles = StyleSheet.create({
     backgroundColor: Colors.white, elevation: 2,
     minHeight: 54, justifyContent: "center",
   },
-  triggerOpen: { borderColor: Colors.primary, borderWidth: 1.5 },
+  triggerOpen: { borderColor: Colors.lightGray, borderWidth: 1 },
   triggerDisabled: { opacity: 0.4 },
   row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   triggerTxt: { fontSize: 15, color: Colors.black, flex: 1 },

@@ -16,17 +16,15 @@ const performAutoLogout = async (reason = "Session expired. Please login again."
       "is_payment_done", "id_payment_status", "token"
     ]);
 
-    // 2. Immediate Navigation to Login
-    NavigationService.reset("Login");
-
-    // 3. Show alert on top of the login screen so they know why they are there
-    setTimeout(() => {
-      AlertService.showAlert({
-        type: "error",
-        title: "Session Expired",
-        message: reason,
-      });
-    }, 500);
+    // 2. Show alert and reset navigation when closed
+    AlertService.showAlert({
+      type: "error",
+      title: "Session Expired",
+      message: reason,
+      onClose: () => {
+        NavigationService.reset("Login");
+      }
+    });
 
   } catch (err) {
     console.log("[AUTH] Logout error:", err);

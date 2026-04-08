@@ -156,8 +156,6 @@ export default function OfflineServices({ navigation }) {
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            <StatusBar barStyle="dark-content" backgroundColor={Colors.secondary} />
-
             <HeaderBar
                 title="Offline Services"
                 onBack={() => navigation.goBack()}

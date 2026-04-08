@@ -180,7 +180,6 @@ export default function NotificationsScreen({ navigation }) {
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            <StatusBar barStyle="dark-content" backgroundColor={GOLD_LIGHT} />
             <FullScreenLoader visible={refreshing} label="Updating inbox..." />
 
             <HeaderBar
