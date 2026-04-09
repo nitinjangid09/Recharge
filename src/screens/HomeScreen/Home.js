@@ -710,7 +710,7 @@ export default function FinanceHome({ navigation }) {
                     <View style={S.rowBetween}>
                       <View style={S.walletTag}>
                         <Icon name="wallet-outline" size={rs(13)} color="#d4b06a" />
-                        <Text style={S.walletTagTxt}>Pre Wallet</Text>
+                        <Text style={S.walletTagTxt}>AEPS Wallet</Text>
                       </View>
                       <TouchableOpacity
                         style={S.swapBtn}
@@ -723,7 +723,7 @@ export default function FinanceHome({ navigation }) {
                     </View>
 
                     <View style={{ marginTop: rs(8) }}>
-                      <Text style={S.balLabel}>Pre Balance</Text>
+                      <Text style={S.balLabel}>AEPS Balance</Text>
                       <View style={{ flexDirection: "row", alignItems: "center" }}>
                         {!balanceLoading && <Text style={S.rupee}>₹</Text>}
                         {balanceLoading
@@ -1014,16 +1014,16 @@ export default function FinanceHome({ navigation }) {
 
       </View>
 
-        <CustomAlert
-          visible={alert.visible}
-          type={alert.type}
-          title={alert.title}
-          message={alert.message}
-          onClose={() => setAlert(p => ({ ...p, visible: false }))}
-          onConfirm={alert.onConfirm}
-          />
-      </SafeAreaView>
-    );
+      <CustomAlert
+        visible={alert.visible}
+        type={alert.type}
+        title={alert.title}
+        message={alert.message}
+        onClose={() => setAlert(p => ({ ...p, visible: false }))}
+        onConfirm={alert.onConfirm}
+      />
+    </SafeAreaView>
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

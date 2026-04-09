@@ -25,10 +25,10 @@ import HeaderBar from "../componets/HeaderBar/HeaderBar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getAllTopupBanks, addOfflineTopupRequest, getAllOfflineTopupRequests } from "../api/AuthApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import CustomAlert from "../componets/Alerts/CustomAlert";
 import ImageUploadAlert from "../componets/Alerts/Imageuploadalert";
 import ReceiptModal from "../componets/ReceiptModal/ReceiptModal";
+import CalendarModal from "../componets/Calendar/CalendarModal";
 
 // ─── Responsive scale ─────────────────────────────────────────────────────
 const { width: W } = Dimensions.get("window");
@@ -180,7 +180,7 @@ export default function OfflineTopup({ navigation }) {
     setAlertType(type); setAlertTitle(title); setAlertMessage(message); setAlertVisible(true);
   };
 
-  const onDateChange = (event, selectedDate) => {
+  const onDateConfirm = (selectedDate) => {
     setShowDatePicker(false);
     if (selectedDate) {
       setDate(selectedDate);
@@ -222,6 +222,13 @@ export default function OfflineTopup({ navigation }) {
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
+    setAmount("");
+    setMode("upi");
+    setReceiverBank("");
+    setUtrNumber("");
+    setPaymentDate("");
+    setPaymentProof("");
+    setErrors({});
     await Promise.all([fetchBanks(), fetchRequests()]);
     setRefreshing(false);
   }, []);
@@ -442,9 +449,14 @@ export default function OfflineTopup({ navigation }) {
             </TouchableOpacity>
             {!!errors.paymentDate && <Text style={st.errorTxt}>{errors.paymentDate}</Text>}
           </View>
-          {showDatePicker && (
-            <DateTimePicker value={date} mode="date" display="default" maximumDate={new Date()} onChange={onDateChange} />
-          )}
+          <CalendarModal
+            visible={showDatePicker}
+            title="Select Payment Date"
+            initialDate={date}
+            maxDate={new Date()}
+            onCancel={() => setShowDatePicker(false)}
+            onConfirm={onDateConfirm}
+          />
 
           {/* ── Payment Proof ── */}
           <View style={st.fieldWrap}>
@@ -478,10 +490,16 @@ export default function OfflineTopup({ navigation }) {
             {!!paymentProof && (
               <View style={st.previewBox}>
                 <Image source={{ uri: paymentProof }} style={st.previewImg} />
-                <TouchableOpacity style={st.changeChip} onPress={() => setUploadVisible(true)}>
-                  <Icon name="pencil" size={S(11)} color="#fff" />
-                  <Text style={st.changeChipTxt}>Change</Text>
-                </TouchableOpacity>
+                <View style={st.chipRow}>
+                  <TouchableOpacity style={st.actionChip} onPress={() => setUploadVisible(true)}>
+                    <Icon name="pencil" size={S(11)} color="#fff" />
+                    <Text style={st.actionChipTxt}>Change</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[st.actionChip, st.removeChipBg]} onPress={() => setPaymentProof("")}>
+                    <Icon name="delete" size={S(11)} color="#fff" />
+                    <Text style={st.actionChipTxt}>Remove</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
           </View>
@@ -768,9 +786,13 @@ const st = StyleSheet.create({
     borderColor: "rgba(0,0,0,0.07)",
   },
   previewImg: { width: "100%", height: S(170), resizeMode: "cover" },
-  changeChip: {
+  chipRow: {
     position: "absolute",
     top: S(10), right: S(10),
+    flexDirection: "row",
+    gap: S(8),
+  },
+  actionChip: {
     flexDirection: "row",
     alignItems: "center",
     gap: S(4),
@@ -779,7 +801,10 @@ const st = StyleSheet.create({
     paddingHorizontal: S(10),
     paddingVertical: S(5),
   },
-  changeChipTxt: { color: "#fff", fontSize: S(11), fontFamily: Fonts.Medium },
+  removeChipBg: {
+    backgroundColor: "rgba(220, 38, 38, 0.85)",
+  },
+  actionChipTxt: { color: "#fff", fontSize: S(11), fontFamily: Fonts.Medium },
 
   // ── Submit ────────────────────────────────────────────────────────────
   submitWrap: { marginTop: S(22) },

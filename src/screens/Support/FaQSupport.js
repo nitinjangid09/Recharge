@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   Platform,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Fonts from "../../constants/Fonts";
 import Colors from "../../constants/Colors";
@@ -20,6 +21,7 @@ import {
   fetchUserProfile,
   createSupportRequest,
   getMySupportRequests,
+  getFAQs,
 } from "../../api/AuthApi";
 import CustomAlert from "../../componets/Alerts/CustomAlert";
 
@@ -198,6 +200,27 @@ const TicketCard = ({ ticket }) => {
 };
 
 
+const FAQItem = ({ item }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <TouchableOpacity
+      style={faqStyles.item}
+      activeOpacity={0.8}
+      onPress={() => setOpen(!open)}
+    >
+      <View style={faqStyles.header}>
+        <Text style={faqStyles.question}>{item.question}</Text>
+        <Icon name={open ? "minus" : "plus"} size={18} color={Colors.red} />
+      </View>
+      {open && (
+        <View style={faqStyles.answer}>
+          <Text style={faqStyles.answerTxt}>{item.answer}</Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+};
+
 /* ─────────────────────────────────────────────
    MAIN SCREEN
 ─────────────────────────────────────────────*/
@@ -210,6 +233,9 @@ const FaqSupportScreen = () => {
   // Populated from fetchUserProfile → data.assignedServices
   const [assignedServices, setAssignedServices] = useState([]);
   const [tickets, setTickets] = useState([]);
+  const [faqs, setFaqs] = useState([]);
+
+  const [faqLoading, setFaqLoading] = useState(false);
 
   const [pickerOpen, setPickerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -231,12 +257,15 @@ const FaqSupportScreen = () => {
     try {
       const headerToken = await getToken();
 
-      const [ticketsResult, profileResult] = await Promise.allSettled([
+      const [ticketsResult, profileResult, faqResult] = await Promise.allSettled([
         headerToken
           ? getMySupportRequests({ headerToken, page: pageNum, limit: 5 })
           : Promise.resolve(null),
         headerToken
           ? fetchUserProfile({ headerToken })
+          : Promise.resolve(null),
+        headerToken
+          ? getFAQs({ headerToken })
           : Promise.resolve(null),
       ]);
 
@@ -252,25 +281,15 @@ const FaqSupportScreen = () => {
         setTotalPages(ticketsResult.value.pagination?.totalPages || 1);
       }
 
-      /*
-       * Profile → assignedServices
-       *
-       * API: {{base_url}}/fetch-user-profile
-       * Response shape:
-       * {
-       *   success: true,
-       *   data: {
-       *     assignedServices: [
-       *       { _id: "6993147e71936d89b7185e36", name: "bbps"     },
-       *       { _id: "699314b271936d89b7185e48", name: "recharge" }
-       *     ],
-       *     ...
-       *   }
-       * }
-       *
-       * Each item is normalised to { key: _id, label: "BBPS", raw: originalItem }
-       * and fed into the ServicePicker modal list.
-       */
+      /* FAQs */
+      if (
+        faqResult.status === "fulfilled" &&
+        faqResult.value?.success
+      ) {
+        setFaqs(Array.isArray(faqResult.value.data) ? faqResult.value.data : []);
+      }
+
+      /* Profile → assignedServices */
       if (
         profileResult.status === "fulfilled" &&
         profileResult.value?.success &&
@@ -348,6 +367,16 @@ const FaqSupportScreen = () => {
             Raise a ticket and we'll get back to you shortly.
           </Text>
         </View>
+
+        {/* FAQ Section */}
+        {faqs.length > 0 && (
+          <View style={faqStyles.container}>
+            <Text style={faqStyles.title}>Frequent Questions</Text>
+            {faqs.map((faq, idx) => (
+              <FAQItem key={faq._id || idx} item={faq} />
+            ))}
+          </View>
+        )}
 
 
         {/* Form */}
@@ -642,6 +671,32 @@ const pickerStyles = StyleSheet.create({
     alignItems: "center",
   },
   closeTxt: { color: Colors.hex_374151, fontFamily: Fonts.Bold, fontSize: 14 },
+});
+
+const faqStyles = StyleSheet.create({
+  container: { paddingHorizontal: 20, marginTop: 10, marginBottom: 10 },
+  title: { fontSize: 18, fontFamily: Fonts.Bold, color: Colors.hex_111827, marginBottom: 14 },
+  item: {
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: Colors.hex_F3F4F6,
+    elevation: 2,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  question: { fontSize: 14, fontFamily: Fonts.SemiBold, color: Colors.hex_111827, flex: 1, paddingRight: 10 },
+  answer: { marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.hex_F3F4F6 },
+  answerTxt: { fontSize: 13, color: Colors.hex_6B7280, fontFamily: Fonts.Medium, lineHeight: 20 },
 });
 
 const historyStyles = StyleSheet.create({

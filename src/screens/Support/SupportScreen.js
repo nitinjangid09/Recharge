@@ -217,7 +217,18 @@ const SupportScreen = () => {
 
           <View style={st.quickGrid}>
             {QUICK_CARDS.map((q, i) => (
-              <TouchableOpacity key={i} style={[st.quickCard, { borderTopColor: q.accent }]} activeOpacity={0.75}>
+              <TouchableOpacity
+                key={i}
+                style={[st.quickCard, { borderTopColor: q.accent }]}
+                activeOpacity={0.75}
+                onPress={() => {
+                  if (q.title === "FAQs" || q.title === "Raise Ticket") {
+                    navigation.navigate("FaqSupportScreen");
+                  } else {
+                    showAlert("info", q.title, "This feature will be available shortly.");
+                  }
+                }}
+              >
                 <View style={[st.quickIconBox, { backgroundColor: q.accent + "18" }]}>
                   <Icon name={q.icon} size={S(19)} color={q.accent} />
                 </View>

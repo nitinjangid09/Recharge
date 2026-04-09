@@ -14,7 +14,7 @@ import {
     Clipboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import CalendarModal from '../../componets/Calendar/CalendarModal';
 import ImagePicker from 'react-native-image-crop-picker';
 import { redeemCoupon, getAllTopupBanks, BASE_URL, addIdChargeRequest } from '../../api/AuthApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -268,7 +268,7 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
         });
     };
 
-    const onDateChange = (event, selectedDate) => {
+    const onDateConfirm = (selectedDate) => {
         setShowDatePicker(false);
         if (selectedDate) setDate(selectedDate);
     };
@@ -466,15 +466,14 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
                                 <Text style={styles.hubFieldIcon}>📅</Text>
                             </TouchableOpacity>
 
-                            {showDatePicker && (
-                                <DateTimePicker
-                                    value={date}
-                                    mode="date"
-                                    display="default"
-                                    maximumDate={new Date()}
-                                    onChange={onDateChange}
-                                />
-                            )}
+                            <CalendarModal
+                                visible={showDatePicker}
+                                title="Select Transfer Date"
+                                initialDate={date}
+                                maxDate={new Date()}
+                                onCancel={() => setShowDatePicker(false)}
+                                onConfirm={onDateConfirm}
+                            />
                         </View>
                     </View>
 

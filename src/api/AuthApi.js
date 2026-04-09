@@ -1465,3 +1465,20 @@ export const addIdChargeRequest = async ({ amount, mode, receiverBank, utrNumber
     return error?.response?.data || { success: false, message: "Request submission failed" };
   }
 };
+
+/**
+ * getFAQs
+ * Fetches frequently asked questions.
+ */
+export const getFAQs = async ({ headerToken }) => {
+  try {
+    const url = `${BASE_URL}/user/faq/get-all-faqs`;
+    const response = await axios.get(url, {
+      headers: { Authorization: `Bearer ${headerToken}`, "Content-Type": "application/json" }
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get FAQs Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch FAQs" };
+  }
+};

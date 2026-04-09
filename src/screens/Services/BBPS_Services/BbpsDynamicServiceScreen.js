@@ -18,6 +18,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Colors from "../../../constants/Colors";
 import Fonts from "../../../constants/Fonts";
@@ -142,15 +143,20 @@ const CalendarPicker = ({ visible, onClose, onSelect, initialDate }) => {
         <View style={calStyles.card}>
           <View style={calStyles.header}>
             <TouchableOpacity onPress={prevMonth} style={calStyles.navBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <Text style={calStyles.navTxt}>‹</Text>
+              <Icon name="chevron-left" size={26} color={Colors.white} />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setYearMode(v => !v)} style={calStyles.monthYearBtn}>
               <Text style={calStyles.monthYearTxt}>{MONTHS[viewMonth]} {viewYear}</Text>
               <Text style={calStyles.dropArrow}>{yearMode ? " ▲" : " ▼"}</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={nextMonth} style={calStyles.navBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <Text style={calStyles.navTxt}>›</Text>
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <TouchableOpacity onPress={nextMonth} style={calStyles.navBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Icon name="chevron-right" size={26} color={Colors.white} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={onClose} style={[calStyles.navBtn, { marginLeft: 10 }]} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Icon name="close" size={24} color={Colors.white} />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {yearMode ? (
@@ -299,8 +305,13 @@ const Dropdown = ({
               },
             ]}
           >
-            <View style={ddStyles.handle} />
-            <Text style={ddStyles.sheetTitle}>{label || "Select Option"}</Text>
+            <View style={ddStyles.sheetHeader}>
+              <View style={{ width: 40 }} />
+              <Text style={ddStyles.sheetTitle}>{label || "Select Option"}</Text>
+              <TouchableOpacity onPress={closeDrop} style={ddStyles.closeBtn}>
+                <Icon name="close" size={22} color={Colors.primary} />
+              </TouchableOpacity>
+            </View>
             {searchable && (
               <View style={ddStyles.searchWrap}>
                 <Text style={ddStyles.searchIcon}>🔍</Text>
@@ -998,15 +1009,28 @@ const ddStyles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 8,
   },
+  sheetHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.slate_50,
+  },
   sheetTitle: {
     fontSize: 14,
     fontWeight: "800",
     color: Colors.primary,
     textAlign: "center",
     letterSpacing: 1,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.slate_50,
+    flex: 1,
+  },
+  closeBtn: {
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
   },
   searchWrap: {
     flexDirection: "row", alignItems: "center",

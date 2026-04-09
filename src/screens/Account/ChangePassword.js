@@ -36,7 +36,7 @@ function calcStrength(v) {
 /* ─────────────────────────────────────────────
    FLOATING-LABEL INPUT  (mirrors .f-field)
 ───────────────────────────────────────────── */
-const FloatInput = ({ id, label, value, onChangeText, secureTextEntry, onToggleSecure, showSecure, error }) => {
+const FloatInput = ({ id, label, value, onChangeText, secureTextEntry, onToggleSecure, showSecure, error, success }) => {
   const labelAnim = useRef(new Animated.Value(value ? 1 : 0)).current;
   const borderAnim = useRef(new Animated.Value(0)).current;
   const [focused, setFocused] = useState(false);
@@ -53,7 +53,14 @@ const FloatInput = ({ id, label, value, onChangeText, secureTextEntry, onToggleS
   const labelTop = labelAnim.interpolate({ inputRange: [0, 1], outputRange: [18, 9] });
   const labelSize = labelAnim.interpolate({ inputRange: [0, 1], outputRange: [14, 10.5] });
   const labelColor = labelAnim.interpolate({ inputRange: [0, 1], outputRange: [Colors.ink3, Colors.amber] });
-  const borderColor = borderAnim.interpolate({ inputRange: [0, 1], outputRange: [error ? Colors.red : Colors.ink5, Colors.amber] });
+  
+  // Custom border color handling for Error vs Success
+  let finalBorderColor = error ? Colors.red : (success ? Colors.green : Colors.ink5);
+  const borderColor = borderAnim.interpolate({ 
+    inputRange: [0, 1], 
+    outputRange: [finalBorderColor, success ? Colors.green : Colors.amber] 
+  });
+
   const shadowOpacity = borderAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
 
   return (
@@ -63,11 +70,11 @@ const FloatInput = ({ id, label, value, onChangeText, secureTextEntry, onToggleS
           styles.fField,
           {
             borderColor,
-            shadowOpacity,
-            shadowColor: error ? Colors.red : Colors.amber,
+            shadowOpacity: (error || success || focused) ? 1 : 0,
+            shadowColor: error ? Colors.red : (success ? Colors.green : Colors.amber),
             shadowOffset: { width: 0, height: 0 },
             shadowRadius: 6,
-            elevation: focused ? 2 : 0,
+            elevation: (focused || error || success) ? 2 : 0,
           },
         ]}
       >
@@ -81,7 +88,6 @@ const FloatInput = ({ id, label, value, onChangeText, secureTextEntry, onToggleS
         >
           {label}
         </Animated.Text>
-
         {/* Text input */}
         <TextInput
           style={styles.fInput}
@@ -94,18 +100,23 @@ const FloatInput = ({ id, label, value, onChangeText, secureTextEntry, onToggleS
           placeholderTextColor="transparent"
           autoCapitalize="none"
           autoCorrect={false}
+          maxLength={10}
         />
-
         {/* Eye toggle */}
         <TouchableOpacity
           style={styles.fIcon}
           onPress={onToggleSecure}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Icon name={showSecure ? "eye-outline" : "eye-off-outline"} size={14} color={focused ? Colors.amber : Colors.ink4} />
+          {success && !error ? (
+              <Icon name="check-circle" size={16} color={Colors.green} />
+          ) : (
+              <Icon name={showSecure ? "eye-outline" : "eye-off-outline"} size={14} color={focused ? Colors.amber : Colors.ink4} />
+          )}
         </TouchableOpacity>
       </Animated.View>
       {error ? <Text style={styles.fError}>{error}</Text> : null}
+      {success && !error ? <Text style={styles.fSuccess}>{success}</Text> : null}
     </View>
   );
 };
@@ -170,15 +181,13 @@ const ChangePasswordScreen = ({ navigation }) => {
     const newErrors = {};
     if (!oldPassword) newErrors.old = "Current password is required";
     if (!newPassword) newErrors.new = "New password is required";
+    else if (newPassword.length < 8) newErrors.new = "Password must be at least 8 characters";
+    
     if (!confirmPassword) newErrors.confirm = "Confirm password is required";
+    else if (newPassword !== confirmPassword) newErrors.confirm = "Passwords do not match";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setErrors({ confirm: "Passwords do not match" });
       return;
     }
 
@@ -248,11 +257,19 @@ const ChangePasswordScreen = ({ navigation }) => {
             <FloatInput
               label="Confirm New Password"
               value={confirmPassword}
-              onChangeText={(t) => { setConfirmPassword(t); setErrors(p => ({ ...p, confirm: null })); }}
+              onChangeText={(t) => {
+                setConfirmPassword(t);
+                if (newPassword && t && t !== newPassword) {
+                  setErrors(p => ({ ...p, confirm: "Passwords do not match" }));
+                } else {
+                  setErrors(p => ({ ...p, confirm: null }));
+                }
+              }}
               secureTextEntry={!showConfirm}
               showSecure={showConfirm}
               onToggleSecure={() => setShowConfirm((v) => !v)}
               error={errors.confirm}
+              success={newPassword && confirmPassword && newPassword === confirmPassword ? "Passwords Match" : null}
             />
 
             {/* Tip box */}
@@ -374,6 +391,13 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Medium,
     fontSize: 10,
     color: Colors.red,
+    marginTop: 4,
+    marginLeft: 14,
+  },
+  fSuccess: {
+    fontFamily: Fonts.Medium,
+    fontSize: 10,
+    color: Colors.green,
     marginTop: 4,
     marginLeft: 14,
   },

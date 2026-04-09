@@ -22,6 +22,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { getMyCommissionPlan, fetchBbpsCategories } from '../api/AuthApi';
 import Colors from '../constants/Colors';
 import HeaderBar from '../componets/HeaderBar/HeaderBar';
+import FullScreenLoader from '../componets/Loader/FullScreenLoader';
 import Fonts from '../constants/Fonts';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -134,7 +135,7 @@ export default function CommissionPlanScreen({ navigation }) {
 
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
-        load();
+        fetchPlan();
     }, []);
 
     const handleFilterPress = async () => {
@@ -198,11 +199,9 @@ export default function CommissionPlanScreen({ navigation }) {
                 onBack={() => navigation?.goBack?.()}
             />
 
-            {loading ? (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <ActivityIndicator size="large" color={Colors.finance_accent} />
-                </View>
-            ) : error ? (
+            <FullScreenLoader visible={loading} />
+
+            {loading ? null : error ? (
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
                     <Text style={{ color: Colors.finance_error, textAlign: 'center' }}>{error}</Text>
                     <TouchableOpacity onPress={fetchPlan} style={{ marginTop: 12, paddingHorizontal: 20, paddingVertical: 10, backgroundColor: Colors.primary, borderRadius: 8 }}>

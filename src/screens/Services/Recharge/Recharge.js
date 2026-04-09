@@ -152,7 +152,7 @@ function BottomSheetModal({
                   activeOpacity={0.75}
                 >
                   <View style={[styles.sheetListIconBox, isSel && styles.sheetListIconBoxSel]}>
-                    <Icon name={iconName} size={20} color={isSel ? Colors.finance_accent : Colors.gray_66} />
+                    <Icon name={iconName} size={20} color={isSel ? Colors.white : Colors.finance_accent} />
                   </View>
                   <Text style={[styles.sheetListTxt, isSel && styles.sheetListTxtSel]}>{label}</Text>
                   {isSel && (
@@ -668,45 +668,47 @@ export default function TopUpScreen({ navigation, route }) {
         </KeyboardAvoidingView>
 
         {/* SWIPE TO RECHARGE */}
-        <View style={styles.actionContainer}>
-          {!completed ? (
-            <View
-              style={styles.sliderWrapper}
-              onLayout={(e) => { trackWidthRef.current = e.nativeEvent.layout.width; }}
-            >
-              <Animated.View
-                style={[
-                  styles.sliderBackground,
-                  {
-                    opacity: pan.interpolate({
-                      inputRange: [0, 100], outputRange: [1, 0.5], extrapolate: "clamp",
-                    }),
-                  },
-                ]}
+        {!showOperatorModal && !showCircleModal && (
+          <View style={styles.actionContainer}>
+            {!completed ? (
+              <View
+                style={styles.sliderWrapper}
+                onLayout={(e) => { trackWidthRef.current = e.nativeEvent.layout.width; }}
               >
-                <Text style={styles.swipeText}>SWIPE TO RECHARGE</Text>
-              </Animated.View>
-              <Animated.View
-                style={[styles.sliderThumb, { transform: [{ translateX: pan }] }]}
-                {...panResponder.panHandlers}
+                <Animated.View
+                  style={[
+                    styles.sliderBackground,
+                    {
+                      opacity: pan.interpolate({
+                        inputRange: [0, 100], outputRange: [1, 0.5], extrapolate: "clamp",
+                      }),
+                    },
+                  ]}
+                >
+                  <Text style={styles.swipeText}>SWIPE TO RECHARGE</Text>
+                </Animated.View>
+                <Animated.View
+                  style={[styles.sliderThumb, { transform: [{ translateX: pan }] }]}
+                  {...panResponder.panHandlers}
+                >
+                  <LinearGradient colors={[Colors.finance_accent || "#d4b06a", Colors.hex_B8944D || "#B8944D"]} style={styles.thumbGrad}>
+                    <Icon name="chevron-right" size={28} color={Colors.white} />
+                  </LinearGradient>
+                </Animated.View>
+              </View>
+            ) : (
+              <LinearGradient
+                colors={[Colors.finance_accent || "#d4b06a", Colors.hex_B8944D || "#B8944D"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.processingBtn}
               >
-                <LinearGradient colors={[Colors.finance_accent || "#d4b06a", Colors.hex_B8944D || "#B8944D"]} style={styles.thumbGrad}>
-                  <Icon name="chevron-right" size={28} color={Colors.white} />
-                </LinearGradient>
-              </Animated.View>
-            </View>
-          ) : (
-            <LinearGradient
-              colors={[Colors.finance_accent || "#d4b06a", Colors.hex_B8944D || "#B8944D"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.processingBtn}
-            >
-              <ActivityIndicator size="small" color={Colors.white} style={{ marginRight: 10 }} />
-              <Text style={styles.processingText}>PROCESSING...</Text>
-            </LinearGradient>
-          )}
-        </View>
+                <ActivityIndicator size="small" color={Colors.white} style={{ marginRight: 10 }} />
+                <Text style={styles.processingText}>PROCESSING...</Text>
+              </LinearGradient>
+            )}
+          </View>
+        )}
 
       </View>
 
@@ -855,22 +857,45 @@ const styles = StyleSheet.create({
   processingBtn: { height: 60, borderRadius: 30, flexDirection: "row", alignItems: "center", justifyContent: "center" },
   processingText: { color: Colors.white, fontFamily: Fonts.Bold, fontSize: 14, letterSpacing: 1 },
 
-  sheetBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.48)" },
-  bottomSheet: { position: "absolute", bottom: 0, left: 0, right: 0, backgroundColor: Colors.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: "75%", borderTopWidth: 1, borderLeftWidth: 1, borderRightWidth: 1, borderColor: Colors.blackOpacity_08, overflow: "hidden" },
-  sheetHeader: { paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: Colors.ink5, paddingTop: 4 },
-  handleBar: { width: 40, height: 4, borderRadius: 2, backgroundColor: Colors.ink5, alignSelf: "center", marginTop: 10, marginBottom: 10 },
-  sheetTitleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 },
-  sheetTitle: { fontSize: 15, fontFamily: Fonts.Bold, color: Colors.slate_900 },
-  closeBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: Colors.ink5, alignItems: "center", justifyContent: "center" },
-  sheetSearchRow: { flexDirection: "row", alignItems: "center", backgroundColor: Colors.ink5, borderRadius: 10, paddingHorizontal: 10, marginBottom: 4, height: 40 },
-  sheetSearchInput: { flex: 1, fontSize: 13, fontFamily: Fonts.Medium, color: Colors.gray_21, padding: 0 },
-  sheetListItem: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: Colors.ink5 },
-  sheetListItemSel: { backgroundColor: Colors.finance_accent + "15" },
-  sheetListIconBox: { width: 32, height: 32, borderRadius: 10, backgroundColor: Colors.ink5, alignItems: "center", justifyContent: "center", marginRight: 10 },
-  sheetListIconBoxSel: { backgroundColor: Colors.finance_accent + "25" },
-  sheetListTxt: { flex: 1, fontSize: 13, fontFamily: Fonts.Medium, color: Colors.gray_21 },
+  sheetBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.6)" },
+  bottomSheet: {
+    position: "absolute", bottom: 0, left: 0, right: 0,
+    backgroundColor: Colors.white,
+    borderTopLeftRadius: 28, borderTopRightRadius: 28,
+    maxHeight: "80%",
+    elevation: 25, shadowColor: Colors.black, shadowOpacity: 0.2, shadowRadius: 15,
+  },
+  sheetHeader: {
+    paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: Colors.blackOpacity_05,
+    paddingTop: 6, paddingBottom: 12,
+  },
+  handleBar: { width: 44, height: 4, borderRadius: 2, backgroundColor: Colors.blackOpacity_12, alignSelf: "center", marginTop: 8, marginBottom: 12 },
+  sheetTitleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14, paddingHorizontal: 4 },
+  sheetTitle: { fontSize: 17, fontFamily: Fonts.Bold, color: Colors.slate_900, letterSpacing: 0.3 },
+  closeBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.blackOpacity_05, alignItems: "center", justifyContent: "center" },
+  sheetSearchRow: {
+    flexDirection: "row", alignItems: "center",
+    backgroundColor: Colors.slate_50,
+    borderRadius: 14, paddingHorizontal: 12,
+    marginBottom: 4, height: 46,
+    borderWidth: 1, borderColor: Colors.blackOpacity_05,
+  },
+  sheetSearchInput: { flex: 1, fontSize: 14, fontFamily: Fonts.Medium, color: Colors.slate_900, padding: 0 },
+  sheetListItem: {
+    flexDirection: "row", alignItems: "center",
+    paddingHorizontal: 18, paddingVertical: 14,
+    borderBottomWidth: 1, borderBottomColor: Colors.blackOpacity_03,
+  },
+  sheetListItemSel: { backgroundColor: Colors.finance_accent + "10" },
+  sheetListIconBox: {
+    width: 36, height: 36, borderRadius: 10,
+    backgroundColor: Colors.blackOpacity_05,
+    alignItems: "center", justifyContent: "center", marginRight: 14,
+  },
+  sheetListIconBoxSel: { backgroundColor: Colors.finance_accent + "20" },
+  sheetListTxt: { flex: 1, fontSize: 14, fontFamily: Fonts.Medium, color: Colors.slate_700 },
   sheetListTxtSel: { color: Colors.finance_accent, fontFamily: Fonts.Bold },
-  checkCircle: { width: 20, height: 20, borderRadius: 10, backgroundColor: Colors.finance_accent, alignItems: "center", justifyContent: "center" },
+  checkCircle: { width: 22, height: 22, borderRadius: 11, backgroundColor: Colors.finance_accent, alignItems: "center", justifyContent: "center" },
   emptyWrap: { alignItems: "center", paddingVertical: 30 },
   emptyTxt: { color: Colors.text_placeholder, fontSize: 13, fontFamily: Fonts.Medium },
 

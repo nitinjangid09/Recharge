@@ -12,7 +12,7 @@ import { submitOfflineKyc, fetchStateList, fetchCityList, fetchGlobalBankList, f
 import Fonts from "../../constants/Fonts";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "../../constants/Colors";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import CalendarModal from "../../componets/Calendar/CalendarModal";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 import CustomAlert from "../../componets/Alerts/CustomAlert";
 import RNFS from "react-native-fs";
@@ -743,23 +743,24 @@ export default function Offlinekyc({ navigation, route }) {
                         <Field label="Date of Birth" value={personal.dob} onChange={() => { }} error={errors.dob} placeholder="DD-MM-YYYY" hint="Min age: 18 years" locked={lockedPersonal.dob} />
                       </View>
                     </TouchableOpacity>
-                    {showDatePicker && (
-                      <DateTimePicker
-                        value={personal.dob && RX.dob.test(personal.dob)
-                          ? (() => { const [d, m, y] = personal.dob.split("-"); return new Date(y, m - 1, d); })()
-                          : new Date()}
-                        mode="date" display="default" maximumDate={new Date()}
-                        onChange={(event, sel) => {
-                          setShowDatePicker(Platform.OS === "ios");
-                          if (sel) {
-                            const d = String(sel.getDate()).padStart(2, "0");
-                            const m = String(sel.getMonth() + 1).padStart(2, "0");
-                            const y = sel.getFullYear();
-                            setPersonal(p => ({ ...p, dob: `${d}-${m}-${y}` }));
-                          }
-                        }}
-                      />
-                    )}
+                    <CalendarModal
+                      visible={showDatePicker}
+                      title="Select Date of Birth"
+                      initialDate={personal.dob && RX.dob.test(personal.dob)
+                        ? (() => { const [d, m, y] = personal.dob.split("-"); return new Date(y, m - 1, d); })()
+                        : new Date()}
+                      maxDate={new Date()}
+                      onCancel={() => setShowDatePicker(false)}
+                      onConfirm={(sel) => {
+                        setShowDatePicker(false);
+                        if (sel) {
+                          const d = String(sel.getDate()).padStart(2, "0");
+                          const m = String(sel.getMonth() + 1).padStart(2, "0");
+                          const y = sel.getFullYear();
+                          setPersonal(p => ({ ...p, dob: `${d}-${m}-${y}` }));
+                        }
+                      }}
+                    />
                   </View>
                   <View>
                     <TouchableOpacity onPress={() => { if (!lockedPersonal.personalState) handleOpenState("personal"); }} activeOpacity={lockedPersonal.personalState ? 1 : 0.8}>

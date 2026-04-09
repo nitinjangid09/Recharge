@@ -29,6 +29,7 @@ const FloatPinInput = ({
   onToggleSecure,
   showSecure,
   error,
+  success,
 }) => {
   const labelAnim = useRef(new Animated.Value(value ? 1 : 0)).current;
   const borderAnim = useRef(new Animated.Value(0)).current;
@@ -45,7 +46,12 @@ const FloatPinInput = ({
   const labelTop = labelAnim.interpolate({ inputRange: [0, 1], outputRange: [18, 9] });
   const labelSize = labelAnim.interpolate({ inputRange: [0, 1], outputRange: [14, 10.5] });
   const labelColor = labelAnim.interpolate({ inputRange: [0, 1], outputRange: [Colors.ink3, Colors.amber] });
-  const borderColor = borderAnim.interpolate({ inputRange: [0, 1], outputRange: [Colors.ink5, Colors.amber] });
+  
+  let finalBorderColor = error ? Colors.red || "#C13B3B" : (success ? Colors.green : Colors.ink5);
+  const borderColor = borderAnim.interpolate({ 
+    inputRange: [0, 1], 
+    outputRange: [finalBorderColor, success ? Colors.green : Colors.amber] 
+  });
 
   return (
     <View style={styles.fFieldContainer}>
@@ -53,12 +59,12 @@ const FloatPinInput = ({
         style={[
           styles.fField,
           {
-            borderColor: error ? Colors.red || "#C13B3B" : borderColor,
-            shadowColor: error ? Colors.red || "#C13B3B" : Colors.amber,
+            borderColor,
+            shadowColor: error ? Colors.red || "#C13B3B" : (success ? Colors.green : Colors.amber),
             shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: focused ? 1 : 0,
+            shadowOpacity: (focused || error || success) ? 1 : 0,
             shadowRadius: 6,
-            elevation: focused ? 2 : 0,
+            elevation: (focused || error || success) ? 2 : 0,
           },
         ]}
       >
@@ -69,7 +75,6 @@ const FloatPinInput = ({
         >
           {label}
         </Animated.Text>
-
         {/* PIN input — number-pad, max 4 digits */}
         <TextInput
           style={styles.fInput}
@@ -84,21 +89,25 @@ const FloatPinInput = ({
           placeholderTextColor="transparent"
           autoCorrect={false}
         />
-
         {/* Eye toggle */}
         <TouchableOpacity
           style={styles.fIcon}
           onPress={onToggleSecure}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Icon
-            name={showSecure ? "eye-outline" : "eye-off-outline"}
-            size={14}
-            color={focused ? Colors.amber : Colors.ink4}
-          />
+          {success && !error ? (
+              <Icon name="check-circle" size={16} color={Colors.green} />
+          ) : (
+              <Icon
+                name={showSecure ? "eye-outline" : "eye-off-outline"}
+                size={14}
+                color={focused ? Colors.amber : Colors.ink4}
+              />
+          )}
         </TouchableOpacity>
       </Animated.View>
       {error ? <Text style={styles.fError}>{error}</Text> : null}
+      {success && !error ? <Text style={styles.fSuccess}>{success}</Text> : null}
     </View>
   );
 };
@@ -146,7 +155,7 @@ const ChangePinScreen = ({ navigation }) => {
     }
 
     if (!validatePin(oldPin)) {
-      setErrors({ old: "All digits must be numeric" });
+      setErrors({ old: "PIN must be numeric" });
       return;
     }
     if (!validatePin(newPin)) {
@@ -225,11 +234,19 @@ const ChangePinScreen = ({ navigation }) => {
             <FloatPinInput
               label="Confirm New PIN"
               value={confirmPin}
-              onChangeText={(t) => { setConfirmPin(t); setErrors(prev => ({ ...prev, confirm: null })); }}
+              onChangeText={(t) => {
+                setConfirmPin(t);
+                if (newPin && t && t !== newPin) {
+                  setErrors(prev => ({ ...prev, confirm: "PINs do not match" }));
+                } else {
+                  setErrors(prev => ({ ...prev, confirm: null }));
+                }
+              }}
               secureTextEntry={!showConfirm}
               showSecure={showConfirm}
               onToggleSecure={() => setShowConfirm((v) => !v)}
               error={errors.confirm}
+              success={newPin && confirmPin && newPin === confirmPin ? "PINs Match" : null}
             />
 
             {/* Tip box */}
@@ -351,6 +368,13 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Medium,
     fontSize: 10,
     color: Colors.red || "#C13B3B",
+    marginTop: 4,
+    marginLeft: 14,
+  },
+  fSuccess: {
+    fontFamily: Fonts.Medium,
+    fontSize: 10,
+    color: Colors.green,
     marginTop: 4,
     marginLeft: 14,
   },

@@ -254,7 +254,6 @@ export default function CreateUser({ navigation }) {
                         <View style={styles.logoContainer}>
                             <Text style={styles.logoText}>U</Text>
                         </View>
-                        <Text style={styles.appName}>Add New User</Text>
                     </View>
 
                     <Animated.View style={[styles.card, { transform: [{ translateX: shakeAnim }] }]}>
