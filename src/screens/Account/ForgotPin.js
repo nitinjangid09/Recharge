@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -106,33 +106,44 @@ const OtpInput = ({ code, setCode, maximumLength = 6 }) => {
   const boxArray = new Array(maximumLength).fill(0);
   const inputRef = useRef();
 
-  const handlePress = () => { inputRef.current?.focus(); };
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      inputRef.current?.focus();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
 
-  const boxDigit = (_, index) => {
-    const digit = code[index] || "";
-    const isCurrentDigit = index === code.length;
-    const isLastDigit = index === maximumLength - 1;
-    const isCodeFull = code.length === maximumLength;
-    const isFocused = isCurrentDigit || (isLastDigit && isCodeFull);
-
-    return (
-      <View
-        key={index}
-        style={[
-          styles.otpBox,
-          isFocused && styles.otpBoxFocused,
-          code[index] && styles.otpBoxFilled,
-        ]}
-      >
-        <Text style={styles.otpText}>{digit}</Text>
-      </View>
-    );
+  const handlePress = () => {
+    inputRef.current?.focus();
   };
 
   return (
     <View style={styles.otpContainer}>
-      <TouchableOpacity style={styles.otpGrid} activeOpacity={1} onPress={handlePress}>
-        {boxArray.map(boxDigit)}
+      <TouchableOpacity
+        style={styles.otpGrid}
+        activeOpacity={1}
+        onPress={handlePress}
+      >
+        {boxArray.map((_, index) => {
+          const digit = code[index] || "";
+          const isCurrentDigit = index === code.length;
+          const isLastDigit = index === maximumLength - 1;
+          const isCodeFull = code.length === maximumLength;
+          const isFocused = isCurrentDigit || (isLastDigit && isCodeFull);
+
+          return (
+            <View
+              key={index}
+              style={[
+                styles.otpBox,
+                isFocused && styles.otpBoxFocused,
+                code[index] && styles.otpBoxFilled,
+              ]}
+            >
+              <Text style={styles.otpText}>{digit}</Text>
+            </View>
+          );
+        })}
       </TouchableOpacity>
       <TextInput
         ref={inputRef}
@@ -141,7 +152,6 @@ const OtpInput = ({ code, setCode, maximumLength = 6 }) => {
         maxLength={maximumLength}
         keyboardType="number-pad"
         style={styles.hiddenInput}
-        autoFocus={true}
       />
     </View>
   );
@@ -606,8 +616,9 @@ const styles = StyleSheet.create({
   },
   hiddenInput: {
     position: "absolute",
-    width: 0,
-    height: 0,
+    width: 1,
+    height: 1,
     opacity: 0,
+    zIndex: -1,
   },
 });
