@@ -1000,7 +1000,7 @@ const S = StyleSheet.create({
 
 const FST = StyleSheet.create({
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: Colors.blackOpacity_52 },
-  sheet: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: Colors.cardBg, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: SH * 0.78, elevation: 24, shadowColor: Colors.black, shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.14, shadowRadius: 16 },
+  sheet: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: Colors.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: SH * 0.78, elevation: 24, shadowColor: Colors.black, shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.14, shadowRadius: 16 },
   handle: { width: 32, height: 4, backgroundColor: Colors.blackOpacity_12, borderRadius: 2, alignSelf: 'center', marginTop: 10, marginBottom: 2 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: Colors.border },
   title: { fontSize: 17, fontFamily: Fonts.Bold, color: Colors.text_primary },
