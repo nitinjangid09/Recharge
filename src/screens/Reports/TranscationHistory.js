@@ -8,7 +8,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import CalendarModal from '../../componets/Calendar/CalendarModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '../../constants/Colors';
 import Fonts from '../../constants/Fonts';
@@ -841,24 +841,26 @@ export default function InvoiceScreen({ navigation }) {
       )}
 
       {/* ── Date picker ────────────────────────────────────────────────────── */}
-      {pickerVisible && (
-        <DateTimePicker
-          value={pickerMode === 'from' ? (fromDate || new Date()) : (toDate || new Date())}
-          mode="date"
-          display="calendar"
-          maximumDate={new Date()}
-          onChange={(_, selected) => {
-            setPickerVisible(false);
-            if (!selected) return;
-            pickerMode === 'from' ? setFromDate(selected) : setToDate(selected);
-          }}
-        />
-      )}
+      <CalendarModal
+        visible={pickerVisible}
+        initialDate={pickerMode === 'from' ? (fromDate || new Date()) : (toDate || new Date())}
+        title={pickerMode === 'from' ? 'Select Start Date' : 'Select End Date'}
+        minDate={pickerMode === 'to' ? fromDate : null}
+        maxDate={pickerMode === 'from' ? toDate : new Date()}
+        onConfirm={(selected) => {
+          setPickerVisible(false);
+          if (pickerMode === 'from') setFromDate(selected);
+          else setToDate(selected);
+        }}
+        onCancel={() => setPickerVisible(false)}
+      />
 
       {/* ── Filter Modal ── */}
       <FilterSheet
         visible={filterVisible}
         activeFilters={{ date: dateFilter, status: statusFilter, userId: userIdFilter }}
+        startDate={fromDate}
+        endDate={toDate}
         userOptions={[
           { key: 'All', label: 'All Users', icon: 'account-group' },
           ...downlineUsers
