@@ -19,6 +19,24 @@ import ReceiptModal from '../../componets/ReceiptModal/ReceiptModal';
 
 const { height: SH, width: SW } = Dimensions.get('window');
 
+// ─── Responsive Scaling — matching WalletLedger ───────────────────────────────
+const sc = (x) => x;
+const vs = (x) => x;
+const rs = (x) => x;
+
+// ─── Design Tokens — matching WalletLedger ────────────────────────────────────
+const D = {
+  headerBg: Colors.slate_900,
+  cardBg: Colors.white,
+  surfaceMid: Colors.slate_50,
+  gold: Colors.finance_accent,
+  goldDim: Colors.amberOpacity_15,
+  textPri: Colors.text_primary,
+  textSec: Colors.text_secondary,
+  textMuted: Colors.text_placeholder,
+  border: Colors.border,
+};
+
 // ─── All logic unchanged ──────────────────────────────────────────────────────
 const fetchRechargeTransactions = async ({ from, to, headerToken }) => {
   const json = await getRechargeReport({ from, to, headerToken });
@@ -82,6 +100,11 @@ const parseDisplayDate = (str) => {
   const [dd, mm, yyyy] = str.split('/').map(Number);
   return new Date(yyyy, mm - 1, dd);
 };
+
+const formatDisplay = (d) => {
+  if (!d) return '';
+  return `${pad(d.getDate())} ${MONTHS_SHORT[d.getMonth()]} ${d.getFullYear()}`;
+};
 const dateRangeStart = (f) => {
   const n = new Date(); n.setHours(0, 0, 0, 0);
   if (f === 'Last 7 Days') { const d = new Date(n); d.setDate(d.getDate() - 6); return d; }
@@ -89,6 +112,32 @@ const dateRangeStart = (f) => {
   if (f === 'Last 3 Months') { const d = new Date(n); d.setMonth(d.getMonth() - 3); return d; }
   if (f === 'Last 6 Months') { const d = new Date(n); d.setMonth(d.getMonth() - 6); return d; }
   return null;
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  DATE FILTER BUTTON — matches WalletLedger
+// ══════════════════════════════════════════════════════════════════════════════
+const DateFilterBtn = ({ label, date, onPress }) => {
+  const sa = useRef(new Animated.Value(1)).current;
+  return (
+    <Animated.View style={{ flex: 1, transform: [{ scale: sa }] }}>
+      <TouchableOpacity style={FST.datePill} activeOpacity={0.9}
+        onPress={() => {
+          Animated.sequence([
+            Animated.timing(sa, { toValue: 0.95, duration: 100, useNativeDriver: true }),
+            Animated.timing(sa, { toValue: 1, duration: 100, useNativeDriver: true }),
+          ]).start();
+          onPress();
+        }}>
+        <Icon name="calendar-month" size={rs(18)} color={D.gold} style={{ marginRight: sc(8) }} />
+        <View style={{ flex: 1 }}>
+          <Text style={FST.datePillLabel}>{label}</Text>
+          <Text style={FST.datePillValue}>{formatDisplay(date)}</Text>
+        </View>
+        <Icon name="chevron-down" size={rs(13)} color={D.textMuted} />
+      </TouchableOpacity>
+    </Animated.View>
+  );
 };
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -389,58 +438,49 @@ const CHI = StyleSheet.create({
 // ══════════════════════════════════════════════════════════════════════════════
 //  SUMMARY STRIP
 // ══════════════════════════════════════════════════════════════════════════════
-const SummaryStrip = ({ summary }) => {
-  const items = [
-    { label: 'Total', value: summary.total, color: Colors.text_primary },
-    { label: 'Success', value: summary.success, color: Colors.green },
-    { label: 'Pending', value: summary.pending, color: Colors.amber },
-    { label: 'Failed', value: summary.failed, color: Colors.red },
-    {
-      label: 'Amount',
-      value: `₹${summary.amount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`,
-      color: Colors.finance_accent,
-    },
-  ];
-
+const SummaryStrip = ({ summary, fromDate, toDate }) => {
   return (
     <View style={ST.wrap}>
-      {items.map((item, i) => (
-        <React.Fragment key={item.label}>
-          <View style={ST.cell}>
-            <Text style={[ST.value, { color: item.color }]}>{item.value}</Text>
-            <Text style={ST.label}>{item.label}</Text>
-          </View>
-          {i < items.length - 1 && <View style={ST.div} />}
-        </React.Fragment>
-      ))}
+      <View style={ST.rangeRow}>
+        <Icon name="calendar-range" size={rs(14)} color={D.gold} style={{ marginRight: sc(7) }} />
+        <Text style={ST.rangeTxt}>{formatDisplay(fromDate)}  →  {formatDisplay(toDate)}</Text>
+      </View>
+      <View style={ST.statsRow}>
+        <View style={ST.statItem}>
+          <Text style={[ST.statVal, { color: D.gold }]}>{summary.total}</Text>
+          <Text style={ST.statLbl}>TOTAL</Text>
+        </View>
+        <View style={ST.div} />
+        <View style={ST.statItem}>
+          <Text style={[ST.statVal, { color: Colors.green }]}>{summary.success}</Text>
+          <Text style={ST.statLbl}>SUCCESS</Text>
+        </View>
+        <View style={ST.div} />
+        <View style={ST.statItem}>
+          <Text style={[ST.statVal, { color: D.textPri }]}>{summary.amount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</Text>
+          <Text style={ST.statLbl}>AMOUNT</Text>
+        </View>
+      </View>
     </View>
   );
 };
 
 const ST = StyleSheet.create({
-  wrap: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: Colors.white,
-    marginHorizontal: 16,
-    marginBottom: 10,
-    borderRadius: 12, paddingVertical: 10,
-    borderWidth: 1, borderColor: Colors.border,
-    elevation: 2,
-    shadowColor: Colors.shadow, shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05, shadowRadius: 4,
-  },
-  cell: { flex: 1, alignItems: 'center' },
-  value: { fontSize: 13, fontFamily: Fonts.Bold, includeFontPadding: false, marginBottom: 2 },
-  label: {
-    fontSize: 9, fontFamily: Fonts.Bold, color: Colors.textMuted,
-    letterSpacing: 0.4, textTransform: 'uppercase', includeFontPadding: false,
-  },
-  div: { width: 1, height: 20, backgroundColor: Colors.border },
+  wrap: { marginHorizontal: sc(14), marginBottom: vs(10), backgroundColor: D.cardBg, borderRadius: sc(16), overflow: 'hidden', elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4 },
+  rangeRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: sc(16), paddingVertical: vs(10), borderBottomWidth: 1, borderBottomColor: D.border },
+  rangeTxt: { fontSize: rs(13), fontFamily: Fonts.Bold, color: D.textPri },
+  statsRow: { flexDirection: 'row', paddingVertical: vs(12) },
+  statItem: { flex: 1, alignItems: 'center', gap: vs(2) },
+  statVal: { fontSize: rs(14), fontFamily: Fonts.Bold },
+  statLbl: { fontSize: rs(8), fontFamily: Fonts.Bold, color: D.textMuted, letterSpacing: 0.5, textTransform: 'uppercase' },
+  div: { width: 1, backgroundColor: D.border, height: '60%', alignSelf: 'center' },
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
 //  FILTER SHEET
 // ══════════════════════════════════════════════════════════════════════════════
+const DEFAULT_FILTERS = { date: 'Last 30 Days', userId: 'All', status: 'All' };
+
 const FILTER_SECTIONS = [
   {
     key: 'date', label: 'DATE RANGE', icon: 'calendar-month-outline', stateKey: 'date', defaultKey: 'Last 30 Days',
@@ -449,7 +489,7 @@ const FILTER_SECTIONS = [
       { key: 'Last 30 Days', label: 'Last 30 Days', icon: 'calendar-month' },
       { key: 'Last 3 Months', label: 'Last 3 Months', icon: 'calendar-range' },
       { key: 'Last 6 Months', label: 'Last 6 Months', icon: 'calendar-clock' },
-      { key: 'Custom', label: 'Custom Range', icon: 'calendar-edit' },
+      { key: 'custom', label: 'Custom Range', icon: 'calendar-edit' },
     ]
   },
   {
@@ -467,8 +507,8 @@ const FILTER_SECTIONS = [
   }
 ];
 
-const FilterSheet = ({ visible, onClose, onApply, activeFilters, onOpenPicker, userOptions }) => {
-  const sections = window ? FILTER_SECTIONS.map(s => s.key === 'user' ? { ...s, options: userOptions || [] } : s) : FILTER_SECTIONS;
+const FilterSheet = ({ visible, onClose, onApply, activeFilters, startDate, endDate, onOpenPicker, userOptions }) => {
+  const sections = FILTER_SECTIONS.map(s => s.key === 'user' ? { ...s, options: userOptions || [] } : s);
   const slideA = useRef(new Animated.Value(SH)).current;
   const backdropA = useRef(new Animated.Value(0)).current;
   const [activeSection, setActiveSection] = useState('date');
@@ -488,11 +528,13 @@ const FilterSheet = ({ visible, onClose, onApply, activeFilters, onOpenPicker, u
         Animated.timing(backdropA, { toValue: 0, duration: 200, useNativeDriver: true }),
       ]).start();
     }
-  }, [visible, activeFilters]);
+  }, [visible]);
 
-  const activeCount = (local.date !== 'Last 30 Days' ? 1 : 0) + (local.status !== 'All' ? 1 : 0) + (local.userId !== 'All' ? 1 : 0);
+  const activeCount = Object.keys(DEFAULT_FILTERS).reduce(
+    (sum, k) => sum + (local[k] !== DEFAULT_FILTERS[k] ? 1 : 0), 0
+  );
   const currentSection = sections.find(s => s.key === activeSection);
-  const isCustomDate = local.date === 'Custom';
+  const isCustomDate = local.date === 'custom';
 
   return (
     <Modal transparent visible={visible} animationType="none" onRequestClose={onClose}>
@@ -503,8 +545,8 @@ const FilterSheet = ({ visible, onClose, onApply, activeFilters, onOpenPicker, u
         <View style={FST.handle} />
         <View style={FST.header}>
           <Text style={FST.title}>Filters</Text>
-          <TouchableOpacity onPress={() => setLocal({ date: 'Last 30 Days', status: 'All', userId: 'All' })} style={FST.resetBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Icon name="refresh" size={12} color={Colors.finance_accent} style={{ marginRight: 4 }} />
+          <TouchableOpacity onPress={() => { setLocal(DEFAULT_FILTERS); setActiveSection('date'); }} style={FST.resetBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Icon name="refresh" size={rs(12)} color={D.gold} style={{ marginRight: sc(4) }} />
             <Text style={FST.resetTxt}>Reset all</Text>
           </TouchableOpacity>
         </View>
@@ -529,15 +571,9 @@ const FilterSheet = ({ visible, onClose, onApply, activeFilters, onOpenPicker, u
 
             {activeSection === 'date' && isCustomDate && (
               <View style={FST.customDateRow}>
-                <TouchableOpacity style={FST.datePill} activeOpacity={0.8} onPress={() => onOpenPicker('from')}>
-                  <Icon name="calendar" size={14} color={Colors.finance_accent} style={{ marginRight: 6 }} />
-                  <Text style={FST.datePillTxt}>From</Text>
-                </TouchableOpacity>
-                <View style={{ width: 8 }} />
-                <TouchableOpacity style={FST.datePill} activeOpacity={0.8} onPress={() => onOpenPicker('to')}>
-                  <Icon name="calendar" size={14} color={Colors.finance_accent} style={{ marginRight: 6 }} />
-                  <Text style={FST.datePillTxt}>To</Text>
-                </TouchableOpacity>
+                <DateFilterBtn label="From" date={startDate} onPress={() => onOpenPicker('from')} />
+                <View style={{ width: sc(8) }} />
+                <DateFilterBtn label="To" date={endDate} onPress={() => onOpenPicker('to')} />
               </View>
             )}
 
@@ -575,8 +611,8 @@ export default function InvoiceScreen({ navigation }) {
   const [activeTab, setActiveTab] = useState(TABS[0].value);
   const [statusFilter, setStatusFilter] = useState('All');
   const [dateFilter, setDateFilter] = useState('Last 30 Days');
-  const [fromDate, setFromDate] = useState(null);
-  const [toDate, setToDate] = useState(null);
+  const [fromDate, setFromDate] = useState(() => { const d = new Date(); d.setDate(d.getDate() - 30); return d; });
+  const [toDate, setToDate] = useState(new Date());
   const [pickerMode, setPickerMode] = useState('from');
   const [pickerVisible, setPickerVisible] = useState(false);
   const [filterVisible, setFilterVisible] = useState(false);
@@ -620,7 +656,7 @@ export default function InvoiceScreen({ navigation }) {
       if (!headerToken) throw new Error('Session expired. Please login again.');
 
       let fromStr = '', toStr = '';
-      if (dateFilter === 'Custom') {
+      if (dateFilter === 'custom') {
         if (fromDate) fromStr = toQueryDate(fromDate);
         if (toDate) toStr = toQueryDate(toDate);
       } else if (dateFilter !== 'All Time') {
@@ -662,7 +698,7 @@ export default function InvoiceScreen({ navigation }) {
       list = list.filter(t => t.status.trim().toLowerCase() === sfLower);
     }
 
-    if (dateFilter === 'Custom' && (fromDate || toDate)) {
+    if (dateFilter === 'custom' && (fromDate || toDate)) {
       list = list.filter(t => {
         const d = parseDisplayDate(t.date);
         if (!d) return true;
@@ -776,7 +812,7 @@ export default function InvoiceScreen({ navigation }) {
       <StatusChips value={statusFilter} onChange={setStatusFilter} />
 
       {/* ── Summary strip ──────────────────────────────────────────────────── */}
-      <SummaryStrip summary={summary} />
+      <SummaryStrip summary={summary} fromDate={fromDate} toDate={toDate} />
 
       {/* ── Body ───────────────────────────────────────────────────────────── */}
       {loadingTab ? (
@@ -851,6 +887,7 @@ export default function InvoiceScreen({ navigation }) {
           setPickerVisible(false);
           if (pickerMode === 'from') setFromDate(selected);
           else setToDate(selected);
+          setDateFilter('custom'); // Ensure it stays on custom when date is picked
         }}
         onCancel={() => setPickerVisible(false)}
       />
@@ -1001,37 +1038,48 @@ const S = StyleSheet.create({
 });
 
 const FST = StyleSheet.create({
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: Colors.blackOpacity_52 },
-  sheet: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: Colors.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: SH * 0.78, elevation: 24, shadowColor: Colors.black, shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.14, shadowRadius: 16 },
-  handle: { width: 32, height: 4, backgroundColor: Colors.blackOpacity_12, borderRadius: 2, alignSelf: 'center', marginTop: 10, marginBottom: 2 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  title: { fontSize: 17, fontFamily: Fonts.Bold, color: Colors.text_primary },
-  resetBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: Colors.finance_accentDim },
-  resetTxt: { fontSize: 12, fontFamily: Fonts.Bold, color: Colors.finance_accent },
-  body: { flexDirection: 'row', maxHeight: SH * 0.52 },
-  navCol: { width: 82, borderRightWidth: 1, borderRightColor: Colors.border, paddingTop: 10 },
-  navItem: { paddingVertical: 18, alignItems: 'center', paddingHorizontal: 6 },
-  navItemActive: { backgroundColor: Colors.cardBg },
-  navIconBox: { width: 34, height: 34, borderRadius: 10, backgroundColor: Colors.surfaceMid || '#F8FAFC', alignItems: 'center', justifyContent: 'center', marginBottom: 5 },
-  navTxt: { fontSize: 9, fontFamily: Fonts.Medium, color: Colors.textMuted, textAlign: 'center', letterSpacing: 0.3 },
-  navTxtActive: { color: Colors.finance_accent, fontFamily: Fonts.Bold },
-  navDot: { position: 'absolute', top: 12, right: 10, width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.finance_accent },
-  optCol: { flex: 1, paddingHorizontal: 14 },
-  optSectionLabel: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.textMuted, letterSpacing: 1.2, marginBottom: 10, textTransform: 'uppercase' },
-  optRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, gap: 10, borderRadius: 10, paddingHorizontal: 4 },
-  optRowActive: { backgroundColor: Colors.finance_accentDim, marginHorizontal: -4, paddingHorizontal: 8 },
-  optIconBox: { width: 32, height: 32, borderRadius: 9, backgroundColor: Colors.surfaceMid || '#F8FAFC', alignItems: 'center', justifyContent: 'center' },
-  optTxt: { flex: 1, fontSize: 13, fontFamily: Fonts.Medium, color: Colors.text_secondary },
-  optTxtActive: { color: Colors.finance_accent, fontFamily: Fonts.Bold },
-  radioOff: { width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: Colors.border },
-  radioOn: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: Colors.finance_accent, alignItems: 'center', justifyContent: 'center' },
-  radioInner: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.finance_accent },
-  customDateRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, paddingHorizontal: 4 },
-  datePill: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: Colors.finance_accent, backgroundColor: Colors.finance_accentDim },
-  datePillTxt: { color: Colors.finance_accent, fontSize: 13, fontFamily: Fonts.Medium },
-  footer: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: Platform.OS === 'ios' ? 34 : 16, borderTopWidth: 1, borderTopColor: Colors.border },
-  applyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.headerBg, borderRadius: 14, paddingVertical: 15 },
-  applyTxt: { color: Colors.white, fontSize: 14, fontFamily: Fonts.Bold },
-  badge: { marginLeft: 8, backgroundColor: Colors.finance_accent, minWidth: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
-  badgeTxt: { color: Colors.white, fontSize: 9, fontFamily: Fonts.Bold },
+  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: Colors.blackOpacity_55 },
+  sheet: {
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    backgroundColor: D.cardBg,
+    borderTopLeftRadius: sc(24), borderTopRightRadius: sc(24),
+    maxHeight: SH * 0.78, elevation: 24, shadowColor: Colors.black, shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.14, shadowRadius: 16,
+  },
+  handle: { width: sc(32), height: vs(4), backgroundColor: Colors.blackOpacity_12, borderRadius: 2, alignSelf: 'center', marginTop: vs(10), marginBottom: vs(2) },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: sc(20), paddingVertical: vs(14), borderBottomWidth: 1, borderBottomColor: D.border },
+  title: { fontSize: rs(17), fontFamily: Fonts.Bold, color: D.textPri },
+  resetBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: sc(12), paddingVertical: vs(6), borderRadius: sc(8), backgroundColor: D.goldDim },
+  resetTxt: { fontSize: rs(12), fontFamily: Fonts.Bold, color: D.gold },
+  body: { flexDirection: 'row', flex: 1, maxHeight: SH * 0.52 },
+  navCol: { width: sc(82), borderRightWidth: 1, borderRightColor: D.border, paddingTop: vs(10) },
+  navItem: { paddingVertical: vs(18), alignItems: 'center', paddingHorizontal: sc(6) },
+  navItemActive: { backgroundColor: D.cardBg },
+  navIconBox: { width: sc(34), height: sc(34), borderRadius: sc(10), backgroundColor: D.surfaceMid, alignItems: 'center', justifyContent: 'center', marginBottom: vs(5) },
+  navTxt: { fontSize: rs(9), fontFamily: Fonts.Medium, color: D.textMuted, textAlign: 'center', letterSpacing: 0.3 },
+  navTxtActive: { color: D.gold, fontFamily: Fonts.Bold },
+  navDot: { position: 'absolute', top: vs(12), right: sc(10), width: sc(6), height: sc(6), borderRadius: sc(3), backgroundColor: D.gold },
+  optCol: { flex: 1, paddingHorizontal: sc(14) },
+  optSectionLabel: { fontSize: rs(9), fontFamily: Fonts.Bold, color: D.textMuted, letterSpacing: 1.2, marginBottom: vs(10), textTransform: 'uppercase' },
+  optRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: vs(12), gap: sc(10), borderRadius: sc(10), paddingHorizontal: sc(4) },
+  optRowActive: { backgroundColor: D.goldDim, marginHorizontal: -sc(4), paddingHorizontal: sc(8) },
+  optIconBox: { width: sc(32), height: sc(32), borderRadius: sc(9), backgroundColor: D.surfaceMid, alignItems: 'center', justifyContent: 'center' },
+  optTxt: { flex: 1, fontSize: rs(13), fontFamily: Fonts.Medium, color: D.textSec },
+  optTxtActive: { color: D.gold, fontFamily: Fonts.Bold },
+  radioOff: { width: sc(18), height: sc(18), borderRadius: sc(9), borderWidth: 1.5, borderColor: D.border },
+  radioOn: { width: sc(18), height: sc(18), borderRadius: sc(9), borderWidth: 2, borderColor: D.gold, alignItems: 'center', justifyContent: 'center' },
+  radioInner: { width: sc(8), height: sc(8), borderRadius: sc(4), backgroundColor: D.gold },
+  customDateRow: { flexDirection: 'row', alignItems: 'center', marginBottom: vs(16), paddingHorizontal: sc(4) },
+  datePill: {
+    flex: 1, flexDirection: 'row', alignItems: 'center',
+    backgroundColor: D.surfaceMid, borderRadius: sc(10),
+    paddingVertical: vs(10), paddingHorizontal: sc(10),
+    borderWidth: 1.5, borderColor: D.gold,
+  },
+  datePillLabel: { color: D.textMuted, fontSize: rs(9), fontFamily: Fonts.Medium, marginBottom: vs(1) },
+  datePillValue: { color: D.textPri, fontSize: rs(12), fontFamily: Fonts.Bold },
+  footer: { paddingHorizontal: sc(20), paddingTop: vs(12), paddingBottom: Platform.OS === 'ios' ? vs(34) : vs(16), borderTopWidth: 1, borderTopColor: D.border },
+  applyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: D.headerBg, borderRadius: sc(14), paddingVertical: vs(15) },
+  applyTxt: { color: Colors.white, fontSize: rs(14), fontFamily: Fonts.Bold },
+  badge: { marginLeft: sc(8), backgroundColor: D.gold, minWidth: sc(20), height: sc(20), borderRadius: sc(10), alignItems: 'center', justifyContent: 'center', paddingHorizontal: sc(4) },
+  badgeTxt: { color: Colors.white, fontSize: rs(9), fontFamily: Fonts.Bold },
 });
