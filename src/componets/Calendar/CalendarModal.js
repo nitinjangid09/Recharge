@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Animated,
-  Modal, Dimensions, Platform
+  Modal, Dimensions, Platform, ScrollView
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Colors from '../../constants/Colors';
@@ -46,6 +46,7 @@ const CalendarModal = ({ visible, initialDate, title, onConfirm, onCancel, minDa
   const [viewYear, setViewYear] = useState(today.getFullYear());
   const [viewMonth, setViewMonth] = useState(today.getMonth());
   const [selDay, setSelDay] = useState(today.getDate());
+  const [viewMode, setViewMode] = useState('calendar'); // 'calendar' or 'year'
 
   const prevVisible = useRef(false);
   useEffect(() => {
@@ -54,6 +55,7 @@ const CalendarModal = ({ visible, initialDate, title, onConfirm, onCancel, minDa
       if (!isNaN(d)) {
         setViewYear(d.getFullYear()); setViewMonth(d.getMonth()); setSelDay(d.getDate());
       }
+      setViewMode('calendar');
     }
     prevVisible.current = visible;
   }, [visible, initialDate]);
@@ -90,6 +92,9 @@ const CalendarModal = ({ visible, initialDate, title, onConfirm, onCancel, minDa
   const maxD = norm(maxDate);
   const tD = norm(today);
 
+  const startYear = 1940;
+  const yearList = Array.from({ length: today.getFullYear() - startYear + 11 }, (_, i) => startYear + i);
+
   return (
     <Modal transparent visible={visible} animationType="none" onRequestClose={onCancel}>
       <View style={cal.backdrop}>
@@ -106,61 +111,82 @@ const CalendarModal = ({ visible, initialDate, title, onConfirm, onCancel, minDa
               <TouchableOpacity onPress={prevMonth} style={cal.navBtn} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
                 <Icon name="chevron-left" size={rs(18)} color={D.textPri} />
               </TouchableOpacity>
-              <Text style={cal.monthYearTxt}>{MONTHS_FULL[viewMonth]}  {viewYear}</Text>
+              <TouchableOpacity onPress={() => setViewMode(viewMode === 'year' ? 'calendar' : 'year')} style={cal.headerTitleBox}>
+                <Text style={cal.monthYearTxt}>{MONTHS_FULL[viewMonth]}  <Text style={{ color: D.gold }}>{viewYear}</Text></Text>
+                <Icon name={viewMode === 'year' ? "chevron-up" : "chevron-down"} size={rs(14)} color={D.gold} />
+              </TouchableOpacity>
               <TouchableOpacity onPress={nextMonth} style={cal.navBtn} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
                 <Icon name="chevron-right" size={rs(18)} color={D.textPri} />
               </TouchableOpacity>
             </View>
           </View>
-          <View style={cal.weekRow}>
-            {WEEK_DAYS.map((d, i) => (
-              <View key={d} style={cal.weekCell}>
-                <Text style={[cal.weekTxt, (i === 0 || i === 6) && { color: D.gold }]}>{d}</Text>
-              </View>
-            ))}
-          </View>
-          <View style={cal.grid}>
-            {Array.from({ length: totalCells }).map((_, i) => {
-              const day = i - firstDay + 1; const valid = day >= 1 && day <= daysInMonth;
-              const sel = valid && day === selDay; const tod = valid && isToday(day);
-              const isWE = valid && isWeekend(day);
-              
-              const currentCellDate = valid ? new Date(viewYear, viewMonth, day) : null;
-              const isFuture = valid && currentCellDate > tD;
-              
-              let selectable = valid;
-              if (valid) {
-                if (minD && currentCellDate < minD) selectable = false;
-                if (maxD && currentCellDate > maxD) selectable = false;
-                // Keep the default logic of not allowing future dates if maxDate is not provided
-                if (!maxD && currentCellDate > tD) selectable = false;
-              }
 
-              return (
-                <View key={i} style={cal.cellOuter}>
-                  <TouchableOpacity 
-                    style={cal.cellInner} 
-                    onPress={() => selectable && setSelDay(day)} 
-                    activeOpacity={selectable ? 0.7 : 1} 
-                    disabled={!selectable}
+          {viewMode === 'calendar' ? (
+            <>
+              <View style={cal.weekRow}>
+                {WEEK_DAYS.map((d, i) => (
+                  <View key={d} style={cal.weekCell}>
+                    <Text style={[cal.weekTxt, (i === 0 || i === 6) && { color: D.gold }]}>{d}</Text>
+                  </View>
+                ))}
+              </View>
+              <View style={cal.grid}>
+                {Array.from({ length: totalCells }).map((_, i) => {
+                  const day = i - firstDay + 1; const valid = day >= 1 && day <= daysInMonth;
+                  const sel = valid && day === selDay; const tod = valid && isToday(day);
+                  const isWE = valid && isWeekend(day);
+
+                  const currentCellDate = valid ? new Date(viewYear, viewMonth, day) : null;
+
+                  let selectable = valid;
+                  if (valid) {
+                    if (minD && currentCellDate < minD) selectable = false;
+                    if (maxD && currentCellDate > maxD) selectable = false;
+                    if (!maxD && currentCellDate > tD) selectable = false;
+                  }
+
+                  return (
+                    <View key={i} style={cal.cellOuter}>
+                      <TouchableOpacity
+                        style={cal.cellInner}
+                        onPress={() => selectable && setSelDay(day)}
+                        activeOpacity={selectable ? 0.7 : 1}
+                        disabled={!selectable}
+                      >
+                        {sel && <View style={cal.selCircle} />}
+                        {tod && !sel && <View style={cal.todayRing} />}
+                        <Text style={[
+                          cal.dayTxt,
+                          !valid && { color: 'transparent' },
+                          !selectable && valid && { color: Colors.ink4 || '#B5AFA7', opacity: 0.4 },
+                          isWE && !sel && selectable && { color: D.gold },
+                          sel && { color: Colors.white, fontFamily: Fonts.Bold },
+                          tod && !sel && { color: D.gold, fontFamily: Fonts.Bold }
+                        ]}>
+                          {valid ? day : ''}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  );
+                })}
+              </View>
+            </>
+          ) : (
+            <View style={cal.yearGrid}>
+              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={cal.yearScroll}>
+                {[...yearList].reverse().map(yr => (
+                  <TouchableOpacity
+                    key={yr}
+                    style={[cal.yearCell, yr === viewYear && cal.yearCellSel]}
+                    onPress={() => { setViewYear(yr); setViewMode('calendar'); }}
                   >
-                    {sel && <View style={cal.selCircle} />}
-                    {tod && !sel && <View style={cal.todayRing} />}
-                    <Text style={[
-                      cal.dayTxt, 
-                      !valid && { color: 'transparent' }, 
-                      !selectable && valid && { color: Colors.ink4 || '#B5AFA7', opacity: 0.4 }, 
-                      isWE && !sel && selectable && { color: D.gold }, 
-                      sel && { color: Colors.white, fontFamily: Fonts.Bold }, 
-                      tod && !sel && { color: D.gold, fontFamily: Fonts.Bold }
-                    ]}>
-                      {valid ? day : ''}
-                    </Text>
+                    <Text style={[cal.yearTxt, yr === viewYear && cal.yearTxtSel]}>{yr}</Text>
                   </TouchableOpacity>
-                </View>
-              );
-            })}
-          </View>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+
           <View style={cal.footer}>
             <TouchableOpacity style={cal.cancelBtn} onPress={onCancel} activeOpacity={0.8}>
               <Text style={cal.cancelTxt}>Cancel</Text>
@@ -190,6 +216,13 @@ const cal = StyleSheet.create({
   monthNavRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   navBtn: { width: sc(32), height: sc(32), borderRadius: sc(16), backgroundColor: D.surfaceMid, alignItems: 'center', justifyContent: 'center' },
   monthYearTxt: { color: D.textPri, fontSize: rs(14), fontFamily: Fonts.Bold, letterSpacing: 0.3 },
+  headerTitleBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: D.surfaceMid, paddingHorizontal: sc(12), paddingVertical: vs(6), borderRadius: sc(16), gap: sc(4) },
+  yearGrid: { height: vs(300), backgroundColor: D.cardBg },
+  yearScroll: { padding: sc(16), flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: sc(8) },
+  yearCell: { width: '28%', paddingVertical: vs(12), alignItems: 'center', borderRadius: sc(10), backgroundColor: D.surfaceMid, marginBottom: vs(8) },
+  yearCellSel: { backgroundColor: D.gold },
+  yearTxt: { color: D.textPri, fontSize: rs(14), fontFamily: Fonts.SemiBold },
+  yearTxtSel: { color: Colors.white, fontFamily: Fonts.Bold },
   weekRow: { flexDirection: 'row', backgroundColor: D.surfaceMid, paddingVertical: vs(8) },
   weekCell: { width: `${100 / 7}%`, alignItems: 'center' },
   weekTxt: { color: D.textMuted, fontSize: rs(10), fontFamily: Fonts.Bold },

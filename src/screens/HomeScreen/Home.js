@@ -566,7 +566,7 @@ export default function FinanceHome({ navigation }) {
                     <Icon name="magnify" size={rs(20)} color={Colors.white} />
                   </TouchableOpacity>
                   <TouchableOpacity style={S.glassBtn}
-                    onPress={() => navigation.navigate("Notification")}
+                    onPress={() => navigation.navigate("AepsRegistration")}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                     <Icon name="bell-ring-outline" size={rs(20)} color={Colors.white} />
                   </TouchableOpacity>

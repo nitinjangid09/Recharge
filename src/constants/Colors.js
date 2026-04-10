@@ -28,7 +28,7 @@ const Colors = {
   amber: base.amber,
   success: base.green,
   error: base.red,
-  
+
   // ─── Theme Foundations ─────────────────────────────────────────────────────
   primary: base.ink_main,
   secondary: base.beige,
@@ -116,7 +116,7 @@ const Colors = {
   redOpacity_70: "rgba(239, 68, 68, 0.70)",
 
   // ─── Account & Profile (Camlenio Premium) ───────────────────────────────
-  ink: base.ink_dark, 
+  ink: base.ink_dark,
   ink2: "#3A3835",
   ink3: "#7A756E",
   ink4: "#B5AFA7",
@@ -165,8 +165,8 @@ const Colors = {
   kyc_accent: "#C9A84C",
   kyc_accentLight: base.gold,
   kyc_accentDark: "#7A6020",
-  kyc_success: "#16A34A", 
-  kyc_error: "#DC2626",   
+  kyc_success: "#16A34A",
+  kyc_error: "#DC2626",
   kyc_warning: "#D97706",
   kyc_text: "#111827",
   kyc_textSub: "#6B7280",
@@ -188,7 +188,7 @@ const Colors = {
   info_dark: "#1D4ED8",
   error_light: "#FEE2E2",
   error_dark: "#DC2626",
-  
+
   // ─── Additional UI Colors ──────────────────────────────────────────────────
   slate_900: "#0F172A",
   slate_700: "#334155",
@@ -196,7 +196,7 @@ const Colors = {
   slate_400: "#94A3B8",
   slate_100: "#F1F5F9",
   slate_50: "#F8FAFC",
-  
+
   // ─── Direct Hex Mapping for Consistency ────────────────────────────────────
   hex_E53935: "#E53935", // Red
   hex_10B981: "#10B981", // Emerald
@@ -230,7 +230,7 @@ const Colors = {
   hex_FEF2F2: "#FEF2F2",
   hex_E5C37A: "#E5C37A",
   hex_C79A3F: "#C79A3F",
-  
+
   // ─── Translucents ────────────────────────────────────────────────────────
   whiteOpacity_04: "rgba(255,255,255,0.04)",
   whiteOpacity_08: "rgba(255,255,255,0.08)",

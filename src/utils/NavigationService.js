@@ -22,3 +22,10 @@ export function reset(name, params) {
         });
     }
 }
+
+export function goBack() {
+  if (navigationRef.isReady() && navigationRef.canGoBack()) {
+    navigationRef.goBack();
+  }
+}
+

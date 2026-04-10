@@ -39,7 +39,7 @@ axios.interceptors.response.use(
     const data = response.data;
     const isError = data?.success === false || data?.status === "ERROR" || data?.status === "FAILED";
     const msg = data?.message?.toLowerCase() || "";
-    
+
     if (data && isError && (
       msg.includes("token expired") ||
       msg.includes("invalid token") ||
@@ -644,8 +644,8 @@ export const submitOfflineKyc = async ({ personal, business, files, banking }) =
       }
     );
     if (fetchResponse.status === 401) {
-       performAutoLogout("Session expired during KYC submission.");
-       return { success: false, message: "Session expired. Please login again." };
+      performAutoLogout("Session expired during KYC submission.");
+      return { success: false, message: "Session expired. Please login again." };
     }
 
     const rawText = await fetchResponse.text();
@@ -1482,3 +1482,56 @@ export const getFAQs = async ({ headerToken }) => {
     return error?.response?.data || { success: false, message: "Unable to fetch FAQs" };
   }
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AEPS
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const registerOutlet = async ({ data, headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/aepsInstant/registerOutlet`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "Idempotency-Key": idempotencyKey,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Register Outlet API Error:", error?.response?.data || error);
+    return (
+      error?.response?.data || {
+        success: false,
+        message: "Outlet registration failed",
+      }
+    );
+  }
+};
+
+export const fetchAepsBanks = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/aepsbank/list-banks`, {
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Fetch AEPS Banks API Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch bank list" };
+  }
+};
+
+export const getAepsKycStatus = async ({ headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/aepsInstant/biometric-kyc-status`, {}, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "Idempotency-Key": idempotencyKey,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("AEPS KYC Status API Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Failed to fetch KYC status" };
+  }
+};
+
+
