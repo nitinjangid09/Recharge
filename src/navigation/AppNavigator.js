@@ -51,6 +51,7 @@ import UserWalletRefill from '../screens/UserDownline/UserWalletRefill';
 import OfflineServices from '../screens/Services/OfflineServices/OfflineServices';
 import OfflineServiceForm from '../screens/Services/OfflineServices/OfflineServiceForm';
 import Notification from '../screens/Notification';
+import AEPS_OnBoard from '../screens/Services/AEPS_Services/AEPS_OnBoard';
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
@@ -185,6 +186,7 @@ const AppNavigator = () => {
       <Stack.Screen name="OfflineServiceForm" component={OfflineServiceForm} />
       <Stack.Screen name="PaymentVerification" component={PaymentVerification} />
       <Stack.Screen name="Notification" component={Notification} />
+      <Stack.Screen name="AEPS_OnBoard" component={AEPS_OnBoard} />
     </Stack.Navigator>
   );
 };
