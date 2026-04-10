@@ -52,44 +52,23 @@ const getGreeting = () => {
 // SEARCH ITEMS
 // ─────────────────────────────────────────────────────────────────────────────
 const ALL_ITEMS = [
-  { id: "1", label: "Cash Withdraw", icon: "cash", screen: "CashWithdraw" },
-  { id: "2", label: "Balance Enquiry", icon: "bank", screen: "BalanceEnquiry" },
-  { id: "3", label: "Mini Statement", icon: "file-document-outline", screen: "MiniStatement" },
-  { id: "4", label: "Aadhaar Pay", icon: "fingerprint", screen: "AadhaarPay" },
-  { id: "5", label: "DMT Transfer", icon: "bank-transfer", screen: "DmtLogin" },
-  { id: "6", label: "Mobile Recharge", icon: "cellphone", screen: "TopUpScreen" },
-  { id: "7", label: "DTH Recharge", icon: "satellite-variant", screen: "TopUpScreen" },
-  { id: "8", label: "Electricity", icon: "flash", screen: "Electricity" },
-  { id: "9", label: "Broadband", icon: "wifi", screen: "TopUpScreen" },
-  { id: "10", label: "Cable TV", icon: "television", screen: "PaymentsScreen" },
-  { id: "11", label: "Gas", icon: "gas-cylinder", screen: "PaymentsScreen" },
-  { id: "12", label: "Insurance", icon: "account-group-outline", screen: "PaymentsScreen" },
-  { id: "13", label: "Add Balance", icon: "plus-circle", screen: "OfflineTopup" },
-  { id: "14", label: "BBPS Payments", icon: "lightning-bolt", screen: "PaymentsScreen" },
-  { id: "15", label: "Profile", icon: "account-circle", screen: "ProfileScreen" },
-  { id: "16", label: "Transaction History", icon: "history", screen: "InvoiceScreen" },
-  { id: "17", label: "Wallet Report", icon: "file-document-outline", screen: "WalletTransactionScreen" },
-  { id: "18", label: "KYC Verification", icon: "shield-check", screen: "Offlinekyc" },
-  { id: "19", label: "Offline Services", icon: "clipboard-list-outline", screen: "OfflineServices" },
+
+  { id: "1", label: "DMT Transfer", icon: "bank-transfer", screen: "DmtLogin" },
+  { id: "2", label: "Mobile Recharge", icon: "cellphone", screen: "TopUpScreen" },
+  { id: "3", label: "DTH Recharge", icon: "satellite-variant", screen: "TopUpScreen" },
+  { id: "4", label: "Electricity", icon: "flash", screen: "Electricity" },
+  { id: "5", label: "Broadband", icon: "wifi", screen: "TopUpScreen" },
+  { id: "6", label: "Cable TV", icon: "television", screen: "PaymentsScreen" },
+  { id: "7", label: "Gas", icon: "gas-cylinder", screen: "PaymentsScreen" },
+  { id: "8", label: "Insurance", icon: "account-group-outline", screen: "PaymentsScreen" },
+  { id: "9", label: "Add Balance", icon: "plus-circle", screen: "OfflineTopup" },
+  { id: "10", label: "BBPS Payments", icon: "lightning-bolt", screen: "PaymentsScreen" },
+  { id: "11", label: "Profile", icon: "account-circle", screen: "ProfileScreen" },
+  { id: "12", label: "Transaction History", icon: "history", screen: "InvoiceScreen" },
+  { id: "13", label: "Wallet Report", icon: "file-document-outline", screen: "WalletTransactionScreen" },
+  { id: "14", label: "KYC Verification", icon: "shield-check", screen: "Offlinekyc" },
+  { id: "15", label: "Offline Services", icon: "clipboard-list-outline", screen: "OfflineServices" },
 ];
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SERVICES
-// ─────────────────────────────────────────────────────────────────────────────
-const SERVICES = {
-  aeps: [
-    { type: "cw", name: "Cash\nWithdraw", icon: "cash" },
-    { type: "be", name: "Balance\nEnquiry", icon: "bank" },
-    { type: "ms", name: "Mini\nStatement", icon: "file-document-outline" },
-    { type: "ap", name: "Aadhaar\nPay", icon: "fingerprint" },
-  ],
-  money_transfer: [{ type: "dmt", name: "DMT", icon: "bank-transfer" }],
-};
-
-const ICON_MAP = {
-  cw: "cash", be: "bank", ms: "file-document-outline", ap: "fingerprint",
-  dmt: "bank-transfer", default: "apps",
-};
 
 // Service icon mapping for assigned services
 const SERVICE_ICON_MAP = {
@@ -110,12 +89,6 @@ const SESSION_KEYS = [
   "kyc_status", "user_level", "is_kyc_online", "user_profile",
 ];
 
-// Mock recent transactions (replace with API data)
-const RECENT_TXN = [
-  { id: "t1", name: "Jio Recharge", meta: "Mobile · ₹999 Plan", amount: "−₹999", credit: false, icon: "cellphone", color: Colors.info_light, bg: Colors.info_light + "1a", time: "2h ago" },
-  { id: "t2", name: "Electricity Bill", meta: "BBPS · JVVNL", amount: "−₹1,240", credit: false, icon: "flash", color: Colors.warning_dark, bg: Colors.warning_light + "1a", time: "Yesterday" },
-  { id: "t3", name: "Cashback Credited", meta: "Recharge Offer", amount: "+₹50", credit: true, icon: "trending-up", color: Colors.success, bg: Colors.success + "1a", time: "2 days ago" },
-];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // API
@@ -566,7 +539,7 @@ export default function FinanceHome({ navigation }) {
                     <Icon name="magnify" size={rs(20)} color={Colors.white} />
                   </TouchableOpacity>
                   <TouchableOpacity style={S.glassBtn}
-                    onPress={() => navigation.navigate("AepsRegistration")}
+                    onPress={() => navigation.navigate("AEPS_OnBoard")}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                     <Icon name="bell-ring-outline" size={rs(20)} color={Colors.white} />
                   </TouchableOpacity>

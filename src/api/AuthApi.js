@@ -1534,4 +1534,19 @@ export const getAepsKycStatus = async ({ headerToken, idempotencyKey }) => {
   }
 };
 
+export const biometricKyc = async ({ data, headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/aepsInstant/biometric-kyc`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "Idempotency-Key": idempotencyKey,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Biometric KYC API Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Biometric KYC failed" };
+  }
+};
+
 

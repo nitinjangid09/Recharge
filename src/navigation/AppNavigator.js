@@ -52,6 +52,7 @@ import OfflineServices from '../screens/Services/OfflineServices/OfflineServices
 import OfflineServiceForm from '../screens/Services/OfflineServices/OfflineServiceForm';
 import Notification from '../screens/Notification';
 import AEPS_OnBoard from '../screens/Services/AEPS_Services/AEPS_OnBoard';
+import AEPS_Services from '../screens/Services/AEPS_Services/AEPS_Services';
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
@@ -187,6 +188,7 @@ const AppNavigator = () => {
       <Stack.Screen name="PaymentVerification" component={PaymentVerification} />
       <Stack.Screen name="Notification" component={Notification} />
       <Stack.Screen name="AEPS_OnBoard" component={AEPS_OnBoard} />
+      <Stack.Screen name="AEPS_Services" component={AEPS_Services} />
     </Stack.Navigator>
   );
 };

@@ -628,7 +628,6 @@ const styles = StyleSheet.create({
     },
     inputError: {
         borderColor: Colors.red,
-        backgroundColor: "#FFF5F5",
     },
     inputIcon: {
         marginRight: 10 * S,

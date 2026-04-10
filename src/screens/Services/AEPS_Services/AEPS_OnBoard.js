@@ -1,15 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Animated,
-  Dimensions,
-  StatusBar,
-  TextInput,
-  ActivityIndicator,
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    Animated,
+    Dimensions,
+    StatusBar,
+    TextInput,
+    ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -17,258 +16,247 @@ import LinearGradient from "react-native-linear-gradient";
 import Colors from "../../../constants/Colors";
 import Fonts from "../../../constants/Fonts";
 import * as NavigationService from "../../../utils/NavigationService";
+import { getAepsKycStatus, biometricKyc } from "../../../api/AuthApi";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AlertService } from "../../../componets/Alerts/CustomAlert";
 
 const { width: SW } = Dimensions.get("window");
 const S = SW / 375;
 
-// ── Shared Component: Badge ──────────────────────────────────────────
-const Badge = ({ label, color = Colors.accent }) => (
-  <View style={[styles.badge, { backgroundColor: color + "15", borderColor: color + "30" }]}>
-    <View style={[styles.badgeDot, { backgroundColor: color }]} />
-    <Text style={[styles.badgeTxt, { color }]}>{label}</Text>
-  </View>
-);
-
 const AEPS_OnBoard = () => {
-  const [currentScreen, setCurrentScreen] = useState(1);
-  const fadeAnim = useRef(new Animated.Value(1)).current;
+    const [currentScreen, setCurrentScreen] = useState(1);
+    const [loading, setLoading] = useState(false);
+    const [aadhaarNumber, setAadhaarNumber] = useState("");
+    const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  // Navigation Logic with Animation
-  const goTo = (screen) => {
-    Animated.timing(fadeAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
-      setCurrentScreen(screen);
-      Animated.timing(fadeAnim, { toValue: 1, duration: 250, useNativeDriver: true }).start();
-    });
-  };
+    const goTo = (screen) => {
+        Animated.timing(fadeAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
+            setCurrentScreen(screen);
+            Animated.timing(fadeAnim, { toValue: 1, duration: 250, useNativeDriver: true }).start();
+        });
+    };
 
-  // ── RENDER HELPERS ──
+    const handleCheckStatus = async () => {
+        setLoading(true);
+        try {
+            const headerToken = await AsyncStorage.getItem("header_token");
+            const idempotencyKey = `STATUS_${Date.now()}`;
+            const res = await getAepsKycStatus({ headerToken, idempotencyKey });
 
-  // SCREEN 1: SPLASH
-  const renderSplash = () => (
-    <LinearGradient colors={["#1A1A2E", "#0F0E0D"]} style={styles.screenFull}>
-      <View style={styles.splashContent}>
-        <View style={styles.logoBox}>
-          <Icon name="fingerprint" size={40} color={Colors.finance_accent} />
-        </View>
-        <Text style={styles.splashEyebrow}>NPCI DIGITAL GATEWAY</Text>
-        <Text style={styles.splashTitle}>
-          Empower Your{"\n"}
-          <Text style={{ color: Colors.finance_accent }}>Business Hub</Text>
-        </Text>
-        <Text style={styles.splashSub}>
-          The future of biometric authentication and Aadhaar enabled payments at your fingertips.
-        </Text>
+            if (res.success || res.status === "SUCCESS") {
+                goTo(2);
+            } else {
+                AlertService.showAlert({
+                    type: "info",
+                    title: "KYC Required",
+                    message: res.message || "Please complete your biometric registration to proceed.",
+                    onClose: () => goTo(2)
+                });
+            }
+        } catch (error) {
+            AlertService.showAlert({ type: "error", title: "Network Error", message: "Failed to connect to server." });
+        } finally {
+            setLoading(false);
+        }
+    };
 
-        <View style={styles.trustRow}>
-          <View style={styles.trustItem}>
-            <Icon name="shield-check" size={14} color={Colors.success} />
-            <Text style={styles.trustTxt}>SECURE</Text>
-          </View>
-          <View style={styles.trustItem}>
-            <Icon name="bank" size={14} color={Colors.finance_accent} />
-            <Text style={styles.trustTxt}>NPCI LINKED</Text>
-          </View>
-        </View>
+    const handleDetectDevice = async () => {
+        if (aadhaarNumber.length < 12) {
+            AlertService.showAlert({ type: "warning", title: "Invalid Aadhaar", message: "Please enter a valid 12-digit Aadhaar number." });
+            return;
+        }
 
-        <TouchableOpacity style={styles.btnPrimary} onPress={() => goTo(2)}>
-          <Text style={styles.btnTxt}>Enter the Hub</Text>
-          <Icon name="arrow-right" size={20} color={Colors.white} />
-        </TouchableOpacity>
-      </View>
-    </LinearGradient>
-  );
+        setLoading(true);
+        try {
+            const headerToken = await AsyncStorage.getItem("header_token");
+            const idempotencyKey = `KYC_${Date.now()}`;
+            const res = await biometricKyc({
+                data: { aadhaarNumber },
+                headerToken,
+                idempotencyKey
+            });
 
-  // SCREEN 2: KYC STATUS
-  const renderKYC = () => (
-    <View style={styles.screenInner}>
-      <View style={styles.headerDark}>
-        <TouchableOpacity onPress={() => goTo(1)} style={styles.backBtn}>
-          <Icon name="chevron-left" size={24} color={Colors.white} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Merchant KYC</Text>
-      </View>
+            if (res.success || res.status === "SUCCESS") {
+                AlertService.showAlert({
+                    type: "success",
+                    title: "Activation Successful",
+                    message: "Biometric KYC completed. Accessing Dashboard...",
+                    onClose: () => NavigationService.navigate("AEPS_Services")
+                });
+            } else {
+                AlertService.showAlert({ type: "error", title: "Activation Failed", message: res.message || "Could not synchronize with RD service." });
+            }
+        } catch (error) {
+            AlertService.showAlert({ type: "error", title: "System Error", message: "Verification failed. Check your scanner connection." });
+        } finally {
+            setLoading(false);
+        }
+    };
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.stepCard}>
-          <View style={styles.stepRow}>
-            <View style={[styles.stepDot, styles.stepDone]}>
-              <Icon name="check" size={14} color={Colors.white} />
+    // ── SCREEN 1: SPLASH (Match Image Data) ──
+    const renderSplash = () => (
+        <LinearGradient colors={["#1A1A2E", "#0F0E0D"]} style={styles.screenFull}>
+            <View style={styles.splashContent}>
+                <View style={[styles.logoBox, { borderRadius: 40, width: 90 * S, height: 90 * S }]}>
+                    <Icon name="orbit" size={45} color={Colors.finance_accent} />
+                </View>
+                <Text style={styles.splashEyebrow}>NPCI DIGITAL GATEWAY</Text>
+                <Text style={styles.splashTitle}>
+                    Aadhaar Enabled{"\n"}
+                    <Text style={{ color: Colors.finance_accent }}>Payment System</Text>
+                </Text>
+                <Text style={styles.splashSub}>
+                    Modernized Biometric Authentication Gateway
+                </Text>
+
+                <View style={styles.statusCard}>
+                    <View style={styles.statusBadge}>
+                        <View style={styles.statusDot} />
+                        <Text style={styles.statusBadgeTxt}>ONBOARDING HUB</Text>
+                    </View>
+                    <Text style={styles.statusMsg}>HARDWARE SYNCHRONIZATION PENDING</Text>
+                </View>
+
+                <TouchableOpacity style={styles.btnPrimary} onPress={handleCheckStatus} disabled={loading}>
+                    {loading ? (
+                        <ActivityIndicator color={Colors.white} />
+                    ) : (
+                        <>
+                            <Icon name="fingerprint" size={20} color={Colors.white} style={{ marginRight: 10 }} />
+                            <Text style={styles.btnTxt}>Check Biometric Status</Text>
+                        </>
+                    )}
+                </TouchableOpacity>
+
+                <TouchableOpacity style={{ marginTop: 25 }} onPress={() => NavigationService.navigate("AepsRegistration")}>
+                    <Text style={styles.secondaryBtnTxt}>Return to Merchant Details</Text>
+                </TouchableOpacity>
+
+                <View style={styles.splashFooter}>
+                    <Text style={styles.footerInfo}>
+                        SYNCHRONIZING WITH NATIONAL PAYMENTS{"\n"}
+                        CORPORATION OF INDIA
+                    </Text>
+                </View>
             </View>
-            <View style={styles.stepInfo}>
-              <Text style={styles.stepName}>Identity Verified</Text>
-              <Text style={styles.stepDesc}>Aadhaar & PAN verification complete.</Text>
+        </LinearGradient>
+    );
+
+    // ── SCREEN 2: BIOMETRIC DETECTION (Match 2nd Image Data) ──
+    const renderBiometricCheck = () => (
+        <LinearGradient colors={["#1A1A2E", "#0F0E0D"]} style={styles.screenFull}>
+            <View style={styles.splashContent}>
+                <View style={[styles.logoBox, { borderRadius: 40, width: 80 * S, height: 80 * S, marginBottom: 25 }]}>
+                    <Icon name="lock-outline" size={40} color={Colors.finance_accent} />
+                </View>
+
+                <Text style={styles.splashTitle}>
+                    Portal{" "}
+                    <Text style={{ color: Colors.finance_accent }}>Access</Text>
+                </Text>
+                <Text style={[styles.splashSub, { marginBottom: 30 }]}>
+                    SECURE BIOMETRIC GATEWAY
+                </Text>
+
+                <View style={styles.fieldWrap}>
+                    <Text style={styles.fieldLabel}>MERCHANT AADHAAR NUMBER</Text>
+                    <View style={styles.aadhaarBox}>
+                        <Icon name="fingerprint" size={20} color={Colors.finance_accent} style={{ marginRight: 12 }} />
+                        <TextInput
+                            style={styles.aadhaarInput}
+                            value={aadhaarNumber}
+                            onChangeText={setAadhaarNumber}
+                            placeholder="Enter 12 digit Aadhaar"
+                            placeholderTextColor="rgba(255,255,255,0.2)"
+                            keyboardType="numeric"
+                            maxLength={12}
+                        />
+                    </View>
+                </View>
+
+                <View style={styles.detectRow}>
+                    <TouchableOpacity
+                        style={[styles.btnPrimary, { flex: 1 }]}
+                        onPress={handleDetectDevice}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <ActivityIndicator color={Colors.white} />
+                        ) : (
+                            <>
+                                <Icon name="magnify" size={20} color={Colors.white} style={{ marginRight: 10 }} />
+                                <Text style={styles.btnTxt}>Detect RD Device</Text>
+                            </>
+                        )}
+                    </TouchableOpacity>
+                    <View style={styles.waitBox}>
+                        <Text style={styles.waitTxt}>WAITING{"\n"}SYNC</Text>
+                    </View>
+                </View>
+
+                <View style={styles.alertBanner}>
+                    <View style={styles.alertDot} />
+                    <Text style={styles.alertTxt}>RD DEVICE NOT DETECTED · CONNECT BIOMETRIC SCANNER</Text>
+                </View>
+
+                <TouchableOpacity 
+                    style={styles.btnSecondaryFull} 
+                    onPress={() => NavigationService.navigate("AEPS_Services")}
+                >
+                    <Text style={styles.btnSecondaryTxt}>Open AEPS Services</Text>
+                    <Icon name="chevron-right" size={18} color="rgba(255,255,255,0.4)" />
+                </TouchableOpacity>
+
+                <TouchableOpacity style={{ marginTop: 25 }} onPress={() => goTo(1)}>
+                    <Text style={styles.secondaryBtnTxt}>Back to Hub</Text>
+                </TouchableOpacity>
             </View>
-          </View>
-          <View style={styles.stepLine} />
-          <View style={styles.stepRow}>
-            <View style={[styles.stepDot, styles.stepActive]}>
-              <Text style={styles.stepNum}>2</Text>
-            </View>
-            <View style={styles.stepInfo}>
-              <Text style={styles.stepName}>Biometric Setup</Text>
-              <Text style={styles.stepDesc}>Link your fingerprint scanner.</Text>
-            </View>
-          </View>
-          <View style={styles.stepLine} />
-          <View style={styles.stepRow}>
-            <View style={[styles.stepDot, styles.stepPending]}>
-              <Text style={styles.stepNum}>3</Text>
-            </View>
-            <View style={styles.stepInfo}>
-              <Text style={styles.stepName}>NPCI Activation</Text>
-              <Text style={styles.stepDesc}>Ready for live transactions.</Text>
-            </View>
-          </View>
-        </View>
+        </LinearGradient>
+    );
 
-        <TouchableOpacity style={styles.btnAccent} onPress={() => goTo(3)}>
-          <Text style={[styles.btnTxt, { color: Colors.white }]}>Complete Activation</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </View>
-  );
-
-  // SCREEN 3: AEPS DASHBOARD
-  const renderDashboard = () => (
-    <View style={styles.screenInner}>
-      <View style={styles.hubHeader}>
-        <View style={styles.hubTop}>
-          <View>
-            <Text style={styles.hubGreeting}>Welcome back,</Text>
-            <Text style={styles.hubUser}>Merchant Agent</Text>
-          </View>
-          <TouchableOpacity style={styles.glassBtn}>
-            <Icon name="bell-outline" size={22} color={Colors.white} />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.balCard}>
-          <View>
-            <Text style={styles.balLabel}>WALLET BALANCE</Text>
-            <Text style={styles.balAmt}>₹42,850.25</Text>
-          </View>
-          <View style={styles.balIcon}>
-            <Icon name="wallet-outline" size={24} color={Colors.finance_accent} />
-          </View>
-        </View>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.sectionHeader}>
-            <Text style={styles.sectionLabel}>SERVICES HUD</Text>
-        </View>
-
-        <View style={styles.serviceRow}>
-          {[
-            { name: "Withdraw", icon: "cash-plus", color: "#6366F1", route: 4 },
-            { name: "Enquiry", icon: "bank-outline", color: "#F59E0B", route: 4 },
-            { name: "Statement", icon: "file-document-outline", color: "#10B981", route: 4 },
-            { name: "Aadhaar Pay", icon: "fingerprint", color: "#EF4444", route: 4 },
-          ].map((item, idx) => (
-            <TouchableOpacity key={idx} style={styles.serviceItem} onPress={() => goTo(item.route)}>
-              <View style={[styles.sIconBox, { backgroundColor: item.color + "15" }]}>
-                <Icon name={item.icon} size={24} color={item.color} />
-              </View>
-              <Text style={styles.sLabel}>{item.name}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <View style={styles.sectionHeader}>
-            <Text style={styles.sectionLabel}>RECENT ACTIVITY</Text>
-        </View>
-        
-        <View style={styles.card}>
-            <TxnRow name="Cash Withdrawal" date="Apr 10, 2:30 PM" amount="-₹500.00" type="dr" />
-            <TxnRow name="Wallet Topup" date="Apr 09, 11:15 AM" amount="+₹2,000.00" type="cr" />
-        </View>
-      </ScrollView>
-    </View>
-  );
-
-  const TxnRow = ({ name, date, amount, type }) => (
-    <View style={styles.txnRow}>
-        <View style={[styles.txnIcon, { backgroundColor: type === 'cr' ? '#22C55E15' : '#EF444415' }]}>
-            <Icon name={type === 'cr' ? 'arrow-down-left' : 'arrow-up-right'} size={18} color={type === 'cr' ? '#22C55E' : '#EF4444'} />
-        </View>
-        <View style={{ flex: 1 }}>
-            <Text style={styles.txnName}>{name}</Text>
-            <Text style={styles.txnDate}>{date}</Text>
-        </View>
-        <Text style={[styles.txnAmt, { color: type === 'cr' ? '#22C55E' : '#EF4444' }]}>{amount}</Text>
-    </View>
-  );
-
-  return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
-      <StatusBar barStyle="light-content" backgroundColor="#1A1A2E" />
-      <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-        {currentScreen === 1 && renderSplash()}
-        {currentScreen === 2 && renderKYC()}
-        {currentScreen === 3 && renderDashboard()}
-        {currentScreen === 4 && renderDashboard()}
-      </Animated.View>
-    </SafeAreaView>
-  );
+    return (
+        <SafeAreaView style={styles.container} edges={["top"]}>
+            <StatusBar barStyle="light-content" backgroundColor="#1A1A2E" />
+            <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+                {currentScreen === 1 && renderSplash()}
+                {currentScreen === 2 && renderBiometricCheck()}
+            </Animated.View>
+        </SafeAreaView>
+    );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.bg },
-  screenFull: { flex: 1, justifyContent: "center" },
-  screenInner: { flex: 1, backgroundColor: Colors.bg },
-  scrollContent: { padding: 20 * S },
+    container: { flex: 1, backgroundColor: Colors.bg },
+    screenFull: { flex: 1, justifyContent: "center" },
+    splashContent: { padding: 25 * S, alignItems: "center" },
+    logoBox: { width: 80 * S, height: 80 * S, borderRadius: 24, backgroundColor: "rgba(212,168,67,0.1)", alignItems: "center", justifyContent: "center", marginBottom: 30 * S, borderWidth: 1, borderColor: "rgba(212,168,67,0.3)" },
+    splashEyebrow: { color: "rgba(212,168,67,0.6)", fontSize: 12, fontFamily: Fonts.Bold, letterSpacing: 2, marginBottom: 15 },
+    splashTitle: { color: Colors.white, fontSize: 32 * S, fontFamily: Fonts.Bold, textAlign: "center", lineHeight: 40 * S, marginBottom: 15 },
+    splashSub: { color: "rgba(255,255,255,0.45)", fontSize: 13, textAlign: "center", lineHeight: 20, marginBottom: 40 * S },
+    statusCard: { backgroundColor: "rgba(255,255,255,0.03)", borderRadius: 24, padding: 20 * S, width: '100%', alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.05)", marginBottom: 40 * S },
+    statusBadge: { flexDirection: "row", alignItems: "center", backgroundColor: "rgba(212,168,67,0.1)", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, marginBottom: 10 },
+    statusDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.finance_accent, marginRight: 8 },
+    statusBadgeTxt: { fontSize: 11, fontFamily: Fonts.Bold, color: Colors.finance_accent, letterSpacing: 1 },
+    statusMsg: { color: "rgba(255,255,255,0.5)", fontSize: 10, fontFamily: Fonts.Bold, textAlign: "center", letterSpacing: 1 },
+    fieldWrap: { width: '100%', marginBottom: 30 * S },
+    fieldLabel: { color: "rgba(255,255,255,0.4)", fontSize: 10, fontFamily: Fonts.Bold, letterSpacing: 1, marginBottom: 12, marginLeft: 5 },
+    aadhaarBox: { backgroundColor: "rgba(212,168,67,0.1)", height: 60 * S, borderRadius: 24, flexDirection: "row", alignItems: "center", paddingHorizontal: 20 * S, borderWidth: 1, borderColor: "rgba(212,168,67,0.2)" },
+    aadhaarInput: { flex: 1, color: Colors.white, fontSize: 16, fontFamily: Fonts.Bold, letterSpacing: 1 },
+    detectRow: { flexDirection: "row", alignItems: "center", width: '100%', gap: 15, marginBottom: 30 * S },
+    waitBox: { width: 60 * S, alignItems: "center" },
+    waitTxt: { color: "rgba(255,255,255,0.3)", fontSize: 9, fontFamily: Fonts.Bold, textAlign: "center", letterSpacing: 1 },
+    alertBanner: { backgroundColor: "rgba(0,0,0,0.2)", width: '100%', padding: 18 * S, borderRadius: 20, flexDirection: "row", alignItems: 'center', borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
+    alertDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#F59E0B", marginRight: 12 },
+    alertTxt: { flex: 1, color: "rgba(255,255,255,0.5)", fontSize: 10 * S, fontFamily: Fonts.Bold, lineHeight: 14 },
+    btnPrimary: { backgroundColor: Colors.finance_accent, height: 56 * S, borderRadius: 28, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingHorizontal: 25 * S, elevation: 10, shadowColor: Colors.finance_accent, shadowOpacity: 0.3, shadowRadius: 15 },
+    btnTxt: { fontSize: 15, fontFamily: Fonts.Bold, color: Colors.white },
+    
+    btnSecondaryFull: { width: '100%', height: 50 * S, borderRadius: 20, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", flexDirection: "row", alignItems: "center", justifyContent: "center", marginTop: 20 * S, backgroundColor: 'rgba(255,255,255,0.02)' },
+    btnSecondaryTxt: { fontSize: 13, fontFamily: Fonts.Bold, color: "rgba(255,255,255,0.7)", marginRight: 5 },
 
-  splashContent: { padding: 30 * S, alignItems: "center" },
-  logoBox: { width: 80 * S, height: 80 * S, borderRadius: 24, backgroundColor: "rgba(212,168,67,0.1)", alignItems: "center", justifyContent: "center", marginBottom: 30 * S, borderWidth: 1, borderColor: "rgba(212,168,67,0.3)" },
-  splashEyebrow: { color: "rgba(212,168,67,0.6)", fontSize: 12, fontFamily: Fonts.Bold, letterSpacing: 2, marginBottom: 15 },
-  splashTitle: { color: Colors.white, fontSize: 32 * S, fontFamily: Fonts.Bold, textAlign: "center", lineHeight: 40 * S, marginBottom: 15 },
-  splashSub: { color: "rgba(255,255,255,0.5)", fontSize: 14, textAlign: "center", lineHeight: 22, marginBottom: 40 * S },
-  trustRow: { flexDirection: "row", gap: 20, marginBottom: 40 * S },
-  trustItem: { flexDirection: "row", alignItems: "center", gap: 6 },
-  trustTxt: { color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: Fonts.Bold },
-  btnPrimary: { backgroundColor: Colors.finance_accent, height: 56 * S, borderRadius: 28, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingHorizontal: 30 * S, width: '100%' },
-
-  headerDark: { backgroundColor: "#1A1A2E", padding: 20 * S, paddingTop: 10, borderBottomLeftRadius: 30, borderBottomRightRadius: 30, flexDirection: "row", alignItems: "center", gap: 15 },
-  headerTitle: { color: Colors.white, fontSize: 18, fontFamily: Fonts.Bold },
-  backBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" },
-
-  stepCard: { backgroundColor: Colors.white, borderRadius: 20, padding: 20, marginBottom: 20 },
-  stepRow: { flexDirection: "row", alignItems: "center", gap: 15 },
-  stepDot: { width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center" },
-  stepDone: { backgroundColor: Colors.success },
-  stepActive: { backgroundColor: "#1A1A2E" },
-  stepPending: { backgroundColor: "#F1F5F9" },
-  stepNum: { fontSize: 12, fontFamily: Fonts.Bold, color: Colors.white },
-  stepInfo: { flex: 1 },
-  stepName: { fontSize: 14, fontFamily: Fonts.Bold, color: "#1A1A2E" },
-  stepDesc: { fontSize: 12, color: Colors.gray_BD, marginTop: 2 },
-  stepLine: { width: 2, height: 20, backgroundColor: "#F1F5F9", marginLeft: 14, marginVertical: 4 },
-
-  hubHeader: { backgroundColor: "#1A1A2E", padding: 20, paddingBottom: 30, borderBottomLeftRadius: 40, borderBottomRightRadius: 40 },
-  hubTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 25 },
-  hubGreeting: { color: "rgba(255,255,255,0.4)", fontSize: 12 },
-  hubUser: { color: Colors.white, fontSize: 18, fontFamily: Fonts.Bold, marginTop: 4 },
-  balCard: { backgroundColor: "rgba(212,168,67,0.15)", borderRadius: 20, padding: 20, flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderWidth: 1, borderColor: "rgba(212,168,67,0.2)" },
-  balLabel: { color: "rgba(255,255,255,0.5)", fontSize: 10, fontFamily: Fonts.Bold, letterSpacing: 1 },
-  balAmt: { color: Colors.white, fontSize: 28, fontFamily: Fonts.Bold, marginTop: 5 },
-  balIcon: { width: 48, height: 48, borderRadius: 16, backgroundColor: "rgba(184,148,77,0.2)", alignItems: "center", justifyContent: "center" },
-  glassBtn: { width: 42, height: 42, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" },
-
-  sectionHeader: { marginTop: 20, marginBottom: 15 },
-  sectionLabel: { fontSize: 12, fontFamily: Fonts.Bold, color: Colors.gray_BD, letterSpacing: 1 },
-  serviceRow: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
-  serviceItem: { width: (SW - 52) / 4, alignItems: "center", gap: 8 },
-  sIconBox: { width: 56 * S, height: 56 * S, borderRadius: 18, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(0,0,0,0.05)" },
-  sLabel: { fontSize: 10, fontFamily: Fonts.Bold, color: "#1A1A2E", textAlign: "center" },
-
-  card: { backgroundColor: Colors.white, borderRadius: 20, padding: 15 },
-  txnRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#F1F5F9" },
-  txnIcon: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center" },
-  txnName: { fontSize: 13, fontFamily: Fonts.Bold, color: "#1A1A2E" },
-  txnDate: { fontSize: 11, color: Colors.gray_BD, marginTop: 2 },
-  txnAmt: { fontSize: 14, fontFamily: Fonts.Bold },
-  btnAccent: { backgroundColor: Colors.accent, height: 56 * S, borderRadius: 28, alignItems: "center", justifyContent: "center", marginTop: 20 },
-  btnTxt: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.white },
+    secondaryBtnTxt: { fontSize: 13, fontFamily: Fonts.Bold, color: "rgba(255,255,255,0.35)" },
+    splashFooter: { marginTop: 40 * S },
+    footerInfo: { fontSize: 9, fontFamily: Fonts.Bold, color: "rgba(255,255,255,0.25)", letterSpacing: 1, textAlign: 'center', lineHeight: 14 },
 });
 
 export default AEPS_OnBoard;
