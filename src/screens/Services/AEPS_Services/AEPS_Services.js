@@ -13,11 +13,42 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Colors from "../../../constants/Colors";
 import Fonts from "../../../constants/Fonts";
 import * as NavigationService from "../../../utils/NavigationService";
+import { getWalletBalance, fetchUserProfile } from "../../../api/AuthApi";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ActivityIndicator } from "react-native";
 
 const { width: SW } = Dimensions.get("window");
 const S = SW / 375;
 
-const AEPS_Services = () => {
+const AEPS_Services = ({ navigation }) => {
+    const [aepsBalance, setAepsBalance] = React.useState("0.00");
+    const [userName, setUserName] = React.useState("Merchant");
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        const loadData = async () => {
+            try {
+                const headerToken = await AsyncStorage.getItem("header_token");
+                const [balRes, profRes] = await Promise.all([
+                    getWalletBalance({ headerToken }),
+                    fetchUserProfile({ headerToken })
+                ]);
+
+                if (balRes?.success) {
+                    setAepsBalance(String(balRes.data?.aepsWallet || "0.00"));
+                }
+                if (profRes?.success) {
+                    setUserName(profRes.data?.firstName || "Merchant");
+                }
+            } catch (error) {
+                console.log("Error loading dashboard data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadData();
+    }, []);
+
     const TxnRow = ({ name, date, amount, type }) => (
         <View style={styles.txnRow}>
             <View style={[styles.txnIcon, { backgroundColor: type === 'cr' ? '#22C55E15' : type === 'dr' ? '#EF444415' : '#64748B15' }]}>
@@ -45,7 +76,7 @@ const AEPS_Services = () => {
                     </TouchableOpacity>
                     <View style={{ alignItems: 'center', flex: 1 }}>
                         <Text style={styles.hubGreeting}>AEPS Dashboard</Text>
-                        <Text style={styles.hubUser}>Merchant Agent</Text>
+                        <Text style={styles.hubUser}>{userName}</Text>
                     </View>
                     <TouchableOpacity style={styles.glassBtn}>
                         <Icon name="bell-outline" size={22} color={Colors.white} />
@@ -55,11 +86,18 @@ const AEPS_Services = () => {
                 <View style={styles.balCard}>
                     <View>
                         <Text style={styles.balLabel}>WALLET BALANCE</Text>
-                        <Text style={styles.balAmt}>₹42,850.25</Text>
+                        {loading ? (
+                            <ActivityIndicator size="small" color={Colors.white} style={{ marginTop: 10, alignSelf: 'flex-start' }} />
+                        ) : (
+                            <Text style={styles.balAmt}>₹{parseFloat(aepsBalance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Text>
+                        )}
                     </View>
-                    <View style={styles.balIcon}>
+                    <TouchableOpacity 
+                        style={styles.balIcon}
+                        onPress={() => NavigationService.navigate("WalletTransactionScreen")}
+                    >
                         <Icon name="wallet-outline" size={24} color={Colors.finance_accent} />
-                    </View>
+                    </TouchableOpacity>
                 </View>
             </View>
 
@@ -70,16 +108,21 @@ const AEPS_Services = () => {
 
                 <View style={styles.serviceRow}>
                     {[
-                        { name: "Withdraw", icon: "cash-plus", color: "#6366F1" },
-                        { name: "Enquiry", icon: "bank-outline", color: "#F59E0B" },
-                        { name: "Statement", icon: "file-document-outline", color: "#10B981" },
-                        { name: "Aadhaar Pay", icon: "fingerprint", color: "#EF4444" },
+                        { name: "Withdraw", icon: "cash-plus", color: "#6366F1", screen: "CashWithdraw" },
+                        { name: "Enquiry", icon: "bank-outline", color: "#F59E0B", screen: "BalanceEnquiry" },
+                        { name: "Statement", icon: "file-document-outline", color: "#10B981", screen: "MiniStatement" },
+                        { name: "Aadhaar Pay", icon: "fingerprint", color: "#EF4444", screen: "AadhaarPay" },
                     ].map((item, idx) => (
-                        <TouchableOpacity key={idx} style={styles.serviceItem} activeOpacity={0.7}>
+                        <TouchableOpacity 
+                            key={idx} 
+                            style={styles.serviceItem} 
+                            activeOpacity={0.7}
+                            onPress={() => NavigationService.navigate(item.screen)}
+                        >
                             <View style={[styles.sIconBox, { backgroundColor: item.color + "15" }]}>
                                 <Icon name={item.icon} size={24} color={item.color} />
                             </View>
-                            <Text style={styles.sLabel}>{item.name}</Text>
+                            <Text style={styles.sLabel} numberOfLines={1}>{item.name}</Text>
                         </TouchableOpacity>
                     ))}
                 </View>

@@ -400,23 +400,7 @@ export default function FinanceHome({ navigation }) {
     setRefreshing(false);
   }, [loadSession]);
 
-  // ── AEPS press ─────────────────────────────────────────────────────────────
-  const handleAepsService = (item) => {
-    switch (item.type) {
-      case "cw": navigation.navigate("CashWithdraw"); break;
-      case "be": navigation.navigate("BalanceEnquiry"); break;
-      case "ms": navigation.navigate("MiniStatement"); break;
-      case "ap":
-        kycStatus !== "approved"
-          ? showAlert("warning", "KYC Required", "Complete your KYC to use Aadhaar Pay.", () => {
-            setAlert(p => ({ ...p, visible: false }));
-            navigation.navigate("Offlinekyc");
-          }, "Complete KYC")
-          : navigation.navigate("AadhaarPay");
-        break;
-      default: break;
-    }
-  };
+
 
   // ── Entry animations ───────────────────────────────────────────────────────
   const leftAnim = useRef(new Animated.Value(-80)).current;
@@ -539,7 +523,7 @@ export default function FinanceHome({ navigation }) {
                     <Icon name="magnify" size={rs(20)} color={Colors.white} />
                   </TouchableOpacity>
                   <TouchableOpacity style={S.glassBtn}
-                    onPress={() => navigation.navigate("AEPS_OnBoard")}
+                    onPress={() => navigation.navigate("Notification")}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                     <Icon name="bell-ring-outline" size={rs(20)} color={Colors.white} />
                   </TouchableOpacity>
@@ -828,7 +812,7 @@ export default function FinanceHome({ navigation }) {
                     onPress={() => {
                       if (n === "recharge") navigation.navigate("TopUpScreen");
                       else if (n === "bbps") navigation.navigate("PaymentsScreen");
-                      else if (n === "aeps") navigation.navigate("CashWithdraw");
+                      else if (n === "aeps") navigation.navigate("AEPS_OnBoard");
                     }}
                   >
                     <View style={[S.svcIconCircle]}>
