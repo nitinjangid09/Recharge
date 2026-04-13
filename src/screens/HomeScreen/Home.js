@@ -28,6 +28,7 @@ import CustomAlert from "../../componets/Alerts/CustomAlert";
 
 import BBPSIconSVG from "../../assets/ServicesIcons/BBPS.svg";
 import RechargeIconSVG from "../../assets/ServicesIcons/Recharge.svg";
+import AEPSIconSVG from "../../assets/ServicesIcons/AEPS.svg";
 import OfflineServicesIconSVG from "../../assets/ServicesIcons/ofline service.svg";
 
 
@@ -820,6 +821,8 @@ export default function FinanceHome({ navigation }) {
                         <BBPSIconSVG width={rs(26)} height={rs(26)} />
                       ) : n === "recharge" && typeof RechargeIconSVG === "function" ? (
                         <RechargeIconSVG width={rs(26)} height={rs(26)} />
+                      ) : n === "aeps" && typeof AEPSIconSVG === "function" ? (
+                        <AEPSIconSVG width={rs(26)} height={rs(26)} />
                       ) : (
                         <Icon
                           name={iconName}

@@ -16,6 +16,10 @@ import * as NavigationService from "../../../utils/NavigationService";
 import { getWalletBalance, fetchUserProfile } from "../../../api/AuthApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ActivityIndicator } from "react-native";
+import CashWithdrawIcon from "../../../assets/AEPSIcon/Cash Withdraw.svg";
+import BalanceEnquiryIcon from "../../../assets/AEPSIcon/Balance Enquiry.svg";
+import MiniStatementIcon from "../../../assets/AEPSIcon/Mini Statement.svg";
+import aepsIcon from "../../../assets/ServicesIcons/AEPS.svg";
 
 const { width: SW } = Dimensions.get("window");
 const S = SW / 375;
@@ -108,10 +112,10 @@ const AEPS_Services = ({ navigation }) => {
 
                 <View style={styles.serviceRow}>
                     {[
-                        { name: "Cash Withdraw", icon: "cash-plus", color: "#6366F1", screen: "CashWithdraw" },
-                        { name: "Balance Enquiry", icon: "bank-outline", color: "#F59E0B", screen: "BalanceEnquiry" },
-                        { name: "Mini Statement", icon: "file-document-outline", color: "#10B981", screen: "MiniStatement" },
-                        { name: "Aadhaar Pay", icon: "fingerprint", color: "#EF4444", screen: "AadhaarPay" },
+                        { name: "Cash Withdraw", Svg: CashWithdrawIcon, screen: "CashWithdraw" },
+                        { name: "Balance Enquiry", Svg: BalanceEnquiryIcon, screen: "BalanceEnquiry" },
+                        { name: "Mini Statement", Svg: MiniStatementIcon, screen: "MiniStatement" },
+                        { name: "Aadhaar Pay", Svg: aepsIcon, screen: "AadhaarPay" },
                     ].map((item, idx) => (
                         <TouchableOpacity
                             key={idx}
@@ -119,8 +123,12 @@ const AEPS_Services = ({ navigation }) => {
                             activeOpacity={0.7}
                             onPress={() => NavigationService.navigate(item.screen)}
                         >
-                            <View style={[styles.sIconBox, { backgroundColor: item.color + "15" }]}>
-                                <Icon name={item.icon} size={24} color={item.color} />
+                            <View style={[styles.sIconBox, { backgroundColor: Colors.white }]}>
+                                {item.Svg ? (
+                                    <item.Svg width={30 * S} height={30 * S} />
+                                ) : (
+                                    <Icon name={item.icon} size={24 * S} color={item.color} />
+                                )}
                             </View>
                             <Text style={styles.sLabel} numberOfLines={1}>{item.name}</Text>
                         </TouchableOpacity>
@@ -159,7 +167,13 @@ const styles = StyleSheet.create({
     sectionLabel: { fontSize: 11, fontFamily: Fonts.Bold, color: Colors.slate_500, letterSpacing: 1.5 },
     serviceRow: { flexDirection: "row", flexWrap: "wrap", gap: 5, justifyContent: 'space-between' },
     serviceItem: { width: (SW - 64) / 4, alignItems: "center", gap: 8 },
-    sIconBox: { width: 60 * S, height: 60 * S, borderRadius: 20, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(0,0,0,0.04)" },
+    sIconBox: {
+        borderColor: "transparent",
+        shadowColor: "#000", shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.22, shadowRadius: 10, elevation: 5,
+        width: 60 * S, height: 60 * S, borderRadius: 20,
+        alignItems: "center", justifyContent: "center",
+    },
     sLabel: { fontSize: 10, fontFamily: Fonts.Bold, color: Colors.slate_700, textAlign: "center" },
     card: { backgroundColor: Colors.white, borderRadius: 24, padding: 10, elevation: 4, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 15 },
     txnRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 10, paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: "#F1F5F9" },
