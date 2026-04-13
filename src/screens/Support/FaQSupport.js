@@ -737,7 +737,7 @@ const paginationStyles = StyleSheet.create({
     alignItems: "center",
   },
   btnDisabled: {
-    backgroundColor: Colors.hex_E5E7EB,
+    backgroundColor: Colors.hex_E0C38C,
     opacity: 0.8,
   },
   btnText: {
