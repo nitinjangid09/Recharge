@@ -80,7 +80,11 @@ const AppNavigator = () => {
               await AsyncStorage.setItem('is_payment_done', String(isPaymentDone));
               if (idPaymentStatus) await AsyncStorage.setItem('id_payment_status', idPaymentStatus);
 
-              if (kycStatus === "approved") {
+              if (idPaymentStatus === "complete") {
+                setInitialRoute('PaymentVerification');
+              } else if (idPaymentStatus === "approve") {
+                setInitialRoute('FinanceHome');
+              } else if (kycStatus === "approved") {
                 setInitialRoute('FinanceHome');
               } else if (kycStatus === "submitted") {
                 setInitialRoute('KycSubmitted');
@@ -88,9 +92,7 @@ const AppNavigator = () => {
                 setInitialRoute('Offlinekyc');
               } else if (kycStatus === "pending" || kycStatus === "rejected") {
                 if (isPaymentDone === false) {
-                  if (idPaymentStatus === "complete") {
-                    setInitialRoute('PaymentVerification');
-                  } else if (idPaymentStatus === "reject") {
+                  if (idPaymentStatus === "reject") {
                     setInitialRoute('ActivateAccountScreen');
                   } else {
                     setInitialRoute('ActivateAccountScreen');
