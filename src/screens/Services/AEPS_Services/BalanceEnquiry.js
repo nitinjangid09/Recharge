@@ -12,11 +12,16 @@ import {
   Animated,
   Modal,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Colors from "../../../constants/Colors";
 import Fonts from "../../../constants/Fonts";
 import { fadeIn, slideUp, buttonPress } from "../../../utils/ScreenAnimations";
+import { fetchAepsBanks, aepsBalanceEnquiry } from "../../../api/AuthApi";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AlertService } from "../../../componets/Alerts/CustomAlert";
+import * as NavigationService from "../../../utils/NavigationService";
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -27,16 +32,7 @@ const vs = (s) => Math.round((SH / BASE_H) * s);
 const rs = (s) => Math.round(Math.sqrt((SW * SH) / (BASE_W * BASE_H)) * s);
 
 // ── Data ──────────────────────────────────────────────────────────────────────
-const BANK_LIST = [
-  { label: "State Bank of India", value: "SBI", icon: "🏦" },
-  { label: "HDFC Bank", value: "HDFC", icon: "🏦" },
-  { label: "ICICI Bank", value: "ICICI", icon: "🏦" },
-  { label: "Axis Bank", value: "AXIS", icon: "🏦" },
-  { label: "Punjab National Bank", value: "PNB", icon: "🏦" },
-  { label: "Bank of Baroda", value: "BOB", icon: "🏦" },
-  { label: "Canara Bank", value: "CANARA", icon: "🏦" },
-  { label: "Union Bank of India", value: "UNION", icon: "🏦" },
-];
+// Removed hardcoded BANK_LIST
 
 const DEVICE_LIST = [
   { label: "Mantra MFS100", value: "MANTRA", icon: "🖐" },
@@ -205,6 +201,9 @@ const BalanceEnquiry = () => {
   const [bank, setBank] = useState(null);
   const [device, setDevice] = useState(null);
   const [errors, setErrors] = useState({});
+  const [bankList, setBankList] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [banksLoading, setBanksLoading] = useState(true);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(vs(30))).current;
@@ -212,24 +211,90 @@ const BalanceEnquiry = () => {
 
   useEffect(() => {
     Animated.parallel([fadeIn(fadeAnim, 500), slideUp(slideAnim, 500)]).start();
+    loadBanks();
   }, []);
+
+  const loadBanks = async () => {
+    try {
+      const headerToken = await AsyncStorage.getItem("header_token");
+      const res = await fetchAepsBanks({ headerToken });
+      if (res.success || res.status === "SUCCESS") {
+        const mapped = (res.data || []).map(b => ({
+          label: b.name,
+          value: b._id,
+          icon: "🏦"
+        }));
+        setBankList(mapped);
+      }
+    } catch (err) {
+      console.log("Error loading banks:", err);
+    } finally {
+      setBanksLoading(false);
+    }
+  };
 
   const validate = () => {
     const e = {};
-    if (!mobileNumber) e.mobile = "Mobile number is required";
-    else if (!/^[6-9]\d{9}$/.test(mobileNumber)) e.mobile = "Enter valid 10-digit number starting 6–9";
-    if (!aadhaarNumber) e.aadhaar = "Aadhaar number is required";
-    else if (!/^\d{12}$/.test(aadhaarNumber)) e.aadhaar = "Aadhaar must be 12 digits";
-    if (!bank) e.bank = "Please select a bank";
-    if (!device) e.device = "Please select a device";
+    const mob = mobileNumber.trim();
+    const aadh = aadhaarNumber.trim();
+
+    if (!mob) e.mobile = "Please enter mobile number";
+    else if (!/^[6-9]\d{9}$/.test(mob)) e.mobile = "Please enter a valid 10-digit mobile number";
+
+    if (!aadh) e.aadhaar = "Please enter Aadhaar number";
+    else if (!/^\d{12}$/.test(aadh)) e.aadhaar = "Aadhaar number must be exactly 12 digits";
+
+    if (!bank) e.bank = "Please select a bank from the list";
+    if (!device) e.device = "Please select your biometric device";
+
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate()) return;
     buttonPress(btnScale).start();
-    console.log({ mobileNumber, aadhaarNumber, bank, device });
+
+    setLoading(true);
+    try {
+      const headerToken = await AsyncStorage.getItem("header_token");
+      const idempotencyKey = `BE_${Date.now()}`;
+      const payload = {
+        mobileNumber,
+        aadhaarNumber,
+        bankCode: bank,
+        device,
+      };
+
+      const res = await aepsBalanceEnquiry({
+        data: payload,
+        headerToken,
+        idempotencyKey
+      });
+
+      if (res.success || res.status === "SUCCESS") {
+        AlertService.showAlert({
+          type: "success",
+          title: "Enquiry Successful",
+          message: res.message || "Balance enquiry completed successfully.",
+          onClose: () => NavigationService.goBack()
+        });
+      } else {
+        AlertService.showAlert({
+          type: "error",
+          title: "Enquiry Failed",
+          message: res.message || "Unable to complete balance enquiry."
+        });
+      }
+    } catch (err) {
+      AlertService.showAlert({
+        type: "error",
+        title: "Error",
+        message: "Something went wrong. Please try again."
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -337,8 +402,8 @@ const BalanceEnquiry = () => {
             <SelectPicker
               label="SELECT BANK"
               required
-              placeholder="Choose your bank"
-              items={BANK_LIST}
+              placeholder={banksLoading ? "Loading banks..." : "Choose your bank"}
+              items={bankList}
               value={bank}
               onChange={setBank}
               error={errors.bank}
@@ -380,11 +445,16 @@ const BalanceEnquiry = () => {
           {/* Submit */}
           <Animated.View style={{ transform: [{ scale: btnScale }], marginTop: vs(20) }}>
             <TouchableOpacity
-              style={styles.button}
+              style={[styles.button, loading && styles.buttonDisabled]}
               onPress={handleSubmit}
               activeOpacity={0.88}
+              disabled={loading}
             >
-              <Text style={styles.buttonText}>Proceed to Verify  →</Text>
+              {loading ? (
+                <ActivityIndicator color={Colors.white} />
+              ) : (
+                <Text style={styles.buttonText}>Proceed to Verify  →</Text>
+              )}
             </TouchableOpacity>
           </Animated.View>
 
@@ -421,7 +491,7 @@ const styles = StyleSheet.create({
     marginBottom: vs(6),
   },
   titleWhite: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(32), letterSpacing: 0.4 },
-  titleAccent: { fontFamily: Fonts.Bold, color: Colors.accent, fontSize: rs(32), letterSpacing: 0.4 },
+  titleAccent: { fontFamily: Fonts.Bold, color: Colors.kyc_accent, fontSize: rs(32), letterSpacing: 0.4 },
   headerSub: {
     fontFamily: Fonts.Medium,
     color: Colors.whiteOpacity_65,
@@ -443,7 +513,7 @@ const styles = StyleSheet.create({
 
   // ── Cards ──
   card: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.homebg,
     borderRadius: scale(18),
     padding: scale(16),
     elevation: 3,
@@ -463,7 +533,7 @@ const styles = StyleSheet.create({
   cardIcon: { fontSize: rs(20) },
   cardTitle: { fontFamily: Fonts.Bold, fontSize: rs(15), color: Colors.primary },
   cardSub: { fontFamily: Fonts.Medium, fontSize: rs(12), color: Colors.gray_9E, marginTop: 1 },
-  divider: { height: 1, backgroundColor: Colors.gray_F0, marginBottom: vs(14) },
+  divider: { height: 1, backgroundColor: Colors.blackOpacity_05, marginBottom: vs(14) },
 
   // ── Inputs ──
   fieldWrap: { marginBottom: vs(14) },
@@ -474,18 +544,18 @@ const styles = StyleSheet.create({
   required: { color: Colors.accent },
   inputRow: {
     flexDirection: "row", alignItems: "center",
-    backgroundColor: Colors.gray_FA,
+    backgroundColor: Colors.white,
     borderRadius: scale(12),
     borderWidth: 1, borderColor: Colors.gray_EB,
     paddingHorizontal: scale(12),
     minHeight: vs(50),
   },
-  inputRowError: { borderColor: Colors.red_E5, borderWidth: 1.5 },
+  inputRowError: { borderColor: Colors.red, borderWidth: 1 },
   prefix: { fontFamily: Fonts.Bold, color: Colors.primary, fontSize: rs(14), fontWeight: "700", marginRight: scale(4) },
   inputDivider: { width: 1, height: vs(18), backgroundColor: Colors.gray_E0, marginRight: scale(10) },
   input: { fontFamily: Fonts.Medium, flex: 1, fontSize: rs(14), color: Colors.gray_21, padding: 0 },
   inputSuffix: { fontSize: rs(18), marginLeft: scale(6) },
-  errorTxt: { fontFamily: Fonts.Medium, color: Colors.red_E5, fontSize: rs(11), marginTop: vs(3), fontWeight: "500" },
+  errorTxt: { fontFamily: Fonts.Light, color: Colors.red, fontSize: rs(10.5), marginTop: vs(3), fontWeight: "300" },
 
   // ── Device info ──
   deviceInfo: {
@@ -500,13 +570,17 @@ const styles = StyleSheet.create({
 
   // ── Button ──
   button: {
-    backgroundColor: Colors.accent,
+    backgroundColor: Colors.primary,
     paddingVertical: vs(14),
     borderRadius: scale(14),
     alignItems: "center",
     elevation: 3,
-    shadowColor: Colors.accent,
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8,
+  },
+  buttonDisabled: {
+    backgroundColor: Colors.gray_BD,
+    shadowOpacity: 0.1,
   },
   buttonText: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(15), letterSpacing: 0.3 },
 
@@ -537,7 +611,7 @@ const sp = StyleSheet.create({
     paddingHorizontal: scale(12),
     minHeight: vs(50),
   },
-  triggerError: { borderColor: Colors.red_E5, borderWidth: 1.5 },
+  triggerError: { borderColor: Colors.red, borderWidth: 1 },
   triggerLeft: { flexDirection: "row", alignItems: "center", flex: 1 },
   triggerIcon: { fontSize: rs(18), marginRight: scale(8) },
   triggerValue: { fontFamily: Fonts.Bold, fontSize: rs(14), color: Colors.gray_21, fontWeight: "600" },
@@ -565,7 +639,7 @@ const sp = StyleSheet.create({
   chipTxt: { fontFamily: Fonts.Bold, color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
   chipClear: { fontFamily: Fonts.Bold, color: Colors.accent, fontSize: rs(13), fontWeight: "800", marginLeft: scale(2) },
 
-  errorTxt: { fontFamily: Fonts.Medium, color: Colors.red_E5, fontSize: rs(11), marginTop: vs(4), fontWeight: "500" },
+  errorTxt: { fontFamily: Fonts.Light, color: Colors.red, fontSize: rs(10.5), marginTop: vs(4), fontWeight: "300" },
 
   // Backdrop
   backdrop: {

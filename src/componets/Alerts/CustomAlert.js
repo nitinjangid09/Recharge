@@ -140,7 +140,7 @@ export default CustomAlert;
 
 const styles = StyleSheet.create({
   overlay: {
-    flex: 1, justifyContent: "center", alignItems: "center",
+    flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.58)",
   },
   overlayBg: {
     ...StyleSheet.absoluteFillObject,
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
   },
   alertBox: {
     width: width * 0.82,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.white,
     borderRadius: 22 * S,
     alignItems: "center",
     overflow: "hidden",

@@ -92,7 +92,7 @@ const AEPS_Services = ({ navigation }) => {
                             <Text style={styles.balAmt}>₹{parseFloat(aepsBalance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Text>
                         )}
                     </View>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         style={styles.balIcon}
                         onPress={() => NavigationService.navigate("WalletTransactionScreen")}
                     >
@@ -108,14 +108,14 @@ const AEPS_Services = ({ navigation }) => {
 
                 <View style={styles.serviceRow}>
                     {[
-                        { name: "Withdraw", icon: "cash-plus", color: "#6366F1", screen: "CashWithdraw" },
-                        { name: "Enquiry", icon: "bank-outline", color: "#F59E0B", screen: "BalanceEnquiry" },
-                        { name: "Statement", icon: "file-document-outline", color: "#10B981", screen: "MiniStatement" },
+                        { name: "Cash Withdraw", icon: "cash-plus", color: "#6366F1", screen: "CashWithdraw" },
+                        { name: "Balance Enquiry", icon: "bank-outline", color: "#F59E0B", screen: "BalanceEnquiry" },
+                        { name: "Mini Statement", icon: "file-document-outline", color: "#10B981", screen: "MiniStatement" },
                         { name: "Aadhaar Pay", icon: "fingerprint", color: "#EF4444", screen: "AadhaarPay" },
                     ].map((item, idx) => (
-                        <TouchableOpacity 
-                            key={idx} 
-                            style={styles.serviceItem} 
+                        <TouchableOpacity
+                            key={idx}
+                            style={styles.serviceItem}
                             activeOpacity={0.7}
                             onPress={() => NavigationService.navigate(item.screen)}
                         >
@@ -136,7 +136,7 @@ const AEPS_Services = ({ navigation }) => {
                     <TxnRow name="Wallet Topup" date="Apr 09, 11:15 AM" amount="+₹2,000.00" type="cr" />
                     <TxnRow name="Balance Enquiry" date="Apr 09, 10:05 AM" amount="₹0.00" type="enq" />
                 </View>
-                
+
                 <View style={{ height: 40 }} />
             </ScrollView>
         </SafeAreaView>
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     glassBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" },
     sectionHeader: { marginTop: 25, marginBottom: 15 },
     sectionLabel: { fontSize: 11, fontFamily: Fonts.Bold, color: Colors.slate_500, letterSpacing: 1.5 },
-    serviceRow: { flexDirection: "row", flexWrap: "wrap", gap: 12, justifyContent: 'space-between' },
+    serviceRow: { flexDirection: "row", flexWrap: "wrap", gap: 5, justifyContent: 'space-between' },
     serviceItem: { width: (SW - 64) / 4, alignItems: "center", gap: 8 },
     sIconBox: { width: 60 * S, height: 60 * S, borderRadius: 20, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(0,0,0,0.04)" },
     sLabel: { fontSize: 10, fontFamily: Fonts.Bold, color: Colors.slate_700, textAlign: "center" },

@@ -1549,4 +1549,64 @@ export const biometricKyc = async ({ data, headerToken, idempotencyKey }) => {
   }
 };
 
+export const aepsBalanceEnquiry = async ({ data, headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/aepsInstant/balance-enquiry`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "Idempotency-Key": idempotencyKey,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("AEPS Balance Enquiry API Error:", error?.response?.data || error);
+    return (
+      error?.response?.data || {
+        success: false,
+        message: "Balance enquiry failed",
+      }
+    );
+  }
+};
+
+export const aepsMiniStatement = async ({ data, headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/aepsInstant/mini-statement`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "Idempotency-Key": idempotencyKey,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("AEPS Mini Statement API Error:", error?.response?.data || error);
+    return (
+      error?.response?.data || {
+        success: false,
+        message: "Mini statement request failed",
+      }
+    );
+  }
+};
+
+export const aepsCashWithdraw = async ({ data, headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/aepsInstant/cash-withdraw`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "Idempotency-Key": idempotencyKey,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("AEPS Cash Withdraw API Error:", error?.response?.data || error);
+    return (
+      error?.response?.data || {
+        success: false,
+        message: "Cash withdrawal request failed",
+      }
+    );
+  }
+};
+
 
