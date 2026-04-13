@@ -116,6 +116,7 @@ const AEPS_Services = ({ navigation }) => {
                         { name: "Balance Enquiry", Svg: BalanceEnquiryIcon, screen: "BalanceEnquiry" },
                         { name: "Mini Statement", Svg: MiniStatementIcon, screen: "MiniStatement" },
                         { name: "Aadhaar Pay", Svg: aepsIcon, screen: "AadhaarPay" },
+                        { name: "Daily Login", Svg: aepsIcon, screen: "DailyLogin" },
                     ].map((item, idx) => (
                         <TouchableOpacity
                             key={idx}

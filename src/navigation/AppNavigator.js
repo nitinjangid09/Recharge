@@ -29,6 +29,7 @@ import BalanceEnquiry from "../screens/Services/AEPS_Services/BalanceEnquiry";
 import CashWithdraw from "../screens/Services/AEPS_Services/CashWithdraw";
 import MiniStatement from "../screens/Services/AEPS_Services/MiniStatements";
 import AepsRegistration from "../screens/Services/AEPS_Services/AepsRegistration";
+import DailyLogin from "../screens/Services/AEPS_Services/DailyLogin";
 import DmtLogin from "../screens/DMT/DmtLogin"
 import AddBeneficial from "../screens/DMT/AddBeneficial";
 import DmtHome from "../screens/DMT/DmtHome"
@@ -163,6 +164,7 @@ const AppNavigator = () => {
       <Stack.Screen name="MiniStatement" component={MiniStatement} />
       <Stack.Screen name="PaymentReceipt" component={ReceiptScreen} />
       <Stack.Screen name="AepsRegistration" component={AepsRegistration} />
+      <Stack.Screen name="DailyLogin" component={DailyLogin} />
       <Stack.Screen name="AddBenificial" component={AddBeneficial} />
       <Stack.Screen name="DmtHome" component={DmtHome} />
       <Stack.Screen name="MoneyTransfer" component={MoneyTransfer} />
