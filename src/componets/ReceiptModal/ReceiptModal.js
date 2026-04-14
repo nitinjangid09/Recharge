@@ -12,6 +12,7 @@ import {
   ScrollView,
   PanResponder,
   Animated,
+  handleScroll
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -147,13 +148,15 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
             {...panResponder.panHandlers}
           >
             {/* Drag handle */}
-            <View style={styles.handle} />
+            {/* Drag handle */}
 
             <ScrollView
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
               contentContainerStyle={{ flexGrow: 1 }}
               bounces={false}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
             >
               <ViewShot
                 ref={receiptCardRef}
@@ -291,18 +294,10 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 28,
     overflow: "hidden",
     paddingBottom: 20,
-    maxHeight: SCREEN_HEIGHT * 0.92,
+    maxHeight: SCREEN_HEIGHT * 0.82,
   },
-  handle: {
-    width: 36,
-    height: 4,
-    backgroundColor: "rgba(0,0,0,0.12)",
-    borderRadius: 2,
-    alignSelf: "center",
-    marginTop: 10,
-    marginBottom: 6,
-  },
-  banner: { alignItems: "center", paddingTop: 26, paddingBottom: 22, paddingHorizontal: 20, overflow: "hidden" },
+
+  banner: { alignItems: "center", paddingTop: 30, paddingBottom: 16, paddingHorizontal: 20, overflow: "hidden" },
   blob1: { position: "absolute", width: 160, height: 160, borderRadius: 80, backgroundColor: "rgba(255,255,255,0.07)", top: -55, right: -45 },
   blob2: { position: "absolute", width: 110, height: 110, borderRadius: 55, backgroundColor: "rgba(255,255,255,0.07)", top: 10, left: -35 },
   iconRing: { width: 64, height: 64, borderRadius: 32, backgroundColor: "rgba(255,255,255,0.18)", alignItems: "center", justifyContent: "center", marginBottom: 10 },
