@@ -12,7 +12,6 @@ import {
   ScrollView,
   PanResponder,
   Animated,
-  handleScroll
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -46,19 +45,21 @@ const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const ReceiptModal = ({ visible, onClose, navigation, data }) => {
   const [sharing, setSharing] = useState(false);
   const receiptCardRef = useRef(null);
-  const translateY = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
 
   // ── Swipe to close logic ──────────────────────────────────────────────────
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_, { dy }) => dy > 10,
+      onMoveShouldSetPanResponderCapture: (_, { dy }) => dy > 10,
       onPanResponderMove: (_, { dy }) => {
         if (dy > 0) translateY.setValue(dy);
       },
-      onPanResponderRelease: (_, { dy }) => {
-        if (dy > 120) {
-          onClose();
-          Animated.timing(translateY, { toValue: 600, duration: 200, useNativeDriver: true }).start();
+      onPanResponderRelease: (_, { dy, vy }) => {
+        // Close if swiped down far enough or fast enough
+        if (dy > 100 || vy > 0.5) {
+          handleClose();
         } else {
           Animated.spring(translateY, { toValue: 0, bounciness: 5, useNativeDriver: true }).start();
         }
@@ -67,8 +68,22 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
   ).current;
 
   useEffect(() => {
-    if (visible) translateY.setValue(0);
+    if (visible) {
+      Animated.parallel([
+        Animated.spring(translateY, { toValue: 0, bounciness: 2, speed: 18, useNativeDriver: true }),
+        Animated.timing(backdropOpacity, { toValue: 1, duration: 220, useNativeDriver: true }),
+      ]).start();
+    }
   }, [visible]);
+
+  const handleClose = () => {
+    Animated.parallel([
+      Animated.timing(translateY, { toValue: SCREEN_HEIGHT, duration: 250, useNativeDriver: true }),
+      Animated.timing(backdropOpacity, { toValue: 0, duration: 200, useNativeDriver: true }),
+    ]).start(() => {
+      onClose();
+    });
+  };
 
   if (!visible && !data) return null;
 
@@ -134,14 +149,16 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
     <Modal
       visible={visible}
       transparent
-      animationType="slide"
-      onRequestClose={onClose}
+      animationType="none"
+      onRequestClose={handleClose}
       statusBarTranslucent
       hardwareAccelerated
     >
       {!data ? <View /> : (
-        <View style={[styles.overlay, { backgroundColor: Colors.blackOpacity_52 }]}>
-          <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose} />
+        <View style={styles.overlay}>
+          <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.blackOpacity_52, opacity: backdropOpacity }]}>
+            <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={handleClose} />
+          </Animated.View>
 
           <Animated.View
             style={[styles.sheet, { backgroundColor: Colors.finance_bg_1 || Colors.white, transform: [{ translateY }] }]}
@@ -155,8 +172,6 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
               keyboardShouldPersistTaps="handled"
               contentContainerStyle={{ flexGrow: 1 }}
               bounces={false}
-              onScroll={handleScroll}
-              scrollEventThrottle={16}
             >
               <ViewShot
                 ref={receiptCardRef}
