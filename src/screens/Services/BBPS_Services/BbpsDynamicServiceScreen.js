@@ -546,10 +546,26 @@ const BbpsDynamicServiceScreen = () => {
   };
 
   // ─── handlers ─────────────────────────────────────────────────────────────
-  const handleFieldChange = useCallback((name, text) => {
-    setFormData(prev => ({ ...prev, [name]: text }));
-    setFetchedBill(null); setSelectedPayAmount(null);
-    setIsCustomAmount(false); setCustomAmountStr("");
+  const handleFieldChange = useCallback((name, text, field = {}) => {
+    let sanitizedText = text;
+
+    // Based on user request, restrict special characters (. , @ #)
+    // For general fields, we allow Alphanumeric and spaces.
+    // However, if it's explicitly an EMAIL field (though we mostly get TEXT/NUMERIC), we should be careful.
+    // For now, let's implement the restriction as requested.
+    
+    if (field.type === "NUMERIC" || field.type === "NUM") {
+      sanitizedText = text.replace(/[^0-9]/g, "");
+    } else {
+      // Allow only Alphanumeric and spaces for BBPS fields to avoid special character issues
+      sanitizedText = text.replace(/[^a-zA-Z0-9\s]/g, "");
+    }
+
+    setFormData(prev => ({ ...prev, [name]: sanitizedText }));
+    setFetchedBill(null);
+    setSelectedPayAmount(null);
+    setIsCustomAmount(false);
+    setCustomAmountStr("");
   }, []);
 
   const handleOpenCalendar = useCallback((field) => { setActiveCalField(field); setCalendarOpen(true); }, []);
@@ -841,7 +857,7 @@ const BbpsDynamicServiceScreen = () => {
                   key={`${field.name}_${idx}`}
                   field={field}
                   value={formData[field.name] || ""}
-                  onChangeText={(text) => handleFieldChange(field.name, text)}
+                  onChangeText={(text) => handleFieldChange(field.name, text, field)}
                   index={idx}
                   totalFields={dynamicFields.length}
                   onOpenCalendar={() => handleOpenCalendar(field)}
