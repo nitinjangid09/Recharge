@@ -32,43 +32,32 @@ const InputBox = ({
   keyboardType,
   placeholder,
   editable = false,
-}) => {
-  return (
-    <View style={styles.fieldWrapper}>
-      <Text style={styles.boxLabel}>{label}</Text>
-
-      <View
-        pointerEvents={editable ? "auto" : "none"}
-        style={[
-          styles.inputContainer,
-          !editable && styles.disabledBox,
-        ]}
-      >
-        <TextInput
-          value={value}
-          keyboardType={keyboardType || "default"}
-          placeholder={placeholder}
-          placeholderTextColor="#9BA3AF"
-          editable={editable}
-          selectTextOnFocus={editable}
-          onChangeText={editable ? setValue : () => { }}
-          style={[
-            styles.boxInput,
-            !editable && styles.disabledText,
-          ]}
-        />
-
-        <MaterialCommunityIcons
-          name={icon}
-          size={S(18)}
-          color="#9BA3AF"
-          style={styles.inputIcon}
-        />
-      </View>
+}) => (
+  <View style={styles.fieldWrapper}>
+    <Text style={styles.boxLabel}>{label}</Text>
+    <View
+      pointerEvents={editable ? "auto" : "none"}
+      style={[styles.inputContainer, !editable && styles.disabledBox]}
+    >
+      <TextInput
+        value={value}
+        keyboardType={keyboardType || "default"}
+        placeholder={placeholder}
+        placeholderTextColor="#9BA3AF"
+        editable={editable}
+        selectTextOnFocus={editable}
+        onChangeText={editable ? setValue : () => { }}
+        style={[styles.boxInput, !editable && styles.disabledText]}
+      />
+      <MaterialCommunityIcons
+        name={icon}
+        size={S(18)}
+        color={editable ? Colors.finance_accent || "#D4B06A" : "#9BA3AF"}
+        style={styles.inputIcon}
+      />
     </View>
-  );
-};
-
+  </View>
+);
 
 const EditProfileScreen = ({ navigation, route }) => {
   const profileData = route?.params?.profileData;
@@ -77,7 +66,7 @@ const EditProfileScreen = ({ navigation, route }) => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
+  const [address, setAddress] = useState("");   // ← only editable field
   const [aadhar, setAadhar] = useState("");
   const [pan, setPan] = useState("");
   const [profilePic, setProfilePic] = useState("");
@@ -96,7 +85,6 @@ const EditProfileScreen = ({ navigation, route }) => {
       if (!headerToken) return;
 
       const result = await fetchUserProfile({ headerToken });
-
       if (result?.success === true) {
         const d = result.data;
         setName(`${d.firstName || ""} ${d.lastName || ""}`.trim());
@@ -123,23 +111,26 @@ const EditProfileScreen = ({ navigation, route }) => {
     loadUserProfile();
   }, [profileData]);
 
-  const initial = name ? name.charAt(0).toUpperCase() : (username ? username.charAt(0).toUpperCase() : "U");
+  const initial = name
+    ? name.charAt(0).toUpperCase()
+    : username
+      ? username.charAt(0).toUpperCase()
+      : "U";
 
   return (
     <SafeAreaView style={styles.container}>
-
-
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
       >
         <HeaderBar title="Edit Profile" onBack={() => navigation.goBack()} />
+
         <ScrollView
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.innerContainer}
         >
-          {/* AVATAR SECTION — MATCHING SCREENSHOT */}
+          {/* AVATAR */}
           <View style={styles.avatarSection}>
             <View style={styles.avatarRingOuter}>
               <View style={styles.avatarRingInner}>
@@ -158,79 +149,48 @@ const EditProfileScreen = ({ navigation, route }) => {
             <Text style={styles.tapToUpdate}>Tap to update photo</Text>
           </View>
 
-          {/* FIELDS — MATCHING SCREENSHOT LOOK */}
+          {/* FIELDS */}
           <View style={styles.formSection}>
-            <InputBox
-              label="Full Name"
-              placeholder="Full name"
-              value={name}
-              setValue={setName}
-              icon="account-outline"
-              editable={true}
-            />
+            {/* locked */}
+            <InputBox label="Full Name" placeholder="Full name" value={name} icon="account-outline" editable={false} />
+            <InputBox label="Username" placeholder="Username" value={username} icon="lock-outline" editable={false} />
+            <InputBox label="Email Address" placeholder="Email address" value={email} icon="email-outline" editable={false} />
+            <InputBox label="Phone Number" placeholder="Mobile number" value={phone} icon="phone-outline" editable={false} />
 
-            <InputBox
-              label="Username"
-              placeholder="Username"
-              value={username}
-              icon="lock-outline"
-              editable={false}
-            />
-
-            <InputBox
-              label="Email Address"
-              placeholder="Email address"
-              value={email}
-              icon="email-outline"
-              editable={true}
-              setValue={setEmail}
-            />
-
-            <InputBox
-              label="Phone Number"
-              placeholder="Mobile number"
-              value={phone}
-              icon="phone-outline"
-              editable={false}
-            />
-
+            {/* editable */}
             <InputBox
               label="Address"
-              placeholder="Address"
+              placeholder="Enter your address"
               value={address}
+              setValue={setAddress}
               icon="map-marker-outline"
               editable={true}
-              setValue={setAddress}
             />
 
-            <InputBox
-              label="Aadhar Number"
-              placeholder="Aadhar number"
-              value={aadhar}
-              icon="identifier"
-              editable={false}
-            />
-
-            <InputBox
-              label="PAN Number"
-              placeholder="PAN number"
-              value={pan}
-              icon="file-document-outline"
-              editable={false}
-            />
+            {/* locked */}
+            <InputBox label="Aadhar Number" placeholder="Aadhar number" value={aadhar} icon="identifier" editable={false} />
+            <InputBox label="PAN Number" placeholder="PAN number" value={pan} icon="file-document-outline" editable={false} />
           </View>
 
           <View style={{ height: S(40) }} />
         </ScrollView>
 
-        {/* SAVE BUTTON — LARGE BLACK BUTTON */}
+        {/* SAVE BUTTON */}
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.saveBtn} activeOpacity={0.85} onPress={() => navigation.goBack()}>
-            <MaterialCommunityIcons name="content-save-outline" size={S(18)} color="#FFF" style={{ marginRight: S(8) }} />
+          <TouchableOpacity
+            style={styles.saveBtn}
+            activeOpacity={0.85}
+            onPress={() => navigation.goBack()}
+          >
+            <MaterialCommunityIcons
+              name="content-save-outline"
+              size={S(18)}
+              color="#FFF"
+              style={{ marginRight: S(8) }}
+            />
             <Text style={styles.saveBtnText}>Save Changes</Text>
           </TouchableOpacity>
         </View>
-
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -243,38 +203,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFFFF",
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: S(18),
-    height: S(56),
-    backgroundColor: "#FFF",
-  },
-  backBtn: {
-    width: S(36),
-    height: S(36),
-    borderRadius: S(10),
-    backgroundColor: "#F7F8F9",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: {
-    fontSize: S(16),
-    fontFamily: Fonts.Bold,
-    color: "#111",
-  },
-  headerRightBtn: {
-    width: S(36),
-    height: S(36),
-    borderRadius: S(10),
-    backgroundColor: "#FFF9F0",
-    alignItems: "center",
-    justifyContent: "center",
-  },
   innerContainer: {
     paddingBottom: S(20),
   },
+
+  // ── avatar ──
   avatarSection: {
     alignItems: "center",
     marginTop: S(15),
@@ -336,6 +269,8 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Medium,
     letterSpacing: 0.2,
   },
+
+  // ── form ──
   formSection: {
     width: "100%",
     paddingHorizontal: S(20),
@@ -370,14 +305,17 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   disabledBox: {
-    opacity: 0.7,
+    opacity: 0.55,
+    backgroundColor: "#F0F1F3",
   },
   disabledText: {
     color: "#6B7280",
   },
+
+  // ── footer ──
   footer: {
     paddingHorizontal: S(20),
-    paddingBottom: Platform.OS === 'ios' ? S(30) : S(20),
+    paddingBottom: Platform.OS === "ios" ? S(30) : S(20),
     backgroundColor: "#FFFFFF",
   },
   saveBtn: {
@@ -400,5 +338,3 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
 });
-
-

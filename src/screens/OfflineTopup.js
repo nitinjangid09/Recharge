@@ -311,18 +311,18 @@ export default function OfflineTopup({ navigation }) {
       const result = await addOfflineTopupRequest({ amount, mode, receiverBank, utrNumber, paymentDate, paymentProof, headerToken });
       if (result?.success) {
         setReceiptData({
-            status: "success",
-            title: "Request Submitted",
-            amount: amount,
-            date: paymentDate,
-            txn_ref: utrNumber,
-            details: [
-                { label: "Bank", value: selectedBankName },
-                { label: "Payment Mode", value: mode.toUpperCase() },
-                { label: "UTR Number", value: utrNumber },
-                { label: "Amount", value: `₹${amount}` },
-            ],
-            note: "Your topup request has been submitted and is pending approval (usually within 2-4 hours)."
+          status: "success",
+          title: "Request Submitted",
+          amount: amount,
+          date: paymentDate,
+          txn_ref: utrNumber,
+          details: [
+            { label: "Bank", value: selectedBankName },
+            { label: "Payment Mode", value: mode.toUpperCase() },
+            { label: "UTR Number", value: utrNumber },
+            { label: "Amount", value: `₹${amount}` },
+          ],
+          note: "Your topup request has been submitted and is pending approval (usually within 2-4 hours)."
         });
         fetchRequests(); // Automatically refresh list
       } else {
@@ -649,7 +649,7 @@ export default function OfflineTopup({ navigation }) {
       {/* ─── Loader ─── */}
       {submitting && (
         <View style={st.loaderOverlay}>
-          <ActivityIndicator size="large" color={ACCENT} />
+          {/* <ActivityIndicator size="large" color={ACCENT} /> */}
           <Text style={st.loaderTxt}>Submitting request…</Text>
         </View>
       )}
@@ -674,10 +674,10 @@ export default function OfflineTopup({ navigation }) {
       />
 
       <ReceiptModal
-          visible={!!receiptData}
-          onClose={() => setReceiptData(null)}
-          navigation={navigation}
-          data={receiptData}
+        visible={!!receiptData}
+        onClose={() => setReceiptData(null)}
+        navigation={navigation}
+        data={receiptData}
       />
     </SafeAreaView>
   );

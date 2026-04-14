@@ -27,7 +27,31 @@ const AEPS_OnBoard = () => {
     const [currentScreen, setCurrentScreen] = useState(1);
     const [loading, setLoading] = useState(false);
     const [aadhaarNumber, setAadhaarNumber] = useState("");
+    const [statusData, setStatusData] = useState(null);
     const fadeAnim = useRef(new Animated.Value(1)).current;
+
+    useEffect(() => {
+        checkInitialStatus();
+    }, []);
+
+    const checkInitialStatus = async () => {
+        setLoading(true);
+        try {
+            const headerToken = await AsyncStorage.getItem("header_token");
+            const idempotencyKey = `INIT_${Date.now()}`;
+            const res = await getAepsKycStatus({ headerToken, idempotencyKey });
+            if (res.success || res.status === "SUCCESS") {
+                setStatusData(res.data);
+                if (res.data?.action === "NO-ACTION-REQUIRED") {
+                    NavigationService.navigate("AEPS_Services");
+                }
+            }
+        } catch (err) {
+            console.log("Status Init Error:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const goTo = (screen) => {
         Animated.timing(fadeAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
@@ -44,12 +68,22 @@ const AEPS_OnBoard = () => {
             const res = await getAepsKycStatus({ headerToken, idempotencyKey });
 
             if (res.success || res.status === "SUCCESS") {
-                goTo(2);
+                setStatusData(res.data);
+                if (res.data?.action === "NO-ACTION-REQUIRED") {
+                    AlertService.showAlert({
+                        type: "success",
+                        title: "Authenticated",
+                        message: res.data.message || res.message,
+                        onClose: () => NavigationService.navigate("AEPS_Services")
+                    });
+                } else {
+                    goTo(2);
+                }
             } else {
                 AlertService.showAlert({
                     type: "info",
-                    title: "KYC Required",
-                    message: res.message || "Please complete your biometric registration to proceed.",
+                    title: "Action Required",
+                    message: res.data?.message || res.message,
                     onClose: () => goTo(2)
                 });
             }
@@ -106,15 +140,19 @@ const AEPS_OnBoard = () => {
                     <Text style={{ color: Colors.finance_accent }}>Payment System</Text>
                 </Text>
                 <Text style={styles.splashSub}>
-                    Modernized Biometric Authentication Gateway
+                    {statusData?.message || "Modernized Biometric Authentication Gateway"}
                 </Text>
 
                 <View style={styles.statusCard}>
                     <View style={styles.statusBadge}>
                         <View style={styles.statusDot} />
-                        <Text style={styles.statusBadgeTxt}>ONBOARDING HUB</Text>
+                        <Text style={styles.statusBadgeTxt}>
+                            {statusData?.action?.replace(/-/g, " ") || "ONBOARDING HUB"}
+                        </Text>
                     </View>
-                    <Text style={styles.statusMsg}>HARDWARE SYNCHRONIZATION PENDING</Text>
+                    <Text style={styles.statusMsg}>
+                        {statusData?.message ? "SYSTEM SYNCHRONIZED" : "HARDWARE SYNCHRONIZATION PENDING"}
+                    </Text>
                 </View>
 
                 <TouchableOpacity style={styles.btnPrimary} onPress={handleCheckStatus} disabled={loading}>
@@ -196,11 +234,13 @@ const AEPS_OnBoard = () => {
 
                 <View style={styles.alertBanner}>
                     <View style={styles.alertDot} />
-                    <Text style={styles.alertTxt}>RD DEVICE NOT DETECTED · CONNECT BIOMETRIC SCANNER</Text>
+                    <Text style={styles.alertTxt}>
+                        {statusData?.message || "RD DEVICE NOT DETECTED · CONNECT BIOMETRIC SCANNER"}
+                    </Text>
                 </View>
 
-                <TouchableOpacity 
-                    style={styles.btnSecondaryFull} 
+                <TouchableOpacity
+                    style={styles.btnSecondaryFull}
                     onPress={() => NavigationService.navigate("AEPS_Services")}
                 >
                     <Text style={styles.btnSecondaryTxt}>Open AEPS Services</Text>
@@ -250,7 +290,7 @@ const styles = StyleSheet.create({
     alertTxt: { flex: 1, color: "rgba(255,255,255,0.5)", fontSize: 10 * S, fontFamily: Fonts.Bold, lineHeight: 14 },
     btnPrimary: { backgroundColor: Colors.finance_accent, height: 56 * S, borderRadius: 28, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingHorizontal: 25 * S, elevation: 10, shadowColor: Colors.finance_accent, shadowOpacity: 0.3, shadowRadius: 15 },
     btnTxt: { fontSize: 15, fontFamily: Fonts.Bold, color: Colors.white },
-    
+
     btnSecondaryFull: { width: '100%', height: 50 * S, borderRadius: 20, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", flexDirection: "row", alignItems: "center", justifyContent: "center", marginTop: 20 * S, backgroundColor: 'rgba(255,255,255,0.02)' },
     btnSecondaryTxt: { fontSize: 13, fontFamily: Fonts.Bold, color: "rgba(255,255,255,0.7)", marginRight: 5 },
 

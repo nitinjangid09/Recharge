@@ -203,18 +203,16 @@ export default function OTP({ navigation, route }) {
         const kycStatus = result?.user?.kycStatus;
         const idPaymentStatus = result?.user?.idPaymentStatus;
 
-        if (idPaymentStatus === "complete") {
-          navigateTo("PaymentVerification");
-        } else if (idPaymentStatus === "approve") {
-          navigateTo("FinanceHome");
-        } else if (kycStatus === "approved") {
+        if (kycStatus === "approved") {
           navigateTo("FinanceHome");
         } else if (kycStatus === "submitted") {
           navigateTo("KycSubmitted");
         } else if (kycStatus === "rekyc") {
           navigateTo("Offlinekyc", { user: result.user });
         } else if (isPaymentDone === false) {
-          if (idPaymentStatus === "reject") {
+          if (idPaymentStatus === "complete") {
+            navigateTo("PaymentVerification");
+          } else if (idPaymentStatus === "reject") {
             navigateTo("ActivateAccountScreen");
           } else {
             navigateTo("ActivateAccountScreen");
@@ -363,7 +361,7 @@ export default function OTP({ navigation, route }) {
           </Animated.View>
 
           {/* Verify Button */}
-          <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
+          {/* <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
             <TouchableOpacity
               style={styles.btn}
               onPress={handleVerifyOtp}
@@ -371,7 +369,7 @@ export default function OTP({ navigation, route }) {
             >
               <Text style={styles.btnText}>Verify & Proceed</Text>
             </TouchableOpacity>
-          </Animated.View>
+          </Animated.View> */}
 
           {/* Resend */}
           <View style={styles.resendContainer}>

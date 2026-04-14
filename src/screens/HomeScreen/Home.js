@@ -587,7 +587,7 @@ export default function FinanceHome({ navigation }) {
                   >
                     <View style={S.circ1} /><View style={S.circ2} />
                     <View style={S.rowBetween}>
-                      <View style={[S.walletTag, { borderColor: "#d4b06a", backgroundColor: "rgba(212,176,106,0.2)" }]}>
+                      <View style={[S.walletTag, { borderColor: "#d4b06a" }]}>
                         <Icon name="wallet-membership" size={rs(13)} color="#d4b06a" />
                         <Text style={[S.walletTagTxt, { color: "#d4b06a" }]}>Main Wallet</Text>
                       </View>
