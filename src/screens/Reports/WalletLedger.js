@@ -733,43 +733,7 @@ const WalletTransactionScreen = ({ navigation }) => {
     return true;
   });
 
-  const ListHeader = () => (
-    <View>
-      <View style={S.sfRow}>
-        <View style={S.sfSearchBox}>
-          <Icon name="magnify" size={rs(18)} color={Colors.hex_C79A3F} style={{ marginRight: sc(10) }} />
-          <TextInput
-            style={S.sfInput}
-            placeholder="Search by user or service..."
-            placeholderTextColor={Colors.text_placeholder}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          {!!searchQuery && (
-            <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <Icon name="close-circle" size={rs(16)} color={Colors.text_placeholder} />
-            </TouchableOpacity>
-          )}
-        </View>
-        <TouchableOpacity style={S.sfFilterBtn} onPress={() => setFilterVisible(true)}>
-          <View style={S.sfFilterIconBox}>
-            <Icon name="tune-variant" size={rs(18)} color={Colors.kyc_accent} />
-          </View>
-        </TouchableOpacity>
-      </View>
-      <FilterPills filters={filters} onRemove={removeFilter} />
-      {filteredTransactions.length > 0 && (
-        <SummaryStrip data={filteredTransactions} fromDate={startDate} toDate={endDate} />
-      )}
-      {searched && !loading && filteredTransactions.length > 0 && (
-        <View style={S.sectionRow}>
-          <Icon name="format-list-bulleted" size={rs(13)} color={Colors.black} style={{ marginRight: sc(6) }} />
-          <Text style={S.sectionTxt}>{filteredTransactions.length} TRANSACTIONS</Text>
-          <View style={S.allPill}><Text style={S.allPillTxt}>All ▾</Text></View>
-        </View>
-      )}
-    </View>
-  );
+
 
   return (
     <SafeAreaView style={S.safe} edges={['top']}>
@@ -791,7 +755,20 @@ const WalletTransactionScreen = ({ navigation }) => {
             onPressReceipt={() => { setDetailItem(item); setDetailVisible(true); }}
           />
         )}
-        ListHeaderComponent={ListHeader}
+        ListHeaderComponent={
+          <ListHeader
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            setFilterVisible={setFilterVisible}
+            filters={filters}
+            removeFilter={removeFilter}
+            filteredTransactions={filteredTransactions}
+            startDate={startDate}
+            endDate={endDate}
+            searched={searched}
+            loading={loading}
+          />
+        }
         ListEmptyComponent={searched && !loading && !error ? (
           <View style={S.emptyWrap}>
             <Icon name="file-search-outline" size={rs(52)} color={`${Colors.gold}55`} />
@@ -823,6 +800,55 @@ const WalletTransactionScreen = ({ navigation }) => {
 };
 
 export default WalletTransactionScreen;
+
+const ListHeader = ({
+  searchQuery,
+  setSearchQuery,
+  setFilterVisible,
+  filters,
+  removeFilter,
+  filteredTransactions,
+  startDate,
+  endDate,
+  searched,
+  loading
+}) => (
+  <View>
+    <View style={S.sfRow}>
+      <View style={S.sfSearchBox}>
+        <Icon name="magnify" size={rs(18)} color={Colors.hex_C79A3F} style={{ marginRight: sc(10) }} />
+        <TextInput
+          style={S.sfInput}
+          placeholder="Search by user or service..."
+          placeholderTextColor={Colors.text_placeholder}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        {!!searchQuery && (
+          <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Icon name="close-circle" size={rs(16)} color={Colors.text_placeholder} />
+          </TouchableOpacity>
+        )}
+      </View>
+      <TouchableOpacity style={S.sfFilterBtn} onPress={() => setFilterVisible(true)}>
+        <View style={S.sfFilterIconBox}>
+          <Icon name="tune-variant" size={rs(18)} color={Colors.kyc_accent} />
+        </View>
+      </TouchableOpacity>
+    </View>
+    <FilterPills filters={filters} onRemove={removeFilter} />
+    {filteredTransactions.length > 0 && (
+      <SummaryStrip data={filteredTransactions} fromDate={startDate} toDate={endDate} />
+    )}
+    {searched && !loading && filteredTransactions.length > 0 && (
+      <View style={S.sectionRow}>
+        <Icon name="format-list-bulleted" size={rs(13)} color={Colors.black} style={{ marginRight: sc(6) }} />
+        <Text style={S.sectionTxt}>{filteredTransactions.length} TRANSACTIONS</Text>
+        <View style={S.allPill}><Text style={S.allPillTxt}>All ▾</Text></View>
+      </View>
+    )}
+  </View>
+);
 
 const MONO = Platform.select({ ios: 'Courier New', android: 'monospace' });
 const CARD_S = StyleSheet.create({

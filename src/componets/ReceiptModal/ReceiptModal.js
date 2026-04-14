@@ -87,7 +87,8 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
 
   if (!visible && !data) return null;
 
-  const isSuccess = data?.status === "success" || data?.status === "SUCCESS";
+  const isSuccess = data?.status?.toLowerCase() === "success";
+  const isPending = data?.status?.toLowerCase() === "pending";
 
   const dateStr = data?.date || new Date().toLocaleString("en-IN", {
     day: "2-digit", month: "short", year: "numeric",
@@ -182,7 +183,7 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
                 <LinearGradient
                   colors={isSuccess
                     ? [Colors.success || "#22C55E", Colors.success_dark || "#059669"]
-                    : data.status === "pending"
+                    : isPending
                       ? [Colors.amber || "#F59E0B", Colors.amber_dark || "#D97706"]
                       : [Colors.error || "#EF4444", Colors.error_dark || "#DC2626"]}
                   start={{ x: 0, y: 0 }}
@@ -193,12 +194,14 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
                   <View style={styles.blob2} />
                   <View style={styles.iconRing}>
                     <Icon
-                      name={isSuccess ? "check-circle-outline" : data.status === "pending" ? "clock-outline" : "close-circle-outline"}
+                      name={isSuccess ? "check-circle-outline" : isPending ? "clock-outline" : "close-circle-outline"}
                       size={36}
                       color={Colors.white}
                     />
                   </View>
-                  <Text style={styles.bannerTitle}>{data.title || (isSuccess ? "Transaction Successful" : "Transaction Failed")}</Text>
+                  <Text style={styles.bannerTitle}>
+                    {data.title || (isSuccess ? "Transaction Successful" : isPending ? "Transaction Pending" : "Transaction Failed")}
+                  </Text>
                   <Text style={styles.bannerDate}>{dateStr}</Text>
                 </LinearGradient>
 
@@ -255,8 +258,16 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
 
                 {/* Note */}
                 {data?.note && (
-                  <View style={[styles.note, isSuccess ? { backgroundColor: Colors.successOpacity_10, borderColor: Colors.success_ring } : { backgroundColor: Colors.warningOpacity_10, borderColor: Colors.warningOpacity_30 }]}>
-                    <View style={[styles.noteDot, { backgroundColor: isSuccess ? Colors.success : Colors.error }]} />
+                  <View style={[
+                    styles.note,
+                    isSuccess ? { backgroundColor: Colors.successOpacity_10, borderColor: Colors.success_ring } :
+                    isPending ? { backgroundColor: Colors.amberOpacity_15, borderColor: Colors.amberOpacity_30 } :
+                    { backgroundColor: Colors.warningOpacity_10, borderColor: Colors.warningOpacity_30 }
+                  ]}>
+                    <View style={[
+                      styles.noteDot,
+                      { backgroundColor: isSuccess ? Colors.success : isPending ? Colors.amber : Colors.error }
+                    ]} />
                     <Text style={[styles.noteTxt, { color: Colors.finance_text }]} numberOfLines={2}>{data.note}</Text>
                   </View>
                 )}
