@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
   Platform,
   Alert,
   ScrollView,
+  PanResponder,
+  Animated,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -43,6 +45,29 @@ const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const ReceiptModal = ({ visible, onClose, navigation, data }) => {
   const [sharing, setSharing] = useState(false);
   const receiptCardRef = useRef(null);
+  const translateY = useRef(new Animated.Value(0)).current;
+
+  // ── Swipe to close logic ──────────────────────────────────────────────────
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, { dy }) => dy > 10,
+      onPanResponderMove: (_, { dy }) => {
+        if (dy > 0) translateY.setValue(dy);
+      },
+      onPanResponderRelease: (_, { dy }) => {
+        if (dy > 120) {
+          onClose();
+          Animated.timing(translateY, { toValue: 600, duration: 200, useNativeDriver: true }).start();
+        } else {
+          Animated.spring(translateY, { toValue: 0, bounciness: 5, useNativeDriver: true }).start();
+        }
+      },
+    })
+  ).current;
+
+  useEffect(() => {
+    if (visible) translateY.setValue(0);
+  }, [visible]);
 
   if (!visible && !data) return null;
 
@@ -117,7 +142,10 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
         <View style={[styles.overlay, { backgroundColor: Colors.blackOpacity_52 }]}>
           <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose} />
 
-          <View style={[styles.sheet, { backgroundColor: Colors.finance_bg_1 }]}>
+          <Animated.View
+            style={[styles.sheet, { backgroundColor: Colors.finance_bg_1 || Colors.white, transform: [{ translateY }] }]}
+            {...panResponder.panHandlers}
+          >
             {/* Drag handle */}
             <View style={styles.handle} />
 
@@ -186,7 +214,7 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
                       <Text style={[styles.rowLbl, { color: Colors.finance_text_light }]}>{row.label}</Text>
                       {row.isStatusPill ? (
                         <View style={[styles.statusPill, { backgroundColor: row.color || Colors.primary }]}>
-                          <Text style={styles.statusPillTxt}>{row.value.toUpperCase()}</Text>
+                          <Text style={styles.statusPillTxt}>{String(row.value).toUpperCase()}</Text>
                         </View>
                       ) : (
                         <Text
@@ -249,7 +277,7 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
                 </TouchableOpacity>
               )}
             </View>
-          </View>
+          </Animated.View>
         </View>
       )}
     </Modal>

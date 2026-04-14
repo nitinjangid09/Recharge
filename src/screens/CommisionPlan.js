@@ -3,7 +3,7 @@
  * React Native — Commission Plan Screen for Camlenio
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View,
     Text,
@@ -15,6 +15,9 @@ import {
     TextInput,
     Modal,
     RefreshControl,
+    Animated,
+    PanResponder,
+    Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -97,6 +100,8 @@ const SectionHeader = ({ title, tag, color, }) => (
         </View>
     </View>
 );
+
+const { height: SH } = Dimensions.get('window');
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function CommissionPlanScreen({ navigation }) {
@@ -190,6 +195,40 @@ export default function CommissionPlanScreen({ navigation }) {
         return name.includes(tab) || category.includes(tab);
     }));
 
+    const slideA = useRef(new Animated.Value(SH)).current;
+    const backdropA = useRef(new Animated.Value(0)).current;
+
+    // ── Swipe to close logic ──────────────────────────────────────────────────
+    const panResponder = useRef(
+        PanResponder.create({
+            onMoveShouldSetPanResponder: (_, { dy }) => dy > 10,
+            onPanResponderMove: (_, { dy }) => {
+                if (dy > 0) slideA.setValue(dy);
+            },
+            onPanResponderRelease: (_, { dy }) => {
+                if (dy > 120) {
+                    setIsFilterVisible(false);
+                } else {
+                    Animated.spring(slideA, { toValue: 0, bounciness: 5, useNativeDriver: true }).start();
+                }
+            },
+        })
+    ).current;
+
+    useEffect(() => {
+        if (isFilterVisible) {
+            Animated.parallel([
+                Animated.spring(slideA, { toValue: 0, friction: 8, tension: 70, useNativeDriver: true }),
+                Animated.timing(backdropA, { toValue: 1, duration: 250, useNativeDriver: true }),
+            ]).start();
+        } else {
+            Animated.parallel([
+                Animated.timing(slideA, { toValue: SH, duration: 250, useNativeDriver: true }),
+                Animated.timing(backdropA, { toValue: 0, duration: 200, useNativeDriver: true }),
+            ]).start();
+        }
+    }, [isFilterVisible]);
+
     return (
         <SafeAreaView style={s.root} edges={['top', 'bottom']}>
             <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
@@ -204,7 +243,7 @@ export default function CommissionPlanScreen({ navigation }) {
             {loading ? null : error ? (
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
                     <Text style={{ color: Colors.finance_error, textAlign: 'center' }}>{error}</Text>
-                    <TouchableOpacity onPress={fetchPlan} style={{ marginTop: 12, paddingHorizontal: 20, paddingVertical: 10, backgroundColor: Colors.primary, borderRadius: 8 }}>
+                    <TouchableOpacity onPress={() => fetchPlan()} style={{ marginTop: 12, paddingHorizontal: 20, paddingVertical: 10, backgroundColor: Colors.primary, borderRadius: 8 }}>
                         <Text style={{ color: Colors.white, fontWeight: '700', fontFamily: Fonts.Bold }}>Retry</Text>
                     </TouchableOpacity>
                 </View>
@@ -216,7 +255,7 @@ export default function CommissionPlanScreen({ navigation }) {
                     refreshControl={
                         <RefreshControl
                             refreshing={refreshing}
-                            onRefresh={onRefresh}
+                            onRefresh={() => onRefresh()}
                             tintColor={Colors.finance_accent}
                             colors={[Colors.finance_accent]}
                         />
@@ -304,15 +343,15 @@ export default function CommissionPlanScreen({ navigation }) {
                     <Modal
                         visible={isFilterVisible}
                         transparent
-                        animationType="slide"
+                        animationType="none"
                         onRequestClose={() => setIsFilterVisible(false)}
                     >
-                        <TouchableOpacity
-                            style={s.modalOverlay}
-                            activeOpacity={1}
-                            onPress={() => setIsFilterVisible(false)}
+                        <Animated.View
+                            style={[s.modalOverlay, { opacity: backdropA }]}
                         >
-                            <View style={s.modalContent}>
+                            <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={() => setIsFilterVisible(false)} />
+                        </Animated.View>
+                        <Animated.View style={[s.modalContent, { transform: [{ translateY: slideA }] }]} {...panResponder.panHandlers}>
                                 <View style={s.modalHeader}>
                                     <Text style={s.modalTitle}>Choose Service Filter</Text>
                                     <TouchableOpacity onPress={() => setIsFilterVisible(false)}>
@@ -352,8 +391,7 @@ export default function CommissionPlanScreen({ navigation }) {
                                         })}
                                     </ScrollView>
                                 )}
-                            </View>
-                        </TouchableOpacity>
+                            </Animated.View>
                     </Modal>
 
                     <View style={s.searchWrap}>

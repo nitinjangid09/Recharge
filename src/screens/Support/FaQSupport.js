@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,9 @@ import {
   FlatList,
   ActivityIndicator,
   Platform,
+  Animated,
+  PanResponder,
+  Dimensions,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -28,6 +31,8 @@ import CustomAlert from "../../componets/Alerts/CustomAlert";
 /* ─────────────────────────────────────────────
    Helpers
 ─────────────────────────────────────────────*/
+
+const { width: SW, height: SH } = Dimensions.get("window");
 
 /** Retrieve the saved auth token from AsyncStorage */
 const getToken = async () => {
@@ -69,20 +74,51 @@ const normaliseService = (item, index) => {
 
 const ServicePicker = ({ visible, services, selected, onSelect, onClose }) => {
   const normalised = (services || []).map(normaliseService);
+  const slideA = useRef(new Animated.Value(SH)).current;
+  const backdropA = useRef(new Animated.Value(0)).current;
+
+  // ── Swipe to close logic ──────────────────────────────────────────────────
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, { dy }) => dy > 10,
+      onPanResponderMove: (_, { dy }) => {
+        if (dy > 0) slideA.setValue(dy);
+      },
+      onPanResponderRelease: (_, { dy }) => {
+        if (dy > 120) {
+          onClose();
+        } else {
+          Animated.spring(slideA, { toValue: 0, bounciness: 5, useNativeDriver: true }).start();
+        }
+      },
+    })
+  ).current;
+
+  useEffect(() => {
+    if (visible) {
+      Animated.parallel([
+        Animated.spring(slideA, { toValue: 0, friction: 8, tension: 70, useNativeDriver: true }),
+        Animated.timing(backdropA, { toValue: 1, duration: 250, useNativeDriver: true }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(slideA, { toValue: SH, duration: 250, useNativeDriver: true }),
+        Animated.timing(backdropA, { toValue: 0, duration: 200, useNativeDriver: true }),
+      ]).start();
+    }
+  }, [visible]);
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
-      <TouchableOpacity
-        style={pickerStyles.overlay}
-        activeOpacity={1}
-        onPress={onClose}
-      >
-        <TouchableOpacity activeOpacity={1} style={pickerStyles.sheet} onPress={() => { }}>
+    <Modal visible={visible} transparent onRequestClose={onClose} animationType="none">
+      <View style={pickerStyles.overlay}>
+        <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.5)', opacity: backdropA }]}>
+          <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose} />
+        </Animated.View>
+
+        <Animated.View
+          style={[pickerStyles.sheet, { transform: [{ translateY: slideA }] }]}
+          {...panResponder.panHandlers}
+        >
           <View style={pickerStyles.handle} />
 
           <Text style={pickerStyles.title}>Select Service Type</Text>
@@ -117,8 +153,8 @@ const ServicePicker = ({ visible, services, selected, onSelect, onClose }) => {
           <TouchableOpacity style={pickerStyles.closeBtn} onPress={onClose}>
             <Text style={pickerStyles.closeTxt}>Cancel</Text>
           </TouchableOpacity>
-        </TouchableOpacity>
-      </TouchableOpacity>
+        </Animated.View>
+      </View>
     </Modal>
   );
 };
@@ -437,7 +473,7 @@ const FaqSupportScreen = () => {
         {/* Support History Directly on Screen */}
         <View style={historyStyles.header}>
           <Text style={historyStyles.title}>My Support Tickets</Text>
-          <TouchableOpacity onPress={loadData} disabled={loading}>
+          <TouchableOpacity onPress={() => loadData()} disabled={loading}>
             <Text style={styles.refreshBtn}>{loading ? "…" : "↻ Refresh"}</Text>
           </TouchableOpacity>
         </View>
