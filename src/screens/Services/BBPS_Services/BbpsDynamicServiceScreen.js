@@ -905,7 +905,11 @@ const BbpsDynamicServiceScreen = () => {
 
               {(fetchedBill.data?.additionalInfo?.info || fetchedBill.additionalInfo?.info || []).map((info, idx) => {
                 const isNum = !isNaN(Number(info.infoValue)) && info.infoValue.trim() !== "";
-                if (!isNum) return (
+                // Exception for Balance fields: show as static row, not radio button
+                const lowerName = (info.infoName || "").toLowerCase();
+                const isBalanceField = lowerName.includes("balance") || lowerName.includes("fast tag") || lowerName.includes("fastag");
+                const isStatic = !isNum || isBalanceField;
+                if (isStatic) return (
                   <View key={`info_${idx}`} style={[styles.billRow, { paddingHorizontal: 14 }]}>
                     <Text style={styles.billLabel}>{info.infoName}</Text>
                     <Text style={styles.billValue}>{info.infoValue}</Text>
