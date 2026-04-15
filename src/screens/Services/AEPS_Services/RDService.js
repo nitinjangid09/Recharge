@@ -66,7 +66,7 @@ const getNativeModule = () => {
 //
 // Check if an RD Service app is installed on the device.
 //
-// @param {string} deviceKey  - One of: 'MANTRA' | 'MORPHO' | 'STARTEK' | 'SECUGEN'
+// @param {string} deviceKey  - One of: 'MANTRA' | 'MANTRA_MFS110' | 'MORPHO' | 'STARTEK' | 'SECUGEN'
 // @returns {Promise<boolean>}
 //
 // Example:
@@ -84,7 +84,7 @@ const isInstalled = async (deviceKey) => {
 // Launch the RD Service app and capture a fingerprint.
 // Returns the PID XML string on success.
 //
-// @param {string} deviceKey  - One of: 'MANTRA' | 'MORPHO' | 'STARTEK' | 'SECUGEN'
+// @param {string} deviceKey  - One of: 'MANTRA' | 'MANTRA_MFS110' | 'MORPHO' | 'STARTEK' | 'SECUGEN'
 // @returns {Promise<string>} PID XML data
 //
 // Rejects with codes:
@@ -108,7 +108,7 @@ const capture = async (deviceKey) => {
 //
 // Open the Play Store page for the RD Service app.
 //
-// @param {string} deviceKey  - One of: 'MANTRA' | 'MORPHO' | 'STARTEK' | 'SECUGEN'
+// @param {string} deviceKey  - One of: 'MANTRA' | 'MANTRA_MFS110' | 'MORPHO' | 'STARTEK' | 'SECUGEN'
 // @returns {Promise<boolean>}
 //
 // Example:
