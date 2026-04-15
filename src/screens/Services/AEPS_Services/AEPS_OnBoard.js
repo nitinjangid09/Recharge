@@ -560,7 +560,6 @@ const AEPS_OnBoard = () => {
                 <View style={styles.deviceSupportRow}>
                     {[
                         { icon: "gesture-tap", label: "Mantra\nMFS100" },
-                        { icon: "fingerprint", label: "Mantra\nMFS110" },
                         { icon: "hand-wave-outline", label: "Morpho\nMSO 1300" },
                         { icon: "fingerprint", label: "Startek\nFM220" },
                         { icon: "usb-port", label: "Other\nISO RD" },

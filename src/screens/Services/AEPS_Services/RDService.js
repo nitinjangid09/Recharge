@@ -4,11 +4,10 @@
  * JavaScript bridge for the RDServiceModule native Android module.
  *
  * Supported RD Service devices:
- *   MANTRA        → Mantra MFS100       (com.mantra.rdservice)
- *   MANTRA_MFS110 → Mantra MFS110       (com.mantra.mfs110.rdservice)
- *   MORPHO        → Morpho MSO 1300     (com.idemia.l1rdservice)
- *   STARTEK       → Startek FM220       (com.startek.rdservice)
- *   SECUGEN       → SecuGen Hamster     (com.secugen.rdservice)
+ *   MANTRA  → Mantra MFS100       (com.mantra.rdservice)
+ *   MORPHO  → Morpho MSO 1300     (com.idemia.l1rdservice)
+ *   STARTEK → Startek FM220       (com.startek.rdservice)
+ *   SECUGEN → SecuGen Hamster     (com.secugen.rdservice)
  *
  * Usage:
  *   import RDService from './RDService';
@@ -42,6 +41,7 @@ export const RD_DEVICE_LABELS = {
 export const DEVICE_LIST = Object.entries(RD_DEVICE_LABELS).map(([value, label]) => ({
   value,
   label,
+  icon: '🖐',
 }));
 
 // ─── Get native module (Android only) ────────────────────────────────────────
@@ -66,7 +66,7 @@ const getNativeModule = () => {
 //
 // Check if an RD Service app is installed on the device.
 //
-// @param {string} deviceKey  - One of: 'MANTRA' | 'MANTRA_MFS110' | 'MORPHO' | 'STARTEK' | 'SECUGEN'
+// @param {string} deviceKey  - One of: 'MANTRA' | 'MORPHO' | 'STARTEK' | 'SECUGEN'
 // @returns {Promise<boolean>}
 //
 // Example:
@@ -84,7 +84,7 @@ const isInstalled = async (deviceKey) => {
 // Launch the RD Service app and capture a fingerprint.
 // Returns the PID XML string on success.
 //
-// @param {string} deviceKey  - One of: 'MANTRA' | 'MANTRA_MFS110' | 'MORPHO' | 'STARTEK' | 'SECUGEN'
+// @param {string} deviceKey  - One of: 'MANTRA' | 'MORPHO' | 'STARTEK' | 'SECUGEN'
 // @returns {Promise<string>} PID XML data
 //
 // Rejects with codes:
@@ -108,7 +108,7 @@ const capture = async (deviceKey) => {
 //
 // Open the Play Store page for the RD Service app.
 //
-// @param {string} deviceKey  - One of: 'MANTRA' | 'MANTRA_MFS110' | 'MORPHO' | 'STARTEK' | 'SECUGEN'
+// @param {string} deviceKey  - One of: 'MANTRA' | 'MORPHO' | 'STARTEK' | 'SECUGEN'
 // @returns {Promise<boolean>}
 //
 // Example:

@@ -22,6 +22,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AlertService } from "../../../componets/Alerts/CustomAlert";
 import * as NavigationService from "../../../utils/NavigationService";
 import { ActivityIndicator } from "react-native";
+import RDService from "./RDService";
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get("window");
 const BASE_W = 390;
@@ -33,12 +34,8 @@ const rs = (s) => Math.round(Math.sqrt((SW * SH) / (BASE_W * BASE_H)) * s * 1.2)
 // ── Data ──────────────────────────────────────────────────────────────────────
 // Removed hardcoded BANK_LIST
 
-const DEVICE_LIST = [
-  { label: "Mantra MFS100", value: "MANTRA", icon: "🖐" },
-  { label: "Morpho MSO 1300", value: "MORPHO", icon: "🖐" },
-  { label: "Startek FM220", value: "STARTEK", icon: "🖐" },
-  { label: "SecuGen Hamster", value: "SECUGEN", icon: "🖐" },
-];
+// ─── Device list comes from RDService.js ─────────────────────────────────────
+const DEVICE_LIST = RDService.DEVICE_LIST;
 
 // ══════════════════════════════════════════════════════════════════════════════
 //  CUSTOM SELECT PICKER
