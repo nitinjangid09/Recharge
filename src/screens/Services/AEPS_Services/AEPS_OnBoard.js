@@ -1,4 +1,7 @@
-import React, { useState, useRef, useEffect } from "react";
+// AEPS_OnBoard.jsx — Rewritten with full RD Service device integration
+// Reference: NewTwoFactorAepsActivity.java + RdService.js
+
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
     View,
     Text,
@@ -9,37 +12,202 @@ import {
     StatusBar,
     TextInput,
     ActivityIndicator,
+    ScrollView,
+    Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import LinearGradient from "react-native-linear-gradient";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import Colors from "../../../constants/Colors";
 import Fonts from "../../../constants/Fonts";
 import * as NavigationService from "../../../utils/NavigationService";
 import { getAepsKycStatus, biometricKyc } from "../../../api/AuthApi";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AlertService } from "../../../componets/Alerts/CustomAlert";
 
+// ─── RD Service Layer ─────────────────────────────────────────────────────────
+// Inline RD service (mirrors RdService.js logic)
+let _captureUrl = "";
+let _infoUrl = "";
+
+const RdService = {
+    /** Scan ports 11100–11120 for an active RD device */
+    discover: async () => {
+        const base = "http://127.0.0.1:";
+        for (let port = 11100; port <= 11120; port++) {
+            try {
+                const res = await fetch(`${base}${port}`, { method: "RDSERVICE" });
+                const text = await res.text();
+                const parser = new DOMParser();
+                const xml = parser.parseFromString(text, "text/xml");
+                const rdNode = xml.getElementsByTagName("RDService")[0];
+                const status = rdNode?.getAttribute("status");
+
+                if (status === "READY" || status === "USED") {
+                    const interfaces = xml.getElementsByTagName("Interface");
+                    let capturePath = "";
+                    let infoPath = "";
+                    for (let intf of interfaces) {
+                        const path = intf.getAttribute("path") || "";
+                        if (path.includes("capture")) capturePath = path;
+                        if (path.includes("info")) infoPath = path;
+                    }
+                    _captureUrl = `${base}${port}${capturePath}`;
+                    _infoUrl = `${base}${port}${infoPath}`;
+                    return {
+                        success: true,
+                        port,
+                        status,
+                        captureUrl: _captureUrl,
+                        infoUrl: _infoUrl,
+                        rawXml: text,
+                    };
+                }
+            } catch (_) {
+                // port not responding — continue
+            }
+        }
+        return { success: false, message: "No RD device found on ports 11100–11120" };
+    },
+
+    /** Fetch device info (serial, model, firmware) */
+    info: async () => {
+        if (!_infoUrl) return { success: false, message: "Device not connected" };
+        try {
+            const res = await fetch(_infoUrl, { method: "DEVICEINFO" });
+            const data = await res.text();
+            return { success: true, data };
+        } catch {
+            return { success: false, message: "Device info request failed" };
+        }
+    },
+
+    /** Capture fingerprint PID. wadh is set for KYC mode. */
+    capture: async (kycMode = true) => {
+        if (!_captureUrl) return { success: false, message: "Device not connected" };
+
+        // Build PidOptions XML (mirrors Java PidOptions model + RdService.js logic)
+        const wadh = kycMode
+            ? `"E0jzJ/P8UopUHAieZn8CKqS4WPMi5ZSYXgfnlfkWjrc="`
+            : `""`;
+
+        const pidXml = `<?xml version="1.0"?>
+<PidOptions>
+  <Opts fCount="1" fType="2" iCount="0" pCount="0"
+        format="0" pidVer="2.0" timeout="10000"
+        posh="UNKNOWN" env="P"
+        wadh=${wadh} />
+</PidOptions>`;
+
+        try {
+            const res = await fetch(_captureUrl, {
+                method: "CAPTURE",
+                body: pidXml,
+                headers: { "Content-Type": "text/xml" },
+            });
+
+            let pidData = await res.text();
+            pidData = pidData.replace(/\r?\n|\r/g, "").trim().replace(/>\s+</g, "><");
+
+            const parser = new DOMParser();
+            const parsed = parser.parseFromString(pidData, "text/xml");
+            const resp = parsed.getElementsByTagName("Resp")[0];
+            const errCode = resp?.getAttribute("errCode");
+            const errInfo = resp?.getAttribute("errInfo") || "Capture failed";
+
+            if (errCode === "0") {
+                return { success: true, data: pidData };
+            }
+            return { success: false, message: errInfo };
+        } catch {
+            return { success: false, message: "Capture request failed. Check scanner." };
+        }
+    },
+};
+
+// ─── Constants ────────────────────────────────────────────────────────────────
 const { width: SW } = Dimensions.get("window");
 const S = SW / 375;
 
-const AEPS_OnBoard = () => {
-    const [currentScreen, setCurrentScreen] = useState(1);
-    const [loading, setLoading] = useState(false);
-    const [aadhaarNumber, setAadhaarNumber] = useState("");
-    const [statusData, setStatusData] = useState(null);
-    const fadeAnim = useRef(new Animated.Value(1)).current;
+const SCREENS = { HUB: 1, BIOMETRIC: 2, CAPTURING: 3 };
 
+const GOLD = "#D4A843";
+const GOLD_DIM = "rgba(212,168,67,0.15)";
+const GOLD_BORDER = "rgba(212,168,67,0.25)";
+const WHITE = "#FFFFFF";
+const WHITE_05 = "rgba(255,255,255,0.05)";
+const WHITE_10 = "rgba(255,255,255,0.10)";
+const WHITE_30 = "rgba(255,255,255,0.30)";
+const WHITE_50 = "rgba(255,255,255,0.50)";
+const RED = "#F72F20";
+
+// ─── Component ────────────────────────────────────────────────────────────────
+const AEPS_OnBoard = () => {
+    // ── State ──────────────────────────────────────────────────────────────
+    const [screen, setScreen] = useState(SCREENS.HUB);
+    const [loading, setLoading] = useState(false);
+    const [aadhaar, setAadhaar] = useState("");
+    const [statusData, setStatusData] = useState(null);
+
+    // RD device state
+    const [rdState, setRdState] = useState({
+        connected: false,
+        scanning: false,
+        capturing: false,
+        port: null,
+        deviceInfo: null,
+        status: null,         // "READY" | "USED"
+        error: null,
+    });
+
+    // Animations
+    const fadeAnim = useRef(new Animated.Value(1)).current;
+    const scanPulse = useRef(new Animated.Value(1)).current;
+    const capturePulse = useRef(new Animated.Value(0)).current;
+    const scanLoop = useRef(null);
+
+    // ── Lifecycle ──────────────────────────────────────────────────────────
     useEffect(() => {
         checkInitialStatus();
+        return () => scanLoop.current?.stop?.();
     }, []);
 
+    useEffect(() => {
+        if (rdState.scanning) startScanPulse();
+        else scanPulse.setValue(1);
+    }, [rdState.scanning]);
+
+    // ── Animations ─────────────────────────────────────────────────────────
+    const startScanPulse = () => {
+        scanLoop.current = Animated.loop(
+            Animated.sequence([
+                Animated.timing(scanPulse, { toValue: 0.4, duration: 600, useNativeDriver: true }),
+                Animated.timing(scanPulse, { toValue: 1, duration: 600, useNativeDriver: true }),
+            ])
+        );
+        scanLoop.current.start();
+    };
+
+    const flashCapture = () =>
+        Animated.sequence([
+            Animated.timing(capturePulse, { toValue: 1, duration: 120, useNativeDriver: true }),
+            Animated.timing(capturePulse, { toValue: 0, duration: 400, useNativeDriver: true }),
+        ]).start();
+
+    const transition = (toScreen) => {
+        Animated.timing(fadeAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
+            setScreen(toScreen);
+            Animated.timing(fadeAnim, { toValue: 1, duration: 250, useNativeDriver: true }).start();
+        });
+    };
+
+    // ── API Calls ──────────────────────────────────────────────────────────
     const checkInitialStatus = async () => {
         setLoading(true);
         try {
             const headerToken = await AsyncStorage.getItem("header_token");
-            const idempotencyKey = `INIT_${Date.now()}`;
-            const res = await getAepsKycStatus({ headerToken, idempotencyKey });
+            const res = await getAepsKycStatus({ headerToken, idempotencyKey: `INIT_${Date.now()}` });
             if (res.success || res.status === "SUCCESS") {
                 setStatusData(res.data);
                 if (res.data?.action === "NO-ACTION-REQUIRED") {
@@ -47,26 +215,17 @@ const AEPS_OnBoard = () => {
                 }
             }
         } catch (err) {
-            console.log("Status Init Error:", err);
+            console.warn("AEPS status init error:", err);
         } finally {
             setLoading(false);
         }
-    };
-
-    const goTo = (screen) => {
-        Animated.timing(fadeAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
-            setCurrentScreen(screen);
-            Animated.timing(fadeAnim, { toValue: 1, duration: 250, useNativeDriver: true }).start();
-        });
     };
 
     const handleCheckStatus = async () => {
         setLoading(true);
         try {
             const headerToken = await AsyncStorage.getItem("header_token");
-            const idempotencyKey = `STATUS_${Date.now()}`;
-            const res = await getAepsKycStatus({ headerToken, idempotencyKey });
-
+            const res = await getAepsKycStatus({ headerToken, idempotencyKey: `STATUS_${Date.now()}` });
             if (res.success || res.status === "SUCCESS") {
                 setStatusData(res.data);
                 if (res.data?.action === "NO-ACTION-REQUIRED") {
@@ -74,229 +233,744 @@ const AEPS_OnBoard = () => {
                         type: "success",
                         title: "Authenticated",
                         message: res.data.message || res.message,
-                        onClose: () => NavigationService.navigate("AEPS_Services")
+                        onClose: () => NavigationService.navigate("AEPS_Services"),
                     });
                 } else {
-                    goTo(2);
+                    transition(SCREENS.BIOMETRIC);
                 }
             } else {
                 AlertService.showAlert({
                     type: "info",
                     title: "Action Required",
                     message: res.data?.message || res.message,
-                    onClose: () => goTo(2)
+                    onClose: () => transition(SCREENS.BIOMETRIC),
                 });
             }
-        } catch (error) {
-            AlertService.showAlert({ type: "error", title: "Network Error", message: "Failed to connect to server." });
+        } catch {
+            AlertService.showAlert({ type: "error", title: "Network Error", message: "Failed to reach server." });
         } finally {
             setLoading(false);
         }
     };
 
-    const handleDetectDevice = async () => {
-        if (aadhaarNumber.length < 12) {
-            AlertService.showAlert({ type: "warning", title: "Invalid Aadhaar", message: "Please enter a valid 12-digit Aadhaar number." });
+    // ── RD Device Discovery ────────────────────────────────────────────────
+    const handleScanDevice = useCallback(async () => {
+        setRdState((s) => ({ ...s, scanning: true, connected: false, error: null, deviceInfo: null }));
+
+        const result = await RdService.discover();
+
+        if (result.success) {
+            // Fetch extra device info
+            const info = await RdService.info();
+            setRdState({
+                connected: true,
+                scanning: false,
+                capturing: false,
+                port: result.port,
+                deviceInfo: info.success ? info.data : null,
+                status: result.status,
+                error: null,
+            });
+        } else {
+            setRdState((s) => ({
+                ...s,
+                scanning: false,
+                connected: false,
+                error: result.message,
+            }));
+            AlertService.showAlert({
+                type: "warning",
+                title: "Device Not Found",
+                message: "Plug in your RD scanner and try again.",
+            });
+        }
+    }, []);
+
+    // ── Fingerprint Capture + KYC submit ──────────────────────────────────
+    const handleCapture = async () => {
+        if (aadhaar.length < 12) {
+            AlertService.showAlert({ type: "warning", title: "Invalid Aadhaar", message: "Enter a valid 12-digit Aadhaar number." });
+            return;
+        }
+        if (!rdState.connected) {
+            AlertService.showAlert({ type: "warning", title: "No Device", message: "Please scan and connect your RD device first." });
             return;
         }
 
-        setLoading(true);
+        setRdState((s) => ({ ...s, capturing: true }));
+        transition(SCREENS.CAPTURING);
+        flashCapture();
+
         try {
+            // Step 1: Capture biometric PID from RD device
+            const captureResult = await RdService.capture(true /* KYC mode */);
+            if (!captureResult.success) {
+                setRdState((s) => ({ ...s, capturing: false }));
+                AlertService.showAlert({ type: "error", title: "Capture Failed", message: captureResult.message });
+                transition(SCREENS.BIOMETRIC);
+                return;
+            }
+
+            // Step 2: Submit PID + Aadhaar to backend KYC API
             const headerToken = await AsyncStorage.getItem("header_token");
-            const idempotencyKey = `KYC_${Date.now()}`;
             const res = await biometricKyc({
-                data: { aadhaarNumber },
+                data: { aadhaarNumber: aadhaar, pidData: captureResult.data },
                 headerToken,
-                idempotencyKey
+                idempotencyKey: `KYC_${Date.now()}`,
             });
+
+            setRdState((s) => ({ ...s, capturing: false }));
 
             if (res.success || res.status === "SUCCESS") {
                 AlertService.showAlert({
                     type: "success",
-                    title: "Activation Successful",
-                    message: "Biometric KYC completed. Accessing Dashboard...",
-                    onClose: () => NavigationService.navigate("AEPS_Services")
+                    title: "KYC Complete",
+                    message: "Biometric verification successful. Opening AEPS…",
+                    onClose: () => NavigationService.navigate("AEPS_Services"),
                 });
             } else {
-                AlertService.showAlert({ type: "error", title: "Activation Failed", message: res.message || "Could not synchronize with RD service." });
+                AlertService.showAlert({ type: "error", title: "KYC Failed", message: res.message || "Backend rejected the PID data." });
+                transition(SCREENS.BIOMETRIC);
             }
-        } catch (error) {
-            AlertService.showAlert({ type: "error", title: "System Error", message: "Verification failed. Check your scanner connection." });
-        } finally {
-            setLoading(false);
+        } catch {
+            setRdState((s) => ({ ...s, capturing: false }));
+            AlertService.showAlert({ type: "error", title: "System Error", message: "Verification failed. Check scanner and network." });
+            transition(SCREENS.BIOMETRIC);
         }
     };
 
-    // ── SCREEN 1: SPLASH (Match Image Data) ──
-    const renderSplash = () => (
-        <LinearGradient colors={["#1A1A2E", "#0F0E0D"]} style={styles.screenFull}>
-            <View style={styles.splashContent}>
-                <View style={[styles.logoBox, { borderRadius: 40, width: 90 * S, height: 90 * S }]}>
-                    <Icon name="orbit" size={45} color={Colors.finance_accent} />
-                </View>
-                <Text style={styles.splashEyebrow}>NPCI DIGITAL GATEWAY</Text>
-                <Text style={styles.splashTitle}>
-                    Aadhaar Enabled{"\n"}
-                    <Text style={{ color: Colors.finance_accent }}>Payment System</Text>
-                </Text>
-                <Text style={styles.splashSub}>
-                    {statusData?.message || "Modernized Biometric Authentication Gateway"}
-                </Text>
-
-                <View style={styles.statusCard}>
-                    <View style={styles.statusBadge}>
-                        <View style={styles.statusDot} />
-                        <Text style={styles.statusBadgeTxt}>
-                            {statusData?.action?.replace(/-/g, " ") || "ONBOARDING HUB"}
-                        </Text>
+    // ──────────────────────────────────────────────────────────────────────
+    // SCREEN 1 — Hub / Status Check
+    // ──────────────────────────────────────────────────────────────────────
+    const renderHub = () => (
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            {/* Logo */}
+            <View style={styles.logoWrap}>
+                <View style={styles.logoRing}>
+                    <View style={styles.logoBg}>
+                        <Icon name="shield-key-outline" size={38 * S} color={GOLD} />
                     </View>
-                    <Text style={styles.statusMsg}>
-                        {statusData?.message ? "SYSTEM SYNCHRONIZED" : "HARDWARE SYNCHRONIZATION PENDING"}
+                </View>
+                <View style={styles.logoDivider} />
+            </View>
+
+            <Text style={styles.eyebrow}>NPCI · DIGITAL GATEWAY</Text>
+            <Text style={styles.title}>
+                Aadhaar Enabled{"\n"}
+                <Text style={{ color: GOLD }}>Payment System</Text>
+            </Text>
+            <Text style={styles.subtitle}>
+                {statusData?.message || "Biometric Identity Verification Platform"}
+            </Text>
+
+            {/* Status card */}
+            <View style={styles.statusCard}>
+                <View style={styles.statusRow}>
+                    <View style={[styles.dot, { backgroundColor: statusData ? GOLD : "#F59E0B" }]} />
+                    <Text style={styles.statusLabel}>
+                        {statusData?.action?.replace(/-/g, " ") || "ONBOARDING HUB"}
                     </Text>
                 </View>
-
-                <TouchableOpacity style={styles.btnPrimary} onPress={handleCheckStatus} disabled={loading}>
-                    {loading ? (
-                        <ActivityIndicator color={Colors.white} />
-                    ) : (
-                        <>
-                            <Icon name="fingerprint" size={20} color={Colors.white} style={{ marginRight: 10 }} />
-                            <Text style={styles.btnTxt}>Check Biometric Status</Text>
-                        </>
-                    )}
-                </TouchableOpacity>
-
-                <TouchableOpacity style={{ marginTop: 25 }} onPress={() => NavigationService.navigate("AepsRegistration")}>
-                    <Text style={styles.secondaryBtnTxt}>Return to Merchant Details</Text>
-                </TouchableOpacity>
-
-                <View style={styles.splashFooter}>
-                    <Text style={styles.footerInfo}>
-                        SYNCHRONIZING WITH NATIONAL PAYMENTS{"\n"}
-                        CORPORATION OF INDIA
-                    </Text>
+                <View style={styles.dividerThin} />
+                <View style={styles.statusMetaRow}>
+                    <View style={styles.metaItem}>
+                        <Icon name="bank-outline" size={14} color={WHITE_30} />
+                        <Text style={styles.metaText}>NPCI CERTIFIED</Text>
+                    </View>
+                    <View style={styles.metaItem}>
+                        <Icon name="lock-outline" size={14} color={WHITE_30} />
+                        <Text style={styles.metaText}>AES-256 SECURED</Text>
+                    </View>
+                    <View style={styles.metaItem}>
+                        <Icon name="check-decagram-outline" size={14} color={WHITE_30} />
+                        <Text style={styles.metaText}>ISO 19794</Text>
+                    </View>
                 </View>
             </View>
-        </LinearGradient>
+
+            {/* Primary CTA */}
+            <TouchableOpacity
+                style={[styles.btnPrimary, loading && styles.btnDisabled]}
+                onPress={handleCheckStatus}
+                disabled={loading}
+                activeOpacity={0.85}
+            >
+                {loading ? (
+                    <ActivityIndicator color={WHITE} />
+                ) : (
+                    <>
+                        <Icon name="fingerprint" size={20} color={WHITE} style={styles.btnIcon} />
+                        <Text style={styles.btnTxt}>Check Biometric Status</Text>
+                    </>
+                )}
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.linkBtn} onPress={() => NavigationService.navigate("AepsRegistration")}>
+                <Text style={styles.linkTxt}>Return to Merchant Registration</Text>
+            </TouchableOpacity>
+
+            <View style={styles.footerBadge}>
+                <Icon name="shield-check" size={12} color={WHITE_30} style={{ marginRight: 6 }} />
+                <Text style={styles.footerTxt}>SYNCHRONIZED WITH NATIONAL PAYMENTS CORPORATION OF INDIA</Text>
+            </View>
+        </ScrollView>
     );
 
-    // ── SCREEN 2: BIOMETRIC DETECTION (Match 2nd Image Data) ──
-    const renderBiometricCheck = () => (
-        <LinearGradient colors={["#1A1A2E", "#0F0E0D"]} style={styles.screenFull}>
-            <View style={styles.splashContent}>
-                <View style={[styles.logoBox, { borderRadius: 40, width: 80 * S, height: 80 * S, marginBottom: 25 }]}>
-                    <Icon name="lock-outline" size={40} color={Colors.finance_accent} />
-                </View>
+    // ──────────────────────────────────────────────────────────────────────
+    // SCREEN 2 — Biometric / RD Device Setup
+    // ──────────────────────────────────────────────────────────────────────
+    const renderBiometric = () => (
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            {/* Back */}
+            <TouchableOpacity style={styles.backBtn} onPress={() => transition(SCREENS.HUB)}>
+                <Icon name="arrow-left" size={20} color={WHITE_50} />
+                <Text style={styles.backTxt}>Back to Hub</Text>
+            </TouchableOpacity>
 
-                <Text style={styles.splashTitle}>
-                    Portal{" "}
-                    <Text style={{ color: Colors.finance_accent }}>Access</Text>
-                </Text>
-                <Text style={[styles.splashSub, { marginBottom: 30 }]}>
-                    SECURE BIOMETRIC GATEWAY
-                </Text>
-
-                <View style={styles.fieldWrap}>
-                    <Text style={styles.fieldLabel}>MERCHANT AADHAAR NUMBER</Text>
-                    <View style={styles.aadhaarBox}>
-                        <Icon name="fingerprint" size={20} color={Colors.finance_accent} style={{ marginRight: 12 }} />
-                        <TextInput
-                            style={styles.aadhaarInput}
-                            value={aadhaarNumber}
-                            onChangeText={setAadhaarNumber}
-                            placeholder="Enter 12 digit Aadhaar"
-                            placeholderTextColor="rgba(255,255,255,0.2)"
-                            keyboardType="numeric"
-                            maxLength={12}
+            {/* Header */}
+            <View style={[styles.logoWrap, { marginTop: 10 * S }]}>
+                <View style={styles.logoRing}>
+                    <View style={[styles.logoBg, rdState.connected && styles.logoBgActive]}>
+                        <Icon
+                            name={rdState.connected ? "usb-port" : "lock-outline"}
+                            size={36 * S}
+                            color={rdState.connected ? GOLD : WHITE_50}
                         />
                     </View>
                 </View>
+            </View>
 
-                <View style={styles.detectRow}>
-                    <TouchableOpacity
-                        style={[styles.btnPrimary, { flex: 1 }]}
-                        onPress={handleDetectDevice}
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <ActivityIndicator color={Colors.white} />
-                        ) : (
-                            <>
-                                <Icon name="magnify" size={20} color={Colors.white} style={{ marginRight: 10 }} />
-                                <Text style={styles.btnTxt}>Detect RD Device</Text>
-                            </>
-                        )}
-                    </TouchableOpacity>
-                    <View style={styles.waitBox}>
-                        <Text style={styles.waitTxt}>WAITING{"\n"}SYNC</Text>
+            <Text style={styles.title}>
+                Biometric{" "}
+                <Text style={{ color: GOLD }}>Gateway</Text>
+            </Text>
+            <Text style={styles.subtitle}>CONNECT · VERIFY · AUTHENTICATE</Text>
+
+            {/* ── RD Device Panel ── */}
+            <View style={styles.devicePanel}>
+                <View style={styles.devicePanelHeader}>
+                    <Icon name="usb" size={16} color={GOLD} />
+                    <Text style={styles.devicePanelTitle}>RD DEVICE STATUS</Text>
+                    <View style={[styles.statusPill, rdState.connected ? styles.pillGreen : rdState.error ? styles.pillRed : styles.pillAmber]}>
+                        <Text style={styles.pillTxt}>
+                            {rdState.connected ? "CONNECTED" : rdState.scanning ? "SCANNING…" : rdState.error ? "ERROR" : "OFFLINE"}
+                        </Text>
                     </View>
                 </View>
 
-                <View style={styles.alertBanner}>
-                    <View style={styles.alertDot} />
-                    <Text style={styles.alertTxt}>
-                        {statusData?.message || "RD DEVICE NOT DETECTED · CONNECT BIOMETRIC SCANNER"}
-                    </Text>
-                </View>
+                {rdState.connected ? (
+                    <View style={styles.deviceInfo}>
+                        <View style={styles.deviceInfoRow}>
+                            <Icon name="check-circle-outline" size={18} color="#22C55E" />
+                            <Text style={styles.deviceInfoText}>Device found on port {rdState.port}</Text>
+                        </View>
+                        <View style={styles.deviceInfoRow}>
+                            <Icon name="wifi" size={18} color={GOLD} />
+                            <Text style={styles.deviceInfoText}>Status: {rdState.status}</Text>
+                        </View>
+                        <TouchableOpacity style={styles.rescanBtn} onPress={handleScanDevice}>
+                            <Text style={styles.rescanTxt}>Re-scan</Text>
+                        </TouchableOpacity>
+                    </View>
+                ) : (
+                    <View style={styles.deviceOffline}>
+                        <Animated.View style={{ opacity: scanPulse }}>
+                            <Icon name="radar" size={32 * S} color={rdState.scanning ? GOLD : WHITE_30} />
+                        </Animated.View>
+                        <Text style={styles.deviceOfflineText}>
+                            {rdState.scanning
+                                ? "Scanning ports 11100 – 11120…"
+                                : rdState.error
+                                    ? rdState.error
+                                    : "Connect your biometric scanner,\nthen tap Scan below"}
+                        </Text>
+                    </View>
+                )}
 
-                <TouchableOpacity
-                    style={styles.btnSecondaryFull}
-                    onPress={() => NavigationService.navigate("AEPS_Services")}
-                >
-                    <Text style={styles.btnSecondaryTxt}>Open AEPS Services</Text>
-                    <Icon name="chevron-right" size={18} color="rgba(255,255,255,0.4)" />
-                </TouchableOpacity>
-
-                <TouchableOpacity style={{ marginTop: 25 }} onPress={() => goTo(1)}>
-                    <Text style={styles.secondaryBtnTxt}>Back to Hub</Text>
-                </TouchableOpacity>
+                {!rdState.connected && (
+                    <TouchableOpacity
+                        style={[styles.btnScan, rdState.scanning && styles.btnDisabled]}
+                        onPress={handleScanDevice}
+                        disabled={rdState.scanning}
+                        activeOpacity={0.85}
+                    >
+                        {rdState.scanning ? (
+                            <ActivityIndicator color={WHITE} size="small" />
+                        ) : (
+                            <>
+                                <Icon name="magnify-scan" size={18} color={WHITE} style={styles.btnIcon} />
+                                <Text style={styles.btnTxt}>Scan for RD Device</Text>
+                            </>
+                        )}
+                    </TouchableOpacity>
+                )}
             </View>
-        </LinearGradient>
+
+            {/* ── Aadhaar Input ── */}
+            <View style={styles.fieldWrap}>
+                <Text style={styles.fieldLabel}>MERCHANT AADHAAR NUMBER</Text>
+                <View style={[styles.inputBox, aadhaar.length > 0 && styles.inputBoxActive]}>
+                    <Icon name="card-account-details-outline" size={20} color={GOLD} style={{ marginRight: 12 }} />
+                    <TextInput
+                        style={styles.input}
+                        value={aadhaar}
+                        onChangeText={setAadhaar}
+                        placeholder="Enter 12-digit Aadhaar"
+                        placeholderTextColor="rgba(255,255,255,0.20)"
+                        keyboardType="numeric"
+                        maxLength={12}
+                        returnKeyType="done"
+                    />
+                    {aadhaar.length === 12 && (
+                        <Icon name="check-circle" size={18} color="#22C55E" />
+                    )}
+                </View>
+                <Text style={styles.fieldHint}>
+                    {aadhaar.length}/12 digits entered
+                </Text>
+            </View>
+
+            {/* ── Capture CTA ── */}
+            <TouchableOpacity
+                style={[
+                    styles.btnPrimary,
+                    (!rdState.connected || aadhaar.length < 12) && styles.btnDisabled,
+                ]}
+                onPress={handleCapture}
+                disabled={!rdState.connected || aadhaar.length < 12}
+                activeOpacity={0.85}
+            >
+                <Icon name="fingerprint" size={22} color={WHITE} style={styles.btnIcon} />
+                <Text style={styles.btnTxt}>Capture & Verify Biometric</Text>
+            </TouchableOpacity>
+
+            {/* ── Alert Banner ── */}
+            <View style={[styles.alertBanner, rdState.connected && styles.alertBannerGreen]}>
+                <View style={[styles.alertDot, rdState.connected && styles.alertDotGreen]} />
+                <Text style={styles.alertTxt}>
+                    {rdState.connected
+                        ? `RD DEVICE READY · PORT ${rdState.port} · PLACE FINGER ON SCANNER TO CAPTURE`
+                        : statusData?.message || "RD DEVICE NOT DETECTED · CONNECT BIOMETRIC SCANNER"}
+                </Text>
+            </View>
+
+            {/* Supported devices */}
+            <View style={styles.deviceSupport}>
+                <Text style={styles.deviceSupportTitle}>SUPPORTED RD DEVICES</Text>
+                <View style={styles.deviceSupportRow}>
+                    {[
+                        { icon: "gesture-tap", label: "Mantra\nMFS100" },
+                        { icon: "hand-wave-outline", label: "Morpho\nMSO 1300" },
+                        { icon: "fingerprint", label: "Startek\nFM220" },
+                        { icon: "usb-port", label: "Other\nISO RD" },
+                    ].map((d, i) => (
+                        <View key={i} style={styles.deviceChip}>
+                            <Icon name={d.icon} size={18} color={WHITE_30} />
+                            <Text style={styles.deviceChipTxt}>{d.label}</Text>
+                        </View>
+                    ))}
+                </View>
+            </View>
+
+            <TouchableOpacity
+                style={styles.btnSecondary}
+                onPress={() => NavigationService.navigate("AEPS_Services")}
+            >
+                <Text style={styles.btnSecondaryTxt}>Skip · Open AEPS Services</Text>
+                <Icon name="chevron-right" size={16} color={WHITE_30} />
+            </TouchableOpacity>
+        </ScrollView>
     );
 
+    // ──────────────────────────────────────────────────────────────────────
+    // SCREEN 3 — Capturing (full-screen fingerprint animation)
+    // ──────────────────────────────────────────────────────────────────────
+    const renderCapturing = () => (
+        <View style={styles.capturingFull}>
+            <Animated.View
+                style={[
+                    styles.captureGlow,
+                    {
+                        opacity: capturePulse.interpolate({ inputRange: [0, 1], outputRange: [0, 0.6] }),
+                        transform: [{ scale: capturePulse.interpolate({ inputRange: [0, 1], outputRange: [1, 2.2] }) }],
+                    },
+                ]}
+            />
+            <View style={styles.captureIconBox}>
+                <Icon name="fingerprint" size={72 * S} color={GOLD} />
+            </View>
+            <Text style={styles.capturingTitle}>Capturing Biometric</Text>
+            <Text style={styles.capturingHint}>Keep your finger steady on the scanner</Text>
+            <ActivityIndicator color={GOLD} size="large" style={{ marginTop: 30 * S }} />
+        </View>
+    );
+
+    // ──────────────────────────────────────────────────────────────────────
+    // Root render
+    // ──────────────────────────────────────────────────────────────────────
     return (
-        <SafeAreaView style={styles.container} edges={["top"]}>
-            <StatusBar barStyle="light-content" backgroundColor="#1A1A2E" />
-            <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-                {currentScreen === 1 && renderSplash()}
-                {currentScreen === 2 && renderBiometricCheck()}
+        <SafeAreaView style={styles.root} edges={["top"]}>
+            <StatusBar barStyle="light-content" backgroundColor="#0D0C1A" />
+            <LinearGradient colors={["#0D0C1A", "#13111E", "#0A0919"]} style={StyleSheet.absoluteFill} />
+
+            <Animated.View style={[styles.flex, { opacity: fadeAnim }]}>
+                {screen === SCREENS.HUB && renderHub()}
+                {screen === SCREENS.BIOMETRIC && renderBiometric()}
+                {screen === SCREENS.CAPTURING && renderCapturing()}
             </Animated.View>
         </SafeAreaView>
     );
 };
 
+// ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.bg },
-    screenFull: { flex: 1, justifyContent: "center" },
-    splashContent: { padding: 25 * S, alignItems: "center" },
-    logoBox: { width: 80 * S, height: 80 * S, borderRadius: 24, backgroundColor: "rgba(212,168,67,0.1)", alignItems: "center", justifyContent: "center", marginBottom: 30 * S, borderWidth: 1, borderColor: "rgba(212,168,67,0.3)" },
-    splashEyebrow: { color: "rgba(212,168,67,0.6)", fontSize: 12, fontFamily: Fonts.Bold, letterSpacing: 2, marginBottom: 15 },
-    splashTitle: { color: Colors.white, fontSize: 32 * S, fontFamily: Fonts.Bold, textAlign: "center", lineHeight: 40 * S, marginBottom: 15 },
-    splashSub: { color: "rgba(255,255,255,0.45)", fontSize: 13, textAlign: "center", lineHeight: 20, marginBottom: 40 * S },
-    statusCard: { backgroundColor: "rgba(255,255,255,0.03)", borderRadius: 24, padding: 20 * S, width: '100%', alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.05)", marginBottom: 40 * S },
-    statusBadge: { flexDirection: "row", alignItems: "center", backgroundColor: "rgba(212,168,67,0.1)", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, marginBottom: 10 },
-    statusDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.finance_accent, marginRight: 8 },
-    statusBadgeTxt: { fontSize: 11, fontFamily: Fonts.Bold, color: Colors.finance_accent, letterSpacing: 1 },
-    statusMsg: { color: "rgba(255,255,255,0.5)", fontSize: 10, fontFamily: Fonts.Bold, textAlign: "center", letterSpacing: 1 },
-    fieldWrap: { width: '100%', marginBottom: 30 * S },
-    fieldLabel: { color: "rgba(255,255,255,0.4)", fontSize: 10, fontFamily: Fonts.Bold, letterSpacing: 1, marginBottom: 12, marginLeft: 5 },
-    aadhaarBox: { backgroundColor: "rgba(212,168,67,0.1)", height: 60 * S, borderRadius: 24, flexDirection: "row", alignItems: "center", paddingHorizontal: 20 * S, borderWidth: 1, borderColor: "rgba(212,168,67,0.2)" },
-    aadhaarInput: { flex: 1, color: Colors.white, fontSize: 16, fontFamily: Fonts.Bold, letterSpacing: 1 },
-    detectRow: { flexDirection: "row", alignItems: "center", width: '100%', gap: 15, marginBottom: 30 * S },
-    waitBox: { width: 60 * S, alignItems: "center" },
-    waitTxt: { color: "rgba(255,255,255,0.3)", fontSize: 9, fontFamily: Fonts.Bold, textAlign: "center", letterSpacing: 1 },
-    alertBanner: { backgroundColor: "rgba(0,0,0,0.2)", width: '100%', padding: 18 * S, borderRadius: 20, flexDirection: "row", alignItems: 'center', borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
-    alertDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#F59E0B", marginRight: 12 },
-    alertTxt: { flex: 1, color: "rgba(255,255,255,0.5)", fontSize: 10 * S, fontFamily: Fonts.Bold, lineHeight: 14 },
-    btnPrimary: { backgroundColor: Colors.finance_accent, height: 56 * S, borderRadius: 28, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingHorizontal: 25 * S, elevation: 10, shadowColor: Colors.finance_accent, shadowOpacity: 0.3, shadowRadius: 15 },
-    btnTxt: { fontSize: 15, fontFamily: Fonts.Bold, color: Colors.white },
+    root: { flex: 1 },
+    flex: { flex: 1 },
 
-    btnSecondaryFull: { width: '100%', height: 50 * S, borderRadius: 20, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", flexDirection: "row", alignItems: "center", justifyContent: "center", marginTop: 20 * S, backgroundColor: 'rgba(255,255,255,0.02)' },
-    btnSecondaryTxt: { fontSize: 13, fontFamily: Fonts.Bold, color: "rgba(255,255,255,0.7)", marginRight: 5 },
+    scrollContent: {
+        flexGrow: 1,
+        paddingHorizontal: 22 * S,
+        paddingBottom: 36 * S,
+        paddingTop: 24 * S,
+        alignItems: "center",
+    },
 
-    secondaryBtnTxt: { fontSize: 13, fontFamily: Fonts.Bold, color: "rgba(255,255,255,0.35)" },
-    splashFooter: { marginTop: 40 * S },
-    footerInfo: { fontSize: 9, fontFamily: Fonts.Bold, color: "rgba(255,255,255,0.25)", letterSpacing: 1, textAlign: 'center', lineHeight: 14 },
+    // ── Logo
+    logoWrap: { alignItems: "center", marginBottom: 22 * S },
+    logoRing: {
+        width: 100 * S,
+        height: 100 * S,
+        borderRadius: 50 * S,
+        borderWidth: 1,
+        borderColor: GOLD_BORDER,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "rgba(212,168,67,0.04)",
+    },
+    logoBg: {
+        width: 76 * S,
+        height: 76 * S,
+        borderRadius: 38 * S,
+        backgroundColor: GOLD_DIM,
+        alignItems: "center",
+        justifyContent: "center",
+        borderWidth: 1,
+        borderColor: GOLD_BORDER,
+    },
+    logoBgActive: {
+        backgroundColor: "rgba(212,168,67,0.25)",
+        borderColor: GOLD,
+    },
+    logoDivider: {
+        width: 40,
+        height: 1,
+        backgroundColor: GOLD_BORDER,
+        marginTop: 20 * S,
+    },
+
+    // ── Typography
+    eyebrow: {
+        fontSize: 10,
+        fontFamily: Fonts.Bold,
+        color: "rgba(212,168,67,0.55)",
+        letterSpacing: 3,
+        marginBottom: 14 * S,
+        textAlign: "center",
+    },
+    title: {
+        fontSize: 30 * S,
+        fontFamily: Fonts.Bold,
+        color: WHITE,
+        textAlign: "center",
+        lineHeight: 38 * S,
+        marginBottom: 12 * S,
+    },
+    subtitle: {
+        fontSize: 12,
+        fontFamily: Fonts.Medium,
+        color: WHITE_30,
+        textAlign: "center",
+        letterSpacing: 1.5,
+        marginBottom: 28 * S,
+    },
+
+    // ── Status Card
+    statusCard: {
+        width: "100%",
+        backgroundColor: WHITE_05,
+        borderRadius: 20,
+        padding: 18 * S,
+        borderWidth: 1,
+        borderColor: WHITE_10,
+        marginBottom: 32 * S,
+    },
+    statusRow: { flexDirection: "row", alignItems: "center", marginBottom: 14 * S },
+    dot: { width: 7, height: 7, borderRadius: 4, marginRight: 10 },
+    statusLabel: {
+        fontSize: 12,
+        fontFamily: Fonts.Bold,
+        color: GOLD,
+        letterSpacing: 1.5,
+        flex: 1,
+        textTransform: "uppercase",
+    },
+    dividerThin: { height: 1, backgroundColor: WHITE_05, marginBottom: 14 * S },
+    statusMetaRow: { flexDirection: "row", justifyContent: "space-around" },
+    metaItem: { flexDirection: "row", alignItems: "center", gap: 5 },
+    metaText: { fontSize: 9, fontFamily: Fonts.Bold, color: WHITE_30, letterSpacing: 1 },
+
+    // ── Buttons
+    btnPrimary: {
+        width: "100%",
+        height: 56 * S,
+        borderRadius: 28,
+        backgroundColor: GOLD,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 24 * S,
+        elevation: 12,
+        shadowColor: GOLD,
+        shadowOpacity: 0.35,
+        shadowRadius: 14,
+        shadowOffset: { width: 0, height: 4 },
+        marginBottom: 18 * S,
+    },
+    btnScan: {
+        width: "100%",
+        height: 48 * S,
+        borderRadius: 24,
+        backgroundColor: "rgba(212,168,67,0.18)",
+        borderWidth: 1,
+        borderColor: GOLD_BORDER,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        marginTop: 12 * S,
+    },
+    btnDisabled: { opacity: 0.4 },
+    btnTxt: { fontSize: 15, fontFamily: Fonts.Bold, color: WHITE },
+    btnIcon: { marginRight: 10 },
+
+    btnSecondary: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingVertical: 14 * S,
+        paddingHorizontal: 20 * S,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: WHITE_05,
+        backgroundColor: WHITE_05,
+        marginTop: 12 * S,
+        gap: 8,
+    },
+    btnSecondaryTxt: { fontSize: 13, fontFamily: Fonts.Medium, color: WHITE_30 },
+
+    linkBtn: { marginBottom: 28 * S },
+    linkTxt: { fontSize: 13, fontFamily: Fonts.Medium, color: WHITE_30, textDecorationLine: "underline" },
+
+    // ── Footer
+    footerBadge: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginTop: 10 * S,
+    },
+    footerTxt: {
+        fontSize: 9,
+        fontFamily: Fonts.Bold,
+        color: WHITE_30,
+        letterSpacing: 0.8,
+        textAlign: "center",
+        lineHeight: 14,
+    },
+
+    // ── Back Button
+    backBtn: {
+        flexDirection: "row",
+        alignItems: "center",
+        alignSelf: "flex-start",
+        gap: 6,
+        marginBottom: 18 * S,
+    },
+    backTxt: { fontSize: 13, fontFamily: Fonts.Medium, color: WHITE_30 },
+
+    // ── Device Panel
+    devicePanel: {
+        width: "100%",
+        backgroundColor: WHITE_05,
+        borderRadius: 20,
+        padding: 18 * S,
+        borderWidth: 1,
+        borderColor: WHITE_10,
+        marginBottom: 24 * S,
+    },
+    devicePanelHeader: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+        marginBottom: 14 * S,
+    },
+    devicePanelTitle: {
+        fontSize: 11,
+        fontFamily: Fonts.Bold,
+        color: WHITE_50,
+        letterSpacing: 1.5,
+        flex: 1,
+    },
+    statusPill: {
+        paddingHorizontal: 10,
+        paddingVertical: 3,
+        borderRadius: 10,
+    },
+    pillGreen: { backgroundColor: "rgba(34,197,94,0.15)", borderWidth: 1, borderColor: "rgba(34,197,94,0.3)" },
+    pillRed: { backgroundColor: "rgba(247,47,32,0.15)", borderWidth: 1, borderColor: "rgba(247,47,32,0.3)" },
+    pillAmber: { backgroundColor: "rgba(245,158,11,0.15)", borderWidth: 1, borderColor: "rgba(245,158,11,0.3)" },
+    pillTxt: { fontSize: 9, fontFamily: Fonts.Bold, color: WHITE_50, letterSpacing: 1 },
+
+    deviceInfo: { gap: 10 },
+    deviceInfoRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+    deviceInfoText: { fontSize: 13, fontFamily: Fonts.Medium, color: WHITE_50 },
+    rescanBtn: { alignSelf: "flex-start", marginTop: 4 },
+    rescanTxt: { fontSize: 12, fontFamily: Fonts.Bold, color: GOLD, textDecorationLine: "underline" },
+
+    deviceOffline: { alignItems: "center", paddingVertical: 14 * S, gap: 10 },
+    deviceOfflineText: {
+        fontSize: 13,
+        fontFamily: Fonts.Medium,
+        color: WHITE_30,
+        textAlign: "center",
+        lineHeight: 20,
+    },
+
+    // ── Field
+    fieldWrap: { width: "100%", marginBottom: 22 * S },
+    fieldLabel: {
+        fontSize: 10,
+        fontFamily: Fonts.Bold,
+        color: WHITE_30,
+        letterSpacing: 1.5,
+        marginBottom: 10,
+        marginLeft: 4,
+    },
+    inputBox: {
+        backgroundColor: "rgba(212,168,67,0.07)",
+        height: 58 * S,
+        borderRadius: 20,
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 18 * S,
+        borderWidth: 1,
+        borderColor: GOLD_BORDER,
+    },
+    inputBoxActive: { borderColor: GOLD, backgroundColor: GOLD_DIM },
+    input: {
+        flex: 1,
+        color: WHITE,
+        fontSize: 17,
+        fontFamily: Fonts.Bold,
+        letterSpacing: 2,
+    },
+    fieldHint: {
+        fontSize: 10,
+        fontFamily: Fonts.Medium,
+        color: WHITE_30,
+        marginTop: 6,
+        marginLeft: 6,
+    },
+
+    // ── Alert Banner
+    alertBanner: {
+        width: "100%",
+        backgroundColor: "rgba(0,0,0,0.2)",
+        borderRadius: 16,
+        padding: 14 * S,
+        flexDirection: "row",
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: WHITE_05,
+        marginBottom: 20 * S,
+    },
+    alertBannerGreen: { borderColor: "rgba(34,197,94,0.2)", backgroundColor: "rgba(34,197,94,0.05)" },
+    alertDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#F59E0B", marginRight: 12, flexShrink: 0 },
+    alertDotGreen: { backgroundColor: "#22C55E" },
+    alertTxt: {
+        flex: 1,
+        fontSize: 10,
+        fontFamily: Fonts.Bold,
+        color: WHITE_30,
+        lineHeight: 15,
+        letterSpacing: 0.5,
+    },
+
+    // ── Device Support
+    deviceSupport: { width: "100%", marginBottom: 20 * S },
+    deviceSupportTitle: {
+        fontSize: 10,
+        fontFamily: Fonts.Bold,
+        color: WHITE_30,
+        letterSpacing: 1.5,
+        marginBottom: 12,
+        textAlign: "center",
+    },
+    deviceSupportRow: { flexDirection: "row", justifyContent: "space-between" },
+    deviceChip: {
+        flex: 1,
+        alignItems: "center",
+        gap: 6,
+        paddingVertical: 12,
+        backgroundColor: WHITE_05,
+        borderRadius: 14,
+        marginHorizontal: 4,
+        borderWidth: 1,
+        borderColor: WHITE_05,
+    },
+    deviceChipTxt: {
+        fontSize: 9,
+        fontFamily: Fonts.Bold,
+        color: WHITE_30,
+        textAlign: "center",
+        letterSpacing: 0.5,
+        lineHeight: 13,
+    },
+
+    // ── Capturing Screen
+    capturingFull: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 30 * S,
+    },
+    captureGlow: {
+        position: "absolute",
+        width: 160 * S,
+        height: 160 * S,
+        borderRadius: 80 * S,
+        backgroundColor: GOLD,
+    },
+    captureIconBox: {
+        width: 130 * S,
+        height: 130 * S,
+        borderRadius: 65 * S,
+        backgroundColor: GOLD_DIM,
+        borderWidth: 2,
+        borderColor: GOLD_BORDER,
+        alignItems: "center",
+        justifyContent: "center",
+        marginBottom: 28 * S,
+    },
+    capturingTitle: {
+        fontSize: 24 * S,
+        fontFamily: Fonts.Bold,
+        color: WHITE,
+        marginBottom: 10 * S,
+    },
+    capturingHint: {
+        fontSize: 13,
+        fontFamily: Fonts.Medium,
+        color: WHITE_30,
+        textAlign: "center",
+        letterSpacing: 0.5,
+    },
 });
 
 export default AEPS_OnBoard;

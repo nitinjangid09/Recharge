@@ -813,7 +813,11 @@ export default function FinanceHome({ navigation }) {
                     onPress={() => {
                       if (n === "recharge") navigation.navigate("TopUpScreen");
                       else if (n === "bbps") navigation.navigate("PaymentsScreen");
+<<<<<<< HEAD
                       else if (n === "aeps1") navigation.navigate("AEPS_OnBoard");
+=======
+                      else if (n === "aeps1") navigation.navigate("DailyLogin");
+>>>>>>> 0c5241cb408c296cdae6204992d5205b5229e1f0
                     }}
                   >
                     <View style={[S.svcIconCircle]}>
