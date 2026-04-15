@@ -77,6 +77,7 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
   }, [visible]);
 
   const handleClose = () => {
+    [onClose,]
     Animated.parallel([
       Animated.timing(translateY, { toValue: SCREEN_HEIGHT, duration: 250, useNativeDriver: true }),
       Animated.timing(backdropOpacity, { toValue: 0, duration: 200, useNativeDriver: true }),
