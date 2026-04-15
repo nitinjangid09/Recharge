@@ -4,10 +4,11 @@
  * JavaScript bridge for the RDServiceModule native Android module.
  *
  * Supported RD Service devices:
- *   MANTRA  → Mantra MFS100       (com.mantra.rdservice)
- *   MORPHO  → Morpho MSO 1300     (com.idemia.l1rdservice)
- *   STARTEK → Startek FM220       (com.startek.rdservice)
- *   SECUGEN → SecuGen Hamster     (com.secugen.rdservice)
+ *   MANTRA        → Mantra MFS100       (com.mantra.rdservice)
+ *   MANTRA_MFS110 → Mantra MFS110       (com.mantra.mfs110.rdservice)
+ *   MORPHO        → Morpho MSO 1300     (com.idemia.l1rdservice)
+ *   STARTEK       → Startek FM220       (com.startek.rdservice)
+ *   SECUGEN       → SecuGen Hamster     (com.secugen.rdservice)
  *
  * Usage:
  *   import RDService from './RDService';
@@ -21,18 +22,20 @@ import { NativeModules, Platform } from 'react-native';
 
 // ─── RD Service Package IDs ─────────────────────────────────────────────────
 export const RD_PACKAGES = {
-  MANTRA:  'com.mantra.rdservice',
-  MORPHO:  'com.idemia.l1rdservice',
-  STARTEK: 'com.startek.rdservice',
-  SECUGEN: 'com.secugen.rdservice',
+  MANTRA:         'com.mantra.rdservice',
+  MANTRA_MFS110:  'com.mantra.mfs110.rdservice',
+  MORPHO:         'com.idemia.l1rdservice',
+  STARTEK:        'com.startek.rdservice',
+  SECUGEN:        'com.secugen.rdservice',
 };
 
 // ─── Human-readable device names ────────────────────────────────────────────
 export const RD_DEVICE_LABELS = {
-  MANTRA:  'Mantra MFS100',
-  MORPHO:  'Morpho MSO 1300',
-  STARTEK: 'Startek FM220',
-  SECUGEN: 'SecuGen Hamster',
+  MANTRA:         'Mantra MFS100',
+  MANTRA_MFS110:  'Mantra MFS110',
+  MORPHO:         'Morpho MSO 1300',
+  STARTEK:        'Startek FM220',
+  SECUGEN:        'SecuGen Hamster',
 };
 
 // ─── Ordered device list for UI dropdowns ────────────────────────────────────

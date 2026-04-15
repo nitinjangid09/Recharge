@@ -3,6 +3,7 @@
     <!-- 🔽 ADD THIS BLOCK HERE (Android 11+ package visibility) -->
     <queries>
         <package android:name="com.mantra.rdservice" />
+        <package android:name="com.mantra.mfs110.rdservice" />
         <package android:name="com.idemia.l1rdservice" />
         <package android:name="com.startek.rdservice" />
         <package android:name="com.secugen.rdservice" />

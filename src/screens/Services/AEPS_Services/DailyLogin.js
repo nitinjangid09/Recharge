@@ -2,7 +2,7 @@
  * DailyLogin.js
  *
  * AEPS NPCI Daily Login screen
- * Supports: Fingerprint (Mantra, Morpho, Startek, SecuGen) + Face auth
+ * Supports: Fingerprint (Mantra MFS100/MFS110, Morpho, Startek, SecuGen) + Face auth
  */
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -19,18 +19,23 @@ import {
   Alert,
   PermissionsAndroid,
   Platform,
+  StatusBar,
 } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from '@react-native-community/geolocation';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import LinearGradient from 'react-native-linear-gradient';
 
-import RDService, { RD_ERROR_CODES } from './RDService'; // ← adjust path as needed
+import RDService, { RD_ERROR_CODES } from './RDService';
 import { aepsDailyLogin } from '../../../api/AuthApi';
 import { AlertService } from '../../../componets/Alerts/CustomAlert';
 import * as NavigationService from '../../../utils/NavigationService';
 import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
 import { fadeIn, slideUp, buttonPress } from '../../../utils/ScreenAnimations';
+import Colors from '../../../constants/Colors';
+import Fonts from '../../../constants/Fonts';
 
 const { width: SW } = Dimensions.get('window');
 const S = SW / 375;
@@ -46,12 +51,19 @@ const STATUS = {
   NOT_INSTALLED: 'not_installed',
 };
 
+// ─── Constants for Premium UI ────────────────────────────────────────────────
+const GOLD = "#D4A843";
+const GOLD_DIM = "rgba(212,168,67,0.15)";
+const WHITE = "#FFFFFF";
+const WHITE_30 = "rgba(255,255,255,0.30)";
+const WHITE_10 = "rgba(255,255,255,0.10)";
+
 const DailyLogin = () => {
   // ── Form state ───────────────────────────────────────────────────────────
   const [aadhaarNumber, setAadhaarNumber] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
-  const [authMethod, setAuthMethod] = useState(null); // 'finger' | 'face'
-  const [device, setDevice] = useState(null); // 'MANTRA' | 'MORPHO' | ...
+  const [authMethod, setAuthMethod] = useState('finger'); // Default to finger
+  const [device, setDevice] = useState(null); 
   const [showDeviceList, setShowDeviceList] = useState(false);
 
   // ── RD Service check state ────────────────────────────────────────────────
@@ -129,7 +141,6 @@ const DailyLogin = () => {
   // FINGERPRINT FLOW
   // ─────────────────────────────────────────────────────────────────────────
   const handleFingerprint = async () => {
-    // If not installed, show install prompt and bail
     if (rdStatus === STATUS.NOT_INSTALLED) {
       Alert.alert(
         'RD Service Not Installed',
@@ -147,7 +158,6 @@ const DailyLogin = () => {
     try {
       setLoading(true);
 
-      // ── Request Location Permission for Android ──
       if (Platform.OS === 'android') {
         const granted = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
@@ -171,7 +181,6 @@ const DailyLogin = () => {
             (pos) => resolve(pos.coords),
             (err) => {
               console.log('[GEOLOCATION] Error:', err);
-              // Fallback to default if coordinates fail
               resolve({ latitude: 26.88978, longitude: 75.738251 });
             },
             { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
@@ -179,16 +188,17 @@ const DailyLogin = () => {
         });
 
       const coords = await getLocation();
-
       const headerToken = await AsyncStorage.getItem('header_token');
       const idempotencyKey = `DL_FP_${Date.now()}`;
 
       const payload = {
         aadhaar: aadhaarNumber,
+        mobile: mobileNumber,
         latitude: coords.latitude,
         longitude: coords.longitude,
         captureType: 'finger',
         biometricData: pidData,
+        deviceType: device, // Pass device type for backend identification
       };
 
       const res = await aepsDailyLogin({ data: payload, headerToken, idempotencyKey });
@@ -208,12 +218,10 @@ const DailyLogin = () => {
         });
       }
     } catch (err) {
-      // Handle specific RD Service error codes
       let message = 'Fingerprint capture failed. Please try again.';
-
       switch (err?.code) {
         case RD_ERROR_CODES.NOT_INSTALLED:
-          message = `RD Service app is not installed. Please install it for ${RDService.getDeviceLabel(device)}.`;
+          message = `RD Service app is not installed for ${RDService.getDeviceLabel(device)}.`;
           break;
         case RD_ERROR_CODES.CANCELLED:
           message = 'Fingerprint capture was cancelled.';
@@ -222,7 +230,7 @@ const DailyLogin = () => {
           message = 'No fingerprint data received. Please try again.';
           break;
         case RD_ERROR_CODES.ACTIVITY_NOT_FOUND:
-          message = 'Could not open RD Service. Ensure the device is connected and the app is installed.';
+          message = 'Could not open RD Service. Ensure the device is connected.';
           break;
         case RD_ERROR_CODES.BUSY:
           message = 'A fingerprint capture is already in progress.';
@@ -249,8 +257,6 @@ const DailyLogin = () => {
 
     try {
       setLoading(true);
-
-      // ── Request Location Permission for Android ──
       if (Platform.OS === 'android') {
         const granted = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
@@ -263,7 +269,6 @@ const DailyLogin = () => {
       }
       buttonPress(btnScale).start();
 
-      // ── Get User Location ──────────────────────────────────────────────────
       const getLocation = () => 
         new Promise((resolve) => {
           Geolocation.getCurrentPosition(
@@ -277,12 +282,12 @@ const DailyLogin = () => {
         });
 
       const coords = await getLocation();
-
       const headerToken = await AsyncStorage.getItem('header_token');
       const idempotencyKey = `DL_FACE_${Date.now()}`;
 
       const payload = {
         aadhaar: aadhaarNumber,
+        mobile: mobileNumber,
         latitude: coords.latitude,
         longitude: coords.longitude,
         captureType: 'face',
@@ -316,7 +321,6 @@ const DailyLogin = () => {
     }
   };
 
-  // ── Submit dispatcher ─────────────────────────────────────────────────────
   const handleSubmit = () => {
     if (authMethod === 'finger') handleFingerprint();
     else handleFace();
@@ -340,8 +344,9 @@ const DailyLogin = () => {
     if (rdStatus === STATUS.INSTALLED) {
       return (
         <View style={[styles.rdBanner, styles.rdInstalled]}>
+          <Icon name="check-circle" size={16} color="#16A34A" />
           <Text style={styles.rdBannerText}>
-            ✅  {RDService.getDeviceLabel(device)} RD Service is ready
+            {'  '}{RDService.getDeviceLabel(device)} RD Service is ready
           </Text>
         </View>
       );
@@ -350,8 +355,9 @@ const DailyLogin = () => {
     if (rdStatus === STATUS.NOT_INSTALLED) {
       return (
         <View style={[styles.rdBanner, styles.rdMissing]}>
+          <Icon name="alert-circle" size={16} color="#DC2626" />
           <Text style={styles.rdBannerText}>
-            ⚠️  Connect {RDService.getDeviceLabel(device)} and install its RD Service.{'  '}
+            {'  '}RD Service not found for {RDService.getDeviceLabel(device)}
           </Text>
           <TouchableOpacity onPress={() => RDService.openInstallPage(device)}>
             <Text style={styles.installLink}>Install Now →</Text>
@@ -363,7 +369,6 @@ const DailyLogin = () => {
     return null;
   };
 
-  // ── Disable submit while checking or if RD Service missing ───────────────
   const isSubmitDisabled =
     loading ||
     (authMethod === 'finger' &&
@@ -373,135 +378,129 @@ const DailyLogin = () => {
 
   const selectedDeviceLabel = device ? RDService.getDeviceLabel(device) : null;
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // RENDER
-  // ─────────────────────────────────────────────────────────────────────────
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.root} edges={['top']}>
+      <StatusBar barStyle="light-content" backgroundColor="#0D0C1A" />
       <HeaderBar
         title="NPCI Daily Login"
         onBack={() => NavigationService.goBack()}
+        dark
       />
+      <LinearGradient colors={['#0D0C1A', '#13111E', '#0A0919']} style={StyleSheet.absoluteFill} />
 
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Animated.View
-          style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
-        >
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
+          
+          <View style={styles.header}>
+             <Icon name="fingerprint" size={48 * S} color={GOLD} />
+             <Text style={styles.headerTitle}>Two-Factor Authentication</Text>
+             <Text style={styles.headerSubtitle}>Authenticate with NPCI to start your day</Text>
+          </View>
+
           <View style={styles.card}>
+            {/* Aadhaar Input */}
+            <View style={styles.fieldWrap}>
+                <Text style={styles.label}>AADHAAR NUMBER</Text>
+                <View style={[styles.inputBox, errors.aadhaar && styles.inputBoxError]}>
+                    <Icon name="card-account-details-outline" size={20} color={GOLD} style={styles.inputIcon} />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="12-digit Aadhaar"
+                        placeholderTextColor="rgba(255,255,255,0.2)"
+                        keyboardType="numeric"
+                        maxLength={12}
+                        value={aadhaarNumber}
+                        onChangeText={(v) => {
+                            setAadhaarNumber(v);
+                            if (errors.aadhaar) setErrors((p) => ({ ...p, aadhaar: null }));
+                        }}
+                    />
+                    {aadhaarNumber.length === 12 && <Icon name="check-circle" size={18} color="#22C55E" />}
+                </View>
+                {errors.aadhaar ? <Text style={styles.errorText}>{errors.aadhaar}</Text> : null}
+            </View>
 
-            {/* ── Aadhaar ─────────────────────────────────────────────── */}
-            <Text style={styles.label}>Aadhaar Number</Text>
-            <TextInput
-              style={[styles.input, errors.aadhaar && styles.inputError]}
-              placeholder="Enter 12-digit Aadhaar"
-              placeholderTextColor="#9CA3AF"
-              keyboardType="numeric"
-              maxLength={12}
-              value={aadhaarNumber}
-              onChangeText={(v) => {
-                setAadhaarNumber(v);
-                if (errors.aadhaar) setErrors((p) => ({ ...p, aadhaar: null }));
-              }}
-            />
-            {errors.aadhaar ? <Text style={styles.error}>{errors.aadhaar}</Text> : null}
+            {/* Mobile Number */}
+            <View style={styles.fieldWrap}>
+                <Text style={styles.label}>MOBILE NUMBER</Text>
+                <View style={[styles.inputBox, errors.mobile && styles.inputBoxError]}>
+                    <Icon name="phone-outline" size={20} color={GOLD} style={styles.inputIcon} />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="10-digit Mobile"
+                        placeholderTextColor="rgba(255,255,255,0.2)"
+                        keyboardType="numeric"
+                        maxLength={10}
+                        value={mobileNumber}
+                        onChangeText={(v) => {
+                            setMobileNumber(v);
+                            if (errors.mobile) setErrors((p) => ({ ...p, mobile: null }));
+                        }}
+                    />
+                    {mobileNumber.length === 10 && <Icon name="check-circle" size={18} color="#22C55E" />}
+                </View>
+                {errors.mobile ? <Text style={styles.errorText}>{errors.mobile}</Text> : null}
+            </View>
 
-            {/* ── Mobile ──────────────────────────────────────────────── */}
-            <Text style={styles.label}>Mobile Number</Text>
-            <TextInput
-              style={[styles.input, errors.mobile && styles.inputError]}
-              placeholder="Enter 10-digit mobile number"
-              placeholderTextColor="#9CA3AF"
-              keyboardType="numeric"
-              maxLength={10}
-              value={mobileNumber}
-              onChangeText={(v) => {
-                setMobileNumber(v);
-                if (errors.mobile) setErrors((p) => ({ ...p, mobile: null }));
-              }}
-            />
-            {errors.mobile ? <Text style={styles.error}>{errors.mobile}</Text> : null}
-
-            {/* ── Auth Method ──────────────────────────────────────────── */}
-            <Text style={styles.label}>Verification Method</Text>
-            <View style={styles.row}>
+            {/* Auth Method Toggle */}
+            <Text style={styles.label}>VERIFICATION METHOD</Text>
+            <View style={styles.methodRow}>
               <TouchableOpacity
                 style={[styles.methodBtn, authMethod === 'finger' && styles.methodActive]}
                 onPress={() => selectAuthMethod('finger')}
               >
-                <Text style={[styles.methodBtnText, authMethod === 'finger' && styles.methodActiveText]}>
-                  🖐  Fingerprint
-                </Text>
+                <Icon name="fingerprint" size={18} color={authMethod === 'finger' ? WHITE : WHITE_30} />
+                <Text style={[styles.methodBtnText, authMethod === 'finger' && styles.methodActiveText]}>Fingerprint</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[styles.methodBtn, authMethod === 'face' && styles.methodActive]}
                 onPress={() => selectAuthMethod('face')}
               >
-                <Text style={[styles.methodBtnText, authMethod === 'face' && styles.methodActiveText]}>
-                  🤳  Face Auth
-                </Text>
+                <Icon name="face-recognition" size={18} color={authMethod === 'face' ? WHITE : WHITE_30} />
+                <Text style={[styles.methodBtnText, authMethod === 'face' && styles.methodActiveText]}>Face Auth</Text>
               </TouchableOpacity>
             </View>
-            {errors.method ? <Text style={styles.error}>{errors.method}</Text> : null}
 
-            {/* ── Device Picker (fingerprint only) ────────────────────── */}
+            {/* Device Picker */}
             {authMethod === 'finger' && (
-              <>
-                <Text style={styles.label}>Biometric Device</Text>
-
+              <View style={styles.fieldWrap}>
+                <Text style={styles.label}>BIOMETRIC DEVICE</Text>
                 <TouchableOpacity
-                  style={[styles.input, styles.picker, errors.device && styles.inputError]}
+                  style={[styles.inputBox, errors.device && styles.inputBoxError]}
                   onPress={() => setShowDeviceList((v) => !v)}
                   activeOpacity={0.7}
                 >
+                  <Icon name="usb-port" size={20} color={GOLD} style={styles.inputIcon} />
                   <Text style={selectedDeviceLabel ? styles.pickerValue : styles.pickerPlaceholder}>
-                    {selectedDeviceLabel ?? 'Select biometric device'}
+                    {selectedDeviceLabel ?? 'Select device'}
                   </Text>
-                  <Text style={styles.pickerArrow}>{showDeviceList ? '▲' : '▼'}</Text>
+                  <Icon name={showDeviceList ? 'chevron-up' : 'chevron-down'} size={20} color={WHITE_30} />
                 </TouchableOpacity>
 
-                {errors.device ? <Text style={styles.error}>{errors.device}</Text> : null}
-
-                {/* Dropdown list */}
                 {showDeviceList && (
                   <View style={styles.dropdown}>
                     {DEVICE_LIST.map((d) => (
                       <TouchableOpacity
                         key={d.value}
-                        style={[
-                          styles.dropdownItem,
-                          device === d.value && styles.dropdownItemActive,
-                        ]}
+                        style={[styles.dropdownItem, device === d.value && styles.dropdownItemActive]}
                         onPress={() => selectDevice(d.value)}
                       >
-                        <Text
-                          style={[
-                            styles.dropdownText,
-                            device === d.value && styles.dropdownTextActive,
-                          ]}
-                        >
+                        <Text style={[styles.dropdownText, device === d.value && styles.dropdownTextActive]}>
                           {d.label}
                         </Text>
-                        {device === d.value && (
-                          <Text style={styles.dropdownCheck}>✓</Text>
-                        )}
+                        {device === d.value && <Icon name="check" size={18} color={GOLD} />}
                       </TouchableOpacity>
                     ))}
                   </View>
                 )}
-
-                {/* RD Service status banner */}
+                
                 <RDStatusBanner />
-                {errors.rdservice ? (
-                  <Text style={styles.error}>{errors.rdservice}</Text>
-                ) : null}
-              </>
+                {errors.device ? <Text style={styles.errorText}>{errors.device}</Text> : null}
+              </View>
             )}
 
-            {/* ── Submit Button ────────────────────────────────────────── */}
+            {/* Submit */}
             <Animated.View style={{ transform: [{ scale: btnScale }] }}>
               <TouchableOpacity
                 style={[styles.submitBtn, isSubmitDisabled && styles.submitBtnDisabled]}
@@ -509,16 +508,22 @@ const DailyLogin = () => {
                 disabled={isSubmitDisabled}
                 activeOpacity={0.85}
               >
-                {loading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={styles.submitBtnText}>
-                    {authMethod === 'face' ? 'Start Face Authentication' : 'Capture Fingerprint'}
-                  </Text>
+                {loading ? <ActivityIndicator color={WHITE} /> : (
+                  <>
+                    <Icon name={authMethod === 'face' ? 'camera-account' : 'fingerprint'} size={22} color={WHITE} style={{marginRight: 10}} />
+                    <Text style={styles.submitBtnText}>
+                        {authMethod === 'face' ? 'Start Face Auth' : 'Authenticate Finger'}
+                    </Text>
+                  </>
                 )}
               </TouchableOpacity>
             </Animated.View>
 
+          </View>
+
+          <View style={styles.footer}>
+             <Icon name="shield-check" size={14} color={WHITE_30} />
+             <Text style={styles.footerText}>NPCI CERTIFIED · ENCRYPTED CONNECTION</Text>
           </View>
         </Animated.View>
       </ScrollView>
@@ -528,150 +533,113 @@ const DailyLogin = () => {
 
 export default DailyLogin;
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F0F4F8' },
-  scroll: { padding: 20 },
+  root: { flex: 1 },
+  scroll: { paddingHorizontal: 20, paddingBottom: 40 },
+
+  header: { alignItems: 'center', marginTop: 10 * S, marginBottom: 24 * S },
+  headerTitle: { fontSize: 22 * S, fontFamily: Fonts.Bold, color: WHITE, marginTop: 12 },
+  headerSubtitle: { fontSize: 13, fontFamily: Fonts.Medium, color: WHITE_30, marginTop: 4 },
 
   card: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 14,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 5,
-  },
-
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#374151',
-    marginTop: 12,
-    marginBottom: 5,
-  },
-
-  input: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 24,
+    padding: 20 * S,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
-    padding: 13,
-    borderRadius: 9,
-    backgroundColor: '#FAFAFA',
-    color: '#111',
-    fontSize: 14,
-    marginBottom: 2,
+    borderColor: WHITE_10,
   },
 
-  inputError: {
-    borderColor: '#EF4444',
+  fieldWrap: { marginBottom: 18 * S },
+  label: { fontSize: 11, fontFamily: Fonts.Bold, color: GOLD, marginBottom: 8, letterSpacing: 1 },
+  
+  inputBox: {
+    height: 56 * S,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: WHITE_10,
   },
+  inputBoxError: { borderColor: '#EF4444' },
+  inputIcon: { marginRight: 12 },
+  input: { flex: 1, fontSize: 15, color: WHITE, fontFamily: Fonts.Medium },
+  
+  errorText: { color: '#EF4444', fontSize: 12, marginTop: 5, marginLeft: 4 },
 
-  error: {
-    color: '#EF4444',
-    fontSize: 12,
-    marginBottom: 4,
-    marginTop: 2,
-  },
-
-  // ── Auth method toggle ────
-  row: { flexDirection: 'row', gap: 10, marginBottom: 4 },
-
+  methodRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
   methodBtn: {
     flex: 1,
-    paddingVertical: 13,
-    backgroundColor: '#F3F4F6',
-    alignItems: 'center',
-    borderRadius: 9,
-    borderWidth: 1.5,
-    borderColor: '#E5E7EB',
-  },
-  methodActive: {
-    backgroundColor: '#22C55E',
-    borderColor: '#16A34A',
-  },
-  methodBtnText: {
-    color: '#6B7280',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  methodActiveText: {
-    color: '#fff',
-  },
-
-  // ── Device picker ─────────
-  picker: {
+    height: 48 * S,
+    borderRadius: 14,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  pickerPlaceholder: { color: '#9CA3AF', fontSize: 14 },
-  pickerValue: { color: '#111', fontSize: 14 },
-  pickerArrow: { color: '#6B7280', fontSize: 12 },
-
-  // ── Dropdown ──────────────
-  dropdown: {
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.03)',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 9,
+    borderColor: WHITE_10,
+  },
+  methodActive: { backgroundColor: GOLD, borderColor: GOLD },
+  methodBtnText: { color: WHITE_30, fontSize: 13, fontFamily: Fonts.Bold },
+  methodActiveText: { color: WHITE },
+
+  pickerPlaceholder: { color: 'rgba(255,255,255,0.2)', flex: 1, fontSize: 15 },
+  pickerValue: { color: WHITE, flex: 1, fontSize: 15 },
+
+  dropdown: {
+    marginTop: 8,
+    backgroundColor: '#1A182E',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: WHITE_10,
     overflow: 'hidden',
-    marginTop: 4,
-    marginBottom: 6,
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
-    elevation: 4,
+    elevation: 10,
   },
   dropdownItem: {
-    paddingVertical: 13,
-    paddingHorizontal: 16,
+    padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: WHITE_10,
   },
-  dropdownItemActive: { backgroundColor: '#F0FDF4' },
-  dropdownText: { color: '#374151', fontSize: 14 },
-  dropdownTextActive: { color: '#16A34A', fontWeight: '600' },
-  dropdownCheck: { color: '#16A34A', fontWeight: '700', fontSize: 15 },
+  dropdownItemActive: { backgroundColor: 'rgba(212,168,67,0.1)' },
+  dropdownText: { color: WHITE_30, fontSize: 14, fontFamily: Fonts.Medium },
+  dropdownTextActive: { color: GOLD, fontFamily: Fonts.Bold },
 
-  // ── RD Status banner ──────
   rdBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexWrap: 'wrap',
-    padding: 11,
-    borderRadius: 8,
-    marginTop: 8,
-    marginBottom: 4,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    marginTop: 12,
   },
-  rdChecking: { backgroundColor: '#F3F4F6' },
-  rdInstalled: { backgroundColor: '#DCFCE7' },
-  rdMissing: { backgroundColor: '#FEF9C3' },
+  rdBannerText: { fontSize: 12, color: WHITE_30, fontFamily: Fonts.Medium, flex: 1 },
+  rdChecking: {},
+  rdInstalled: { backgroundColor: 'rgba(34,197,94,0.1)' },
+  rdMissing: { backgroundColor: 'rgba(239,68,68,0.1)' },
+  installLink: { color: '#EF4444', fontFamily: Fonts.Bold, fontSize: 12 },
 
-  rdBannerText: { fontSize: 13, color: '#374151', flexShrink: 1 },
-  installLink: {
-    fontSize: 13,
-    color: '#DC2626',
-    fontWeight: '700',
-    marginTop: 3,
-  },
-
-  // ── Submit ────────────────
   submitBtn: {
-    backgroundColor: '#2563EB',
-    padding: 16,
+    height: 58 * S,
+    borderRadius: 18,
+    backgroundColor: GOLD,
+    flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 10,
-    marginTop: 22,
+    justifyContent: 'center',
+    marginTop: 10 * S,
+    elevation: 8,
+    shadowColor: GOLD,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
-  submitBtnDisabled: { backgroundColor: '#93C5FD' },
-  submitBtnText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 15,
-    letterSpacing: 0.3,
-  },
+  submitBtnDisabled: { opacity: 0.4 },
+  submitBtnText: { color: WHITE, fontSize: 16, fontFamily: Fonts.Bold, letterSpacing: 0.5 },
+
+  footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 24 * S },
+  footerText: { fontSize: 10, fontFamily: Fonts.Bold, color: WHITE_30, letterSpacing: 1 },
 });
