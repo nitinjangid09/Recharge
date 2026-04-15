@@ -150,7 +150,7 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
     <Modal
       visible={visible}
       transparent
-      animationType="none"
+      animationType="fade"
       onRequestClose={handleClose}
       statusBarTranslucent
       hardwareAccelerated
@@ -261,8 +261,8 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
                   <View style={[
                     styles.note,
                     isSuccess ? { backgroundColor: Colors.successOpacity_10, borderColor: Colors.success_ring } :
-                    isPending ? { backgroundColor: Colors.amberOpacity_15, borderColor: Colors.amberOpacity_30 } :
-                    { backgroundColor: Colors.warningOpacity_10, borderColor: Colors.warningOpacity_30 }
+                      isPending ? { backgroundColor: Colors.amberOpacity_15, borderColor: Colors.amberOpacity_30 } :
+                        { backgroundColor: Colors.warningOpacity_10, borderColor: Colors.warningOpacity_30 }
                   ]}>
                     <View style={[
                       styles.noteDot,
