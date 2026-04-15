@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
   Platform,
   Alert,
   ScrollView,
+  PanResponder,
+  Animated,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -43,10 +45,50 @@ const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const ReceiptModal = ({ visible, onClose, navigation, data }) => {
   const [sharing, setSharing] = useState(false);
   const receiptCardRef = useRef(null);
+  const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
+
+  // ── Swipe to close logic ──────────────────────────────────────────────────
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, { dy }) => dy > 10,
+      onMoveShouldSetPanResponderCapture: (_, { dy }) => dy > 10,
+      onPanResponderMove: (_, { dy }) => {
+        if (dy > 0) translateY.setValue(dy);
+      },
+      onPanResponderRelease: (_, { dy, vy }) => {
+        // Close if swiped down far enough or fast enough
+        if (dy > 100 || vy > 0.5) {
+          handleClose();
+        } else {
+          Animated.spring(translateY, { toValue: 0, bounciness: 5, useNativeDriver: true }).start();
+        }
+      },
+    })
+  ).current;
+
+  useEffect(() => {
+    if (visible) {
+      Animated.parallel([
+        Animated.spring(translateY, { toValue: 0, bounciness: 2, speed: 18, useNativeDriver: true }),
+        Animated.timing(backdropOpacity, { toValue: 1, duration: 220, useNativeDriver: true }),
+      ]).start();
+    }
+  }, [visible]);
+
+  const handleClose = () => {
+    Animated.parallel([
+      Animated.timing(translateY, { toValue: SCREEN_HEIGHT, duration: 250, useNativeDriver: true }),
+      Animated.timing(backdropOpacity, { toValue: 0, duration: 200, useNativeDriver: true }),
+    ]).start(() => {
+      onClose();
+    });
+  };
 
   if (!visible && !data) return null;
 
-  const isSuccess = data?.status === "success" || data?.status === "SUCCESS";
+  const isSuccess = data?.status?.toLowerCase() === "success";
+  const isPending = data?.status?.toLowerCase() === "pending";
 
   const dateStr = data?.date || new Date().toLocaleString("en-IN", {
     day: "2-digit", month: "short", year: "numeric",
@@ -108,18 +150,23 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
     <Modal
       visible={visible}
       transparent
-      animationType="slide"
-      onRequestClose={onClose}
+      animationType="fade"
+      onRequestClose={handleClose}
       statusBarTranslucent
       hardwareAccelerated
     >
       {!data ? <View /> : (
-        <View style={[styles.overlay, { backgroundColor: Colors.blackOpacity_52 }]}>
-          <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose} />
+        <View style={styles.overlay}>
+          <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.blackOpacity_52, opacity: backdropOpacity }]}>
+            <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={handleClose} />
+          </Animated.View>
 
-          <View style={[styles.sheet, { backgroundColor: Colors.finance_bg_1 }]}>
+          <Animated.View
+            style={[styles.sheet, { backgroundColor: Colors.finance_bg_1 || Colors.white, transform: [{ translateY }] }]}
+            {...panResponder.panHandlers}
+          >
             {/* Drag handle */}
-            <View style={styles.handle} />
+            {/* Drag handle */}
 
             <ScrollView
               showsVerticalScrollIndicator={false}
@@ -136,7 +183,7 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
                 <LinearGradient
                   colors={isSuccess
                     ? [Colors.success || "#22C55E", Colors.success_dark || "#059669"]
-                    : data.status === "pending"
+                    : isPending
                       ? [Colors.amber || "#F59E0B", Colors.amber_dark || "#D97706"]
                       : [Colors.error || "#EF4444", Colors.error_dark || "#DC2626"]}
                   start={{ x: 0, y: 0 }}
@@ -147,12 +194,14 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
                   <View style={styles.blob2} />
                   <View style={styles.iconRing}>
                     <Icon
-                      name={isSuccess ? "check-circle-outline" : data.status === "pending" ? "clock-outline" : "close-circle-outline"}
+                      name={isSuccess ? "check-circle-outline" : isPending ? "clock-outline" : "close-circle-outline"}
                       size={36}
                       color={Colors.white}
                     />
                   </View>
-                  <Text style={styles.bannerTitle}>{data.title || (isSuccess ? "Transaction Successful" : "Transaction Failed")}</Text>
+                  <Text style={styles.bannerTitle}>
+                    {data.title || (isSuccess ? "Transaction Successful" : isPending ? "Transaction Pending" : "Transaction Failed")}
+                  </Text>
                   <Text style={styles.bannerDate}>{dateStr}</Text>
                 </LinearGradient>
 
@@ -186,7 +235,7 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
                       <Text style={[styles.rowLbl, { color: Colors.finance_text_light }]}>{row.label}</Text>
                       {row.isStatusPill ? (
                         <View style={[styles.statusPill, { backgroundColor: row.color || Colors.primary }]}>
-                          <Text style={styles.statusPillTxt}>{row.value.toUpperCase()}</Text>
+                          <Text style={styles.statusPillTxt}>{String(row.value).toUpperCase()}</Text>
                         </View>
                       ) : (
                         <Text
@@ -209,8 +258,16 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
 
                 {/* Note */}
                 {data?.note && (
-                  <View style={[styles.note, isSuccess ? { backgroundColor: Colors.successOpacity_10, borderColor: Colors.success_ring } : { backgroundColor: Colors.warningOpacity_10, borderColor: Colors.warningOpacity_30 }]}>
-                    <View style={[styles.noteDot, { backgroundColor: isSuccess ? Colors.success : Colors.error }]} />
+                  <View style={[
+                    styles.note,
+                    isSuccess ? { backgroundColor: Colors.successOpacity_10, borderColor: Colors.success_ring } :
+                      isPending ? { backgroundColor: Colors.amberOpacity_15, borderColor: Colors.amberOpacity_30 } :
+                        { backgroundColor: Colors.warningOpacity_10, borderColor: Colors.warningOpacity_30 }
+                  ]}>
+                    <View style={[
+                      styles.noteDot,
+                      { backgroundColor: isSuccess ? Colors.success : isPending ? Colors.amber : Colors.error }
+                    ]} />
                     <Text style={[styles.noteTxt, { color: Colors.finance_text }]} numberOfLines={2}>{data.note}</Text>
                   </View>
                 )}
@@ -249,7 +306,7 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
                 </TouchableOpacity>
               )}
             </View>
-          </View>
+          </Animated.View>
         </View>
       )}
     </Modal>
@@ -263,18 +320,10 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 28,
     overflow: "hidden",
     paddingBottom: 20,
-    maxHeight: SCREEN_HEIGHT * 0.92,
+    maxHeight: SCREEN_HEIGHT * 0.82,
   },
-  handle: {
-    width: 36,
-    height: 4,
-    backgroundColor: "rgba(0,0,0,0.12)",
-    borderRadius: 2,
-    alignSelf: "center",
-    marginTop: 10,
-    marginBottom: 6,
-  },
-  banner: { alignItems: "center", paddingTop: 26, paddingBottom: 22, paddingHorizontal: 20, overflow: "hidden" },
+
+  banner: { alignItems: "center", paddingTop: 30, paddingBottom: 16, paddingHorizontal: 20, overflow: "hidden" },
   blob1: { position: "absolute", width: 160, height: 160, borderRadius: 80, backgroundColor: "rgba(255,255,255,0.07)", top: -55, right: -45 },
   blob2: { position: "absolute", width: 110, height: 110, borderRadius: 55, backgroundColor: "rgba(255,255,255,0.07)", top: 10, left: -35 },
   iconRing: { width: 64, height: 64, borderRadius: 32, backgroundColor: "rgba(255,255,255,0.18)", alignItems: "center", justifyContent: "center", marginBottom: 10 },

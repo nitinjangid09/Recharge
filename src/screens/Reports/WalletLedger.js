@@ -6,8 +6,12 @@ import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
   Animated, Easing, StatusBar, Dimensions,
   ActivityIndicator, Share, Modal, ScrollView, Platform, TextInput,
-  RefreshControl,
+  RefreshControl, LayoutAnimation, UIManager, PanResponder,
 } from 'react-native';
+
+if (Platform.OS === 'android') {
+  UIManager.setLayoutAnimationEnabledExperimental?.(true);
+}
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -33,44 +37,6 @@ const CAL_H_PAD = sc(35);
 const CAL_G_PAD = sc(10);
 const CELL_SIZE = Math.floor((SW - CAL_H_PAD * 2 - CAL_G_PAD * 2) / 7);
 const CIRCLE_SIZE = Math.max(CELL_SIZE - sc(8), sc(28));
-
-// ─── Design tokens — exact match to screenshots ───────────────────────────────
-const D = {
-  // Page / structural
-  pageBg: Colors.finance_bg_1,          // warm cream bg  (all 3 screenshots)
-  headerBg: Colors.slate_900,          // very dark header bar
-  cardBg: Colors.white,          // white cards
-  heroBg: Colors.slate_900,          // dark balance hero card (screenshot 2)
-  surfaceMid: Colors.slate_50,
-
-  // Brand accent — gold/amber
-  gold: Colors.finance_accent,
-  goldDim: Colors.amberOpacity_15,
-  goldLight: Colors.warning_light,
-
-  // Type colours
-  // CREDIT → green left bar + green badge (screenshot 3)
-  green: Colors.finance_success,
-  greenLight: Colors.success_dark,
-  greenDim: Colors.successOpacity_10,
-  greenBg: Colors.successOpacity_10,
-
-  // DEBIT → amber/gold left bar + amber badge (screenshot 3)
-  debit: Colors.amber,          // amber for debit badge
-  debitDim: Colors.amberOpacity_30,
-  debitBg: Colors.amberOpacity_15,
-
-  // Detail sheet amount colour
-  amountCredit: Colors.finance_success,        // +₹0.95 in green  (screenshot 1)
-
-  // Text
-  textPri: Colors.text_primary,
-  textSec: Colors.text_secondary,
-  textMuted: Colors.text_placeholder,
-  textHint: Colors.gray_9E,
-  border: Colors.border,
-  divider: Colors.divider,
-};
 
 // ─── Filter config ────────────────────────────────────────────────────────────
 const DATE_OPTIONS = [
@@ -132,6 +98,7 @@ const toQueryDate = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.
 const formatApiDate = (iso) => {
   if (!iso) return '—';
   const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso || '—';
   return `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]} ${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
@@ -192,20 +159,6 @@ const downloadReceipt = async (item) => {
   }
 };
 
-// ══════════════════════════════════════════════════════════════════════════════
-//  CALENDAR MODAL — logic unchanged
-// ══════════════════════════════════════════════════════════════════════════════
-
-
-// ══════════════════════════════════════════════════════════════════════════════
-//  TRANSACTION DETAIL BOTTOM SHEET — pixel-perfect to screenshot 1
-//  • White sheet slides up
-//  • Title "Recharge Commission" + "21 Mar 2026, 18:31"
-//  • 💰 emoji + big green amount + sub description
-//  • 5 detail rows: Status / Reference ID / Date & Time / Transaction Type / Amount
-//  • Receipt (gold tinted) + Close (black) buttons
-// ══════════════════════════════════════════════════════════════════════════════
-
 
 // ─── Filter Sheet Component ───────────────────────────────────────────────────
 const FilterSheet = ({ visible, onClose, onApply, activeFilters, startDate, endDate, onOpenCal, userOptions }) => {
@@ -215,6 +168,23 @@ const FilterSheet = ({ visible, onClose, onApply, activeFilters, startDate, endD
   const [local, setLocal] = useState(activeFilters);
 
   const sections = FILTER_SECTIONS.map(s => s.key === 'user' ? { ...s, options: userOptions } : s);
+
+  // ── Swipe to close logic ──────────────────────────────────────────────────
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, { dy }) => dy > 10,
+      onPanResponderMove: (_, { dy }) => {
+        if (dy > 0) slideA.setValue(dy);
+      },
+      onPanResponderRelease: (_, { dy }) => {
+        if (dy > 120) {
+          onClose();
+        } else {
+          Animated.spring(slideA, { toValue: 0, bounciness: 5, useNativeDriver: true }).start();
+        }
+      },
+    })
+  ).current;
 
   useEffect(() => {
     if (visible) {
@@ -244,14 +214,17 @@ const FilterSheet = ({ visible, onClose, onApply, activeFilters, startDate, endD
       <Animated.View style={[FST.backdrop, { opacity: backdropA }]}>
         <TouchableOpacity style={StyleSheet.absoluteFill} onPress={onClose} activeOpacity={1} />
       </Animated.View>
-      <Animated.View style={[FST.sheet, { transform: [{ translateY: slideA }] }]}>
+      <Animated.View
+        style={[FST.sheet, { transform: [{ translateY: slideA }] }]}
+        {...panResponder.panHandlers}
+      >
         <View style={FST.handle} />
         {/* Header */}
         <View style={FST.header}>
           <Text style={FST.title}>Filters</Text>
           <TouchableOpacity onPress={() => setLocal(DEFAULT_FILTERS)} style={FST.resetBtn}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Icon name="refresh" size={rs(12)} color={D.gold} style={{ marginRight: sc(4) }} />
+            <Icon name="refresh" size={rs(12)} color={Colors.finance_accent} style={{ marginRight: sc(4) }} />
             <Text style={FST.resetTxt}>Reset all</Text>
           </TouchableOpacity>
         </View>
@@ -267,8 +240,8 @@ const FilterSheet = ({ visible, onClose, onApply, activeFilters, startDate, endD
                   style={[FST.navItem, isActive && FST.navItemActive]}
                   onPress={() => setActiveSection(sec.key)}
                   activeOpacity={0.7}>
-                  <View style={[FST.navIconBox, isActive && { backgroundColor: D.goldDim }]}>
-                    <Icon name={sec.icon} size={rs(15)} color={isActive ? D.gold : D.textMuted} />
+                  <View style={[FST.navIconBox, isActive && { backgroundColor: Colors.amberOpacity_15 }]}>
+                    <Icon name={sec.icon} size={rs(15)} color={isActive ? Colors.finance_accent : (Colors.text_placeholder || "#999")} />
                   </View>
                   <Text style={[FST.navTxt, isActive && FST.navTxtActive]}>
                     {sec.label.split(' ')[0]}
@@ -298,18 +271,18 @@ const FilterSheet = ({ visible, onClose, onApply, activeFilters, startDate, endD
                   style={[FST.optRow, isSel && FST.optRowActive]}
                   onPress={() => setLocal(p => ({ ...p, [currentSection.stateKey]: opt.key }))}
                   activeOpacity={0.7}>
-                  <View style={[FST.optIconBox, isSel && { backgroundColor: D.goldDim }]}>
+                  <View style={[FST.optIconBox, isSel && { backgroundColor: Colors.goldDim }]}>
                     {opt.icon ? (
-                      <Icon name={opt.icon} size={rs(14)} color={isSel ? D.gold : D.textMuted} />
+                      <Icon name={opt.icon} size={rs(14)} color={isSel ? Colors.finance_accent : (Colors.text_placeholder || "#999")} />
                     ) : (
-                      <View style={{ width: rs(14), height: rs(14), borderRadius: rs(7), backgroundColor: isSel ? D.gold : D.textMuted, alignItems: 'center', justifyContent: 'center' }}>
-                        <Text style={{ fontSize: rs(8), color: Colors.white, fontFamily: Fonts.Bold }}>{opt.label.charAt(0)}</Text>
+                      <View style={{ width: rs(14), height: rs(14), borderRadius: rs(7), backgroundColor: isSel ? Colors.finance_accent : Colors.text_placeholder, alignItems: 'center', justifyContent: 'center' }}>
+                        <Text style={{ fontSize: rs(8), color: Colors.white, fontFamily: Fonts.Bold }}>{String(opt.label).charAt(0)}</Text>
                       </View>
                     )}
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={[FST.optTxt, isSel && FST.optTxtActive]}>{opt.label}</Text>
-                    {opt.subLabel && <Text style={{ fontSize: rs(10), color: D.textMuted, marginTop: vs(1) }}>{opt.subLabel}</Text>}
+                    <Text style={[FST.optTxt, isSel && FST.optTxtActive]}>{String(opt.label)}</Text>
+                    {opt.subLabel && <Text style={{ fontSize: rs(10), color: Colors.text_secondary, marginTop: vs(1) }}>{String(opt.subLabel)}</Text>}
                   </View>
                   <View style={isSel ? FST.radioOn : FST.radioOff}>
                     {isSel && <View style={FST.radioInner} />}
@@ -337,40 +310,57 @@ const FST = StyleSheet.create({
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: Colors.blackOpacity_55 },
   sheet: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: D.cardBg,
+    backgroundColor: Colors.white,
     borderTopLeftRadius: sc(24), borderTopRightRadius: sc(24),
     maxHeight: SH * 0.78, elevation: 24, shadowColor: Colors.black, shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.14, shadowRadius: 16,
   },
   handle: { width: sc(32), height: vs(4), backgroundColor: Colors.blackOpacity_12, borderRadius: 2, alignSelf: 'center', marginTop: vs(10), marginBottom: vs(2) },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: sc(20), paddingVertical: vs(14), borderBottomWidth: 1, borderBottomColor: D.border },
-  title: { fontSize: rs(17), fontFamily: Fonts.Bold, color: D.textPri },
-  resetBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: sc(12), paddingVertical: vs(6), borderRadius: sc(8), backgroundColor: D.goldDim },
-  resetTxt: { fontSize: rs(12), fontFamily: Fonts.Bold, color: D.gold },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: sc(20), paddingVertical: vs(14), borderBottomWidth: 1, borderBottomColor: Colors.border },
+  title: { fontSize: rs(17), fontFamily: Fonts.Bold, color: Colors.text_primary },
+  resetBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: sc(12), paddingVertical: vs(6), borderRadius: sc(8), backgroundColor: Colors.amberOpacity_15 },
+  resetTxt: { fontSize: rs(12), fontFamily: Fonts.Bold, color: Colors.kyc_accent },
   body: { flexDirection: 'row', flex: 1, maxHeight: SH * 0.52 },
-  navCol: { width: sc(82), borderRightWidth: 1, borderRightColor: D.border, paddingTop: vs(10) },
+  navCol: { width: sc(82), borderRightWidth: 1, borderRightColor: Colors.border, paddingTop: vs(10) },
   navItem: { paddingVertical: vs(18), alignItems: 'center', paddingHorizontal: sc(6) },
-  navItemActive: { backgroundColor: D.cardBg },
-  navIconBox: { width: sc(34), height: sc(34), borderRadius: sc(10), backgroundColor: D.surfaceMid, alignItems: 'center', justifyContent: 'center', marginBottom: vs(5) },
-  navTxt: { fontSize: rs(9), fontFamily: Fonts.Medium, color: D.textMuted, textAlign: 'center', letterSpacing: 0.3 },
-  navTxtActive: { color: D.gold, fontFamily: Fonts.Bold },
-  navDot: { position: 'absolute', top: vs(12), right: sc(10), width: sc(6), height: sc(6), borderRadius: sc(3), backgroundColor: D.gold },
+  navItemActive: { backgroundColor: Colors.cardBg },
+  navIconBox: { width: sc(34), height: sc(34), borderRadius: sc(10), backgroundColor: Colors.surfaceMid, alignItems: 'center', justifyContent: 'center', marginBottom: vs(5) },
+  navTxt: { fontSize: rs(9), fontFamily: Fonts.Medium, color: Colors.textMuted, textAlign: 'center', letterSpacing: 0.3 },
+  navTxtActive: { color: Colors.kyc_accent, fontFamily: Fonts.Bold },
+  navDot: { position: 'absolute', top: vs(12), right: sc(10), width: sc(6), height: sc(6), borderRadius: sc(3), backgroundColor: Colors.gold },
   optCol: { flex: 1, paddingHorizontal: sc(14) },
-  optSectionLabel: { fontSize: rs(9), fontFamily: Fonts.Bold, color: D.textMuted, letterSpacing: 1.2, marginBottom: vs(10), textTransform: 'uppercase' },
+  optSectionLabel: { fontSize: rs(9), fontFamily: Fonts.Bold, color: Colors.textMuted, letterSpacing: 1.2, marginBottom: vs(10), textTransform: 'uppercase' },
   optRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: vs(12), gap: sc(10), borderRadius: sc(10), paddingHorizontal: sc(4) },
-  optRowActive: { backgroundColor: D.goldDim, marginHorizontal: -sc(4), paddingHorizontal: sc(8) },
-  optIconBox: { width: sc(32), height: sc(32), borderRadius: sc(9), backgroundColor: D.surfaceMid, alignItems: 'center', justifyContent: 'center' },
-  optTxt: { flex: 1, fontSize: rs(13), fontFamily: Fonts.Medium, color: D.textSec },
-  optTxtActive: { color: D.gold, fontFamily: Fonts.Bold },
-  radioOff: { width: sc(18), height: sc(18), borderRadius: sc(9), borderWidth: 1.5, borderColor: D.border },
-  radioOn: { width: sc(18), height: sc(18), borderRadius: sc(9), borderWidth: 2, borderColor: D.gold, alignItems: 'center', justifyContent: 'center' },
-  radioInner: { width: sc(8), height: sc(8), borderRadius: sc(4), backgroundColor: D.gold },
+  optRowActive: { backgroundColor: Colors.goldDim, marginHorizontal: -sc(4), paddingHorizontal: sc(8) },
+  optIconBox: { width: sc(32), height: sc(32), borderRadius: sc(9), backgroundColor: Colors.surfaceMid, alignItems: 'center', justifyContent: 'center' },
+  optTxt: { flex: 1, fontSize: rs(13), fontFamily: Fonts.Medium, color: Colors.textSec },
+  optTxtActive: { color: Colors.kyc_accent, fontFamily: Fonts.Bold },
+  radioOff: { width: sc(18), height: sc(18), borderRadius: sc(9), borderWidth: 1.5, borderColor: Colors.border },
+  radioOn: { width: sc(18), height: sc(18), borderRadius: sc(9), borderWidth: 2, borderColor: Colors.gold, alignItems: 'center', justifyContent: 'center' },
+  radioInner: { width: sc(8), height: sc(8), borderRadius: sc(4), backgroundColor: Colors.gold },
   customDateRow: { flexDirection: 'row', alignItems: 'center', marginBottom: vs(16), paddingHorizontal: sc(4) },
-  footer: { paddingHorizontal: sc(20), paddingTop: vs(12), paddingBottom: Platform.OS === 'ios' ? vs(34) : vs(16), borderTopWidth: 1, borderTopColor: D.border },
-  applyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: D.headerBg, borderRadius: sc(14), paddingVertical: vs(15) },
+  footer: { paddingHorizontal: sc(20), paddingTop: vs(12), paddingBottom: Platform.OS === 'ios' ? vs(34) : vs(16), borderTopWidth: 1, borderTopColor: Colors.border },
+  applyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.headerBg, borderRadius: sc(14), paddingVertical: vs(15) },
   applyTxt: { color: Colors.white, fontSize: rs(14), fontFamily: Fonts.Bold },
-  badge: { marginLeft: sc(8), backgroundColor: D.gold, minWidth: sc(20), height: sc(20), borderRadius: sc(10), alignItems: 'center', justifyContent: 'center', paddingHorizontal: sc(4) },
+  badge: { marginLeft: sc(8), backgroundColor: Colors.gold, minWidth: sc(20), height: sc(20), borderRadius: sc(10), alignItems: 'center', justifyContent: 'center', paddingHorizontal: sc(4) },
   badgeTxt: { color: Colors.white, fontSize: rs(9), fontFamily: Fonts.Bold },
 });
+
+const DateFilterBtn = ({ label, date, onPress }) => {
+  const sa = useRef(new Animated.Value(1)).current;
+  return (
+    <Animated.View style={{ flex: 1, transform: [{ scale: sa }] }}>
+      <TouchableOpacity style={S.datePill} activeOpacity={0.9}
+        onPress={() => { buttonPress(sa).start(); onPress(); }}>
+        <Icon name="calendar-month" size={rs(18)} color={Colors.finance_accent} style={{ marginRight: sc(8) }} />
+        <View style={{ flex: 1 }}>
+          <Text style={S.datePillLabel}>{label}</Text>
+          <Text style={S.datePillValue}>{formatDisplay(date)}</Text>
+        </View>
+        <Icon name="chevron-down" size={rs(13)} color={Colors.text_placeholder} />
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
 
 // ─── Filter Pills Component ──────────────────────────────────────────────────
 const FilterPills = ({ filters, onRemove }) => {
@@ -378,12 +368,12 @@ const FilterPills = ({ filters, onRemove }) => {
   const dateOpt = DATE_OPTIONS.find(o => o.key === filters.date);
   const serviceOpt = SERVICE_TYPES.find(o => o.key === filters.service);
   const txnOpt = TXN_TYPES.find(o => o.key === filters.txnType);
-  if (filters.date !== 'this_month' && dateOpt) pills.push({ key: 'date', label: dateOpt.label, icon: 'calendar-range', color: D.gold });
+  if (filters.date !== 'this_month' && dateOpt) pills.push({ key: 'date', label: dateOpt.label, icon: 'calendar-range', color: Colors.gold });
   if (filters.userId !== 'all') pills.push({ key: 'userId', label: 'Specified User', icon: 'account-outline', color: Colors.amber });
   if (filters.service !== 'all' && serviceOpt) pills.push({ key: 'service', label: serviceOpt.label, icon: serviceOpt.icon, color: Colors.indigo });
   if (filters.txnType !== 'all' && txnOpt) pills.push({
     key: 'txnType', label: txnOpt.label, icon: txnOpt.icon,
-    color: filters.txnType === 'credit' ? D.green : filters.txnType === 'debit' ? D.debit : D.gold
+    color: filters.txnType === 'credit' ? Colors.green : filters.txnType === 'debit' ? Colors.debit : Colors.gold
   });
   if (!pills.length) return null;
   return (
@@ -415,7 +405,7 @@ const SummaryStrip = ({ data, fromDate, toDate }) => {
     <View style={SS.wrap}>
       {/* Range tag */}
       <View style={SS.rangeRow}>
-        <Icon name="calendar" size={rs(14)} color={D.gold} style={{ marginRight: sc(7) }} />
+        <Icon name="calendar" size={rs(14)} color={Colors.finance_accent} style={{ marginRight: sc(7) }} />
         <Text style={SS.rangeTxt}>{formatDisplay(fromDate)}  →  {formatDisplay(toDate)}</Text>
       </View>
 
@@ -425,7 +415,7 @@ const SummaryStrip = ({ data, fromDate, toDate }) => {
           <View style={[SS.statIcon, { backgroundColor: 'rgba(59,130,246,0.12)' }]}>
             <Icon name="arrow-up" size={rs(14)} color={Colors.blue} />
           </View>
-          <Text style={[SS.statVal, { color: D.gold }]}>₹{totalDebit.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+          <Text style={[SS.statVal, { color: Colors.hex_C79A3F }]}>₹{totalDebit.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
           <Text style={SS.statLbl}>TOTAL DEBIT</Text>
         </View>
 
@@ -435,7 +425,7 @@ const SummaryStrip = ({ data, fromDate, toDate }) => {
           <View style={[SS.statIcon, { backgroundColor: 'rgba(16,185,129,0.12)' }]}>
             <Icon name="arrow-down" size={rs(14)} color={Colors.finance_success} />
           </View>
-          <Text style={[SS.statVal, { color: D.green }]}>₹{totalCredit.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+          <Text style={[SS.statVal, { color: Colors.green }]}>₹{totalCredit.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
           <Text style={SS.statLbl}>TOTAL CREDIT</Text>
         </View>
 
@@ -443,9 +433,9 @@ const SummaryStrip = ({ data, fromDate, toDate }) => {
 
         <View style={SS.statItem}>
           <View style={[SS.statIcon, { backgroundColor: 'rgba(0,0,0,0.05)' }]}>
-            <Icon name="swap-horizontal" size={rs(14)} color={D.textSec} />
+            <Icon name="swap-horizontal" size={rs(14)} color={Colors.text_secondary} />
           </View>
-          <Text style={[SS.statVal, { color: D.textPri }]}>{data.length}</Text>
+          <Text style={[SS.statVal, { color: Colors.text_primary }]}>{data.length}</Text>
           <Text style={SS.statLbl}>TRANSACTIONS</Text>
         </View>
       </View>
@@ -453,322 +443,144 @@ const SummaryStrip = ({ data, fromDate, toDate }) => {
   );
 };
 const SS = StyleSheet.create({
-  wrap: { marginHorizontal: sc(14), marginBottom: vs(10), backgroundColor: D.cardBg, borderRadius: sc(16), overflow: 'hidden', elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4 },
-  rangeRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: sc(16), paddingVertical: vs(10), borderBottomWidth: 1, borderBottomColor: D.border },
-  rangeTxt: { fontSize: rs(13), fontFamily: Fonts.Bold, color: D.textPri },
+  wrap: { marginHorizontal: sc(14), marginBottom: vs(10), backgroundColor: Colors.white, borderRadius: sc(16), overflow: 'hidden', elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4 },
+  rangeRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: sc(16), paddingVertical: vs(10), borderBottomWidth: 1, borderBottomColor: Colors.border },
+  rangeTxt: { fontSize: rs(13), fontFamily: Fonts.Bold, color: Colors.text_primary },
   statsRow: { flexDirection: 'row', paddingVertical: vs(14) },
   statItem: { flex: 1, alignItems: 'center', gap: vs(4) },
   statIcon: { width: sc(30), height: sc(30), borderRadius: sc(9), alignItems: 'center', justifyContent: 'center' },
   statVal: { fontSize: rs(14), fontFamily: Fonts.Bold },
-  statLbl: { fontSize: rs(8), fontFamily: Fonts.Bold, color: D.textMuted, letterSpacing: 0.5, textTransform: 'uppercase' },
-  divider: { width: 1, backgroundColor: D.border },
+  statLbl: { fontSize: rs(8), fontFamily: Fonts.Bold, color: Colors.text_placeholder, letterSpacing: 0.5, textTransform: 'uppercase' },
+  divider: { width: 1, backgroundColor: Colors.border },
 });
 
-// Detail sheet styles
-const ds = StyleSheet.create({
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: Colors.blackOpacity_50 },
-  sheet: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: D.cardBg,
-    borderTopLeftRadius: sc(24), borderTopRightRadius: sc(24),
-    paddingBottom: vs(36),
-    elevation: 24, shadowColor: Colors.black, shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.14, shadowRadius: 16,
-  },
-  handle: { width: sc(36), height: vs(4), backgroundColor: Colors.blackOpacity_12, borderRadius: 2, alignSelf: 'center', marginTop: vs(10), marginBottom: vs(14) },
-  titleSection: { paddingHorizontal: sc(20), paddingBottom: vs(14) },
-  title: { fontSize: rs(18), fontFamily: Fonts.Bold, color: D.textPri, marginBottom: vs(3) },
-  titleDate: { fontSize: rs(12), color: D.textMuted, fontFamily: Fonts.Medium },
-  sep: { height: 1, backgroundColor: D.border },
-  amountHero: { alignItems: 'center', paddingVertical: vs(20) },
-  amountBig: { fontSize: rs(30), fontFamily: Fonts.Bold, letterSpacing: -0.5, marginBottom: vs(4) },
-  amountSub: { fontSize: rs(12), color: D.textMuted, fontFamily: Fonts.Medium, textAlign: 'center', paddingHorizontal: sc(30) },
-  rowsWrap: { paddingHorizontal: sc(20) },
-  row: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingVertical: vs(12), borderBottomWidth: 1, borderBottomColor: D.border,
-  },
-  rowLabel: { fontSize: rs(13), color: D.textMuted, fontFamily: Fonts.Regular || Fonts.Medium },
-  rowVal: { fontSize: rs(13), fontFamily: Fonts.Medium, color: D.textPri, maxWidth: '58%', textAlign: 'right' },
-  rowValMono: { fontFamily: Fonts.Medium, fontSize: rs(12), letterSpacing: 0.2 },
-  btnRow: { flexDirection: 'row', paddingHorizontal: sc(20), paddingTop: vs(18), gap: sc(12) },
-  receiptBtn: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    paddingVertical: vs(14), borderRadius: sc(14),
-    backgroundColor: D.goldDim, borderWidth: 1.5, borderColor: `${D.gold}50`,
-  },
-  receiptTxt: { color: D.gold, fontFamily: Fonts.Bold, fontSize: rs(14) },
-  closeBtn: {
-    flex: 1.6, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    paddingVertical: vs(14), borderRadius: sc(14), backgroundColor: D.heroBg,
-  },
-  closeTxt: { color: Colors.white, fontFamily: Fonts.Bold, fontSize: rs(14) },
-});
 
-// ══════════════════════════════════════════════════════════════════════════════
-//  DATE FILTER BUTTON — matches screenshot 2
-//  Calendar icon + "From" label + date value (2 lines) + chevron
-// ══════════════════════════════════════════════════════════════════════════════
-// Summary components moved up above TxnDetailSheet for cleaner organization.
-
-const DateFilterBtn = ({ label, date, onPress }) => {
-  const sa = useRef(new Animated.Value(1)).current;
+// ─── Field ────────────────────────────────────────────────────────────────────
+function Field({ label, value, mono, valueStyle }) {
+  const styles = CARD_S;
   return (
-    <Animated.View style={{ flex: 1, transform: [{ scale: sa }] }}>
-      <TouchableOpacity style={S.datePill} activeOpacity={0.9}
-        onPress={() => { buttonPress(sa).start(); onPress(); }}>
-        <Icon name="calendar-month" size={rs(18)} color={D.gold} style={{ marginRight: sc(8) }} />
-        <View style={{ flex: 1 }}>
-          <Text style={S.datePillLabel}>{label}</Text>
-          <Text style={S.datePillValue}>{formatDisplay(date)}</Text>
-        </View>
-        <Icon name="chevron-down" size={rs(13)} color={D.textMuted} />
-      </TouchableOpacity>
-    </Animated.View>
-  );
-};
-
-// ══════════════════════════════════════════════════════════════════════════════
-//  EXPAND CONTENT — inside the card after "View Details"
-// ══════════════════════════════════════════════════════════════════════════════
-const ExpandContent = ({ item, isDebit }) => {
-  const typeColor = isDebit ? D.debit : D.green;
-  const [downloading, setDownloading] = useState(false);
-
-  const handleShare = async () => {
-    try {
-      await Share.share({
-        message: `Wallet ${isDebit ? 'DEBIT' : 'CREDIT'}: ${isDebit ? '−' : '+'} ₹${item.amount?.toFixed(2)}\nRef: ${item.referenceId}\nDate: ${formatApiDate(item.createdAt)}\nDesc: ${item.description}`,
-      });
-    } catch (_) { }
-  };
-
-  const handleDownload = async () => { setDownloading(true); await downloadReceipt(item); setDownloading(false); };
-
-  return (
-    <View style={EC.wrap}>
-      {/* Balance row */}
-      <View style={EC.balanceCard}>
-        <View style={EC.half}>
-          <Text style={EC.balLbl}>Opening</Text>
-          <Text style={EC.balAmt}>₹{item.openingBalance?.toFixed(2) ?? '—'}</Text>
-        </View>
-        <View style={EC.balSep}>
-          <Icon name="arrow-right" size={rs(14)} color={typeColor} />
-        </View>
-        <View style={[EC.half, { alignItems: 'flex-end' }]}>
-          <Text style={EC.balLbl}>Closing</Text>
-          <Text style={[EC.balAmt, { color: typeColor }]}>₹{item.closingBalance?.toFixed(2) ?? '—'}</Text>
-        </View>
-      </View>
-      {/* Wallet + account */}
-      <View style={EC.infoRow}>
-        <View style={EC.infoHalf}>
-          <Text style={EC.infoLbl}>USER NAME</Text>
-          <Text style={EC.infoVal} numberOfLines={1}>{item.user?.userName || item.userName || '—'}</Text>
-        </View>
-        <View style={[EC.infoHalf, { alignItems: 'flex-end' }]}>
-          <Text style={EC.infoLbl}>USER ID</Text>
-          <Text style={EC.infoVal} numberOfLines={1}>{item.user?.userId || item.userId || '—'}</Text>
-        </View>
-      </View>
-      <View style={EC.infoRow}>
-        <View style={EC.infoHalf}>
-          <Text style={EC.infoLbl}>WALLET</Text>
-          <View style={[EC.chip, { backgroundColor: D.goldDim }]}>
-            <Icon name="wallet-outline" size={rs(10)} color={D.gold} style={{ marginRight: sc(4) }} />
-            <Text style={[EC.chipTxt, { color: D.gold }]}>{item.wallet?.toUpperCase() ?? 'MAIN'}</Text>
-          </View>
-        </View>
-      </View>
-
+    <View style={styles.field}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <Text
+        style={[styles.fieldValue, mono && styles.fieldMono, valueStyle]}
+        numberOfLines={1}
+      >
+        {String(value || '—')}
+      </Text>
     </View>
   );
-};
-const EC = StyleSheet.create({
-  wrap: { paddingTop: vs(10) },
-  balanceCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: D.surfaceMid, borderRadius: sc(12), paddingHorizontal: sc(14), paddingVertical: vs(12), marginBottom: vs(12) },
-  half: { flex: 1 },
-  balLbl: { fontSize: rs(9), color: D.textMuted, marginBottom: vs(3), fontFamily: Fonts.Medium },
-  balAmt: { fontSize: rs(15), fontFamily: Fonts.Bold, color: D.textPri },
-  balSep: { width: sc(28), height: sc(28), borderRadius: sc(14), alignItems: 'center', justifyContent: 'center', marginHorizontal: sc(8), backgroundColor: Colors.blackOpacity_04 },
-  infoRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: vs(12) },
-  infoHalf: { flex: 1 },
-  infoLbl: { fontSize: rs(8), fontFamily: Fonts.Bold, color: D.textMuted, letterSpacing: 0.8, marginBottom: vs(4), textTransform: 'uppercase' },
-  infoVal: { fontSize: rs(12), fontFamily: Fonts.Medium, color: D.textPri },
-  chip: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', paddingHorizontal: sc(8), paddingVertical: vs(3), borderRadius: sc(8) },
-  chipTxt: { fontSize: rs(11), fontFamily: Fonts.Bold, letterSpacing: 0.4 },
+}
 
-});
+// ─── Category badge ────────────────────────────────────────────────────────────
+function CategoryBadge({ label, isCredit }) {
+  const styles = CARD_S;
+  return (
+    <View style={[styles.badge, isCredit ? styles.badgeCredit : styles.badgeDebit]}>
+      <Text style={[styles.badgeText, isCredit ? styles.badgeCreditText : styles.badgeDebitText]}>
+        {label}
+      </Text>
+    </View>
+  );
+}
 
-// ══════════════════════════════════════════════════════════════════════════════
-//  TRANSACTION CARD — pixel-perfect match to screenshot 3
-//
-//  Layout:
-//  ┌─ 4px left bar (green=credit, gold=debit)
-//  │  ↑ CREDIT badge  (+₹0.95 right)
-//  │  Recharge Commission  (bold title)
-//  │  REF ID              DATE & TIME
-//  │  REF-TPyn3PA2DF      21 Mar 2026 · 18:31
-//  │  ↓ View Details  (centered, arrow icon)
-//  └─────────────────────────────────────────
-// ══════════════════════════════════════════════════════════════════════════════
-const TransactionCard = ({ item, index, onPressDetail }) => {
-  const [expanded, setExpanded] = useState(false);
-  const [measured, setMeasured] = useState(false);
-  const panelH = useRef(0);
-  const heightAnim = useRef(new Animated.Value(0)).current;
-  const isAnimating = useRef(false);
 
-  const isDebit = item.type === 'debit';
-  const barColor = isDebit ? D.debit : D.green;    // left bar
-  const badgeBg = isDebit ? D.debitDim : D.greenDim; // badge bg
-  const badgeTxt = isDebit ? D.debit : D.green;    // badge text
-  const typeLabel = isDebit ? '↑ DEBIT' : '↑ CREDIT'; // "↑ CREDIT" / "↑ DEBIT"
-  const amtColor = isDebit ? `−₹` : `+₹`;
-  const amtDisplay = `${amtColor}${item.amount?.toFixed(2)}`;
-  const amtTextColor = isDebit ? D.debit : D.green;
 
-  const onGhostLayout = (e) => {
-    const h = e.nativeEvent.layout.height;
-    if (h > 0 && !measured) { panelH.current = h; setMeasured(true); }
-  };
-
-  const toggle = () => {
-    if (isAnimating.current || !measured) return;
-    isAnimating.current = true;
-    const opening = !expanded;
-    setExpanded(opening);
-    Animated.timing(heightAnim, {
-      toValue: opening ? panelH.current : 0,
-      duration: 280,
-      easing: opening ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic),
-      useNativeDriver: false,
-    }).start(() => { isAnimating.current = false; });
-  };
+// ─── Transaction card ─────────────────────────────────────────────────────────
+function TransactionCard({ txn, onPressReceipt }) {
+  const isCredit = txn.type === 'credit';
+  const styles = CARD_S;
 
   return (
-    <View style={TC.card}>
+    <View style={styles.card}>
 
-      <View style={TC.body}>
-        <View style={TC.row1}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <View style={[TC.iconCircle, { backgroundColor: `${barColor}12`, borderColor: `${barColor}25`, borderWidth: 1 }]}>
-              <Icon name={item.isRefunded ? "refresh" : (isDebit ? "arrow-up-thin" : "arrow-down-thin")} size={rs(20)} color={barColor} />
-            </View>
-            <View style={{ marginLeft: sc(10) }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={TC.metaKey}>{(item.category || 'Transaction').toUpperCase()}</Text>
-                {item.isRefunded && (
-                  <View style={[TC.refundBadge, { marginLeft: sc(6) }]}>
-                    <Text style={TC.refundBadgeTxt}>REFUND</Text>
-                  </View>
-                )}
-              </View>
-              <View style={[TC.badge, { backgroundColor: badgeBg, marginTop: vs(2) }]}>
-                <Text style={[TC.badgeTxt, { color: badgeTxt }]}>{typeLabel}</Text>
-              </View>
-            </View>
+      {/* ── Dark header ── */}
+      <View style={styles.cardHeader}>
+
+        <View style={styles.headerRow}>
+          <View style={styles.logoPill}>
+            <Text style={styles.logoText}>{txn.logoLabel || (isCredit ? 'CR' : 'DB')}</Text>
           </View>
-          <Text style={[TC.amount, { color: amtTextColor }]}>{amtDisplay}</Text>
+
+          <View style={styles.typeCol}>
+            <Text style={[styles.typeLabel, isCredit ? styles.typeLabelCredit : styles.typeLabelDebit]}>
+              {isCredit ? 'CREDIT' : 'DEBIT'}
+            </Text>
+            <Text style={styles.txnRef}>{txn.txnId}</Text>
+          </View>
+
+          <View style={styles.amountCol}>
+            <Text style={[styles.amountVal, isCredit ? styles.amountCredit : styles.amountDebit]}>
+              {txn.amountStr}
+            </Text>
+            <Text style={styles.amountDate}>{txn.date}</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* ── Info body ── */}
+      <View style={styles.body}>
+
+        {/* Service + Category + Service ID */}
+        <View style={[styles.section, styles.sectionRow]}>
+          <View style={styles.infoCell}>
+            <Field label="Service" value={txn.serviceName} />
+          </View>
+          <View style={styles.infoCell}>
+            <Text style={styles.fieldLabel}>Category</Text>
+            <CategoryBadge label={txn.serviceCategory} isCredit={isCredit} />
+          </View>
+          <View style={styles.infoCell}>
+            <Field label="Service ID" value={txn.serviceId} mono />
+          </View>
         </View>
 
-        {/* Title */}
-        <Text style={TC.title} numberOfLines={1}>{item.description}</Text>
+        {/* Mobile + Operator */}
+        <View style={[styles.section, styles.sectionRow]}>
+          <View style={styles.infoCell}>
+            <Field label="Mobile" value={txn.mobileNo} mono />
+          </View>
+          <View style={styles.infoCell}>
+            <Field label="Operator" value={txn.operatorName || '—'} />
+          </View>
+        </View>
 
-        {/* User Info Strip */}
-        <View style={[TC.auditStrip, { marginTop: vs(10), backgroundColor: D.goldDim, borderColor: `${D.gold}20` }]}>
-          <Icon name="account" size={rs(10)} color={D.gold} style={{ marginRight: sc(4) }} />
-          <Text style={[TC.metaVal, { color: D.gold, fontFamily: Fonts.Bold }]}>
-            {item.userName || item.user?.userName || 'Unknown'}
-            <Text style={{ color: D.textMuted, fontFamily: Fonts.Medium }}> ({item.userId || item.user?.userId || '—'})</Text>
+        {/* User ID + Name */}
+        <View style={[styles.section, styles.sectionRow]}>
+          <View style={styles.infoCell}>
+            <Field label="User ID" value={txn.userId || '—'} mono />
+          </View>
+          <View style={styles.infoCell}>
+            <Field label="User name" value={txn.userName || '—'} />
+          </View>
+        </View>
+      </View>
+
+      {/* ── Balance strip ── */}
+      <View style={styles.statStrip}>
+        <View style={styles.statCard}>
+          <Text style={styles.statLabel}>Opening balance</Text>
+          <Text style={styles.statValue}>{txn.openingBalance}</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statLabel}>Closing balance</Text>
+          <Text style={[styles.statValue, isCredit ? styles.greenText : styles.redText]}>
+            {txn.closingBalance}
           </Text>
         </View>
+      </View>
 
-        {/* Audit Strip */}
-        <View style={TC.auditStrip}>
-          <View style={TC.auditCol}>
-            <Icon name="identifier" size={rs(10)} color={D.textMuted} style={{ marginRight: sc(4) }} />
-            <Text style={TC.metaVal} numberOfLines={1} ellipsizeMode="middle">{item.referenceId}</Text>
-          </View>
-          <View style={TC.auditDivider} />
-          <View style={[TC.auditCol, { justifyContent: 'flex-end' }]}>
-            <Icon name="calendar-clock" size={rs(10)} color={D.textMuted} style={{ marginRight: sc(4) }} />
-            <Text style={TC.metaVal}>{formatApiDate(item.createdAt)}</Text>
-          </View>
-        </View>
-
-        {/* Decorative BG Icon */}
-        <View style={TC.bgIconWrap}>
-          <Icon name={isDebit ? "bank-transfer-out" : "bank-transfer-in"} size={rs(70)} color={`${barColor}08`} />
-        </View>
-
-        <TouchableOpacity style={[TC.actionBtn, { backgroundColor: barColor }]} onPress={toggle} activeOpacity={0.85}>
-          <Icon name={expanded ? "chevron-up" : "eye-outline"} size={rs(13)} color={Colors.white} style={{ marginRight: sc(6) }} />
-          <Text style={TC.actionTxt}>
-            {expanded ? 'Hide Details' : 'View Details'}
-          </Text>
+      {/* ── Buttons ── */}
+      <View style={styles.actionRow}>
+        <TouchableOpacity style={styles.btnView} activeOpacity={0.8} onPress={onPressReceipt}>
+          <Icon name="eye-outline" size={16} color={Colors.white} style={{ marginRight: 8 }} />
+          <Text style={styles.btnViewText}>View Statement</Text>
         </TouchableOpacity>
-
-        {/* Animated expand panel */}
-        <Animated.View style={{ overflow: 'hidden', height: heightAnim }}>
-          <ExpandContent item={item} isDebit={isDebit} />
-        </Animated.View>
-        {!measured && (
-          <View style={{ position: 'absolute', left: 0, right: 0, opacity: 0, zIndex: -1, top: 9999 }}
-            onLayout={onGhostLayout} pointerEvents="none">
-            <ExpandContent item={item} isDebit={isDebit} />
-          </View>
-        )}
       </View>
     </View>
   );
-};
+}
 
-const TC = StyleSheet.create({
-  card: {
-    marginHorizontal: sc(14), marginBottom: vs(10),
-    backgroundColor: D.cardBg, borderRadius: sc(16),
-    flexDirection: 'row', overflow: 'hidden',
-    elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 5,
-  },
-  leftBar: { width: sc(4) },
-  body: { flex: 1, paddingHorizontal: sc(14), paddingTop: vs(14), paddingBottom: vs(12) },
-
-  iconCircle: { width: sc(36), height: sc(36), borderRadius: sc(12), alignItems: 'center', justifyContent: 'center' },
-  row1: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: vs(12) },
-  badge: { paddingHorizontal: sc(6), paddingVertical: vs(2), borderRadius: sc(4), alignSelf: 'flex-start' },
-  badgeTxt: { fontSize: rs(8), fontFamily: Fonts.Bold, letterSpacing: 0.6 },
-  amount: { fontSize: rs(19), fontFamily: Fonts.Bold, letterSpacing: -0.5 },
-
-  title: { fontSize: rs(13), fontFamily: Fonts.Bold, color: D.textPri, marginBottom: vs(12), opacity: 0.9 },
-
-  auditStrip: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: D.surfaceMid, paddingVertical: vs(8), paddingHorizontal: sc(10), borderRadius: sc(10),
-    borderWidth: 1, borderColor: D.border, marginBottom: vs(14)
-  },
-  auditCol: { flex: 1, flexDirection: 'row', alignItems: 'center' },
-  auditDivider: { width: 1, height: vs(12), backgroundColor: D.border, marginHorizontal: sc(10) },
-
-  metaKey: { fontSize: rs(8), fontFamily: Fonts.Bold, color: D.textMuted, letterSpacing: 0.8 },
-  metaVal: { fontSize: rs(10), fontFamily: Fonts.Medium, color: D.textSec, letterSpacing: 0.1 },
-
-  bgIconWrap: { position: 'absolute', right: -10, top: -5, opacity: 0.8, zIndex: -1 },
-
-  actionBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    paddingVertical: vs(9), borderRadius: sc(12),
-    elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 3,
-  },
-  actionTxt: { fontSize: rs(11), fontFamily: Fonts.Bold, letterSpacing: 0.3, color: Colors.white },
-
-  refundBadge: { backgroundColor: D.goldLight, paddingHorizontal: sc(4), paddingVertical: vs(1), borderRadius: sc(4), borderWidth: 0.5, borderColor: D.gold },
-  refundBadgeTxt: { fontSize: rs(7), fontFamily: Fonts.Bold, color: D.debit },
-});
-
-// ══════════════════════════════════════════════════════════════════════════════
-//  MAIN SCREEN — all logic UNCHANGED
-// ══════════════════════════════════════════════════════════════════════════════
+// ─── MAIN SCREEN ─────────────────────────────────────────────────────────────
 const WalletTransactionScreen = ({ navigation }) => {
   const today = new Date();
   const defaultFrom = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -779,7 +591,6 @@ const WalletTransactionScreen = ({ navigation }) => {
   const [calVisible, setCalVisible] = useState(false);
   const [calTarget, setCalTarget] = useState('start');
 
-  // Multi-criteria filters
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [filterVisible, setFilterVisible] = useState(false);
   const [downlineUsers, setDownlineUsers] = useState([]);
@@ -789,24 +600,16 @@ const WalletTransactionScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searched, setSearched] = useState(false);
-  const [loadedFrom, setLoadedFrom] = useState(defaultFrom);
-  const [loadedTo, setLoadedTo] = useState(defaultTo);
-  const [aepsBalance, setAepsBalance] = useState('0.00');
-  const [mainBalance, setMainBalance] = useState('0.00');
-  const [balanceLoading, setBalanceLoading] = useState(false);
-  const [isAeps, setIsAeps] = useState(false); // Default to Main as it's the "Wallet Ledger"
   const [refreshing, setRefreshing] = useState(false);
 
-  // Detail sheet
   const [detailItem, setDetailItem] = useState(null);
   const [detailVisible, setDetailVisible] = useState(false);
 
   const startDateRef = useRef(defaultFrom);
   const endDateRef = useRef(defaultTo);
+
   useEffect(() => {
-    loadBalances();
     loadDownline();
-    // Use filters.date to set initial range
     const period = resolvePeriod(filters.date, startDateRef.current, endDateRef.current);
     startDateRef.current = period.from;
     endDateRef.current = period.to;
@@ -815,38 +618,11 @@ const WalletTransactionScreen = ({ navigation }) => {
     doFetch(period.from, period.to);
   }, []);
 
-  const onApplyFilters = (newFilters) => {
-    setFilters(newFilters);
-    setFilterVisible(false);
-    const period = resolvePeriod(newFilters.date, startDateRef.current, endDateRef.current);
-    startDateRef.current = period.from;
-    endDateRef.current = period.to;
-    setStartDate(period.from);
-    setEndDate(period.to);
-    doFetch(period.from, period.to);
-  };
-
-  const removeFilter = (key) => onApplyFilters({ ...filters, [key]: DEFAULT_FILTERS[key] });
-
-  const loadBalances = async () => {
-    setBalanceLoading(true);
-    try {
-      const headerToken = await AsyncStorage.getItem('header_token');
-      const r = await getWalletBalance({ headerToken });
-      if (r?.success && r?.data) {
-        setAepsBalance(String(r.data.aepsWallet ?? '0.00'));
-        setMainBalance(String(r.data.mainWallet ?? '0.00'));
-      }
-    } catch (e) { console.log('[WalletLedger] bal error:', e); }
-    finally { setBalanceLoading(false); }
-  };
-
   const loadDownline = async () => {
     try {
       const headerToken = await AsyncStorage.getItem('header_token');
       const res = await getDownlineUsers({ headerToken });
       if (res.success && res.data && res.data.children) {
-        // Map only immediate children (main-level users)
         const opts = res.data.children.map(u => ({
           key: u.userName,
           label: u.fullName || u.userName,
@@ -857,377 +633,284 @@ const WalletTransactionScreen = ({ navigation }) => {
     } catch (_) { }
   };
 
-
-  // ── CORE FETCH — logic unchanged ─────────────────────────────────────────
   const doFetch = async (from, to) => {
     const fromStr = toQueryDate(from);
     const toStr = toQueryDate(to);
-    console.log(`[WalletLedger] API call → from=${fromStr} to=${toStr}`);
-    setTransactions([]); // Clear list so old data doesn't flicker
     setLoading(true); setError(null); setSearched(true);
     try {
       const headerToken = await AsyncStorage.getItem('header_token');
       if (!headerToken) { setError('Session expired. Please login again.'); return; }
       const result = await getWalletReport({ from: fromStr, to: toStr, headerToken });
-      console.log('[WalletLedger] result.success =', result?.success, '| count =', result?.data?.length);
       if (result?.success) {
-        const mappedData = (result.data || []).map(item => ({
-          ...item,
-          id: item._id,
-          amount: item.txnAmount ?? 0,
-          createdAt: item.date,
-          description: item.message || item.serviceCategory,
-          category: item.serviceCategory,
-          wallet: item.serviceName || 'MAIN',
-          user: { userName: item.userName, userId: item.userId },
-          isRefunded: item.isRefunded === true || item.serviceCategory === 'REFUND'
-        }));
+        const mappedData = (result.data || []).map(item => {
+          const isDebit = item.type === 'debit';
+          const amtStr = (isDebit ? '- ' : '+ ') + '₹' + (item.txnAmount ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          return {
+            ...item,
+            id: item._id,
+            amount: item.txnAmount ?? 0,
+            amountStr: amtStr,
+            createdAt: item.date,
+            date: formatApiDate(item.date),
+            description: item.message || item.serviceCategory,
+            category: item.serviceCategory,
+            wallet: item.serviceName || 'MAIN',
+            user: { userName: item.userName, userId: item.userId },
+            isRefunded: item.isRefunded === true || item.serviceCategory === 'REFUND',
+            serviceName: item.message || item.serviceCategory || 'Transaction',
+            serviceCategory: item.serviceCategory || 'Wallet',
+            serviceId: item.referenceId || 'N/A',
+            txnId: item.referenceId || 'N/A',
+            mobileNo: item.mobileNo || 'N/A',
+            operatorName: item.operatorName || 'N/A',
+            userId: item.userId || 'N/A',
+            userName: item.userName || 'N/A',
+            openingBalance: '₹' + (item.openingBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 }),
+            closingBalance: '₹' + (item.closingBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 }),
+            gst: '₹' + (item.gst ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 }),
+            tds: '₹' + (item.tds ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 }),
+            charges: '₹' + (item.charges ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 }),
+            walletType: item.serviceName || 'Main Wallet',
+            message: item.message || item.description || 'Transaction successful.',
+            logoLabel: (item.serviceCategory || (item.type === 'credit' ? 'CR' : 'DB')).substring(0, 4).toUpperCase()
+          };
+        });
         setTransactions(mappedData);
-        setLoadedFrom(from); setLoadedTo(to);
       } else {
-        setError(result?.message || 'No transactions found for this period.');
+        setError(result?.message || 'No transactions found.');
         setTransactions([]);
       }
     } catch (e) {
-      console.log('[WalletLedger] network error:', e?.message);
       setError('Network error. Please check your connection.');
       setTransactions([]);
     } finally { setLoading(false); setRefreshing(false); }
   };
 
-  const onRefresh = React.useCallback(async () => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([loadBalances(), doFetch(startDateRef.current, endDateRef.current)]);
+    await doFetch(startDateRef.current, endDateRef.current);
     setRefreshing(false);
   }, []);
 
   const handleSearch = () => doFetch(startDateRef.current, endDateRef.current);
   const openCal = (target) => { setCalTarget(target); setCalVisible(true); };
-  const onCalConfirm = useCallback((selectedDate) => {
+  const onCalConfirm = (selectedDate) => {
     if (calTarget === 'start') { startDateRef.current = selectedDate; setStartDate(selectedDate); }
     else { endDateRef.current = selectedDate; setEndDate(selectedDate); }
     setCalVisible(false);
-  }, [calTarget]);
-  const onCalCancel = useCallback(() => setCalVisible(false), []);
+  };
+  const onApplyFilters = (newFilters) => {
+    setFilters(newFilters);
+    setFilterVisible(false);
+    const period = resolvePeriod(newFilters.date, startDateRef.current, endDateRef.current);
+    startDateRef.current = period.from;
+    endDateRef.current = period.to;
+    setStartDate(period.from);
+    setEndDate(period.to);
+    doFetch(period.from, period.to);
+  };
+  const removeFilter = (key) => {
+    onApplyFilters({ ...filters, [key]: DEFAULT_FILTERS[key] });
+  };
 
   const filteredTransactions = transactions.filter(item => {
-    // 1. Date Range
-    if (item.createdAt) {
-      const itemStr = toQueryDate(new Date(item.createdAt));
-      const startStr = toQueryDate(startDate);
-      const endStr = toQueryDate(endDate);
-      if (itemStr < startStr || itemStr > endStr) return false;
-    }
-
-    // 2. User Filter
     if (filters.userId !== 'all' && item.userId !== filters.userId) return false;
-
-    // 3. Service Filter
     if (filters.service !== 'all') {
-      const cat = String(item.category || item.serviceCategory || '').toLowerCase();
-      const srv = String(item.wallet || item.serviceName || '').toLowerCase();
-      const target = filters.service.toLowerCase();
-      if (!cat.includes(target) && !srv.includes(target)) return false;
+      const cat = String(item.category || '').toLowerCase();
+      const srv = String(item.wallet || '').toLowerCase();
+      if (!cat.includes(filters.service.toLowerCase()) && !srv.includes(filters.service.toLowerCase())) return false;
     }
-
-    // 4. Transaction Type Filter
     if (filters.txnType !== 'all') {
       const type = String(item.type || '').toLowerCase();
       if (filters.txnType === 'credit' && type !== 'credit') return false;
       if (filters.txnType === 'debit' && type !== 'debit') return false;
-      if (filters.txnType === 'refund' && !(item.isRefunded || String(item.category).toLowerCase().includes('refund'))) return false;
+      if (filters.txnType === 'refund' && !item.isRefunded) return false;
     }
-
-    // 5. Keyword search (Name, ID, Service, Description)
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      const srv = String(item.serviceName || item.wallet || '').toLowerCase();
-      const user = String(item.userName || '').toLowerCase();
-      const uid = String(item.userId || '').toLowerCase();
-      const desc = String(item.description || '').toLowerCase();
-      if (!srv.includes(q) && !user.includes(q) && !uid.includes(q) && !desc.includes(q)) return false;
+      if (!String(item.serviceName).toLowerCase().includes(q) && !String(item.userName).toLowerCase().includes(q) && !String(item.txnId).toLowerCase().includes(q)) return false;
     }
-
     return true;
   });
 
-  const liveBalance = isAeps ? aepsBalance : mainBalance;
 
-  const ListHeader = () => (
-    <View>
-
-      {/* ── Balance Hero Card — synced with FinanceHome balance ── */}
-      <View style={S.heroCard}>
-        <View style={S.heroTopRow}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <TouchableOpacity
-              onPress={() => setIsAeps(!isAeps)}
-              style={S.walletToggleBtn}
-              activeOpacity={0.7}
-            >
-              <Text style={S.heroLabel}>{isAeps ? 'AEPS WALLET' : 'MAIN WALLET'}</Text>
-              <Icon name="chevron-down" size={rs(12)} color={Colors.whiteOpacity_50} style={{ marginLeft: sc(4) }} />
-            </TouchableOpacity>
-          </View>
-          <View style={S.livePill}>
-            <Text style={S.livePillTxt}>LIVE BALANCE</Text>
-          </View>
-        </View>
-
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Text style={S.heroRupee}>₹</Text>
-          {balanceLoading ? (
-            <ActivityIndicator size="small" color={D.gold} style={{ marginLeft: sc(10) }} />
-          ) : (
-            <Text style={S.heroAmount}>
-              {parseFloat(liveBalance).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </Text>
-          )}
-        </View>
-
-        <View style={S.heroFooter}>
-          <Text style={S.heroSub}>Last sync: {formatApiDate(new Date().toISOString())}</Text>
-          <TouchableOpacity onPress={loadBalances} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Icon name="refresh" size={rs(14)} color={D.gold} />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* ── Search & Filter Row ── */}
-      <View style={S.sfRow}>
-        <View style={S.sfSearchBox}>
-          <Icon name="magnify" size={rs(18)} color={D.textMuted} style={{ marginRight: sc(10) }} />
-          <TextInput
-            style={S.sfInput}
-            placeholder="Search by user or service..."
-            placeholderTextColor={D.textMuted}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            autoCorrect={false}
-          />
-          {!!searchQuery && (
-            <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <Icon name="close-circle" size={rs(16)} color={D.textMuted} />
-            </TouchableOpacity>
-          )}
-        </View>
-        <TouchableOpacity style={S.sfFilterBtn} activeOpacity={0.7} onPress={() => setFilterVisible(true)}>
-          <View style={S.sfFilterIconBox}>
-            <Icon name="tune-variant" size={rs(18)} color={D.gold} />
-          </View>
-        </TouchableOpacity>
-      </View>
-
-      <FilterPills filters={filters} onRemove={removeFilter} />
-
-      {/* ── Summary strip ── */}
-      {filteredTransactions.length > 0 && (
-        <SummaryStrip data={filteredTransactions} fromDate={startDate} toDate={endDate} />
-      )}
-
-      {/* ── Section header "N TRANSACTIONS · All ▾" ── */}
-      {searched && !loading && filteredTransactions.length > 0 && (
-        <View style={S.sectionRow}>
-          <Icon name="format-list-bulleted" size={rs(13)} color={D.textMuted} style={{ marginRight: sc(6) }} />
-          <Text style={S.sectionTxt}>{filteredTransactions.length} TRANSACTIONS</Text>
-          <View style={S.allPill}>
-            <Text style={S.allPillTxt}>All ▾</Text>
-          </View>
-        </View>
-      )}
-    </View>
-  );
 
   return (
-
-
     <SafeAreaView style={S.safe} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor={D.headerBg} />
-
-      {/* ── Header ── */}
-      <HeaderBar
-        title="Wallet Ledger"
-        onBack={() => navigation?.goBack()}
-      />
-
-      {/* Error banner */}
+      <StatusBar barStyle="light-content" backgroundColor={Colors.headerBg} />
+      <HeaderBar title="Wallet Ledger" onBack={() => navigation?.goBack()} />
       {!!error && (
         <View style={S.errorBanner}>
           <Icon name="alert-circle-outline" size={rs(15)} color="#DC2626" style={{ marginRight: sc(8) }} />
-          <Text style={S.errorTxt} numberOfLines={2}>{error}</Text>
-          <TouchableOpacity onPress={handleSearch} style={S.retryBtn}>
-            <Text style={S.retryTxt}>Retry</Text>
-          </TouchableOpacity>
+          <Text style={S.errorTxt}>{error}</Text>
+          <TouchableOpacity onPress={() => handleSearch()} style={S.retryBtn}><Text style={S.retryTxt}>Retry</Text></TouchableOpacity>
         </View>
       )}
-
       <FlatList
         data={filteredTransactions}
-        keyExtractor={(item) => item.id || item._id}
-        renderItem={({ item, index }) => (
+        keyExtractor={(item, index) => item.id || item._id || `txn-${index}`}
+        renderItem={({ item }) => (
           <TransactionCard
-            item={item}
-            index={index}
-            onPressDetail={() => { setDetailItem(item); setDetailVisible(true); }}
+            txn={item}
+            onPressReceipt={() => { setDetailItem(item); setDetailVisible(true); }}
           />
         )}
-        ListHeaderComponent={ListHeader}
-        ListEmptyComponent={
-          searched && !loading && !error ? (
-            <View style={S.emptyWrap}>
-              <Icon name="file-search-outline" size={rs(52)} color={`${D.gold}55`} />
-              <Text style={S.emptyTitle}>No transactions found</Text>
-              <Text style={S.emptySub}>Try selecting a different date range and tap Search</Text>
-            </View>
-          ) : null
-        }
-        contentContainerStyle={{ paddingBottom: vs(40) }}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={D.gold}
-            colors={[D.gold]}
-            progressBackgroundColor={D.headerBg}
+        ListHeaderComponent={
+          <ListHeader
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            setFilterVisible={setFilterVisible}
+            filters={filters}
+            removeFilter={removeFilter}
+            filteredTransactions={filteredTransactions}
+            startDate={startDate}
+            endDate={endDate}
+            searched={searched}
+            loading={loading}
           />
         }
+        ListEmptyComponent={searched && !loading && !error ? (
+          <View style={S.emptyWrap}>
+            <Icon name="file-search-outline" size={rs(52)} color={`${Colors.gold}55`} />
+            <Text style={S.emptyTitle}>No transactions found</Text>
+            <Text style={S.emptySub}>Try adjusting your filters</Text>
+          </View>
+        ) : null}
+        contentContainerStyle={{ paddingBottom: vs(40) }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.finance_accent} colors={[Colors.finance_accent]} />}
       />
-
-      <CalendarModal
-        visible={calVisible}
-        initialDate={calTarget === 'start' ? startDate : endDate}
-        title={calTarget === 'start' ? 'Select Start Date' : 'Select End Date'}
-        minDate={calTarget === 'end' ? startDate : null}
-        maxDate={calTarget === 'start' ? endDate : new Date()}
-        onConfirm={onCalConfirm}
-        onCancel={onCalCancel}
+      <CalendarModal visible={calVisible} initialDate={calTarget === 'start' ? startDate : endDate} title={calTarget === 'start' ? 'Select Start Date' : 'Select End Date'} minDate={calTarget === 'end' ? startDate : null} maxDate={new Date()} onConfirm={onCalConfirm} onCancel={() => setCalVisible(false)} />
+      <ReceiptModal visible={detailVisible} onClose={() => setDetailVisible(false)} navigation={navigation} data={detailItem ? {
+        status: detailItem.isRefunded ? "pending" : "success",
+        title: detailItem.description, amount: detailItem.amount?.toFixed(2), date: detailItem.date, txn_ref: detailItem.txnId,
+        details: [
+          { label: "Status", value: detailItem.isRefunded ? 'Refunded' : (detailItem.type === 'debit' ? 'Debited' : 'Credited'), isStatusPill: true, color: detailItem.isRefunded ? Colors.finance_accent : (detailItem.type === 'debit' ? Colors.amber : Colors.finance_success) },
+          { label: "Reference ID", value: detailItem.txnId ?? '—', small: true },
+          { label: "Transaction Type", value: detailItem.type === 'debit' ? 'Debit' : 'Credit' },
+          { label: "Wallet", value: detailItem.wallet?.toUpperCase() ?? 'MAIN' },
+          { label: "Opening Bal.", value: detailItem.openingBalance ?? '₹0.00' },
+          { label: "Closing Bal.", value: detailItem.closingBalance ?? '₹0.00' },
+        ],
+        note: detailItem.isRefunded ? "Amount has been refunded to your wallet." : "Transaction reflected in your wallet ledger."
+      } : null}
       />
-
-      <ReceiptModal
-        visible={detailVisible}
-        onClose={() => setDetailVisible(false)}
-        navigation={navigation}
-        data={detailItem ? {
-          status: detailItem.isRefunded ? "pending" : (detailItem.type === "debit" ? "success" : "success"), // In ledger most are success
-          title: detailItem.description || "Wallet Transaction",
-          amount: detailItem.amount?.toFixed(2),
-          date: formatApiDate(detailItem.createdAt),
-          txn_ref: detailItem.referenceId,
-          details: [
-            { label: "Status", value: detailItem.isRefunded ? 'Refunded' : (detailItem.type === 'debit' ? 'Debited' : 'Credited'), isStatusPill: true, color: detailItem.isRefunded ? D.gold : (detailItem.type === 'debit' ? D.debit : D.green) },
-            { label: "Reference ID", value: detailItem.referenceId ?? '—', small: true },
-            { label: "Transaction Type", value: detailItem.type === 'debit' ? 'Debit' : 'Credit' },
-            { label: "Category", value: detailItem.category ?? '—' },
-            { label: "Wallet", value: detailItem.wallet?.toUpperCase() ?? 'MAIN' },
-            { label: "Opening Bal.", value: `₹${detailItem.openingBalance?.toFixed(2) ?? '0.00'}` },
-            { label: "Closing Bal.", value: `₹${detailItem.closingBalance?.toFixed(2) ?? '0.00'}` },
-          ],
-          note: detailItem.isRefunded ? "Amount has been refunded to your wallet." : "Transaction reflected in your wallet ledger."
-        } : null}
-      />
-
-      {/* Filter bottom sheet */}
-      <FilterSheet
-        visible={filterVisible}
-        activeFilters={filters}
-        startDate={startDate}
-        endDate={endDate}
-        onOpenCal={openCal}
-        userOptions={[
-          { key: 'all', label: 'All Users', icon: 'account-group' },
-          ...downlineUsers
-        ]}
-        onClose={() => setFilterVisible(false)}
-        onApply={onApplyFilters}
-      />
+      <FilterSheet visible={filterVisible} activeFilters={filters} startDate={startDate} endDate={endDate} onOpenCal={openCal} userOptions={[{ key: 'all', label: 'All Users', icon: 'account-group' }, ...downlineUsers]} onClose={() => setFilterVisible(false)} onApply={onApplyFilters} />
     </SafeAreaView>
   );
 };
 
 export default WalletTransactionScreen;
 
-// ══════════════════════════════════════════════════════════════════════════════
-//  SCREEN STYLES
-// ══════════════════════════════════════════════════════════════════════════════
-const S = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: D.pageBg },
+const ListHeader = ({
+  searchQuery,
+  setSearchQuery,
+  setFilterVisible,
+  filters,
+  removeFilter,
+  filteredTransactions,
+  startDate,
+  endDate,
+  searched,
+  loading
+}) => (
+  <View>
+    <View style={S.sfRow}>
+      <View style={S.sfSearchBox}>
+        <Icon name="magnify" size={rs(18)} color={Colors.hex_C79A3F} style={{ marginRight: sc(10) }} />
+        <TextInput
+          style={S.sfInput}
+          placeholder="Search by user or service..."
+          placeholderTextColor={Colors.text_placeholder}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        {!!searchQuery && (
+          <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Icon name="close-circle" size={rs(16)} color={Colors.text_placeholder} />
+          </TouchableOpacity>
+        )}
+      </View>
+      <TouchableOpacity style={S.sfFilterBtn} onPress={() => setFilterVisible(true)}>
+        <View style={S.sfFilterIconBox}>
+          <Icon name="tune-variant" size={rs(18)} color={Colors.kyc_accent} />
+        </View>
+      </TouchableOpacity>
+    </View>
+    <FilterPills filters={filters} onRemove={removeFilter} />
+    {filteredTransactions.length > 0 && (
+      <SummaryStrip data={filteredTransactions} fromDate={startDate} toDate={endDate} />
+    )}
+    {searched && !loading && filteredTransactions.length > 0 && (
+      <View style={S.sectionRow}>
+        <Icon name="format-list-bulleted" size={rs(13)} color={Colors.black} style={{ marginRight: sc(6) }} />
+        <Text style={S.sectionTxt}>{filteredTransactions.length} TRANSACTIONS</Text>
+        <View style={S.allPill}><Text style={S.allPillTxt}>All ▾</Text></View>
+      </View>
+    )}
+  </View>
+);
 
-  // Header
-  header: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: sc(16), paddingVertical: vs(12),
-    backgroundColor: D.headerBg,
-    elevation: 6, shadowColor: Colors.black, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.18, shadowRadius: 6,
-  },
-  headerIconBtn: { width: sc(32), height: sc(32), borderRadius: sc(16), backgroundColor: Colors.whiteOpacity_12, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { flex: 1, textAlign: 'center', color: Colors.white, fontSize: rs(17), fontFamily: Fonts.Bold, letterSpacing: 0.2 },
-  headerRight: { flexDirection: 'row', alignItems: 'center' },
-
-  // Balance hero card — dark card (screenshot 2)
-  heroCard: {
-    marginHorizontal: sc(14), marginTop: vs(14), marginBottom: vs(14),
-    backgroundColor: D.heroBg, borderRadius: sc(18), padding: sc(18),
-    elevation: 4, shadowColor: Colors.black, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 10,
-  },
-  heroTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: vs(12) },
-  walletToggleBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.whiteOpacity_08, paddingHorizontal: sc(10), paddingVertical: vs(4), borderRadius: sc(12), borderWidth: 1, borderColor: Colors.whiteOpacity_10 },
-  heroLabel: { color: Colors.whiteOpacity_70, fontSize: rs(10), fontFamily: Fonts.Bold, letterSpacing: 0.5, textTransform: 'uppercase' },
-  livePill: { backgroundColor: D.goldDim, borderWidth: 1, borderColor: `${D.gold}45`, borderRadius: sc(20), paddingHorizontal: sc(10), paddingVertical: vs(3) },
-  livePillTxt: { color: D.gold, fontSize: rs(9), fontFamily: Fonts.Bold, letterSpacing: 0.4 },
-  heroAmount: { color: Colors.white, fontSize: rs(35), fontFamily: Fonts.Bold, letterSpacing: -0.5 },
-  heroRupee: { color: D.gold, fontSize: rs(24), fontFamily: Fonts.Bold, marginRight: sc(4) },
-  heroFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: vs(12), paddingTop: vs(12), borderTopWidth: 1, borderTopColor: Colors.whiteOpacity_08 },
-  heroSub: { color: Colors.whiteOpacity_38, fontSize: rs(10), fontFamily: Fonts.Medium },
-
-  // Filter card
-  filterCard: {
-    marginHorizontal: sc(14), marginBottom: vs(12),
-    backgroundColor: D.cardBg, borderRadius: sc(16), padding: sc(14),
-    elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 5,
-  },
-  filterTitle: { color: D.textMuted, fontSize: rs(9), fontFamily: Fonts.Bold, letterSpacing: 1.1, marginBottom: vs(10) },
-  filterRow: { flexDirection: 'row', alignItems: 'center', marginBottom: vs(10) },
-  datePill: {
-    flex: 1, flexDirection: 'row', alignItems: 'center',
-    backgroundColor: D.surfaceMid, borderRadius: sc(10),
-    paddingVertical: vs(10), paddingHorizontal: sc(10),
-    borderWidth: 1.5, borderColor: D.gold,
-  },
-  datePillLabel: { color: D.textMuted, fontSize: rs(9), fontFamily: Fonts.Medium, marginBottom: vs(1) },
-  datePillValue: { color: D.textPri, fontSize: rs(12), fontFamily: Fonts.Bold },
-  searchBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: D.heroBg, borderRadius: sc(12),
-    paddingVertical: vs(13), minHeight: vs(46),
-  },
-  searchBtnTxt: { color: Colors.white, fontSize: rs(13), fontFamily: Fonts.Bold, letterSpacing: 0.4 },
-
-  advFilterBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: D.goldDim, paddingHorizontal: sc(10), paddingVertical: vs(4), borderRadius: sc(8) },
-  advFilterTxt: { color: D.gold, fontSize: rs(10), fontFamily: Fonts.Bold },
-
-  // Section header
-  sectionRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: sc(14), marginBottom: vs(8) },
-  sectionTxt: { flex: 1, color: D.textMuted, fontSize: rs(9), fontFamily: Fonts.Bold, letterSpacing: 1.1 },
-  allPill: { backgroundColor: D.goldDim, borderRadius: sc(20), paddingHorizontal: sc(10), paddingVertical: vs(3), borderWidth: 1, borderColor: `${D.gold}35` },
-  allPillTxt: { color: D.gold, fontSize: rs(11), fontFamily: Fonts.Bold },
-
-  // Error
-  errorBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.redOpacity_10, borderLeftWidth: 4, borderLeftColor: Colors.red, marginHorizontal: sc(16), marginTop: vs(8), paddingHorizontal: sc(12), paddingVertical: vs(8), borderRadius: sc(10) },
-  errorTxt: { flex: 1, color: Colors.red, fontSize: rs(12), fontFamily: Fonts.Medium },
-  retryBtn: { marginLeft: sc(8) },
-  retryTxt: { color: D.heroBg, fontSize: rs(12), fontFamily: Fonts.Bold },
-
-  // Empty
-  emptyWrap: { alignItems: 'center', paddingTop: vs(40), paddingBottom: vs(20) },
-  emptyTitle: { color: D.textPri, fontSize: rs(15), fontFamily: Fonts.Bold, marginTop: vs(12), marginBottom: vs(4) },
-  emptySub: { color: D.textMuted, fontSize: rs(12), fontFamily: Fonts.Medium, textAlign: 'center', paddingHorizontal: sc(20) },
-
-  // Search & Filter Row
-  sfRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: sc(14), marginBottom: vs(12), gap: sc(10) },
-  sfSearchBox: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: D.cardBg, borderRadius: sc(12), paddingHorizontal: sc(14), paddingVertical: Platform.OS === 'ios' ? vs(12) : 0, borderWidth: 1, borderColor: D.border },
-  sfInput: { flex: 1, height: vs(46), fontSize: rs(13), color: D.textPri, padding: 0, fontFamily: Fonts.Medium },
-  sfFilterBtn: { width: sc(48), height: sc(48), alignItems: 'center', justifyContent: 'center' },
-  sfFilterIconBox: { width: sc(44), height: sc(44), borderRadius: sc(12), backgroundColor: D.cardBg, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: D.border, elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3 },
+const MONO = Platform.select({ ios: 'Courier New', android: 'monospace' });
+const CARD_S = StyleSheet.create({
+  card: { backgroundColor: Colors.white, borderRadius: 18, borderWidth: 1, borderColor: Colors.blackOpacity_08, overflow: 'hidden', marginBottom: 14, marginHorizontal: 16 },
+  cardHeader: { backgroundColor: Colors.primary, paddingHorizontal: 18, paddingVertical: 14, paddingBottom: 16 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  logoPill: { width: 40, height: 40, borderRadius: 10, backgroundColor: Colors.whiteOpacity_12, borderWidth: 1, borderColor: Colors.whiteOpacity_18, alignItems: 'center', justifyContent: 'center' },
+  logoText: { fontSize: 10, fontWeight: '700', color: Colors.beige, letterSpacing: 0.5 },
+  typeCol: { flexDirection: 'column', gap: 3 },
+  typeLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 0.8 },
+  typeLabelCredit: { color: '#4ade80' },
+  typeLabelDebit: { color: Colors.red },
+  txnRef: { fontSize: 11, color: Colors.whiteOpacity_45, fontFamily: MONO },
+  amountCol: { marginLeft: 'auto', alignItems: 'flex-end' },
+  amountVal: { fontSize: 20, fontWeight: '700', letterSpacing: -0.5 },
+  amountCredit: { color: '#4ade80' },
+  amountDebit: { color: Colors.red },
+  amountDate: { fontSize: 10, color: Colors.whiteOpacity_45, marginTop: 1 },
+  body: { paddingHorizontal: 18 },
+  section: { paddingVertical: 11 },
+  sectionRow: { flexDirection: 'row', gap: 12 },
+  infoCell: { flex: 1 },
+  field: { gap: 3 },
+  fieldLabel: { fontSize: 10, fontWeight: '500', color: Colors.gray_9E, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 2 },
+  fieldValue: { fontSize: 12.5, fontWeight: '600', color: Colors.ink_main },
+  fieldMono: { fontFamily: MONO, fontSize: 11.5, fontWeight: '500', color: Colors.hex_374151 },
+  badge: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20, marginTop: 2 },
+  badgeCredit: { backgroundColor: Colors.success_light },
+  badgeDebit: { backgroundColor: Colors.error_light },
+  badgeText: { fontSize: 10, fontWeight: '700' },
+  badgeCreditText: { color: Colors.success_dark },
+  badgeDebitText: { color: Colors.error_dark },
+  statStrip: { flexDirection: 'row', gap: 8, padding: 12, paddingHorizontal: 18, borderTopWidth: 0, borderTopColor: Colors.blackOpacity_05 },
+  statCard: { flex: 1, backgroundColor: Colors.surfaceMid, borderRadius: 10, padding: 10, borderWidth: 1, borderColor: Colors.blackOpacity_05 },
+  statLabel: { fontSize: 10, color: Colors.gray_9E, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 3 },
+  statValue: { fontSize: 14, fontWeight: '700', color: Colors.ink_main },
+  greenText: { color: Colors.success_dark },
+  redText: { color: Colors.error_dark },
+  actionRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 18, paddingBottom: 14, paddingTop: 2 },
+  btnView: { flex: 1, flexDirection: 'row', paddingVertical: 12, borderRadius: 12, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
+  btnViewText: { fontSize: 13, fontWeight: '700', color: Colors.white, letterSpacing: 0.3 },
 });
-
+
+const S = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: Colors.pageBg },
+  sfRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: sc(14), marginTop: vs(14), marginBottom: vs(12), gap: sc(10) },
+  sfSearchBox: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: sc(12), paddingHorizontal: sc(14), borderWidth: 1, borderColor: Colors.border },
+  sfInput: { flex: 1, height: vs(46), fontSize: rs(13), color: Colors.text_primary, padding: 0, fontFamily: Fonts.Medium },
+  sfFilterBtn: { width: sc(48), height: sc(48), alignItems: 'center', justifyContent: 'center' },
+  sfFilterIconBox: { width: sc(44), height: sc(44), borderRadius: sc(12), backgroundColor: Colors.white, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: Colors.border, elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3 },
+  datePill: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: sc(10), paddingVertical: vs(10), paddingHorizontal: sc(10), borderWidth: 1.5, borderColor: Colors.hex_C79A3F },
+  datePillLabel: { color: Colors.text_placeholder, fontSize: rs(9), fontFamily: Fonts.Medium, marginBottom: vs(1) },
+  datePillValue: { color: Colors.text_primary, fontSize: rs(12), fontFamily: Fonts.Bold },
+  sectionRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: sc(14), marginBottom: vs(8) },
+  sectionTxt: { flex: 1, color: Colors.black, fontSize: rs(10), fontFamily: Fonts.Bold, letterSpacing: 0.2 },
+  allPill: { backgroundColor: Colors.goldDim, borderRadius: sc(20), paddingHorizontal: sc(10), paddingVertical: vs(3), borderWidth: 1, borderColor: Colors.amberOpacity_15 },
+  allPillTxt: { color: Colors.hex_C79A3F, fontSize: rs(11), fontFamily: Fonts.Bold },
+  errorBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.redOpacity_10, borderLeftWidth: 4, borderLeftColor: '#DC2626', marginHorizontal: sc(16), marginTop: vs(8), paddingHorizontal: sc(12), paddingVertical: vs(8), borderRadius: sc(10) },
+  errorTxt: { flex: 1, color: '#DC2626', fontSize: rs(12), fontFamily: Fonts.Medium },
+  retryBtn: { marginLeft: sc(8) },
+  retryTxt: { color: Colors.primary, fontSize: rs(12), fontFamily: Fonts.Bold },
+  emptyWrap: { alignItems: 'center', paddingTop: vs(40), paddingBottom: vs(20) },
+  emptyTitle: { color: Colors.textPri, fontSize: rs(15), fontFamily: Fonts.Bold, marginTop: vs(12), marginBottom: vs(4) },
+  emptySub: { color: Colors.textMuted, fontSize: rs(12), fontFamily: Fonts.Medium, textAlign: 'center', paddingHorizontal: sc(20) },
+});

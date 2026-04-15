@@ -5,7 +5,7 @@ import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
   TextInput, ActivityIndicator, Modal, Animated, Dimensions, Platform,
-  RefreshControl,
+  RefreshControl, PanResponder,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import CalendarModal from '../../componets/Calendar/CalendarModal';
@@ -258,7 +258,7 @@ const TxnCard = ({ txn, onPress }) => {
         <View style={TC.inner}>
           {/* Decorative BG flourish */}
           <View style={TC.bgIcon}>
-            <Icon name={catIcon} size={70} color={`${cfg.color}06`} />
+            <Icon name={catIcon || "circle-outline"} size={70} color={(cfg?.color || Colors.amber) + "06"} />
           </View>
 
           <View style={TC.mainRow}>
@@ -268,14 +268,14 @@ const TxnCard = ({ txn, onPress }) => {
             </View>
 
             <View style={TC.centerCol}>
-              <Text style={TC.title} numberOfLines={1}>{txn.desc}</Text>
-              <Text style={TC.refId}>ID: {txn.id}</Text>
+              <Text style={TC.title} numberOfLines={1}>{String(txn.desc || "Transaction")}</Text>
+              <Text style={TC.refId}>ID: {String(txn.id)}</Text>
             </View>
 
             <View style={TC.rightCol}>
-              <View style={[TC.statusBadge, { backgroundColor: cfg.color, borderColor: cfg.color }]}>
-                <Icon name={cfg.icon} size={10} color={Colors.white} style={{ marginRight: 4 }} />
-                <Text style={[TC.statusTxt, { color: Colors.white }]}>{cfg.label.toUpperCase()}</Text>
+              <View style={[TC.statusBadge, { backgroundColor: cfg?.color || Colors.amber, borderColor: cfg?.color || Colors.amber }]}>
+                <Icon name={cfg?.icon || "circle-outline"} size={10} color={Colors.white} style={{ marginRight: 4 }} />
+                <Text style={[TC.statusTxt, { color: Colors.white }]}>{String(cfg?.label || "Pending").toUpperCase()}</Text>
               </View>
               <Text style={[TC.amount, { color: amtColor }]}>
                 {amtPrefix}{Number(txn.amount).toLocaleString('en-IN')}
@@ -514,6 +514,23 @@ const FilterSheet = ({ visible, onClose, onApply, activeFilters, startDate, endD
   const [activeSection, setActiveSection] = useState('date');
   const [local, setLocal] = useState(activeFilters);
 
+  // ── Swipe to close logic ──────────────────────────────────────────────────
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, { dy }) => dy > 10,
+      onPanResponderMove: (_, { dy }) => {
+        if (dy > 0) slideA.setValue(dy);
+      },
+      onPanResponderRelease: (_, { dy }) => {
+        if (dy > 120) {
+          onClose();
+        } else {
+          Animated.spring(slideA, { toValue: 0, bounciness: 5, useNativeDriver: true }).start();
+        }
+      },
+    })
+  ).current;
+
   useEffect(() => {
     if (visible) {
       setLocal(activeFilters);
@@ -541,7 +558,10 @@ const FilterSheet = ({ visible, onClose, onApply, activeFilters, startDate, endD
       <Animated.View style={[FST.backdrop, { opacity: backdropA }]}>
         <TouchableOpacity style={StyleSheet.absoluteFill} onPress={onClose} activeOpacity={1} />
       </Animated.View>
-      <Animated.View style={[FST.sheet, { transform: [{ translateY: slideA }] }]}>
+      <Animated.View
+        style={[FST.sheet, { transform: [{ translateY: slideA }] }]}
+        {...panResponder.panHandlers}
+      >
         <View style={FST.handle} />
         <View style={FST.header}>
           <Text style={FST.title}>Filters</Text>
@@ -849,7 +869,7 @@ export default function InvoiceScreen({ navigation }) {
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
-              onRefresh={onRefresh}
+              onRefresh={() => onRefresh()}
               tintColor={Colors.finance_accent}
               colors={[Colors.finance_accent]}
               progressBackgroundColor={Colors.headerBg}
