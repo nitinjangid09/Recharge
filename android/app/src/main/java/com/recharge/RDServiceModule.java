@@ -61,11 +61,11 @@ public class RDServiceModule extends ReactContextBaseJavaModule {
 
     // ── Default PID Options XML (UIDAI standard) ──────────────────────────────
     // Most RD Service apps require this; otherwise they may cancel immediately.
-    private static final String DEFAULT_PID_OPTIONS = 
-        "<?xml version=\"1.0\"?>" +
-        "<PidOptions ver=\"1.0\">" +
-        "   <Opts fCount=\"1\" fType=\"2\" iCount=\"0\" pCount=\"0\" format=\"0\" pidVer=\"2.0\" timeout=\"10000\" posh=\"UNKNOWN\" env=\"P\" />" +
-        "</PidOptions>";
+    private static final String DEFAULT_PID_OPTIONS = "<?xml version=\"1.0\"?>" +
+            "<PidOptions ver=\"1.0\">" +
+            "   <Opts fCount=\"1\" fType=\"2\" iCount=\"0\" pCount=\"0\" format=\"0\" pidVer=\"2.0\" timeout=\"10000\" posh=\"UNKNOWN\" env=\"P\" />"
+            +
+            "</PidOptions>";
 
     // ── Pending promise while waiting for Activity result ─────────────────────
     private Promise pendingPromise;
@@ -106,7 +106,7 @@ public class RDServiceModule extends ReactContextBaseJavaModule {
                 }
 
             } else if (resultCode == Activity.RESULT_CANCELED) {
-                // FIX: Some Morpho versions return CANCELLED immediately for the 
+                // FIX: Some Morpho versions return CANCELLED immediately for the
                 // standard action if they expect the alternate action.
                 if (MORPHO_PACKAGE.equals(pendingPackageId) && !triedAltAction) {
                     retryWithAltAction(activity);

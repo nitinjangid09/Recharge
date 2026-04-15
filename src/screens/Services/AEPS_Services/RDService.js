@@ -21,16 +21,16 @@ import { NativeModules, Platform } from 'react-native';
 
 // ─── RD Service Package IDs ─────────────────────────────────────────────────
 export const RD_PACKAGES = {
-  MANTRA:  'com.mantra.rdservice',
-  MORPHO:  'com.idemia.l1rdservice',
+  MANTRA: 'com.mantra.rdservice',
+  MORPHO: 'com.idemia.l1rdservice',
   STARTEK: 'com.startek.rdservice',
   SECUGEN: 'com.secugen.rdservice',
 };
 
 // ─── Human-readable device names ────────────────────────────────────────────
 export const RD_DEVICE_LABELS = {
-  MANTRA:  'Mantra MFS100',
-  MORPHO:  'Morpho MSO 1300',
+  MANTRA: 'Mantra MFS100',
+  MORPHO: 'Morpho MSO 1300',
   STARTEK: 'Startek FM220',
   SECUGEN: 'SecuGen Hamster',
 };
@@ -71,7 +71,7 @@ const getNativeModule = () => {
 // ─────────────────────────────────────────────────────────────────────────────
 const isInstalled = async (deviceKey) => {
   const packageId = getPackageId(deviceKey);
-  const mod       = getNativeModule();
+  const mod = getNativeModule();
   return await mod.isAppInstalled(packageId);
 };
 
@@ -96,7 +96,7 @@ const isInstalled = async (deviceKey) => {
 // ─────────────────────────────────────────────────────────────────────────────
 const capture = async (deviceKey) => {
   const packageId = getPackageId(deviceKey);
-  const mod       = getNativeModule();
+  const mod = getNativeModule();
   return await mod.captureFingerprint(packageId);
 };
 
@@ -113,7 +113,7 @@ const capture = async (deviceKey) => {
 // ─────────────────────────────────────────────────────────────────────────────
 const openInstallPage = async (deviceKey) => {
   const packageId = getPackageId(deviceKey);
-  const mod       = getNativeModule();
+  const mod = getNativeModule();
   return await mod.openPlayStore(packageId);
 };
 
@@ -144,13 +144,13 @@ const getPackageId = (deviceKey) => {
 // Error code constants — use these in catch blocks for specific handling
 // ─────────────────────────────────────────────────────────────────────────────
 export const RD_ERROR_CODES = {
-  NOT_INSTALLED:      'NOT_INSTALLED',
-  CANCELLED:          'CANCELLED',
-  NO_PID:             'NO_PID',
-  BUSY:               'BUSY',
+  NOT_INSTALLED: 'NOT_INSTALLED',
+  CANCELLED: 'CANCELLED',
+  NO_PID: 'NO_PID',
+  BUSY: 'BUSY',
   ACTIVITY_NOT_FOUND: 'ACTIVITY_NOT_FOUND',
-  NO_ACTIVITY:        'NO_ACTIVITY',
-  LAUNCH_ERROR:       'LAUNCH_ERROR',
+  NO_ACTIVITY: 'NO_ACTIVITY',
+  LAUNCH_ERROR: 'LAUNCH_ERROR',
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

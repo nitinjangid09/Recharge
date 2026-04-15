@@ -19,11 +19,12 @@ import {
   Alert,
   PermissionsAndroid,
   Platform,
+  StatusBar,
 } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from '@react-native-community/geolocation';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import RDService, { RD_ERROR_CODES } from './RDService'; // ← adjust path as needed
 import { aepsDailyLogin } from '../../../api/AuthApi';
@@ -378,148 +379,158 @@ const DailyLogin = () => {
   // ─────────────────────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={styles.container}>
-      <HeaderBar
-        title="NPCI Daily Login"
-        onBack={() => NavigationService.goBack()}
-      />
+      <StatusBar barStyle="light-content" backgroundColor="#121631" />
+      
+      {/* ── Custom Header ── */}
+      <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backBtn}
+          onPress={() => NavigationService.goBack()}
+        >
+          <Icon name="chevron-left" size={28} color="#121631" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>NPCI Daily Login</Text>
+      </View>
 
       <ScrollView
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
         <Animated.View
-          style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
+          style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }], alignItems: 'center' }}
         >
-          <View style={styles.card}>
+          {/* ── Shield Icon ── */}
+          <View style={styles.shieldWrapper}>
+            <View style={styles.shieldCircle}>
+              <Icon name="shield-lock" size={40} color="#D4A14C" />
+            </View>
+          </View>
 
+          <Text style={styles.merchantTitle}>Merchant Login</Text>
+          <Text style={styles.merchantSub}>Mandatory identity verification for today's transactions</Text>
+
+          <View style={styles.goldCard}>
             {/* ── Aadhaar ─────────────────────────────────────────────── */}
-            <Text style={styles.label}>Aadhaar Number</Text>
-            <TextInput
-              style={[styles.input, errors.aadhaar && styles.inputError]}
-              placeholder="Enter 12-digit Aadhaar"
-              placeholderTextColor="#9CA3AF"
-              keyboardType="numeric"
-              maxLength={12}
-              value={aadhaarNumber}
-              onChangeText={(v) => {
-                setAadhaarNumber(v);
-                if (errors.aadhaar) setErrors((p) => ({ ...p, aadhaar: null }));
-              }}
-            />
-            {errors.aadhaar ? <Text style={styles.error}>{errors.aadhaar}</Text> : null}
+            <Text style={styles.cardLabel}>AADHAAR NUMBER</Text>
+            <View style={[styles.inputGroup, errors.aadhaar && styles.inputGroupError]}>
+              <Icon name="face-recognition" size={22} color="#D4A14C" style={styles.inputIcon} />
+              <TextInput
+                style={styles.inputField}
+                placeholder="12 Digit Aadhaar Number"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="numeric"
+                maxLength={12}
+                value={aadhaarNumber}
+                onChangeText={(v) => {
+                  setAadhaarNumber(v);
+                  if (errors.aadhaar) setErrors((p) => ({ ...p, aadhaar: null }));
+                }}
+              />
+            </View>
+            {errors.aadhaar ? <Text style={styles.errorText}>{errors.aadhaar}</Text> : null}
 
             {/* ── Mobile ──────────────────────────────────────────────── */}
-            <Text style={styles.label}>Mobile Number</Text>
-            <TextInput
-              style={[styles.input, errors.mobile && styles.inputError]}
-              placeholder="Enter 10-digit mobile number"
-              placeholderTextColor="#9CA3AF"
-              keyboardType="numeric"
-              maxLength={10}
-              value={mobileNumber}
-              onChangeText={(v) => {
-                setMobileNumber(v);
-                if (errors.mobile) setErrors((p) => ({ ...p, mobile: null }));
-              }}
-            />
-            {errors.mobile ? <Text style={styles.error}>{errors.mobile}</Text> : null}
+            <View style={{ marginTop: 20 }}>
+              <Text style={styles.cardLabel}>MOBILE NUMBER</Text>
+              <View style={[styles.inputGroup, errors.mobile && styles.inputGroupError]}>
+                <Icon name="phone" size={22} color="#D4A14C" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.inputField}
+                  placeholder="10 Digit Mobile Number"
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="numeric"
+                  maxLength={10}
+                  value={mobileNumber}
+                  onChangeText={(v) => {
+                    setMobileNumber(v);
+                    if (errors.mobile) setErrors((p) => ({ ...p, mobile: null }));
+                  }}
+                />
+              </View>
+              {errors.mobile ? <Text style={styles.errorText}>{errors.mobile}</Text> : null}
+            </View>
 
-            {/* ── Auth Method ──────────────────────────────────────────── */}
-            <Text style={styles.label}>Verification Method</Text>
-            <View style={styles.row}>
+            {/* ── Method Selection ────────────────────────────────────── */}
+            <View style={styles.methodRow}>
               <TouchableOpacity
-                style={[styles.methodBtn, authMethod === 'finger' && styles.methodActive]}
+                style={[styles.methodCard, authMethod === 'finger' && styles.methodCardActive]}
                 onPress={() => selectAuthMethod('finger')}
               >
-                <Text style={[styles.methodBtnText, authMethod === 'finger' && styles.methodActiveText]}>
-                  🖐  Fingerprint
-                </Text>
+                <Icon name="fingerprint" size={32} color={authMethod === 'finger' ? '#D4A14C' : '#6B7280'} />
+                <Text style={[styles.methodText, authMethod === 'finger' && styles.methodTextActive]}>Fingerprint</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.methodBtn, authMethod === 'face' && styles.methodActive]}
+                style={[styles.methodCard, authMethod === 'face' && styles.methodCardActive]}
                 onPress={() => selectAuthMethod('face')}
               >
-                <Text style={[styles.methodBtnText, authMethod === 'face' && styles.methodActiveText]}>
-                  🤳  Face Auth
-                </Text>
+                <Icon name="face-recognition" size={32} color={authMethod === 'face' ? '#D4A14C' : '#6B7280'} />
+                <Text style={[styles.methodText, authMethod === 'face' && styles.methodTextActive]}>Face Search</Text>
               </TouchableOpacity>
             </View>
-            {errors.method ? <Text style={styles.error}>{errors.method}</Text> : null}
+          </View>
 
-            {/* ── Device Picker (fingerprint only) ────────────────────── */}
-            {authMethod === 'finger' && (
-              <>
-                <Text style={styles.label}>Biometric Device</Text>
+          {/* ── Help text ── */}
+          <View style={styles.helpRow}>
+            <View style={styles.helpDot} />
+            <Text style={styles.helpText}>Select verification method.</Text>
+          </View>
 
+          {/* ────── RD Device Picker (if fingerprint) ────── */}
+          {authMethod === 'finger' && (
+             <View style={{ width: '100%', marginTop: 10 }}>
                 <TouchableOpacity
-                  style={[styles.input, styles.picker, errors.device && styles.inputError]}
-                  onPress={() => setShowDeviceList((v) => !v)}
-                  activeOpacity={0.7}
+                  style={[styles.devicePicker, errors.device && styles.inputGroupError]}
+                  onPress={() => setShowDeviceList(!showDeviceList)}
                 >
-                  <Text style={selectedDeviceLabel ? styles.pickerValue : styles.pickerPlaceholder}>
-                    {selectedDeviceLabel ?? 'Select biometric device'}
+                  <Text style={device ? styles.deviceValue : styles.devicePlaceholder}>
+                    {selectedDeviceLabel ?? 'Select Biometric Device'}
                   </Text>
-                  <Text style={styles.pickerArrow}>{showDeviceList ? '▲' : '▼'}</Text>
+                  <Icon name={showDeviceList ? "chevron-up" : "chevron-down"} size={20} color="#6B7280" />
                 </TouchableOpacity>
 
-                {errors.device ? <Text style={styles.error}>{errors.device}</Text> : null}
-
-                {/* Dropdown list */}
                 {showDeviceList && (
-                  <View style={styles.dropdown}>
+                  <View style={styles.deviceList}>
                     {DEVICE_LIST.map((d) => (
                       <TouchableOpacity
                         key={d.value}
-                        style={[
-                          styles.dropdownItem,
-                          device === d.value && styles.dropdownItemActive,
-                        ]}
+                        style={styles.deviceItem}
                         onPress={() => selectDevice(d.value)}
                       >
-                        <Text
-                          style={[
-                            styles.dropdownText,
-                            device === d.value && styles.dropdownTextActive,
-                          ]}
-                        >
-                          {d.label}
-                        </Text>
-                        {device === d.value && (
-                          <Text style={styles.dropdownCheck}>✓</Text>
-                        )}
+                        <Text style={styles.deviceItemText}>{d.label}</Text>
+                        {device === d.value && <Icon name="check" size={18} color="#D4A14C" />}
                       </TouchableOpacity>
                     ))}
                   </View>
                 )}
-
-                {/* RD Service status banner */}
                 <RDStatusBanner />
-                {errors.rdservice ? (
-                  <Text style={styles.error}>{errors.rdservice}</Text>
-                ) : null}
-              </>
-            )}
+             </View>
+          )}
 
-            {/* ── Submit Button ────────────────────────────────────────── */}
-            <Animated.View style={{ transform: [{ scale: btnScale }] }}>
-              <TouchableOpacity
-                style={[styles.submitBtn, isSubmitDisabled && styles.submitBtnDisabled]}
-                onPress={handleSubmit}
-                disabled={isSubmitDisabled}
-                activeOpacity={0.85}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={styles.submitBtnText}>
-                    {authMethod === 'face' ? 'Start Face Authentication' : 'Capture Fingerprint'}
+          {/* ── Submit Button ── */}
+          <Animated.View style={{ transform: [{ scale: btnScale }], width: '100%', marginTop: 30 }}>
+            <TouchableOpacity
+              style={[styles.captureBtn, isSubmitDisabled && styles.captureBtnDisabled]}
+              onPress={handleSubmit}
+              disabled={isSubmitDisabled}
+              activeOpacity={0.9}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <View style={styles.captureBtnIn}>
+                  <Icon name={authMethod === 'face' ? "face-recognition" : "fingerprint"} size={22} color="#fff" style={{marginRight: 10}} />
+                  <Text style={styles.captureBtnText}>
+                    {authMethod === 'face' ? 'Capture Face Search' : 'Capture Fingerprint'}
                   </Text>
-                )}
-              </TouchableOpacity>
-            </Animated.View>
+                </View>
+              )}
+            </TouchableOpacity>
+          </Animated.View>
 
-          </View>
+          <Text style={styles.footerText}>NPCI • RBI COMPLIANT • SECURE GATEWAY</Text>
+
         </Animated.View>
       </ScrollView>
     </SafeAreaView>
@@ -530,148 +541,245 @@ export default DailyLogin;
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F0F4F8' },
-  scroll: { padding: 20 },
+  container: { flex: 1, backgroundColor: '#FAF6ED' },
+  scroll: { paddingHorizontal: 20, paddingBottom: 40 },
 
-  card: {
+  // ── Custom Header ──
+  header: {
+    height: 60,
+    backgroundColor: '#121631',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
+  },
+  backBtn: {
+    position: 'absolute',
+    left: 15,
     backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 14,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 5,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '500',
   },
 
-  label: {
-    fontSize: 13,
+  // ── Top Section ──
+  shieldWrapper: {
+    marginTop: 30,
+    marginBottom: 20,
+  },
+  shieldCircle: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+  },
+  merchantTitle: {
+    fontSize: 26,
     fontWeight: '600',
-    color: '#374151',
-    marginTop: 12,
+    color: '#1F2937',
     marginBottom: 5,
   },
-
-  input: {
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    padding: 13,
-    borderRadius: 9,
-    backgroundColor: '#FAFAFA',
-    color: '#111',
+  merchantSub: {
     fontSize: 14,
-    marginBottom: 2,
+    color: '#6B7280',
+    textAlign: 'center',
+    paddingHorizontal: 40,
+    lineHeight: 20,
+    marginBottom: 30,
   },
 
-  inputError: {
+  // ── Gold Card ──
+  goldCard: {
+    backgroundColor: '#F6E9CF',
+    width: '100%',
+    borderRadius: 35,
+    padding: 25,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  cardLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#6B7280',
+    letterSpacing: 1,
+    marginBottom: 8,
+    marginLeft: 5,
+  },
+  inputGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    paddingHorizontal: 15,
+    height: 55,
+  },
+  inputGroupError: {
+    borderWidth: 1,
     borderColor: '#EF4444',
   },
-
-  error: {
-    color: '#EF4444',
-    fontSize: 12,
-    marginBottom: 4,
-    marginTop: 2,
+  inputIcon: {
+    marginRight: 10,
   },
-
-  // ── Auth method toggle ────
-  row: { flexDirection: 'row', gap: 10, marginBottom: 4 },
-
-  methodBtn: {
+  inputField: {
     flex: 1,
-    paddingVertical: 13,
-    backgroundColor: '#F3F4F6',
-    alignItems: 'center',
-    borderRadius: 9,
-    borderWidth: 1.5,
-    borderColor: '#E5E7EB',
+    fontSize: 16,
+    color: '#1F2937',
+    fontWeight: '400',
   },
-  methodActive: {
-    backgroundColor: '#22C55E',
-    borderColor: '#16A34A',
-  },
-  methodBtnText: {
-    color: '#6B7280',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  methodActiveText: {
-    color: '#fff',
+  errorText: {
+    color: '#EF4444',
+    fontSize: 11,
+    marginTop: 4,
+    marginLeft: 5,
   },
 
-  // ── Device picker ─────────
-  picker: {
+  // ── Method Row ──
+  methodRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    gap: 15,
+    marginTop: 25,
   },
-  pickerPlaceholder: { color: '#9CA3AF', fontSize: 14 },
-  pickerValue: { color: '#111', fontSize: 14 },
-  pickerArrow: { color: '#6B7280', fontSize: 12 },
+  methodCard: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    paddingVertical: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  methodCardActive: {
+    borderColor: '#D4A14C',
+    backgroundColor: '#FFFBF2',
+  },
+  methodText: {
+    marginTop: 10,
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#6B7280',
+  },
+  methodTextActive: {
+    color: '#1F2937',
+  },
 
-  // ── Dropdown ──────────────
-  dropdown: {
+  // ── Help ──
+  helpRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginTop: 15,
+    marginLeft: 10,
+  },
+  helpDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#D4A14C',
+    marginRight: 8,
+  },
+  helpText: {
+    fontSize: 13,
+    color: '#6B7280',
+    fontWeight: '400',
+  },
+
+  // ── Device Picker ──
+  devicePicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    height: 50,
     borderWidth: 1,
     borderColor: '#E5E7EB',
-    borderRadius: 9,
-    overflow: 'hidden',
-    marginTop: 4,
-    marginBottom: 6,
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
-    elevation: 4,
   },
-  dropdownItem: {
-    paddingVertical: 13,
-    paddingHorizontal: 16,
+  devicePlaceholder: { color: '#9CA3AF', fontSize: 14 },
+  deviceValue: { color: '#1F2937', fontSize: 14, fontWeight: '400' },
+
+  deviceList: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginTop: 5,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    elevation: 3,
+  },
+  deviceItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
   },
-  dropdownItemActive: { backgroundColor: '#F0FDF4' },
-  dropdownText: { color: '#374151', fontSize: 14 },
-  dropdownTextActive: { color: '#16A34A', fontWeight: '600' },
-  dropdownCheck: { color: '#16A34A', fontWeight: '700', fontSize: 15 },
+  deviceItemText: { fontSize: 14, color: '#374151', fontWeight: '500' },
 
-  // ── RD Status banner ──────
+  // ── RD Banner ──
   rdBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexWrap: 'wrap',
-    padding: 11,
-    borderRadius: 8,
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  rdChecking: { backgroundColor: '#F3F4F6' },
-  rdInstalled: { backgroundColor: '#DCFCE7' },
-  rdMissing: { backgroundColor: '#FEF9C3' },
-
-  rdBannerText: { fontSize: 13, color: '#374151', flexShrink: 1 },
-  installLink: {
-    fontSize: 13,
-    color: '#DC2626',
-    fontWeight: '700',
-    marginTop: 3,
-  },
-
-  // ── Submit ────────────────
-  submitBtn: {
-    backgroundColor: '#2563EB',
-    padding: 16,
-    alignItems: 'center',
+    padding: 10,
     borderRadius: 10,
-    marginTop: 22,
+    marginTop: 8,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
   },
-  submitBtnDisabled: { backgroundColor: '#93C5FD' },
-  submitBtnText: {
+  rdChecking: { backgroundColor: '#F9FAFB' },
+  rdInstalled: { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' },
+  rdMissing: { backgroundColor: '#FEF2F2', borderColor: '#FECACA' },
+  rdBannerText: { fontSize: 12, color: '#374151', flex: 1 },
+  installLink: { color: '#2563EB', fontWeight: '500', fontSize: 12, marginLeft: 5 },
+
+  // ── Capture Button ──
+  captureBtn: {
+    backgroundColor: '#121631',
+    borderRadius: 20,
+    height: 65,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+  },
+  captureBtnIn: { flexDirection: 'row', alignItems: 'center' },
+  captureBtnDisabled: { backgroundColor: '#9CA3AF' },
+  captureBtnText: {
     color: '#fff',
-    fontWeight: '700',
-    fontSize: 15,
-    letterSpacing: 0.3,
+    fontSize: 17,
+    fontWeight: '500',
+    letterSpacing: 0.5,
+  },
+
+  footerText: {
+    marginTop: 40,
+    fontSize: 11,
+    fontWeight: '400',
+    color: '#9CA3AF',
+    letterSpacing: 1,
   },
 });
