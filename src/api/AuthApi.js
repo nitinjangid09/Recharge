@@ -1614,7 +1614,7 @@ export const aepsDailyLogin = async ({ data, headerToken, idempotencyKey }) => {
     const response = await axios.post(`${BASE_URL}/user/aepsInstant/daily-login`, data, {
       headers: {
         Authorization: `Bearer ${headerToken}`,
-        "Idempotency-Key": idempotencyKey,
+        "idempotency-key": idempotencyKey,
       },
     });
     return response.data;
