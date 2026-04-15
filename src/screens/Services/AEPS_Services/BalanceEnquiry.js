@@ -13,7 +13,10 @@ import {
   Modal,
   FlatList,
   ActivityIndicator,
+  PermissionsAndroid,
+  Alert,
 } from "react-native";
+import Geolocation from '@react-native-community/geolocation';
 import { SafeAreaView } from "react-native-safe-area-context";
 import Colors from "../../../constants/Colors";
 import Fonts from "../../../constants/Fonts";
@@ -214,11 +217,15 @@ const BalanceEnquiry = () => {
   const loadBanks = async () => {
     try {
       const headerToken = await AsyncStorage.getItem("header_token");
-      const res = await fetchAepsBanks({ headerToken });
-      if (res.success || res.status === "SUCCESS") {
-        const mapped = (res.data || []).map(b => ({
-          label: b.name,
-          value: b._id,
+      const headerKey = await AsyncStorage.getItem("header_key");
+      const res = await fetchAepsBanks({ headerToken, headerKey });
+      
+      if (res.success || res.status === "SUCCESS" || Array.isArray(res.data)) {
+        // Try to find the array in common fields
+        const rawList = Array.isArray(res.data) ? res.data : (res.banks || res.bankList || []);
+        const mapped = rawList.map(b => ({
+          label: b.name || b.bankName || "Unknown Bank",
+          value: b._id || b.bankId || b.id || b.bankCode,
           icon: "🏦"
         }));
         setBankList(mapped);
@@ -250,22 +257,69 @@ const BalanceEnquiry = () => {
 
   const handleSubmit = async () => {
     if (!validate()) return;
-    buttonPress(btnScale).start();
 
-    setLoading(true);
     try {
+      setLoading(true);
+
+      // ── 1. Request Location Permission (Android) ──
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          AlertService.showAlert({
+            type: "error",
+            title: "Permission Denied",
+            message: "Location permission is required for AEPS transactions."
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
+      buttonPress(btnScale).start();
+
+      // ── 2. Capture Biometric PID Data ──
+      const pidData = await RDService.capture(device);
+
+      // ── 3. Get User Location ──
+      const getLocation = () =>
+        new Promise((resolve) => {
+          Geolocation.getCurrentPosition(
+            (pos) => resolve(pos.coords),
+            (err) => {
+              console.log('[GEOLOCATION] Error:', err);
+              // Fallback to default if coordinates fail
+              resolve({ latitude: 26.88978, longitude: 75.738251 });
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+          );
+        });
+
+      const coords = await getLocation();
+
+      // ── 4. Prepare Payload & Send ──
       const headerToken = await AsyncStorage.getItem("header_token");
+      const headerKey = await AsyncStorage.getItem("header_key");
       const idempotencyKey = `BE_${Date.now()}`;
+      
       const payload = {
-        mobileNumber,
-        aadhaarNumber,
-        bankCode: bank,
-        device,
+        aadhaar: String(aadhaarNumber),
+        mobile: String(mobileNumber),
+        bankId: bank,
+        bankCode: bank, // Alias for older endpoints
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        lat: coords.latitude,   // Alias
+        long: coords.longitude, // Alias
+        captureType: 'finger',
+        biometricData: RDService.parsePidXml(pidData),
       };
 
       const res = await aepsBalanceEnquiry({
         data: payload,
         headerToken,
+        headerKey,
         idempotencyKey
       });
 
@@ -284,10 +338,11 @@ const BalanceEnquiry = () => {
         });
       }
     } catch (err) {
+      console.log("Balance Enquiry Error:", err);
       AlertService.showAlert({
         type: "error",
         title: "Error",
-        message: "Something went wrong. Please try again."
+        message: err.message || "Something went wrong. Please try again."
       });
     } finally {
       setLoading(false);

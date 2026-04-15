@@ -199,13 +199,16 @@ const AepsRegistration = () => {
     const loadBanks = async () => {
         try {
             const headerToken = await AsyncStorage.getItem("header_token");
+            const headerKey = await AsyncStorage.getItem("header_key");
             if (!headerToken) return;
 
-            const response = await fetchAepsBanks({ headerToken });
-            if (response && (response.success || response.status === "SUCCESS")) {
-                const list = (response.data || []).map((b) => ({
-                    name: b.name,
-                    _id: b._id,
+            const response = await fetchAepsBanks({ headerToken, headerKey });
+            if (response && (response.success || response.status === "SUCCESS" || Array.isArray(response.data))) {
+                // Try to find the array in common fields
+                const rawList = Array.isArray(response.data) ? response.data : (response.banks || response.bankList || []);
+                const list = rawList.map((b) => ({
+                    name: b.name || b.bankName || "Unknown Bank",
+                    _id: b._id || b.bankId || b.id || b.bankCode,
                 }));
                 setBankItems(list);
             }

@@ -157,11 +157,71 @@ export const RD_ERROR_CODES = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// parsePidXml(xml)
+//
+// Converts the raw RD Service XML response into a clean JSON object.
+// ─────────────────────────────────────────────────────────────────────────────
+const parsePidXml = (xml) => {
+  if (!xml) return null;
+
+  const getAttr = (tag, attr) => {
+    const reg = new RegExp(`<${tag}[^>]*\\b${attr}="([^"]*)"`, 'i');
+    const match = xml.match(reg);
+    return match ? match[1] : '';
+  };
+
+  const getTagContent = (tag) => {
+    const reg = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i');
+    const match = xml.match(reg);
+    return match ? match[1].trim() : '';
+  };
+
+  return {
+    // From <Resp>
+    errCode:   getAttr('Resp', 'errCode'),
+    errInfo:   getAttr('Resp', 'errInfo'),
+    fCount:    getAttr('Resp', 'fCount'),
+    fType:     getAttr('Resp', 'fType'),
+    iCount:    getAttr('Resp', 'iCount'),
+    iType:     getAttr('Resp', 'iType'),
+    pCount:    getAttr('Resp', 'pCount'),
+    pType:     getAttr('Resp', 'pType'),
+    nmPoints:  getAttr('Resp', 'nmPoints'),
+    qScore:    getAttr('Resp', 'qScore'),
+
+    // From <DeviceInfo>
+    dpId:      getAttr('DeviceInfo', 'dpId'),
+    rdsId:     getAttr('DeviceInfo', 'rdsId'),
+    rdsVer:    getAttr('DeviceInfo', 'rdsVer'),
+    dc:        getAttr('DeviceInfo', 'dc'),
+    mi:        getAttr('DeviceInfo', 'mi'),
+    mc:        getAttr('DeviceInfo', 'mc'),
+    srno:      getAttr('DeviceInfo', 'srno'),
+    sysid:     getAttr('DeviceInfo', 'sysid'),
+
+    // From <Skey>
+    ci:          getAttr('Skey', 'ci'),
+    sessionKey:  getTagContent('Skey'),
+
+    // From <Hmac>
+    hmac:        getTagContent('Hmac'),
+
+    // From <Data>
+    pidData:     getTagContent('Data'),
+    pidDataType: getAttr('Data', 'type') || 'X',
+    
+    // Use the timestamp from XML if available, else current time
+    ts: getAttr('PidData', 'ts') || new Date().toISOString()
+  };
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Default export
 // ─────────────────────────────────────────────────────────────────────────────
 const RDService = {
   isInstalled,
   capture,
+  parsePidXml,
   openInstallPage,
   getDeviceLabel,
   DEVICE_LIST,

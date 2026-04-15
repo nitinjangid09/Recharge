@@ -201,11 +201,15 @@ const CashWithdraw = () => {
   const loadBanks = async () => {
     try {
       const headerToken = await AsyncStorage.getItem("header_token");
-      const res = await fetchAepsBanks({ headerToken });
-      if (res.success || res.status === "SUCCESS") {
-        const mapped = (res.data || []).map(b => ({
-          label: b.name,
-          value: b._id,
+      const headerKey = await AsyncStorage.getItem("header_key");
+      const res = await fetchAepsBanks({ headerToken, headerKey });
+      
+      if (res.success || res.status === "SUCCESS" || Array.isArray(res.data)) {
+        // Try to find the array in common fields
+        const rawList = Array.isArray(res.data) ? res.data : (res.banks || res.bankList || []);
+        const mapped = rawList.map(b => ({
+          label: b.name || b.bankName || "Unknown Bank",
+          value: b._id || b.bankId || b.id || b.bankCode,
           icon: "🏦"
         }));
         setBankList(mapped);

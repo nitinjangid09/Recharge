@@ -54,6 +54,7 @@ import OfflineServiceForm from '../screens/Services/OfflineServices/OfflineServi
 import Notification from '../screens/Notification';
 import AEPS_OnBoard from '../screens/Services/AEPS_Services/AEPS_OnBoard';
 import AEPS_Services from '../screens/Services/AEPS_Services/AEPS_Services';
+import TransactionAuditScreen from '../screens/Reports/WalletAudit';
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
@@ -191,6 +192,7 @@ const AppNavigator = () => {
       <Stack.Screen name="Notification" component={Notification} />
       <Stack.Screen name="AEPS_OnBoard" component={AEPS_OnBoard} />
       <Stack.Screen name="AEPS_Services" component={AEPS_Services} />
+      <Stack.Screen name="WalletAudit" component={TransactionAuditScreen} />
     </Stack.Navigator>
   );
 };

@@ -752,7 +752,7 @@ const WalletTransactionScreen = ({ navigation }) => {
         renderItem={({ item }) => (
           <TransactionCard
             txn={item}
-            onPressReceipt={() => { setDetailItem(item); setDetailVisible(true); }}
+            onPressReceipt={() => { navigation.navigate('WalletAudit', { txn: item }); }}
           />
         )}
         ListHeaderComponent={

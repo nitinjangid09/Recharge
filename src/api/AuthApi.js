@@ -1487,12 +1487,12 @@ export const getFAQs = async ({ headerToken }) => {
 // AEPS
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const registerOutlet = async ({ data, headerToken, idempotencyKey }) => {
+export const registerOutlet = async ({ data, headerToken, headerKey, idempotencyKey }) => {
   try {
     const response = await axios.post(`${BASE_URL}/user/aepsInstant/registerOutlet`, data, {
       headers: {
         Authorization: `Bearer ${headerToken}`,
-        "Idempotency-Key": idempotencyKey,
+        "idempotency-key": idempotencyKey,
       },
     });
     return response.data;
@@ -1507,10 +1507,14 @@ export const registerOutlet = async ({ data, headerToken, idempotencyKey }) => {
   }
 };
 
-export const fetchAepsBanks = async ({ headerToken }) => {
+export const fetchAepsBanks = async ({ headerToken, headerKey }) => {
   try {
     const response = await axios.get(`${BASE_URL}/user/aepsbank/list-banks`, {
-      headers: { Authorization: `Bearer ${headerToken}` },
+      headers: { 
+        Authorization: `Bearer ${headerToken}`,
+        headerToken,
+        headerKey 
+      },
     });
     return response.data;
   } catch (error) {
@@ -1524,7 +1528,7 @@ export const getAepsKycStatus = async ({ headerToken, idempotencyKey }) => {
     const response = await axios.post(`${BASE_URL}/user/aepsInstant/biometric-kyc-status`, {}, {
       headers: {
         Authorization: `Bearer ${headerToken}`,
-        "Idempotency-Key": idempotencyKey,
+        "idempotency-key": idempotencyKey,
       },
     });
     return response.data;
@@ -1534,12 +1538,12 @@ export const getAepsKycStatus = async ({ headerToken, idempotencyKey }) => {
   }
 };
 
-export const biometricKyc = async ({ data, headerToken, idempotencyKey }) => {
+export const biometricKyc = async ({ data, headerToken, headerKey, idempotencyKey }) => {
   try {
     const response = await axios.post(`${BASE_URL}/user/aepsInstant/biometric-kyc`, data, {
       headers: {
         Authorization: `Bearer ${headerToken}`,
-        "Idempotency-Key": idempotencyKey,
+        "idempotency-key": idempotencyKey,
       },
     });
     return response.data;
@@ -1549,12 +1553,14 @@ export const biometricKyc = async ({ data, headerToken, idempotencyKey }) => {
   }
 };
 
-export const aepsBalanceEnquiry = async ({ data, headerToken, idempotencyKey }) => {
+export const aepsBalanceEnquiry = async ({ data, headerToken, headerKey, idempotencyKey }) => {
   try {
     const response = await axios.post(`${BASE_URL}/user/aepsInstant/balance-enquiry`, data, {
       headers: {
         Authorization: `Bearer ${headerToken}`,
-        "Idempotency-Key": idempotencyKey,
+        "idempotency-key": idempotencyKey,
+        headerToken,
+        headerKey,
       },
     });
     return response.data;
@@ -1569,12 +1575,14 @@ export const aepsBalanceEnquiry = async ({ data, headerToken, idempotencyKey }) 
   }
 };
 
-export const aepsMiniStatement = async ({ data, headerToken, idempotencyKey }) => {
+export const aepsMiniStatement = async ({ data, headerToken, headerKey, idempotencyKey }) => {
   try {
     const response = await axios.post(`${BASE_URL}/user/aepsInstant/mini-statement`, data, {
       headers: {
         Authorization: `Bearer ${headerToken}`,
-        "Idempotency-Key": idempotencyKey,
+        "idempotency-key": idempotencyKey,
+        headerToken,
+        headerKey,
       },
     });
     return response.data;
@@ -1589,12 +1597,14 @@ export const aepsMiniStatement = async ({ data, headerToken, idempotencyKey }) =
   }
 };
 
-export const aepsCashWithdraw = async ({ data, headerToken, idempotencyKey }) => {
+export const aepsCashWithdraw = async ({ data, headerToken, headerKey, idempotencyKey }) => {
   try {
     const response = await axios.post(`${BASE_URL}/user/aepsInstant/cash-withdraw`, data, {
       headers: {
         Authorization: `Bearer ${headerToken}`,
-        "Idempotency-Key": idempotencyKey,
+        "idempotency-key": idempotencyKey,
+        headerToken,
+        headerKey,
       },
     });
     return response.data;
@@ -1609,12 +1619,14 @@ export const aepsCashWithdraw = async ({ data, headerToken, idempotencyKey }) =>
   }
 };
 
-export const aepsDailyLogin = async ({ data, headerToken, idempotencyKey }) => {
+export const aepsDailyLogin = async ({ data, headerToken, headerKey, idempotencyKey }) => {
   try {
     const response = await axios.post(`${BASE_URL}/user/aepsInstant/daily-login`, data, {
       headers: {
         Authorization: `Bearer ${headerToken}`,
         "idempotency-key": idempotencyKey,
+        headerToken,
+        headerKey,
       },
     });
     return response.data;
