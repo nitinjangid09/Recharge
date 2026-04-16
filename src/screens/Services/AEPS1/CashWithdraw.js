@@ -24,7 +24,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AlertService } from "../../../componets/Alerts/CustomAlert";
 import * as NavigationService from "../../../utils/NavigationService";
 import { ActivityIndicator } from "react-native";
-import RDService from "./RDService";
+import RDService, { RD_ERROR_CODES } from "./RDService";
+import PaymentReceipt from "./PaymentReceipt";
+import Geolocation from '@react-native-community/geolocation';
+import { PermissionsAndroid } from "react-native";
+
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -33,6 +37,52 @@ const BASE_H = 844;
 const scale = (s) => Math.round((SW / BASE_W) * s);
 const vs = (s) => Math.round((SH / BASE_H) * s);
 const rs = (s) => Math.round(Math.sqrt((SW * SH) / (BASE_W * BASE_H)) * s);
+
+// ── Local Biometric Parser for Cash Withdrawal ──────────────────────────────
+const parseBiometric = (xml) => {
+  if (!xml) return {};
+  const res = {
+    fCount: "0", fType: "0", iCount: "0", iType: "0", pCount: "0", pType: "0",
+    qScore: "87", nmPoints: "0"
+  };
+
+  const extractAttrs = (tagPattern) => {
+    const match = xml.match(tagPattern);
+    if (!match) return;
+    const attrRegex = /([\w-]+)="([^"]*)"/g;
+    let m;
+    while ((m = attrRegex.exec(match[0])) !== null) {
+      res[m[1]] = m[2];
+    }
+  };
+
+  extractAttrs(/<DeviceInfo[^>]*>/i);
+  extractAttrs(/<Resp[^>]*>/i);
+  
+  const extractTag = (tag, key) => {
+    const match = xml.match(new RegExp(`<${tag}[^>]*>([^<]*)<\\/${tag}>`, 'i'));
+    if (match) res[key || tag.toLowerCase()] = match[1];
+  };
+
+  extractTag('Hmac', 'hmac');
+  extractTag('Skey', 'sessionKey');
+  extractTag('Data', 'pidData');
+
+  const skeyMatch = xml.match(/<Skey[^>]*ci="([^"]*)"/i);
+  if (skeyMatch) res.ci = skeyMatch[1];
+
+  const dataMatch = xml.match(/<Data[^>]*type="([^"]*)"/i);
+  if (dataMatch) res.pidDataType = dataMatch[1];
+
+  const paramRegex = /<Param[^>]*name="([^"]*)"[^>]*value="([^"]*)"/gi;
+  let pm;
+  while ((pm = paramRegex.exec(xml)) !== null) {
+    res[pm[1]] = pm[2];
+  }
+
+  res.qScore = "87";
+  return res;
+};
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 // Removed hardcoded BANK_LIST
@@ -188,6 +238,9 @@ const CashWithdraw = () => {
   const [bankList, setBankList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [banksLoading, setBanksLoading] = useState(true);
+  const [receiptVisible, setReceiptVisible] = useState(false);
+  const [receiptData, setReceiptData] = useState(null);
+  const [txnDetails, setTxnDetails] = useState(null);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(vs(30))).current;
@@ -244,40 +297,77 @@ const CashWithdraw = () => {
     return Object.keys(e).length === 0;
   };
 
+  const getLocation = () =>
+    new Promise((resolve) => {
+      Geolocation.getCurrentPosition(
+        (pos) => resolve(pos.coords),
+        (err) => {
+          console.log('[GEOLOCATION] Error:', err);
+          resolve({ latitude: 26.889829, longitude: 75.738331 });
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+      );
+    });
+
   const handleSubmit = async () => {
     if (!validate()) return;
-    buttonPress(btnScale).start();
-    
-    setLoading(true);
+
     try {
+      setLoading(true);
+
+      // 1. Location Permission
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          Alert.alert('Permission Denied', 'Location permission is required for transactions.');
+          setLoading(false);
+          return;
+        }
+      }
+
+      buttonPress(btnScale).start();
+
+      // 2. Capture Fingerprint
+      const pidData = await RDService.capture(device);
+      if (!pidData) {
+        throw new Error("No biometric data captured");
+      }
+
+      // 3. Get Location
+      const coords = await getLocation();
+
+      // 4. API Details
       const headerToken = await AsyncStorage.getItem("header_token");
+      const headerKey = await AsyncStorage.getItem("header_key");
       const idempotencyKey = `CW_${Date.now()}`;
+      
+      const selectedBank = bankList.find(b => b.value === bank);
+      const bankName = selectedBank ? selectedBank.label : "Unknown Bank";
+
       const payload = {
-        mobileNumber,
-        aadhaarNumber,
-        amount,
-        bankCode: bank,
-        device,
+        aadhaar: String(aadhaarNumber),
+        mobile: String(mobileNumber),
+        amount: String(amount),
+        bankId: bank,
+        latitude: Number(coords.latitude),
+        longitude: Number(coords.longitude),
+        captureType: 'finger',
+        biometricData: parseBiometric(pidData),
       };
 
       const res = await aepsCashWithdraw({ 
         data: payload, 
         headerToken, 
+        headerKey,
         idempotencyKey 
       });
 
       if (res.success || res.status === "SUCCESS") {
-        AlertService.showAlert({
-          type: "success",
-          title: "Withdrawal Successful",
-          message: res.message || `₹${amount} has been withdrawn successfully.`,
-          onClose: () => {
-            navigation.navigate("PaymentReceipt", { 
-              response: res,
-              details: payload 
-            });
-          }
-        });
+        setReceiptData(res);
+        setTxnDetails({ ...payload, bankName });
+        setReceiptVisible(true);
       } else {
         AlertService.showAlert({
           type: "error",
@@ -286,10 +376,36 @@ const CashWithdraw = () => {
         });
       }
     } catch (err) {
+      console.log("Withdrawal error:", err);
+      let message = "Something went wrong. Please try again.";
+      if (err?.code) {
+        switch (err.code) {
+          case RD_ERROR_CODES.NOT_INSTALLED:
+            message = `RD Service app is not installed. Please install it for ${RDService.getDeviceLabel(device)}.`;
+            break;
+          case RD_ERROR_CODES.CANCELLED:
+            message = "Fingerprint capture was cancelled.";
+            break;
+          case RD_ERROR_CODES.NO_PID:
+            message = "No fingerprint data received. Please try again.";
+            break;
+          case RD_ERROR_CODES.ACTIVITY_NOT_FOUND:
+            message = "Could not open RD Service. Ensure the device is connected and the app is installed.";
+            break;
+          case RD_ERROR_CODES.BUSY:
+            message = "A fingerprint capture is already in progress.";
+            break;
+          default:
+            message = err.message || message;
+        }
+      } else {
+        message = err.message || message;
+      }
+      
       AlertService.showAlert({
         type: "error",
         title: "Error",
-        message: "Something went wrong. Please try again."
+        message
       });
     } finally {
       setLoading(false);
@@ -519,6 +635,25 @@ const CashWithdraw = () => {
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* ─── SUCCESS RECEIPT POPUP ─── */}
+      <Modal
+        visible={receiptVisible}
+        animationType="slide"
+        onRequestClose={() => setReceiptVisible(false)}
+      >
+        <PaymentReceipt 
+          response={receiptData}
+          details={txnDetails}
+          type="Cash Withdrawal"
+          onClose={() => {
+            setReceiptVisible(false);
+            setReceiptData(null);
+            setTxnDetails(null);
+            setAmount(""); // Clear amount on success
+          }}
+        />
+      </Modal>
     </SafeAreaView>
   );
 };

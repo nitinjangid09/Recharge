@@ -97,20 +97,7 @@ const isInstalled = async (deviceKey) => {
 const capture = async (deviceKey) => {
   const packageId = getPackageId(deviceKey);
   const mod = getNativeModule();
-  const rawData = await mod.captureFingerprint(packageId);
-
-  if (!rawData) return '';
-
-  // ─── XML Normalization ───────────────────────────────────────────────────
-  // Some RD Services (like Mantra) return XML with newlines and indentation.
-  // This can cause 'invalid format' errors on the backend.
-  // We strip all whitespace between tags and newlines to ensure a compact string.
-  const cleanedData = rawData
-    .replace(/\r?\n|\r/g, '')     // Remove newlines
-    .replace(/>\s+</g, '><')      // Remove spaces between tags
-    .trim();
-
-  return cleanedData;
+  return await mod.captureFingerprint(packageId);
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -169,23 +156,11 @@ export const RD_ERROR_CODES = {
 // ─────────────────────────────────────────────────────────────────────────────
 // Default export
 // ─────────────────────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
-// parsePidXml(xml)
-//
-// Simple utility to ensure the XML is ready for transmission.
-// Higher-level logic can be added here if specific tags need to be extracted.
-// ─────────────────────────────────────────────────────────────────────────────
-const parsePidXml = (xml) => {
-  if (!xml) return '';
-  return xml.toString().trim();
-};
-
 const RDService = {
   isInstalled,
   capture,
   openInstallPage,
   getDeviceLabel,
-  parsePidXml,
   DEVICE_LIST,
   RD_PACKAGES,
   RD_ERROR_CODES,
