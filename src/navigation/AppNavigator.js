@@ -25,15 +25,15 @@ import TopUpScreen from '../screens/Services/Recharge/Recharge';
 import UserListScreen from '../screens/UserDownline/UserListScreen';
 
 import WalletTransactionScreen from '../screens/Reports/WalletLedger'
-import BalanceEnquiry from "../screens/Services/AEPS_Services/BalanceEnquiry";
-import CashWithdraw from "../screens/Services/AEPS_Services/CashWithdraw";
-import MiniStatement from "../screens/Services/AEPS_Services/MiniStatements";
-import AepsRegistration from "../screens/Services/AEPS_Services/AepsRegistration";
-import DailyLogin from "../screens/Services/AEPS_Services/DailyLogin";
+import BalanceEnquiry from "../screens/Services/AEPS1/BalanceEnquiry";
+import CashWithdraw from "../screens/Services/AEPS1/CashWithdraw";
+import MiniStatement from "../screens/Services/AEPS1/MiniStatements";
+import AepsRegistration from "../screens/Services/AEPS1/AepsRegistration";
+import DailyLogin from "../screens/Services/AEPS1/DailyLogin";
 import DmtLogin from "../screens/DMT/DmtLogin"
 import AddBeneficial from "../screens/DMT/AddBeneficial";
 import DmtHome from "../screens/DMT/DmtHome"
-import ReceiptScreen from "../screens/Services/AEPS_Services/PaymentReceipt"
+import ReceiptScreen from "../screens/Services/AEPS1/PaymentReceipt"
 import ChangePassword from "../screens/Account/ChangePassword"
 import ChangePin from "../screens/Account/ChangePin"
 import ForgotPassword from "../screens/Account/ForgotPassword"
@@ -52,8 +52,8 @@ import UserWalletRefill from '../screens/UserDownline/UserWalletRefill';
 import OfflineServices from '../screens/Services/OfflineServices/OfflineServices';
 import OfflineServiceForm from '../screens/Services/OfflineServices/OfflineServiceForm';
 import Notification from '../screens/Notification';
-import AEPS_OnBoard from '../screens/Services/AEPS_Services/AEPS_OnBoard';
-import AEPS_Services from '../screens/Services/AEPS_Services/AEPS_Services';
+import AEPS_OnBoard from '../screens/Services/AEPS1/AEPS_OnBoard';
+import AEPS1 from '../screens/Services/AEPS1/AEPS_Services';
 import TransactionAuditScreen from '../screens/Reports/WalletAudit';
 const Stack = createStackNavigator();
 
@@ -191,7 +191,7 @@ const AppNavigator = () => {
       <Stack.Screen name="PaymentVerification" component={PaymentVerification} />
       <Stack.Screen name="Notification" component={Notification} />
       <Stack.Screen name="AEPS_OnBoard" component={AEPS_OnBoard} />
-      <Stack.Screen name="AEPS_Services" component={AEPS_Services} />
+      <Stack.Screen name="AEPS1" component={AEPS1} />
       <Stack.Screen name="WalletAudit" component={TransactionAuditScreen} />
     </Stack.Navigator>
   );
