@@ -30,6 +30,7 @@ import BBPSIconSVG from "../../assets/ServicesIcons/BBPS.svg";
 import RechargeIconSVG from "../../assets/ServicesIcons/Recharge.svg";
 import AEPSIconSVG from "../../assets/ServicesIcons/AEPS.svg";
 import OfflineServicesIconSVG from "../../assets/ServicesIcons/ofline service.svg";
+import MoneyTransferIconSVG from "../../assets/ServicesIcons/Money Transfer.svg";
 
 
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -815,6 +816,7 @@ export default function FinanceHome({ navigation }) {
                       else if (n === "bbps") navigation.navigate("PaymentsScreen");
                       else if (n === "aeps1" || n === "aeps") navigation.navigate("AEPS_OnBoard");
                       else if (n === "aeps2") navigation.navigate("AEPSSecondaryRegistration");
+                      else if (n === "dmt") navigation.navigate("DMTMoneyTransfer");
                     }}
                   >
                     <View style={[S.svcIconCircle]}>
@@ -824,6 +826,8 @@ export default function FinanceHome({ navigation }) {
                         <RechargeIconSVG width={rs(26)} height={rs(26)} />
                       ) : (n === "aeps" || n === "aeps1" || n === "aeps2") && typeof AEPSIconSVG === "function" ? (
                         <AEPSIconSVG width={rs(26)} height={rs(26)} />
+                      ) : n === "dmt" && typeof MoneyTransferIconSVG === "function" ? (
+                        <MoneyTransferIconSVG width={rs(26)} height={rs(26)} />
                       ) : (
                         <Icon
                           name={iconName}
@@ -853,6 +857,20 @@ export default function FinanceHome({ navigation }) {
                 </View>
                 <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
                   OFFLINE SERVICES
+                </Text>
+              </TouchableOpacity>
+
+              {/* Static DMT 2 Item */}
+              <TouchableOpacity
+                style={[S.svcGridItem]}
+                activeOpacity={0.78}
+                onPress={() => navigation.navigate("DmtLogin")}
+              >
+                <View style={[S.svcIconCircle]}>
+                  <MoneyTransferIconSVG width={rs(24)} height={rs(24)} />
+                </View>
+                <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
+                  DMT 2
                 </Text>
               </TouchableOpacity>
             </View>

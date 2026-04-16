@@ -61,6 +61,11 @@ import AEPSServiceActivation from '../screens/Services/AEPS2/AEPSServiceActivati
 import AePSDashboard from '../screens/Services/AEPS2/AePSDashboardScreen';
 import TransactionAuditScreen from '../screens/Reports/WalletAudit';
 
+import DMTDashboard from '../screens/Services/DMT/DashboardScreen';
+import DMTKYC from '../screens/Services/DMT/KYCScreen';
+import DMTMoneyTransfer from '../screens/Services/DMT/MoneyTransferScreen';
+import DMTRegister from '../screens/Services/DMT/RegisterScreen';
+
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
@@ -204,6 +209,11 @@ const AppNavigator = () => {
       <Stack.Screen name="AEPSServiceActivation" component={AEPSServiceActivation} />
       <Stack.Screen name="AePSDashboard" component={AePSDashboard} />
       <Stack.Screen name="WalletAudit" component={TransactionAuditScreen} />
+
+      <Stack.Screen name="DMTDashboard" component={DMTDashboard} />
+      <Stack.Screen name="DMTKYC" component={DMTKYC} />
+      <Stack.Screen name="DMTMoneyTransfer" component={DMTMoneyTransfer} />
+      <Stack.Screen name="DMTRegister" component={DMTRegister} />
     </Stack.Navigator>
   );
 };
