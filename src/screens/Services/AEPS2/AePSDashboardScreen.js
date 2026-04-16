@@ -58,7 +58,7 @@ const cardStyles = StyleSheet.create({
 });
 
 // ─── Field Input ──────────────────────────────────────────────────
-const FormField = ({ label, placeholder, value, onChangeText, keyboardType, icon, editable = true, error }) => (
+const FormField = ({ label, placeholder, value, onChangeText, keyboardType, icon, editable = true, error, maxLength }) => (
   <View style={fieldStyles.wrap}>
     <Text style={fieldStyles.label}>{label}</Text>
     <View style={[fieldStyles.inputWrap, error && { borderColor: '#ef4444' }]}>
@@ -71,6 +71,7 @@ const FormField = ({ label, placeholder, value, onChangeText, keyboardType, icon
         onChangeText={onChangeText}
         keyboardType={keyboardType || 'default'}
         editable={editable}
+        maxLength={maxLength}
       />
     </View>
     {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -100,9 +101,9 @@ const fieldStyles = StyleSheet.create({
 const DropdownField = ({ label, placeholder, value, onPress, error }) => (
   <View style={fieldStyles.wrap}>
     <Text style={fieldStyles.label}>{label}</Text>
-    <TouchableOpacity 
-      activeOpacity={0.7} 
-      onPress={onPress} 
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={onPress}
       style={[dropStyles.row, error && { borderColor: '#ef4444' }]}
     >
       <Text style={[dropStyles.text, value && { color: '#0B0F1A' }]}>
@@ -147,7 +148,7 @@ const TxnTypeTabs = ({ active, onChange }) => (
         style={[tabStyles.tab, active === t.key && tabStyles.activeTab]}
       >
         <Icon name={t.icon} size={rs(16)} color={active === t.key ? Colors.white : Colors.text_secondary} />
-        <Text 
+        <Text
           style={[tabStyles.label, active === t.key && tabStyles.activeLabel]}
           numberOfLines={2}
           textAlign="center"
@@ -333,19 +334,19 @@ export default function AePSDashboardScreen({ navigation }) {
 
   const handleProceed = () => {
     if (validate()) {
-       AlertService.showAlert({
-         type: 'success', 
-         title: 'Validated', 
-         message: 'Data validated. Ready for biometric scan.',
-       });
+      AlertService.showAlert({
+        type: 'success',
+        title: 'Validated',
+        message: 'Data validated. Ready for biometric scan.',
+      });
     }
   };
 
   return (
     <SafeAreaView style={styles.safe}>
-      <HeaderBar 
-        title="AePS Services Dashboard" 
-        onBack={() => navigation.navigate('FinanceHome')} 
+      <HeaderBar
+        title="AePS Services Dashboard"
+        onBack={() => navigation.goBack()}
       />
 
       <ScrollView
@@ -366,52 +367,54 @@ export default function AePSDashboardScreen({ navigation }) {
 
           <TxnTypeTabs active={txnType} onChange={setTxnType} />
 
-          <DropdownField 
-            label="Select Bank" 
-            placeholder="Choose customer's bank" 
+          <DropdownField
+            label="Select Bank"
+            placeholder="Choose customer's bank"
             value={form.bankLabel}
             onPress={() => setSelVisible(true)}
             error={errors.bank}
           />
-          <View style={{ flexDirection: 'row', gap: rs(12) }}>
+          <View style={{ gap: rs(12) }}>
             <View style={{ flex: 1.2 }}>
-              <FormField 
-                label="Mobile Number" 
-                placeholder="Customer Mobile" 
-                keyboardType="numeric" 
-                icon="📱" 
+              <FormField
+                label="Mobile Number"
+                placeholder="Customer Mobile"
+                keyboardType="numeric"
+                icon="📱"
                 value={form.mobile}
-                onChangeText={(v) => updateForm('mobile', v)}
+                onChangeText={(v) => updateForm('mobile', v.replace(/\D/g, '').slice(0, 10))}
                 error={errors.mobile}
+                maxLength={10}
               />
             </View>
             <View style={{ flex: 1.8 }}>
-              <FormField 
-                label="Aadhaar Number" 
-                placeholder="XXXX XXXX XXXX" 
-                keyboardType="numeric" 
-                icon="🪪" 
+              <FormField
+                label="Aadhaar Number"
+                placeholder="XXXX XXXX XXXX"
+                keyboardType="numeric"
+                icon="🪪"
                 value={form.aadhaar}
-                onChangeText={(v) => updateForm('aadhaar', v)}
+                onChangeText={(v) => updateForm('aadhaar', v.replace(/\D/g, '').slice(0, 12))}
                 error={errors.aadhaar}
+                maxLength={12}
               />
             </View>
           </View>
-          
+
           {txnType === 'cash' && (
-            <FormField 
-              label="Withdrawal Amount" 
-              placeholder="Min. ₹100 - Max ₹10,000" 
-              keyboardType="numeric" 
-              icon="₹" 
+            <FormField
+              label="Withdrawal Amount"
+              placeholder="Min. ₹100 - Max ₹10,000"
+              keyboardType="numeric"
+              icon="₹"
               value={form.amount}
               onChangeText={(v) => updateForm('amount', v)}
               error={errors.amount}
             />
           )}
 
-          <TouchableOpacity 
-            activeOpacity={0.88} 
+          <TouchableOpacity
+            activeOpacity={0.88}
             onPress={handleProceed}
             style={styles.scanBtn}
           >
@@ -440,7 +443,7 @@ export default function AePSDashboardScreen({ navigation }) {
         <View style={{ height: rs(30) }} />
       </ScrollView>
 
-      <SelectorModal 
+      <SelectorModal
         visible={selVisible}
         title="Select Bank"
         items={banks}
@@ -482,11 +485,11 @@ const styles = StyleSheet.create({
   viewAll: { fontSize: rs(12), color: Colors.kyc_accent, fontWeight: '600' },
 
   errorText: {
-    fontSize: rs(9),
+    fontSize: rs(10),
     color: '#ef4444',
-    marginTop: -rs(10),
-    marginBottom: rs(8),
-    marginLeft: rs(5),
+    marginTop: rs(4),
+    marginBottom: rs(4),
+    marginLeft: rs(2),
     fontWeight: '600'
   }
 });

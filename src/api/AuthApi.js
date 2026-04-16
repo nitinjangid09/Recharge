@@ -1619,9 +1619,30 @@ export const aepsCashWithdraw = async ({ data, headerToken, headerKey, idempoten
   }
 };
 
-export const aepsDailyLogin = async ({ data, headerToken, headerKey, idempotencyKey }) => {
+export const aepsInstantDailyLogin = async ({ data, headerToken, headerKey, idempotencyKey }) => {
   try {
     const response = await axios.post(`${BASE_URL}/user/aepsInstant/daily-login`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey,
+        headerToken,
+        headerKey,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("AEPS Daily Login API Error:", error?.response?.data || error);
+    return (
+      error?.response?.data || {
+        success: false,
+        message: "Daily login request failed",
+      }
+    );
+  }
+};
+export const aepsDailyLogin = async ({ data, headerToken, headerKey, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/aeps/daily-login`, data, {
       headers: {
         Authorization: `Bearer ${headerToken}`,
         "idempotency-key": idempotencyKey,

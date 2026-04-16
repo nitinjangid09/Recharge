@@ -117,8 +117,8 @@ export default function AEPSAadhaarOTPScreen({ navigation }) {
     setError('');
     setLoading(true);
     setTimeout(() => {
-       setLoading(false);
-       navigation.navigate('AEPSPortalAccess');
+      setLoading(false);
+      navigation.navigate('AEPSPortalAccess');
     }, 800);
   };
 
@@ -134,9 +134,9 @@ export default function AEPSAadhaarOTPScreen({ navigation }) {
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <HeaderBar 
-          title="Verification" 
-          onBack={() => step === 2 ? setStep(1) : navigation?.goBack()} 
+        <HeaderBar
+          title="Verification"
+          onBack={() => step === 2 ? setStep(1) : navigation?.goBack()}
         />
         <ScrollView
           style={styles.scroll}
@@ -183,7 +183,7 @@ export default function AEPSAadhaarOTPScreen({ navigation }) {
                   activeOpacity={0.8}
                   style={[
                     styles.sendBtn,
-                    (aadhaar.replace(/\s/g, '').length < 12 && aadhaar.length > 0) && styles.sendBtnDisabled,
+                    aadhaar.replace(/\s/g, '').length < 12 && styles.sendBtnDisabled,
                   ]}
                 >
                   <Text style={[styles.sendBtnText, aadhaar.replace(/\s/g, '').length < 12 && { color: Colors.black }]}>
@@ -215,7 +215,7 @@ export default function AEPSAadhaarOTPScreen({ navigation }) {
                 <TouchableOpacity
                   onPress={handleVerifyOTP}
                   activeOpacity={0.8}
-                  style={[styles.sendBtn, (otp.length < 6 && otp.length > 0) && styles.sendBtnDisabled]}
+                  style={[styles.sendBtn, otp.length < 6 && styles.sendBtnDisabled]}
                 >
                   <Text style={[styles.sendBtnText, otp.length < 6 && { color: Colors.black }]}>Verify OTP</Text>
                 </TouchableOpacity>
@@ -233,19 +233,19 @@ export default function AEPSAadhaarOTPScreen({ navigation }) {
               </>
             )}
 
-            {/* ── Help Box ── */}
-            <View style={styles.helpBox}>
-              <Text style={styles.helpTitle}>Need help?</Text>
-              <Text style={styles.helpText}>
-                {step === 1
-                  ? 'Enter your Aadhaar number first, then tap Send OTP. The OTP field appears only after the code is sent.'
-                  : 'OTP is valid for 10 minutes. Check the mobile number linked to your Aadhaar for the code.'}
-              </Text>
-            </View>
-          </Animated.View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          {/* ── Help Box ── */}
+          <View style={styles.helpBox}>
+            <Text style={styles.helpTitle}>Need help?</Text>
+            <Text style={styles.helpText}>
+              {step === 1
+                ? 'Enter your Aadhaar number first, then tap Send OTP. The OTP field appears only after the code is sent.'
+                : 'OTP is valid for 10 minutes. Check the mobile number linked to your Aadhaar for the code.'}
+            </Text>
+          </View>
+        </Animated.View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+    </SafeAreaView >
   );
 }
 
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
   changeAadhaar: { fontSize: rs(12), color: Colors.text_secondary, textAlign: 'center', marginBottom: rs(16) },
 
   helpBox: {
-    backgroundColor: Colors.input_bg,
+    backgroundColor: Colors.white,
     borderRadius: rs(14),
     padding: rs(14),
     marginTop: rs(4),

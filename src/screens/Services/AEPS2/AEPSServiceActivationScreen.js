@@ -46,7 +46,7 @@ const cardStyles = StyleSheet.create({
 });
 
 // ─── Field Input ──────────────────────────────────────────────────
-const FormField = ({ label, placeholder, value, onChangeText, keyboardType, icon, editable = true, error }) => (
+const FormField = ({ label, placeholder, value, onChangeText, keyboardType, icon, editable = true, error, maxLength, autoCapitalize }) => (
   <View style={fieldStyles.wrap}>
     <Text style={fieldStyles.label}>{label}</Text>
     <View style={[fieldStyles.inputRow, error && { borderColor: '#ef4444' }]}>
@@ -59,6 +59,8 @@ const FormField = ({ label, placeholder, value, onChangeText, keyboardType, icon
         onChangeText={onChangeText}
         keyboardType={keyboardType || 'default'}
         editable={editable}
+        maxLength={maxLength}
+        autoCapitalize={autoCapitalize}
       />
     </View>
     {error ? <Text style={screenStyles.errorText}>{error}</Text> : null}
@@ -241,8 +243,9 @@ const AddressSection = ({ prefix, form, updateForm, openSelector, errors }) => (
         placeholder="6 digits"
         keyboardType="numeric"
         value={form[`${prefix}Pincode`]}
-        onChangeText={(v) => updateForm(`${prefix}Pincode`, v)}
+        onChangeText={(v) => updateForm(`${prefix}Pincode`, v.replace(/\D/g, '').slice(0, 6))}
         error={errors[`${prefix}Pincode`]}
+        maxLength={6}
       />
     </View>
   </>
@@ -282,8 +285,8 @@ const selStyles = StyleSheet.create({
 
 // ─── Main Screen Component ────────────────────────────────────────
 export default function AEPSServiceActivationScreen({ navigation }) {
-  const [step, setStep] = useState(1);
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [activeDoc, setActiveDoc] = useState(null);
 
@@ -360,54 +363,62 @@ export default function AEPSServiceActivationScreen({ navigation }) {
     } catch (e) { console.log("Picker Error:", e); }
   };
 
-  const validateStep = (s) => {
+  const validateAll = () => {
     const e = {};
-    if (s === 1) {
-      if (!form.model) e.model = 'Select device model';
-      if (!form.deviceNo) e.deviceNo = 'Enter device serial no';
-      if (!form.aadhaar) e.aadhaar = 'Enter Aadhaar number';
-      else if (form.aadhaar.length !== 12) e.aadhaar = 'Aadhaar must be 12 digits';
-      if (!form.bank) e.bank = 'Select bank name';
-      if (!form.accNo) e.accNo = 'Enter account number';
-      if (!form.ifsc) e.ifsc = 'Enter IFSC code';
-    } else if (s === 2) {
-      if (!form.officeAddr) e.officeAddr = 'Enter office address';
-      if (!form.officeState) e.officeState = 'Select state';
-      if (!form.officeCity) e.officeCity = 'Select city';
-      if (!form.officePincode) e.officePincode = 'Enter pincode';
-      else if (form.officePincode.length !== 6) e.officePincode = 'Invalid pincode';
-    } else if (s === 3) {
-      if (!form.aadhaarAddr) e.aadhaarAddr = 'Enter Aadhaar address';
-      if (!form.aadhaarState) e.aadhaarState = 'Select state';
-      if (!form.aadhaarCity) e.aadhaarCity = 'Select city';
-      if (!form.aadhaarPincode) e.aadhaarPincode = 'Enter pincode';
-      else if (form.aadhaarPincode.length !== 6) e.aadhaarPincode = 'Invalid pincode';
-    }
+    // Section 1: Device & Bank
+    if (!form.model) e.model = 'Select device model';
+    if (!form.deviceNo) e.deviceNo = 'Enter device serial no';
+    if (!form.aadhaar) e.aadhaar = 'Enter Aadhaar number';
+    else if (form.aadhaar.length !== 12) e.aadhaar = 'Aadhaar must be 12 digits';
+    if (!form.bank) e.bank = 'Select bank name';
+    if (!form.accNo) e.accNo = 'Enter account number';
+    if (!form.ifsc) e.ifsc = 'Enter IFSC code';
+
+    // Section 2: Office
+    if (!form.officeAddr) e.officeAddr = 'Enter office address';
+    if (!form.officeState) e.officeState = 'Select state';
+    if (!form.officeCity) e.officeCity = 'Select city';
+    if (!form.officePincode) e.officePincode = 'Enter pincode';
+    else if (form.officePincode.length !== 6) e.officePincode = 'Invalid pincode';
+
+    // Section 3: Aadhaar Addr
+    if (!form.aadhaarAddr) e.aadhaarAddr = 'Enter Aadhaar address';
+    if (!form.aadhaarState) e.aadhaarState = 'Select state';
+    if (!form.aadhaarCity) e.aadhaarCity = 'Select city';
+    if (!form.aadhaarPincode) e.aadhaarPincode = 'Enter pincode';
+    else if (form.aadhaarPincode.length !== 6) e.aadhaarPincode = 'Invalid pincode';
+
+    // Section 4: Docs
+    if (!form.panFile) e.panFile = 'PAN file required';
+    if (!form.aadhaarFront) e.aadhaarFront = 'Aadhaar Front required';
+    if (!form.aadhaarBack) e.aadhaarBack = 'Aadhaar Back required';
+    if (!form.shopImg) e.shopImg = 'Shop image required';
+
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const nextStep = () => {
-    if (validateStep(step)) {
-      if (step < 4) setStep(step + 1);
-      else handleSubmit();
-    }
-  };
-
   const handleSubmit = async () => {
-    if (!form.panFile || !form.aadhaarFront || !form.aadhaarBack || !form.shopImg) {
-      AlertService.showAlert({ type: 'error', title: 'Missing Documents', message: 'Please upload all 4 required documents' });
-      return;
-    }
-    AlertService.showAlert({ type: 'success', title: 'Data Validated', message: 'Information verified success. Proceeding to onboarding.' });
-    navigation.navigate('AEPSAadhaarOTP');
+    if (!validateAll()) return;
+    
+    setLoading(true);
+    // Simulate API process
+    setTimeout(() => {
+      setLoading(false);
+      AlertService.showAlert({ 
+        type: 'success', 
+        title: 'Request Submitted', 
+        message: 'Your activation request has been captured successfully. Redirecting to verification.',
+        onClose: () => navigation.navigate('AEPSAadhaarOTP')
+      });
+    }, 1500);
   };
 
   return (
     <SafeAreaView style={screenStyles.safe}>
       <HeaderBar
-        title="AePS Service Activation"
-        onBack={() => step > 1 ? setStep(step - 1) : navigation?.goBack()}
+        title="Service Activation"
+        onBack={() => navigation?.goBack()}
       />
 
       <ScrollView
@@ -418,112 +429,103 @@ export default function AEPSServiceActivationScreen({ navigation }) {
       >
         <View style={{ height: rs(12) }} />
 
-        {/* ─ Step 1: Device & Bank ─ */}
-        {step === 1 && (
-          <SectionCard>
-            <StepCardHeader step="1" variant="dark" title="Device & Bank Information" subtitle="Personal & Device Details" />
-
-            <View style={screenStyles.row}>
-              <View style={screenStyles.half}>
-                <DropdownField
-                  label="Model Name"
-                  placeholder="Select Model"
-                  value={form.modelLabel}
-                  onPress={() => openSelector('Select Device Model', 'model')}
-                  error={errors.model}
-                />
-              </View>
-              <View style={screenStyles.half}>
-                <FormField
-                  label="Device Number"
-                  placeholder="Serial No"
-                  icon="⚙️"
-                  value={form.deviceNo}
-                  onChangeText={(v) => updateForm('deviceNo', v)}
-                  error={errors.deviceNo}
-                />
-              </View>
+        {/* Section 1: Device & Bank */}
+        <SectionCard>
+          <StepCardHeader step="1" variant="dark" title="Device & Bank Information" subtitle="Personal & Device Details" />
+          <View style={screenStyles.row}>
+            <View style={screenStyles.half}>
+              <DropdownField
+                label="Model Name"
+                placeholder="Select Model"
+                value={form.modelLabel}
+                onPress={() => openSelector('Select Device Model', 'model')}
+                error={errors.model}
+              />
             </View>
-
-            <View style={screenStyles.row}>
-              <View style={screenStyles.half}>
-                <FormField
-                  label="Aadhaar Number"
-                  placeholder="12 Digit Aadhaar"
-                  keyboardType="numeric"
-                  value={form.aadhaar}
-                  onChangeText={(v) => updateForm('aadhaar', v)}
-                  error={errors.aadhaar}
-                />
-              </View>
-              <View style={screenStyles.half}>
-                <DropdownField
-                  label="Bank Name"
-                  placeholder="Select Bank"
-                  value={form.bankLabel}
-                  onPress={() => openSelector('Select Bank', 'bank')}
-                  error={errors.bank}
-                />
-              </View>
+            <View style={screenStyles.half}>
+              <FormField
+                label="Device Number"
+                placeholder="Serial No"
+                icon="⚙️"
+                value={form.deviceNo}
+                onChangeText={(v) => updateForm('deviceNo', v)}
+                error={errors.deviceNo}
+              />
             </View>
-
-            <FormField
-              label="Account Number"
-              placeholder="Bank Account No"
-              icon="💳"
-              keyboardType="numeric"
-              value={form.accNo}
-              onChangeText={(v) => updateForm('accNo', v)}
-              error={errors.accNo}
-            />
-            <FormField
-              label="Bank IFSC Code"
-              placeholder="SBIN000XXXX"
-              icon="🔒"
-              value={form.ifsc}
-              onChangeText={(v) => updateForm('ifsc', v)}
-              error={errors.ifsc}
-            />
-          </SectionCard>
-        )}
-
-        {/* ─ Step 2: Office Address ─ */}
-        {step === 2 && (
-          <SectionCard>
-            <StepCardHeader step="2" variant="gold" title="Office Address Details" subtitle="Permanent Business Location" />
-            <AddressSection prefix="office" form={form} updateForm={updateForm} openSelector={openSelector} errors={errors} />
-          </SectionCard>
-        )}
-
-        {/* ─ Step 3: Aadhaar Address ─ */}
-        {step === 3 && (
-          <SectionCard>
-            <StepCardHeader step="3" variant="dark" title="Address As Per Aadhaar" subtitle="Identity Document Address" />
-            <AddressSection prefix="aadhaar" form={form} updateForm={updateForm} openSelector={openSelector} errors={errors} />
-          </SectionCard>
-        )}
-
-        {/* ─ Step 4: Documents ─ */}
-        {step === 4 && (
-          <SectionCard>
-            <StepCardHeader step="4" variant="gold" title="KYC Documents" subtitle="Upload Required Identities" />
-
-            <View style={screenStyles.row}>
-              <DocUploadCard label="PAN Card" uri={form.panFile} onPress={() => { setActiveDoc('panFile'); setModalVisible(true); }} />
-              <DocUploadCard label="Aadhaar Front" uri={form.aadhaarFront} onPress={() => { setActiveDoc('aadhaarFront'); setModalVisible(true); }} />
+          </View>
+          <View style={screenStyles.row}>
+            <View style={screenStyles.half}>
+              <FormField
+                label="Aadhaar Number"
+                placeholder="12 Digit Aadhaar"
+                keyboardType="numeric"
+                value={form.aadhaar}
+                onChangeText={(v) => updateForm('aadhaar', v.replace(/\D/g, '').slice(0, 12))}
+                error={errors.aadhaar}
+                maxLength={12}
+              />
             </View>
-
-            <View style={screenStyles.row}>
-              <DocUploadCard label="Aadhaar Back" uri={form.aadhaarBack} onPress={() => { setActiveDoc('aadhaarBack'); setModalVisible(true); }} />
-              <DocUploadCard label="Shop Image" uri={form.shopImg} onPress={() => { setActiveDoc('shopImg'); setModalVisible(true); }} />
+            <View style={screenStyles.half}>
+              <DropdownField
+                label="Bank Name"
+                placeholder="Select Bank"
+                value={form.bankLabel}
+                onPress={() => openSelector('Select Bank', 'bank')}
+                error={errors.bank}
+              />
             </View>
-          </SectionCard>
-        )}
+          </View>
+          <FormField
+            label="Account Number"
+            placeholder="Bank Account No"
+            icon="💳"
+            keyboardType="numeric"
+            value={form.accNo}
+            onChangeText={(v) => updateForm('accNo', v)}
+            error={errors.accNo}
+          />
+          <FormField
+            label="Bank IFSC Code"
+            placeholder="SBIN000XXXX"
+            icon="🔒"
+            value={form.ifsc}
+            onChangeText={(v) => updateForm('ifsc', v)}
+            error={errors.ifsc}
+          />
+        </SectionCard>
+
+        {/* Section 2: Office Address */}
+        <SectionCard>
+          <StepCardHeader step="2" variant="gold" title="Office Address Details" subtitle="Permanent Business Location" />
+          <AddressSection prefix="office" form={form} updateForm={updateForm} openSelector={openSelector} errors={errors} />
+        </SectionCard>
+
+        {/* Section 3: Aadhaar Address */}
+        <SectionCard>
+          <StepCardHeader step="3" variant="dark" title="Address As Per Aadhaar" subtitle="Identity Document Address" />
+          <AddressSection prefix="aadhaar" form={form} updateForm={updateForm} openSelector={openSelector} errors={errors} />
+        </SectionCard>
+
+        {/* Section 4: Documents */}
+        <SectionCard>
+          <StepCardHeader step="4" variant="gold" title="KYC Documents" subtitle="Upload Required Identities" />
+          <View style={screenStyles.row}>
+            <DocUploadCard label="PAN Card" uri={form.panFile} onPress={() => { setActiveDoc('panFile'); setModalVisible(true); }} />
+            <DocUploadCard label="Aadhaar Front" uri={form.aadhaarFront} onPress={() => { setActiveDoc('aadhaarFront'); setModalVisible(true); }} />
+          </View>
+          <View style={screenStyles.row}>
+            <DocUploadCard label="Aadhaar Back" uri={form.aadhaarBack} onPress={() => { setActiveDoc('aadhaarBack'); setModalVisible(true); }} />
+            <DocUploadCard label="Shop Image" uri={form.shopImg} onPress={() => { setActiveDoc('shopImg'); setModalVisible(true); }} />
+          </View>
+          {errors.panFile || errors.aadhaarFront || errors.aadhaarBack || errors.shopImg ? (
+             <Text style={[screenStyles.errorText, { textAlign: 'center', marginBottom: rs(10) }]}>Please upload all documents</Text>
+          ) : null}
+        </SectionCard>
 
         {/* ─ Actions ─ */}
         <PrimaryButton
-          label={step === 4 ? "COMPLETE ENROLLMENT" : "CONTINUE NEXT STEP"}
-          onPress={nextStep}
+          label={loading ? "PROCESSING..." : "SUBMIT ACTIVATION REQUEST"}
+          onPress={handleSubmit}
         />
 
         <Text style={screenStyles.terms}>

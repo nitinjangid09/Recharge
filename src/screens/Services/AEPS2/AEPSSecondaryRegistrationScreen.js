@@ -79,10 +79,10 @@ const cardStyles = StyleSheet.create({
 });
 
 // ─── Field Input ──────────────────────────────────────────────────
-const FormField = ({ label, placeholder, value, onChangeText, keyboardType, icon, editable = true }) => (
+const FormField = ({ label, placeholder, value, onChangeText, keyboardType, icon, editable = true, error, maxLength, autoCapitalize }) => (
   <View style={fieldStyles.wrap}>
     <Text style={fieldStyles.label}>{label}</Text>
-    <View style={fieldStyles.inputRow}>
+    <View style={[fieldStyles.inputRow, error && { borderColor: '#ef4444' }]}>
       {icon ? <Text style={fieldStyles.icon}>{icon}</Text> : null}
       <TextInput
         style={[fieldStyles.input, !editable && fieldStyles.disabled]}
@@ -92,8 +92,11 @@ const FormField = ({ label, placeholder, value, onChangeText, keyboardType, icon
         onChangeText={onChangeText}
         keyboardType={keyboardType || 'default'}
         editable={editable}
+        maxLength={maxLength}
+        autoCapitalize={autoCapitalize}
       />
     </View>
+    {error ? <Text style={styles.errorText}>{error}</Text> : null}
   </View>
 );
 
@@ -278,6 +281,7 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
   const validate = () => {
     const e = {};
     if (!form.firstName) e.firstName = 'Please enter first name';
+    if (!form.lastName) e.lastName = 'Please enter last name';
     if (!form.phone) e.phone = 'Mobile number is required';
     else if (form.phone.length !== 10) e.phone = 'Should be 10 digits';
     
@@ -364,6 +368,7 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
                 placeholder="Last Name" 
                 value={form.lastName} 
                 onChangeText={v => updateForm('lastName', v)}
+                error={errors.lastName}
               />
             </View>
           </View>
@@ -381,8 +386,9 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
             icon="📞" 
             keyboardType="numeric" 
             value={form.phone} 
-            onChangeText={v => updateForm('phone', v)}
+            onChangeText={v => updateForm('phone', v.replace(/\D/g, '').slice(0, 10))}
             error={errors.phone}
+            maxLength={10}
           />
         </SectionCard>
 
@@ -402,8 +408,10 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
                 label="PAN Number" 
                 placeholder="ABCDE1234F" 
                 value={form.pan} 
-                onChangeText={v => updateForm('pan', v)}
+                onChangeText={v => updateForm('pan', v.toUpperCase().slice(0, 10))}
                 error={errors.pan}
+                maxLength={10}
+                autoCapitalize="characters"
               />
             </View>
             <View style={{ flex: 1 }}>
@@ -412,8 +420,9 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
                 placeholder="12 digit number" 
                 keyboardType="numeric" 
                 value={form.aadhaar} 
-                onChangeText={v => updateForm('aadhaar', v)}
+                onChangeText={v => updateForm('aadhaar', v.replace(/\D/g, '').slice(0, 12))}
                 error={errors.aadhaar}
+                maxLength={12}
               />
             </View>
           </View>
@@ -454,8 +463,9 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
               placeholder="6 digits" 
               keyboardType="numeric" 
               value={form.pincode} 
-              onChangeText={v => updateForm('pincode', v)}
+              onChangeText={v => updateForm('pincode', v.replace(/\D/g, '').slice(0, 6))}
               error={errors.pincode}
+              maxLength={6}
             />
           </View>
         </SectionCard>
@@ -537,11 +547,11 @@ const styles = StyleSheet.create({
   },
   bottomPad: { height: rs(20) },
   errorText: {
-    fontSize: rs(9),
+    fontSize: rs(10),
     color: '#ef4444',
-    marginTop: -rs(10),
-    marginBottom: rs(8),
-    marginLeft: rs(5),
+    marginTop: rs(4),
+    marginBottom: rs(4),
+    marginLeft: rs(2),
     fontWeight: '600'
   }
 });
