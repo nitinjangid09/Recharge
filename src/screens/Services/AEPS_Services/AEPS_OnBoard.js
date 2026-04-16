@@ -376,27 +376,7 @@ const AEPS_OnBoard = () => {
                     </View>
                 </View>
 
-                {showDeviceList ? (
-                    <View style={styles.deviceOffline}>
-                        <View style={styles.devicePickerList}>
-                            {RD_BRIDGE.DEVICE_LIST.map((item) => (
-                                <TouchableOpacity
-                                    key={item.value}
-                                    style={[styles.deviceOption, device === item.value && styles.deviceOptionActive]}
-                                    onPress={() => selectDevice(item)}
-                                >
-                                    <Text style={[styles.deviceOptionTxt, device === item.value && styles.deviceOptionTxtActive]}>
-                                        {item.label}
-                                    </Text>
-                                    {device === item.value && <Icon name="check" size={18} color={GOLD} />}
-                                </TouchableOpacity>
-                            ))}
-                            <TouchableOpacity style={styles.closePickerBtn} onPress={() => setShowDeviceList(false)}>
-                                <Text style={styles.closePickerTxt}>Cancel</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                ) : rdState.connected ? (
+                {rdState.connected ? (
                     <View style={styles.deviceInfo}>
                         <View style={styles.deviceInfoRow}>
                             <Icon name="check-circle-outline" size={18} color="#22C55E" />
@@ -412,16 +392,38 @@ const AEPS_OnBoard = () => {
                     </View>
                 ) : (
                     <View style={styles.deviceOffline}>
-                        <Animated.View style={{ opacity: scanPulse }}>
-                            <Icon name="radar" size={32 * S} color={rdState.scanning ? GOLD : WHITE_30} />
-                        </Animated.View>
-                        <Text style={styles.deviceOfflineText}>
-                            {rdState.scanning
-                                ? "Verifying RD Service..."
-                                : rdState.error
-                                    ? rdState.error
-                                    : "Select your biometric scanner\nto continue"}
-                        </Text>
+                        {showDeviceList ? (
+                            <View style={styles.devicePickerList}>
+                                {RD_BRIDGE.DEVICE_LIST.map((item) => (
+                                    <TouchableOpacity
+                                        key={item.value}
+                                        style={[styles.deviceOption, device === item.value && styles.deviceOptionActive]}
+                                        onPress={() => selectDevice(item)}
+                                    >
+                                        <Text style={[styles.deviceOptionTxt, device === item.value && styles.deviceOptionTxtActive]}>
+                                            {item.label}
+                                        </Text>
+                                        {device === item.value && <Icon name="check" size={18} color={GOLD} />}
+                                    </TouchableOpacity>
+                                ))}
+                                <TouchableOpacity style={styles.closePickerBtn} onPress={() => setShowDeviceList(false)}>
+                                    <Text style={styles.closePickerTxt}>Cancel</Text>
+                                </TouchableOpacity>
+                            </View>
+                        ) : (
+                            <>
+                                <Animated.View style={{ opacity: scanPulse }}>
+                                    <Icon name="radar" size={32 * S} color={rdState.scanning ? GOLD : WHITE_30} />
+                                </Animated.View>
+                                <Text style={styles.deviceOfflineText}>
+                                    {rdState.scanning
+                                        ? "Verifying RD Service..."
+                                        : rdState.error
+                                            ? rdState.error
+                                            : "Select your biometric scanner\nto continue"}
+                                </Text>
+                            </>
+                        )}
                     </View>
                 )}
 
