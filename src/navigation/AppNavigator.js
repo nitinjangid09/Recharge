@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, Dimensions } from 'react-native';
 import { fetchUserProfile } from '../api/AuthApi';
 
 // Screens
@@ -54,7 +54,18 @@ import OfflineServiceForm from '../screens/Services/OfflineServices/OfflineServi
 import Notification from '../screens/Notification';
 import AEPS_OnBoard from '../screens/Services/AEPS1/AEPS_OnBoard';
 import AEPS1 from '../screens/Services/AEPS1/AEPS_Services';
+import AEPSPortalAccess from '../screens/Services/AEPS2/AEPSPortalAccessScreen';
+import AEPSAadhaarOTP from '../screens/Services/AEPS2/AEPSAadhaarOTPScreen';
+import AEPSSecondaryRegistration from '../screens/Services/AEPS2/AEPSSecondaryRegistrationScreen';
+import AEPSServiceActivation from '../screens/Services/AEPS2/AEPSServiceActivationScreen';
+import AePSDashboard from '../screens/Services/AEPS2/AePSDashboardScreen';
 import TransactionAuditScreen from '../screens/Reports/WalletAudit';
+
+import DMTDashboard from '../screens/Services/DMT/DashboardScreen';
+import DMTKYC from '../screens/Services/DMT/KYCScreen';
+import DMTMoneyTransfer from '../screens/Services/DMT/MoneyTransferScreen';
+import DMTRegister from '../screens/Services/DMT/RegisterScreen';
+
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
@@ -192,7 +203,17 @@ const AppNavigator = () => {
       <Stack.Screen name="Notification" component={Notification} />
       <Stack.Screen name="AEPS_OnBoard" component={AEPS_OnBoard} />
       <Stack.Screen name="AEPS1" component={AEPS1} />
+      <Stack.Screen name="AEPSPortalAccess" component={AEPSPortalAccess} />
+      <Stack.Screen name="AEPSAadhaarOTP" component={AEPSAadhaarOTP} />
+      <Stack.Screen name="AEPSSecondaryRegistration" component={AEPSSecondaryRegistration} />
+      <Stack.Screen name="AEPSServiceActivation" component={AEPSServiceActivation} />
+      <Stack.Screen name="AePSDashboard" component={AePSDashboard} />
       <Stack.Screen name="WalletAudit" component={TransactionAuditScreen} />
+
+      <Stack.Screen name="DMTDashboard" component={DMTDashboard} />
+      <Stack.Screen name="DMTKYC" component={DMTKYC} />
+      <Stack.Screen name="DMTMoneyTransfer" component={DMTMoneyTransfer} />
+      <Stack.Screen name="DMTRegister" component={DMTRegister} />
     </Stack.Navigator>
   );
 };

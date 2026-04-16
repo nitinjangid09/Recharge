@@ -30,6 +30,7 @@ import BBPSIconSVG from "../../assets/ServicesIcons/BBPS.svg";
 import RechargeIconSVG from "../../assets/ServicesIcons/Recharge.svg";
 import AEPSIconSVG from "../../assets/ServicesIcons/AEPS.svg";
 import OfflineServicesIconSVG from "../../assets/ServicesIcons/ofline service.svg";
+import MoneyTransferIconSVG from "../../assets/ServicesIcons/Money Transfer.svg";
 
 
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -66,9 +67,9 @@ const ALL_ITEMS = [
   { id: "10", label: "BBPS Payments", icon: "lightning-bolt", screen: "PaymentsScreen" },
   { id: "11", label: "Profile", icon: "account-circle", screen: "ProfileScreen" },
   { id: "12", label: "Transaction History", icon: "history", screen: "InvoiceScreen" },
-  { id: "13", label: "Wallet Report", icon: "file-document-outline", screen: "WalletTransactionScreen" },
   { id: "14", label: "KYC Verification", icon: "shield-check", screen: "Offlinekyc" },
   { id: "15", label: "Offline Services", icon: "clipboard-list-outline", screen: "OfflineServices" },
+  { id: "16", label: "AEPS 2", icon: "bank-plus", screen: "AEPSPortalAccess" },
 ];
 
 // Service icon mapping for assigned services
@@ -813,7 +814,9 @@ export default function FinanceHome({ navigation }) {
                     onPress={() => {
                       if (n === "recharge") navigation.navigate("TopUpScreen");
                       else if (n === "bbps") navigation.navigate("PaymentsScreen");
-                      else if (n === "aeps1") navigation.navigate("AEPS_OnBoard");
+                      else if (n === "aeps1" || n === "aeps") navigation.navigate("AEPS_OnBoard");
+                      else if (n === "aeps2") navigation.navigate("AEPSSecondaryRegistration");
+                      else if (n === "dmt") navigation.navigate("DMTMoneyTransfer");
                     }}
                   >
                     <View style={[S.svcIconCircle]}>
@@ -821,8 +824,10 @@ export default function FinanceHome({ navigation }) {
                         <BBPSIconSVG width={rs(26)} height={rs(26)} />
                       ) : n === "recharge" && typeof RechargeIconSVG === "function" ? (
                         <RechargeIconSVG width={rs(26)} height={rs(26)} />
-                      ) : n === "aeps" && typeof AEPSIconSVG === "function" ? (
+                      ) : (n === "aeps" || n === "aeps1" || n === "aeps2") && typeof AEPSIconSVG === "function" ? (
                         <AEPSIconSVG width={rs(26)} height={rs(26)} />
+                      ) : n === "dmt" && typeof MoneyTransferIconSVG === "function" ? (
+                        <MoneyTransferIconSVG width={rs(26)} height={rs(26)} />
                       ) : (
                         <Icon
                           name={iconName}
@@ -852,6 +857,20 @@ export default function FinanceHome({ navigation }) {
                 </View>
                 <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
                   OFFLINE SERVICES
+                </Text>
+              </TouchableOpacity>
+
+              {/* Static DMT 2 Item */}
+              <TouchableOpacity
+                style={[S.svcGridItem]}
+                activeOpacity={0.78}
+                onPress={() => navigation.navigate("DmtLogin")}
+              >
+                <View style={[S.svcIconCircle]}>
+                  <MoneyTransferIconSVG width={rs(24)} height={rs(24)} />
+                </View>
+                <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
+                  DMT 2
                 </Text>
               </TouchableOpacity>
             </View>
