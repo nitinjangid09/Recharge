@@ -26,105 +26,7 @@ import * as NavigationService from "../../../utils/NavigationService";
 import { getAepsKycStatus, biometricKyc } from "../../../api/AuthApi";
 import { AlertService } from "../../../componets/Alerts/CustomAlert";
 
-// ─── RD Service Layer ─────────────────────────────────────────────────────────
-// Inline RD service (mirrors RdService.js logic)
-let _captureUrl = "";
-let _infoUrl = "";
-
-const RdService = {
-    /** Scan ports 11100–11120 for an active RD device */
-    discover: async () => {
-        const base = "http://127.0.0.1:";
-        for (let port = 11100; port <= 11120; port++) {
-            try {
-                const res = await fetch(`${base}${port}`, { method: "RDSERVICE" });
-                const text = await res.text();
-                const parser = new DOMParser();
-                const xml = parser.parseFromString(text, "text/xml");
-                const rdNode = xml.getElementsByTagName("RDService")[0];
-                const status = rdNode?.getAttribute("status");
-
-                if (status === "READY" || status === "USED") {
-                    const interfaces = xml.getElementsByTagName("Interface");
-                    let capturePath = "";
-                    let infoPath = "";
-                    for (let intf of interfaces) {
-                        const path = intf.getAttribute("path") || "";
-                        if (path.includes("capture")) capturePath = path;
-                        if (path.includes("info")) infoPath = path;
-                    }
-                    _captureUrl = `${base}${port}${capturePath}`;
-                    _infoUrl = `${base}${port}${infoPath}`;
-                    return {
-                        success: true,
-                        port,
-                        status,
-                        captureUrl: _captureUrl,
-                        infoUrl: _infoUrl,
-                        rawXml: text,
-                    };
-                }
-            } catch (_) {
-                // port not responding — continue
-            }
-        }
-        return { success: false, message: "No RD device found on ports 11100–11120" };
-    },
-
-    /** Fetch device info (serial, model, firmware) */
-    info: async () => {
-        if (!_infoUrl) return { success: false, message: "Device not connected" };
-        try {
-            const res = await fetch(_infoUrl, { method: "DEVICEINFO" });
-            const data = await res.text();
-            return { success: true, data };
-        } catch {
-            return { success: false, message: "Device info request failed" };
-        }
-    },
-
-    /** Capture fingerprint PID. wadh is set for KYC mode. */
-    capture: async (kycMode = true) => {
-        if (!_captureUrl) return { success: false, message: "Device not connected" };
-
-        // Build PidOptions XML (mirrors Java PidOptions model + RdService.js logic)
-        const wadh = kycMode
-            ? `"E0jzJ/P8UopUHAieZn8CKqS4WPMi5ZSYXgfnlfkWjrc="`
-            : `""`;
-
-        const pidXml = `<?xml version="1.0"?>
-<PidOptions>
-  <Opts fCount="1" fType="2" iCount="0" pCount="0"
-        format="0" pidVer="2.0" timeout="10000"
-        posh="UNKNOWN" env="P"
-        wadh=${wadh} />
-</PidOptions>`;
-
-        try {
-            const res = await fetch(_captureUrl, {
-                method: "CAPTURE",
-                body: pidXml,
-                headers: { "Content-Type": "text/xml" },
-            });
-
-            let pidData = await res.text();
-            pidData = pidData.replace(/\r?\n|\r/g, "").trim().replace(/>\s+</g, "><");
-
-            const parser = new DOMParser();
-            const parsed = parser.parseFromString(pidData, "text/xml");
-            const resp = parsed.getElementsByTagName("Resp")[0];
-            const errCode = resp?.getAttribute("errCode");
-            const errInfo = resp?.getAttribute("errInfo") || "Capture failed";
-
-            if (errCode === "0") {
-                return { success: true, data: pidData };
-            }
-            return { success: false, message: errInfo };
-        } catch {
-            return { success: false, message: "Capture request failed. Check scanner." };
-        }
-    },
-};
+import RD_BRIDGE from "./RDService";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const { width: SW } = Dimensions.get("window");
@@ -151,6 +53,8 @@ const AEPS_OnBoard = () => {
     const [statusData, setStatusData] = useState(null);
 
     // RD device state
+    const [device, setDevice] = useState(null);
+    const [showDeviceList, setShowDeviceList] = useState(false);
     const [rdState, setRdState] = useState({
         connected: false,
         scanning: false,
@@ -254,37 +158,50 @@ const AEPS_OnBoard = () => {
     };
 
     // ── RD Device Discovery ────────────────────────────────────────────────
-    const handleScanDevice = useCallback(async () => {
+    const handleScanDevice = useCallback(async (selectedDevice = device) => {
+        if (!selectedDevice) {
+            setShowDeviceList(true);
+            return;
+        }
+
         setRdState((s) => ({ ...s, scanning: true, connected: false, error: null, deviceInfo: null }));
 
-        const result = await RdService.discover();
-
-        if (result.success) {
-            // Fetch extra device info
-            const info = await RdService.info();
-            setRdState({
-                connected: true,
-                scanning: false,
-                capturing: false,
-                port: result.port,
-                deviceInfo: info.success ? info.data : null,
-                status: result.status,
-                error: null,
-            });
-        } else {
-            setRdState((s) => ({
-                ...s,
-                scanning: false,
-                connected: false,
-                error: result.message,
-            }));
-            AlertService.showAlert({
-                type: "warning",
-                title: "Device Not Found",
-                message: "Plug in your RD scanner and try again.",
-            });
+        try {
+            const isInstalled = await RD_BRIDGE.isInstalled(selectedDevice);
+            if (isInstalled) {
+                setRdState({
+                    connected: true,
+                    scanning: false,
+                    capturing: false,
+                    port: "Native Bridge",
+                    deviceInfo: RD_BRIDGE.getDeviceLabel(selectedDevice),
+                    status: "READY",
+                    error: null,
+                });
+            } else {
+                setRdState((s) => ({
+                    ...s,
+                    scanning: false,
+                    connected: false,
+                    error: "RD Service app not found",
+                }));
+                AlertService.showAlert({
+                    type: "warning",
+                    title: "RD Service Missing",
+                    message: `Please install the RD Service app for ${RD_BRIDGE.getDeviceLabel(selectedDevice)}.`,
+                    onConfirm: () => RD_BRIDGE.openInstallPage(selectedDevice),
+                });
+            }
+        } catch (err) {
+            setRdState((s) => ({ ...s, scanning: false, error: "Native check failed" }));
         }
-    }, []);
+    }, [device]);
+
+    const selectDevice = (item) => {
+        setDevice(item.value);
+        setShowDeviceList(false);
+        handleScanDevice(item.value);
+    };
 
     // ── Fingerprint Capture + KYC submit ──────────────────────────────────
     const handleCapture = async () => {
@@ -302,11 +219,12 @@ const AEPS_OnBoard = () => {
         flashCapture();
 
         try {
-            // Step 1: Capture biometric PID from RD device
-            const captureResult = await RdService.capture(true /* KYC mode */);
-            if (!captureResult.success) {
+            // Step 1: Capture biometric PID from RD device using native bridge
+            const pidData = await RD_BRIDGE.capture(device);
+
+            if (!pidData) {
                 setRdState((s) => ({ ...s, capturing: false }));
-                AlertService.showAlert({ type: "error", title: "Capture Failed", message: captureResult.message });
+                AlertService.showAlert({ type: "error", title: "Capture Failed", message: "No biometric data received." });
                 transition(SCREENS.BIOMETRIC);
                 return;
             }
@@ -314,7 +232,7 @@ const AEPS_OnBoard = () => {
             // Step 2: Submit PID + Aadhaar to backend KYC API
             const headerToken = await AsyncStorage.getItem("header_token");
             const res = await biometricKyc({
-                data: { aadhaarNumber: aadhaar, pidData: captureResult.data },
+                data: { aadhaarNumber: aadhaar, pidData: pidData },
                 headerToken,
                 idempotencyKey: `KYC_${Date.now()}`,
             });
@@ -462,35 +380,57 @@ const AEPS_OnBoard = () => {
                     <View style={styles.deviceInfo}>
                         <View style={styles.deviceInfoRow}>
                             <Icon name="check-circle-outline" size={18} color="#22C55E" />
-                            <Text style={styles.deviceInfoText}>Device found on port {rdState.port}</Text>
+                            <Text style={styles.deviceInfoText}>{rdState.deviceInfo} Ready</Text>
                         </View>
                         <View style={styles.deviceInfoRow}>
-                            <Icon name="wifi" size={18} color={GOLD} />
-                            <Text style={styles.deviceInfoText}>Status: {rdState.status}</Text>
+                            <Icon name="usb-flash-drive-outline" size={18} color={GOLD} />
+                            <Text style={styles.deviceInfoText}>Connection: {rdState.status}</Text>
                         </View>
-                        <TouchableOpacity style={styles.rescanBtn} onPress={handleScanDevice}>
-                            <Text style={styles.rescanTxt}>Re-scan</Text>
+                        <TouchableOpacity style={styles.rescanBtn} onPress={() => setShowDeviceList(true)}>
+                            <Text style={styles.rescanTxt}>Change Device</Text>
                         </TouchableOpacity>
                     </View>
                 ) : (
                     <View style={styles.deviceOffline}>
-                        <Animated.View style={{ opacity: scanPulse }}>
-                            <Icon name="radar" size={32 * S} color={rdState.scanning ? GOLD : WHITE_30} />
-                        </Animated.View>
-                        <Text style={styles.deviceOfflineText}>
-                            {rdState.scanning
-                                ? "Scanning ports 11100 – 11120…"
-                                : rdState.error
-                                    ? rdState.error
-                                    : "Connect your biometric scanner,\nthen tap Scan below"}
-                        </Text>
+                        {showDeviceList ? (
+                            <View style={styles.devicePickerList}>
+                                {RD_BRIDGE.DEVICE_LIST.map((item) => (
+                                    <TouchableOpacity
+                                        key={item.value}
+                                        style={[styles.deviceOption, device === item.value && styles.deviceOptionActive]}
+                                        onPress={() => selectDevice(item)}
+                                    >
+                                        <Text style={[styles.deviceOptionTxt, device === item.value && styles.deviceOptionTxtActive]}>
+                                            {item.label}
+                                        </Text>
+                                        {device === item.value && <Icon name="check" size={18} color={GOLD} />}
+                                    </TouchableOpacity>
+                                ))}
+                                <TouchableOpacity style={styles.closePickerBtn} onPress={() => setShowDeviceList(false)}>
+                                    <Text style={styles.closePickerTxt}>Cancel</Text>
+                                </TouchableOpacity>
+                            </View>
+                        ) : (
+                            <>
+                                <Animated.View style={{ opacity: scanPulse }}>
+                                    <Icon name="radar" size={32 * S} color={rdState.scanning ? GOLD : WHITE_30} />
+                                </Animated.View>
+                                <Text style={styles.deviceOfflineText}>
+                                    {rdState.scanning
+                                        ? "Verifying RD Service..."
+                                        : rdState.error
+                                            ? rdState.error
+                                            : "Select your biometric scanner\nto continue"}
+                                </Text>
+                            </>
+                        )}
                     </View>
                 )}
 
-                {!rdState.connected && (
+                {!rdState.connected && !showDeviceList && (
                     <TouchableOpacity
                         style={[styles.btnScan, rdState.scanning && styles.btnDisabled]}
-                        onPress={handleScanDevice}
+                        onPress={() => setShowDeviceList(true)}
                         disabled={rdState.scanning}
                         activeOpacity={0.85}
                     >
@@ -498,8 +438,8 @@ const AEPS_OnBoard = () => {
                             <ActivityIndicator color={WHITE} size="small" />
                         ) : (
                             <>
-                                <Icon name="magnify-scan" size={18} color={WHITE} style={styles.btnIcon} />
-                                <Text style={styles.btnTxt}>Scan for RD Device</Text>
+                                <Icon name="usb" size={18} color={WHITE} style={styles.btnIcon} />
+                                <Text style={styles.btnTxt}>Select RD Device</Text>
                             </>
                         )}
                     </TouchableOpacity>
@@ -559,7 +499,7 @@ const AEPS_OnBoard = () => {
                 <Text style={styles.deviceSupportTitle}>SUPPORTED RD DEVICES</Text>
                 <View style={styles.deviceSupportRow}>
                     {[
-                        { icon: "gesture-tap", label: "Mantra\nMFS100" },
+                        { icon: "gesture-tap", label: "Mantra\nMFS110" },
                         { icon: "hand-wave-outline", label: "Morpho\nMSO 1300" },
                         { icon: "fingerprint", label: "Startek\nFM220" },
                         { icon: "usb-port", label: "Other\nISO RD" },
@@ -971,6 +911,26 @@ const styles = StyleSheet.create({
         textAlign: "center",
         letterSpacing: 0.5,
     },
+
+    // ── Device Picker
+    devicePickerList: { width: "100%", paddingVertical: 10 },
+    deviceOption: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingVertical: 14,
+        paddingHorizontal: 18,
+        backgroundColor: WHITE_05,
+        borderRadius: 16,
+        marginBottom: 10,
+        borderWidth: 1,
+        borderColor: WHITE_10,
+    },
+    deviceOptionActive: { borderColor: GOLD, backgroundColor: GOLD_DIM },
+    deviceOptionTxt: { fontSize: 14, fontFamily: Fonts.Medium, color: WHITE_30 },
+    deviceOptionTxtActive: { fontFamily: Fonts.Bold, color: GOLD },
+    closePickerBtn: { alignItems: "center", paddingVertical: 10, marginTop: 10 },
+    closePickerTxt: { fontSize: 13, fontFamily: Fonts.Bold, color: RED, letterSpacing: 1 },
 });
 
 export default AEPS_OnBoard;
