@@ -1510,10 +1510,10 @@ export const registerOutlet = async ({ data, headerToken, headerKey, idempotency
 export const fetchAepsBanks = async ({ headerToken, headerKey }) => {
   try {
     const response = await axios.get(`${BASE_URL}/user/aepsbank/list-banks`, {
-      headers: { 
+      headers: {
         Authorization: `Bearer ${headerToken}`,
         headerToken,
-        headerKey 
+        headerKey
       },
     });
     return response.data;

@@ -21,27 +21,24 @@ import { NativeModules, Platform } from 'react-native';
 
 // ─── RD Service Package IDs ─────────────────────────────────────────────────
 export const RD_PACKAGES = {
-  MANTRA:         'com.mantra.rdservice',
-  MANTRA_MFS110:  'com.mantra.mfs110.rdservice',
-  MORPHO:         'com.idemia.l1rdservice',
-  STARTEK:        'com.startek.rdservice',
-  SECUGEN:        'com.secugen.rdservice',
+  MANTRA_MFS110: 'com.mantra.mfs110.rdservice',
+  MORPHO: 'com.idemia.l1rdservice',
+  STARTEK: 'com.startek.rdservice',
+  SECUGEN: 'com.secugen.rdservice',
 };
 
 // ─── Human-readable device names ────────────────────────────────────────────
 export const RD_DEVICE_LABELS = {
-  MANTRA:         'Mantra MFS100',
-  MANTRA_MFS110:  'Mantra MFS110',
-  MORPHO:         'Morpho MSO 1300',
-  STARTEK:        'Startek FM220',
-  SECUGEN:        'SecuGen Hamster',
+  MANTRA_MFS110: 'Mantra MFS110',
+  MORPHO: 'Morpho MSO 1300',
+  STARTEK: 'Startek FM220',
+  SECUGEN: 'SecuGen Hamster',
 };
 
 // ─── Ordered device list for UI dropdowns ────────────────────────────────────
 export const DEVICE_LIST = Object.entries(RD_DEVICE_LABELS).map(([value, label]) => ({
   value,
   label,
-  icon: '🖐',
 }));
 
 // ─── Get native module (Android only) ────────────────────────────────────────
@@ -74,7 +71,7 @@ const getNativeModule = () => {
 // ─────────────────────────────────────────────────────────────────────────────
 const isInstalled = async (deviceKey) => {
   const packageId = getPackageId(deviceKey);
-  const mod       = getNativeModule();
+  const mod = getNativeModule();
   return await mod.isAppInstalled(packageId);
 };
 
@@ -99,8 +96,21 @@ const isInstalled = async (deviceKey) => {
 // ─────────────────────────────────────────────────────────────────────────────
 const capture = async (deviceKey) => {
   const packageId = getPackageId(deviceKey);
-  const mod       = getNativeModule();
-  return await mod.captureFingerprint(packageId);
+  const mod = getNativeModule();
+  const rawData = await mod.captureFingerprint(packageId);
+
+  if (!rawData) return '';
+
+  // ─── XML Normalization ───────────────────────────────────────────────────
+  // Some RD Services (like Mantra) return XML with newlines and indentation.
+  // This can cause 'invalid format' errors on the backend.
+  // We strip all whitespace between tags and newlines to ensure a compact string.
+  const cleanedData = rawData
+    .replace(/\r?\n|\r/g, '')     // Remove newlines
+    .replace(/>\s+</g, '><')      // Remove spaces between tags
+    .trim();
+
+  return cleanedData;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -116,7 +126,7 @@ const capture = async (deviceKey) => {
 // ─────────────────────────────────────────────────────────────────────────────
 const openInstallPage = async (deviceKey) => {
   const packageId = getPackageId(deviceKey);
-  const mod       = getNativeModule();
+  const mod = getNativeModule();
   return await mod.openPlayStore(packageId);
 };
 
@@ -147,72 +157,13 @@ const getPackageId = (deviceKey) => {
 // Error code constants — use these in catch blocks for specific handling
 // ─────────────────────────────────────────────────────────────────────────────
 export const RD_ERROR_CODES = {
-  NOT_INSTALLED:      'NOT_INSTALLED',
-  CANCELLED:          'CANCELLED',
-  NO_PID:             'NO_PID',
-  BUSY:               'BUSY',
+  NOT_INSTALLED: 'NOT_INSTALLED',
+  CANCELLED: 'CANCELLED',
+  NO_PID: 'NO_PID',
+  BUSY: 'BUSY',
   ACTIVITY_NOT_FOUND: 'ACTIVITY_NOT_FOUND',
-  NO_ACTIVITY:        'NO_ACTIVITY',
-  LAUNCH_ERROR:       'LAUNCH_ERROR',
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// parsePidXml(xml)
-//
-// Converts the raw RD Service XML response into a clean JSON object.
-// ─────────────────────────────────────────────────────────────────────────────
-const parsePidXml = (xml) => {
-  if (!xml) return null;
-
-  const getAttr = (tag, attr) => {
-    const reg = new RegExp(`<${tag}[^>]*\\b${attr}="([^"]*)"`, 'i');
-    const match = xml.match(reg);
-    return match ? match[1] : '';
-  };
-
-  const getTagContent = (tag) => {
-    const reg = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i');
-    const match = xml.match(reg);
-    return match ? match[1].trim() : '';
-  };
-
-  return {
-    // From <Resp>
-    errCode:   getAttr('Resp', 'errCode'),
-    errInfo:   getAttr('Resp', 'errInfo'),
-    fCount:    getAttr('Resp', 'fCount'),
-    fType:     getAttr('Resp', 'fType'),
-    iCount:    getAttr('Resp', 'iCount'),
-    iType:     getAttr('Resp', 'iType'),
-    pCount:    getAttr('Resp', 'pCount'),
-    pType:     getAttr('Resp', 'pType'),
-    nmPoints:  getAttr('Resp', 'nmPoints'),
-    qScore:    getAttr('Resp', 'qScore'),
-
-    // From <DeviceInfo>
-    dpId:      getAttr('DeviceInfo', 'dpId'),
-    rdsId:     getAttr('DeviceInfo', 'rdsId'),
-    rdsVer:    getAttr('DeviceInfo', 'rdsVer'),
-    dc:        getAttr('DeviceInfo', 'dc'),
-    mi:        getAttr('DeviceInfo', 'mi'),
-    mc:        getAttr('DeviceInfo', 'mc'),
-    srno:      getAttr('DeviceInfo', 'srno'),
-    sysid:     getAttr('DeviceInfo', 'sysid'),
-
-    // From <Skey>
-    ci:          getAttr('Skey', 'ci'),
-    sessionKey:  getTagContent('Skey'),
-
-    // From <Hmac>
-    hmac:        getTagContent('Hmac'),
-
-    // From <Data>
-    pidData:     getTagContent('Data'),
-    pidDataType: getAttr('Data', 'type') || 'X',
-    
-    // Use the timestamp from XML if available, else current time
-    ts: getAttr('PidData', 'ts') || new Date().toISOString()
-  };
+  NO_ACTIVITY: 'NO_ACTIVITY',
+  LAUNCH_ERROR: 'LAUNCH_ERROR',
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -221,7 +172,6 @@ const parsePidXml = (xml) => {
 const RDService = {
   isInstalled,
   capture,
-  parsePidXml,
   openInstallPage,
   getDeviceLabel,
   DEVICE_LIST,
@@ -230,3 +180,4 @@ const RDService = {
 };
 
 export default RDService;
+
