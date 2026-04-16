@@ -1,0 +1,492 @@
+/**
+ * Screen: AePSDashboardScreen
+ * Route:  /aeps/dashboard
+ *
+ * Main transaction interface with:
+ *   - Transaction type tabs (Balance Inquiry / Mini Statement / Cash Withdrawal)
+ *   - Customer data inputs (bank, mobile, Aadhaar)
+ *   - Biometric scan trigger
+ *   - Stats summary cards
+ *   - Recent transactions list
+ */
+
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+  TextInput,
+  Dimensions,
+  ActivityIndicator,
+  Modal,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Colors from '../../../constants/Colors';
+import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
+import { fetchUserProfile, getWalletBalance, fetchUserWallet, fetchAepsBanks } from '../../../api/AuthApi';
+import { AlertService } from '../../../componets/Alerts/CustomAlert';
+import RDService from '../AEPS1/RDService';
+
+const { width: SW, height: SH } = Dimensions.get("window");
+const scale = (n) => Math.round((SW / 375) * n);
+const rs = (n, lo = n * 0.82, hi = n * 1.28) =>
+  Math.min(Math.max(scale(n), lo), hi);
+
+// ─── Section Card ─────────────────────────────────────────────────
+const SectionCard = ({ children, style }) => (
+  <View style={[cardStyles.card, { backgroundColor: Colors.homebg }, style]}>{children}</View>
+);
+
+const cardStyles = StyleSheet.create({
+  card: {
+    backgroundColor: Colors.white,
+    borderRadius: rs(20),
+    padding: rs(18),
+    marginBottom: rs(14),
+    borderWidth: 0.5,
+    borderColor: Colors.border,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: rs(8) },
+      android: { elevation: 2 },
+    }),
+  },
+});
+
+// ─── Field Input ──────────────────────────────────────────────────
+const FormField = ({ label, placeholder, value, onChangeText, keyboardType, icon, editable = true, error }) => (
+  <View style={fieldStyles.wrap}>
+    <Text style={fieldStyles.label}>{label}</Text>
+    <View style={[fieldStyles.inputWrap, error && { borderColor: '#ef4444' }]}>
+      {icon ? <Text style={fieldStyles.icon}>{icon}</Text> : null}
+      <TextInput
+        style={[fieldStyles.input, !editable && fieldStyles.disabled]}
+        placeholder={placeholder}
+        placeholderTextColor={'#9BA5B8'}
+        value={value}
+        onChangeText={onChangeText}
+        keyboardType={keyboardType || 'default'}
+        editable={editable}
+      />
+    </View>
+    {error ? <Text style={styles.errorText}>{error}</Text> : null}
+  </View>
+);
+
+const fieldStyles = StyleSheet.create({
+  wrap: { marginBottom: rs(12) },
+  label: { fontSize: rs(10), fontWeight: '700', color: Colors.text_secondary, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: rs(5) },
+  inputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    borderRadius: rs(18),
+    borderWidth: 1,
+    borderColor: 'rgba(212,176,106,0.32)',
+    paddingHorizontal: rs(18),
+    paddingVertical: rs(14),
+    gap: rs(12),
+  },
+  icon: { fontSize: rs(14), opacity: 0.55 },
+  input: { flex: 1, fontSize: rs(14), color: '#0B0F1A', padding: 0 },
+  disabled: { opacity: 0.5 },
+});
+
+// ─── Dropdown Field ───────────────────────────────────────────────
+const DropdownField = ({ label, placeholder, value, onPress, error }) => (
+  <View style={fieldStyles.wrap}>
+    <Text style={fieldStyles.label}>{label}</Text>
+    <TouchableOpacity 
+      activeOpacity={0.7} 
+      onPress={onPress} 
+      style={[dropStyles.row, error && { borderColor: '#ef4444' }]}
+    >
+      <Text style={[dropStyles.text, value && { color: '#0B0F1A' }]}>
+        {value || placeholder}
+      </Text>
+      <Text style={dropStyles.arrow}>▾</Text>
+    </TouchableOpacity>
+    {error ? <Text style={styles.errorText}>{error}</Text> : null}
+  </View>
+);
+
+const dropStyles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.white,
+    borderRadius: rs(18),
+    borderWidth: 1,
+    borderColor: 'rgba(212,176,106,0.32)',
+    paddingHorizontal: rs(18),
+    paddingVertical: rs(14),
+  },
+  text: { fontSize: rs(14), color: '#9BA5B8' },
+  arrow: { fontSize: rs(12), color: Colors.text_secondary },
+});
+
+// ─── Transaction Type Tabs ────────────────────────────────────────
+const TXN_TYPES = [
+  { key: 'balance', label: 'Balance Enquiry', icon: 'wallet-outline' },
+  { key: 'mini', label: 'Mini Statement', icon: 'history' },
+  { key: 'cash', label: 'Cash Withdrawal', icon: 'cash-minus' },
+];
+
+const TxnTypeTabs = ({ active, onChange }) => (
+  <View style={tabStyles.row}>
+    {TXN_TYPES.map((t) => (
+      <TouchableOpacity
+        key={t.key}
+        activeOpacity={0.75}
+        onPress={() => onChange(t.key)}
+        style={[tabStyles.tab, active === t.key && tabStyles.activeTab]}
+      >
+        <Icon name={t.icon} size={rs(16)} color={active === t.key ? Colors.white : Colors.text_secondary} />
+        <Text 
+          style={[tabStyles.label, active === t.key && tabStyles.activeLabel]}
+          numberOfLines={2}
+          textAlign="center"
+        >
+          {t.label}
+        </Text>
+      </TouchableOpacity>
+    ))}
+  </View>
+);
+
+const tabStyles = StyleSheet.create({
+  row: { flexDirection: 'row', gap: rs(4), marginBottom: rs(18) },
+  tab: {
+    flex: 1,
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: rs(4),
+    backgroundColor: Colors.white,
+    borderRadius: rs(14),
+    paddingVertical: rs(10),
+    paddingHorizontal: rs(6),
+    minHeight: rs(64),
+    borderWidth: 1,
+    borderColor: 'rgba(212,176,106,0.15)',
+  },
+  activeTab: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  label: { fontSize: rs(10), fontWeight: '700', color: Colors.text_secondary, textAlign: 'center', lineHeight: rs(13) },
+  activeLabel: { color: Colors.white },
+});
+
+// ─── Recent Transaction Row ───────────────────────────────────────
+const RECENT_TXNS = [
+  { id: 1, type: 'Balance Inquiry', bank: 'SBI', mobile: '98XXXXXX12', amount: null, time: '2 min ago', status: 'success' },
+  { id: 2, type: 'Cash Withdrawal', bank: 'PNB', mobile: '97XXXXXX88', amount: '₹2,000', time: '18 min ago', status: 'success' },
+  { id: 3, type: 'Mini Statement', bank: 'BOI', mobile: '87XXXXXX45', amount: null, time: '45 min ago', status: 'success' },
+  { id: 4, type: 'Cash Withdrawal', bank: 'HDFC', mobile: '99XXXXXX01', amount: '₹500', time: '1 hr ago', status: 'failed' },
+];
+
+const TxnRow = ({ item }) => (
+  <View style={txnStyles.row}>
+    <View style={[txnStyles.dot, { backgroundColor: item.status === 'success' ? Colors.finance_success : Colors.finance_error }]} />
+    <View style={txnStyles.info}>
+      <Text style={txnStyles.type}>{item.type}</Text>
+      <Text style={txnStyles.meta}>{item.bank}  ·  {item.mobile}  ·  {item.time}</Text>
+    </View>
+    <View style={{ alignItems: 'flex-end' }}>
+      {item.amount ? <Text style={txnStyles.amount}>{item.amount}</Text> : null}
+      <View style={[txnStyles.badge, { backgroundColor: item.status === 'success' ? '#E6FAF0' : '#FFF0F0' }]}>
+        <Text style={[txnStyles.badgeText, { color: item.status === 'success' ? Colors.finance_success : Colors.finance_error }]}>
+          {item.status === 'success' ? 'Success' : 'Failed'}
+        </Text>
+      </View>
+    </View>
+  </View>
+);
+
+const txnStyles = StyleSheet.create({
+  row: { flexDirection: 'row', alignItems: 'center', gap: rs(12), paddingVertical: rs(10), borderBottomWidth: 0.5, borderBottomColor: Colors.divider },
+  dot: { width: rs(8), height: rs(8), borderRadius: rs(4), marginTop: rs(2) },
+  info: { flex: 1 },
+  type: { fontSize: rs(13), fontWeight: '600', color: Colors.black },
+  meta: { fontSize: rs(11), color: Colors.text_secondary, marginTop: rs(2) },
+  amount: { fontSize: rs(14), fontWeight: '700', color: Colors.black },
+  badge: { borderRadius: rs(8), paddingHorizontal: rs(8), paddingVertical: rs(2), marginTop: rs(2) },
+  badgeText: { fontSize: rs(10), fontWeight: '700' },
+});
+
+// ─── Item Selector Modal ──────────────────────────────────────────
+const SelectorModal = ({ visible, title, items, onSelect, onClose }) => (
+  <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <TouchableOpacity style={selStyles.overlay} activeOpacity={1} onPress={onClose} />
+    <View style={selStyles.sheet}>
+      <View style={selStyles.header}>
+        <Text style={selStyles.title}>{title}</Text>
+        <TouchableOpacity onPress={onClose}><Icon name="close" size={rs(20)} color="#94A3B8" /></TouchableOpacity>
+      </View>
+      <ScrollView style={selStyles.list} showsVerticalScrollIndicator={false}>
+        {items.map((item, idx) => (
+          <TouchableOpacity key={idx} style={selStyles.item} onPress={() => onSelect(item)}>
+            <Text style={selStyles.itemText}>{item.label || item}</Text>
+          </TouchableOpacity>
+        ))}
+        {items.length === 0 && <Text style={selStyles.empty}>Loading items...</Text>}
+      </ScrollView>
+    </View>
+  </Modal>
+);
+
+const selStyles = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' },
+  sheet: { position: 'absolute', bottom: 0, width: '100%', backgroundColor: Colors.white, borderTopLeftRadius: rs(25), borderTopRightRadius: rs(25), maxHeight: '70%', paddingBottom: rs(30) },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: rs(20), borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
+  title: { fontSize: rs(16), fontWeight: '800', color: Colors.black },
+  item: { padding: rs(18), borderBottomWidth: 1, borderBottomColor: '#f8fafc' },
+  itemText: { fontSize: rs(14), color: '#334155', fontWeight: '500' },
+  empty: { textAlign: 'center', padding: rs(40), color: '#94A3B8' }
+});
+
+// ─── Screen Component ─────────────────────────────────────────────
+export default function AePSDashboardScreen({ navigation }) {
+  const [txnType, setTxnType] = useState('balance');
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ volume: "0.00", count: "0", successRate: "0%", avgAmt: "0" });
+  const [recentTxns, setRecentTxns] = useState([]);
+  const [user, setUser] = useState(null);
+
+  // Form State
+  const [form, setForm] = useState({ mobile: '', aadhaar: '', bank: '', bankLabel: '', amount: '' });
+  const [errors, setErrors] = useState({});
+  const [banks, setBanks] = useState([]);
+  const [selVisible, setSelVisible] = useState(false);
+
+  useEffect(() => {
+    loadData();
+    loadBanks();
+  }, []);
+
+  const updateForm = (key, val) => {
+    setForm(f => ({ ...f, [key]: val }));
+    if (errors[key]) setErrors(prev => ({ ...prev, [key]: null }));
+  };
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const headerToken = await AsyncStorage.getItem("header_token");
+      const headerKey = await AsyncStorage.getItem("header_key");
+
+      const [profRes, balRes] = await Promise.all([
+        fetchUserProfile({ headerToken }),
+        getWalletBalance({ headerToken, headerKey })
+      ]);
+
+      if (profRes?.success) setUser(profRes.data);
+      if (balRes?.success) {
+        setStats({
+          volume: `₹${balRes.data?.todayAepsVolume || "0"}`,
+          count: String(balRes.data?.todayAepsCount || "0"),
+          successRate: balRes.data?.successRate || "100%",
+          avgAmt: `₹${balRes.data?.avgTxnAmount || "0"}`
+        });
+      }
+      setRecentTxns([]);
+    } catch (error) {
+      console.log("Load AEPS Data Error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadBanks = async () => {
+    try {
+      const hToken = await AsyncStorage.getItem("header_token");
+      const res = await fetchAepsBanks({ headerToken: hToken });
+      if (res.success || Array.isArray(res.data)) {
+        const mapped = (res.data || []).map(b => ({ label: b.name || b.bankName, value: b._id || b.bankId }));
+        setBanks(mapped);
+      }
+    } catch (e) {
+      console.log("Load Banks error:", e);
+    }
+  };
+
+  const validate = () => {
+    const e = {};
+    if (!form.mobile) e.mobile = 'Please enter mobile number';
+    else if (form.mobile.length !== 10) e.mobile = 'Mobile must be 10 digits';
+
+    if (!form.aadhaar) e.aadhaar = 'Please enter Aadhaar number';
+    else if (form.aadhaar.replace(/\s/g, '').length !== 12) e.aadhaar = 'Aadhaar must be 12 digits';
+
+    if (!form.bank) e.bank = 'Please select a bank';
+
+    if (txnType === 'cash') {
+      if (!form.amount) e.amount = 'Please enter amount';
+      else if (parseInt(form.amount) < 100) e.amount = 'Min withdrawal ₹100';
+    }
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleProceed = () => {
+    if (validate()) {
+       AlertService.showAlert({
+         type: 'success', 
+         title: 'Validated', 
+         message: 'Data validated. Ready for biometric scan.',
+       });
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <HeaderBar 
+        title="AePS Services Dashboard" 
+        onBack={() => navigation.navigate('FinanceHome')} 
+      />
+
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ── Terminal Card ── */}
+        <SectionCard>
+          <View style={styles.terminalHeader}>
+            <View>
+              <View style={styles.terminalTitleRow}>
+                <Text style={styles.terminalTitle}>AEPS TERMINAL</Text>
+              </View>
+              <Text style={styles.terminalSub}>SECURE TRANSACTION ENGINE</Text>
+            </View>
+          </View>
+
+          <TxnTypeTabs active={txnType} onChange={setTxnType} />
+
+          <DropdownField 
+            label="Select Bank" 
+            placeholder="Choose customer's bank" 
+            value={form.bankLabel}
+            onPress={() => setSelVisible(true)}
+            error={errors.bank}
+          />
+          <View style={{ flexDirection: 'row', gap: rs(12) }}>
+            <View style={{ flex: 1.2 }}>
+              <FormField 
+                label="Mobile Number" 
+                placeholder="Customer Mobile" 
+                keyboardType="numeric" 
+                icon="📱" 
+                value={form.mobile}
+                onChangeText={(v) => updateForm('mobile', v)}
+                error={errors.mobile}
+              />
+            </View>
+            <View style={{ flex: 1.8 }}>
+              <FormField 
+                label="Aadhaar Number" 
+                placeholder="XXXX XXXX XXXX" 
+                keyboardType="numeric" 
+                icon="🪪" 
+                value={form.aadhaar}
+                onChangeText={(v) => updateForm('aadhaar', v)}
+                error={errors.aadhaar}
+              />
+            </View>
+          </View>
+          
+          {txnType === 'cash' && (
+            <FormField 
+              label="Withdrawal Amount" 
+              placeholder="Min. ₹100 - Max ₹10,000" 
+              keyboardType="numeric" 
+              icon="₹" 
+              value={form.amount}
+              onChangeText={(v) => updateForm('amount', v)}
+              error={errors.amount}
+            />
+          )}
+
+          <TouchableOpacity 
+            activeOpacity={0.88} 
+            onPress={handleProceed}
+            style={styles.scanBtn}
+          >
+            <Icon name="fingerprint" size={rs(20)} color={Colors.white} />
+            <Text style={styles.scanBtnText}>PROCEED TO SCAN</Text>
+          </TouchableOpacity>
+        </SectionCard>
+
+        {/* ── Recent Transactions ── */}
+        <SectionCard style={{ marginTop: 4 }}>
+          <View style={styles.recentHeader}>
+            <Text style={styles.recentTitle}>Recent Transactions</Text>
+            <TouchableOpacity>
+              <Text style={styles.viewAll}>View All →</Text>
+            </TouchableOpacity>
+          </View>
+          {recentTxns.length > 0 ? (
+            recentTxns.map((t) => <TxnRow key={t.id} item={t} />)
+          ) : (
+            <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+              <Text style={{ fontSize: rs(12), color: Colors.text_secondary }}>No recent transactions found</Text>
+            </View>
+          )}
+        </SectionCard>
+
+        <View style={{ height: rs(30) }} />
+      </ScrollView>
+
+      <SelectorModal 
+        visible={selVisible}
+        title="Select Bank"
+        items={banks}
+        onSelect={(item) => {
+          updateForm('bank', item.value);
+          updateForm('bankLabel', item.label);
+          setSelVisible(false);
+        }}
+        onClose={() => setSelVisible(false)}
+      />
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: Colors.bg },
+  scroll: { flex: 1 },
+  content: { paddingHorizontal: rs(16), paddingBottom: rs(10), paddingTop: rs(12) },
+
+  terminalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: rs(16) },
+  terminalTitleRow: { flexDirection: 'row', alignItems: 'center', gap: rs(8) },
+  terminalTitle: { fontSize: rs(16), fontWeight: '700', color: Colors.black },
+  terminalSub: { fontSize: rs(10), color: Colors.text_secondary, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: rs(2) },
+
+  scanBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: rs(10),
+    backgroundColor: Colors.primary,
+    borderRadius: rs(18),
+    paddingVertical: rs(16),
+    marginTop: rs(8),
+  },
+  scanBtnText: { fontSize: rs(14), fontWeight: '800', color: Colors.white, letterSpacing: 0.5 },
+
+  recentHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: rs(10) },
+  recentTitle: { fontSize: rs(15), fontWeight: '700', color: Colors.black },
+  viewAll: { fontSize: rs(12), color: Colors.kyc_accent, fontWeight: '600' },
+
+  errorText: {
+    fontSize: rs(9),
+    color: '#ef4444',
+    marginTop: -rs(10),
+    marginBottom: rs(8),
+    marginLeft: rs(5),
+    fontWeight: '600'
+  }
+});

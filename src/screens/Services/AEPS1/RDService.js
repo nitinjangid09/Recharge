@@ -169,11 +169,23 @@ export const RD_ERROR_CODES = {
 // ─────────────────────────────────────────────────────────────────────────────
 // Default export
 // ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// parsePidXml(xml)
+//
+// Simple utility to ensure the XML is ready for transmission.
+// Higher-level logic can be added here if specific tags need to be extracted.
+// ─────────────────────────────────────────────────────────────────────────────
+const parsePidXml = (xml) => {
+  if (!xml) return '';
+  return xml.toString().trim();
+};
+
 const RDService = {
   isInstalled,
   capture,
   openInstallPage,
   getDeviceLabel,
+  parsePidXml,
   DEVICE_LIST,
   RD_PACKAGES,
   RD_ERROR_CODES,

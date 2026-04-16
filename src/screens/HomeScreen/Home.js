@@ -66,9 +66,9 @@ const ALL_ITEMS = [
   { id: "10", label: "BBPS Payments", icon: "lightning-bolt", screen: "PaymentsScreen" },
   { id: "11", label: "Profile", icon: "account-circle", screen: "ProfileScreen" },
   { id: "12", label: "Transaction History", icon: "history", screen: "InvoiceScreen" },
-  { id: "13", label: "Wallet Report", icon: "file-document-outline", screen: "WalletTransactionScreen" },
   { id: "14", label: "KYC Verification", icon: "shield-check", screen: "Offlinekyc" },
   { id: "15", label: "Offline Services", icon: "clipboard-list-outline", screen: "OfflineServices" },
+  { id: "16", label: "AEPS 2", icon: "bank-plus", screen: "AEPSPortalAccess" },
 ];
 
 // Service icon mapping for assigned services
@@ -813,7 +813,8 @@ export default function FinanceHome({ navigation }) {
                     onPress={() => {
                       if (n === "recharge") navigation.navigate("TopUpScreen");
                       else if (n === "bbps") navigation.navigate("PaymentsScreen");
-                      else if (n === "aeps1") navigation.navigate("AEPS_OnBoard");
+                      else if (n === "aeps1" || n === "aeps") navigation.navigate("AEPS_OnBoard");
+                      else if (n === "aeps2") navigation.navigate("AEPSSecondaryRegistration");
                     }}
                   >
                     <View style={[S.svcIconCircle]}>
@@ -821,7 +822,7 @@ export default function FinanceHome({ navigation }) {
                         <BBPSIconSVG width={rs(26)} height={rs(26)} />
                       ) : n === "recharge" && typeof RechargeIconSVG === "function" ? (
                         <RechargeIconSVG width={rs(26)} height={rs(26)} />
-                      ) : n === "aeps" && typeof AEPSIconSVG === "function" ? (
+                      ) : (n === "aeps" || n === "aeps1" || n === "aeps2") && typeof AEPSIconSVG === "function" ? (
                         <AEPSIconSVG width={rs(26)} height={rs(26)} />
                       ) : (
                         <Icon
