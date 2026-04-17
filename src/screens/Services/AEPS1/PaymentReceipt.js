@@ -1,3 +1,4 @@
+import React from "react";
 import {
   View,
   Text,
@@ -19,8 +20,63 @@ const ReceiptRow = ({ label, value }) => {
   );
 };
 
-export default function PaymentReceiptScreen() {
+export default function PaymentReceipt({ 
+  route, 
+  navigation, 
+  // Allow passing directly as props for Modal use
+  response: propsResponse, 
+  details: propsDetails, 
+  type: propsType,
+  onClose 
+}) {
   const [downloadFormat, setDownloadFormat] = React.useState("pdf");
+  
+  // Destructure from route or props
+  const response = propsResponse || route?.params?.response;
+  const details = propsDetails || route?.params?.details;
+  const type = propsType || route?.params?.type || "Transaction";
+
+  const handleDone = () => {
+    if (onClose) {
+      onClose();
+    } else if (navigation) {
+      navigation.navigate("FinanceHome");
+    }
+  };
+
+  // Handle ultra-deep nesting: data -> response -> data
+  const l1 = response?.data || response || {};
+  const l2 = l1.response || response?.response || response || {};
+  const l3 = l2.data || l1.data || response?.data || response || {};
+
+  const nestedData = l3;
+  const nestedRoot = l2;
+  
+  // Statement data
+  const statements = nestedData.miniStatement || response?.miniStatement || [];
+  
+  // Balance checking: prioritize bankAccountBalance
+  const rawBalance = (type === 'Balance Enquiry' || type === 'Mini Statement')
+    ? (nestedData.bankAccountBalance ?? nestedData.closingBalance ?? response?.balance)
+    : (nestedData.transactionValue ?? details?.amount);
+    
+  const balance = (rawBalance !== undefined && rawBalance !== null) ? rawBalance : "0.00";
+  
+  // Transaction IDs from user sample mapping:
+  // User wants "Bank RRN" to be orderid and "REF" to be externalRef
+  const rrn = nestedRoot.orderid || response?.orderid || nestedRoot.ipayId || "N/A";
+  const ackno = nestedData.externalRef || nestedRoot.externalRef || "N/A";
+  
+  // Bank and User details
+  const bankName = nestedData.bankName || details?.bankName || "Aadhaar Bank";
+  const mobile = details?.mobile || details?.mobileNumber || "N/A";
+  const aadhaar = details?.aadhaar || details?.aadhaarNumber || "XXXX XXXX XXXX";
+  const accountNo = nestedData.accountNumber || "N/A";
+  const txnValue = nestedData.transactionValue || details?.amount || "0.00";
+  
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
 
   return (
     <SafeAreaView style={styles.container}>
@@ -28,45 +84,73 @@ export default function PaymentReceiptScreen() {
 
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Receipt</Text>
+          <Text style={styles.title}>Transaction Receipt</Text>
         </View>
 
         {/* Success Banner */}
         <View style={styles.successBanner}>
-          <Text style={styles.successText}>Payment Successful!</Text>
+          <Text style={styles.successText}>{type === 'Cash Withdrawal' ? 'Payment' : 'Enquiry'} Successful!</Text>
           <Text style={styles.successSub}>
-            Transaction completed · Mar 06, 2026 · 3:49 PM
+            Completed on {dateStr} at {timeStr}
           </Text>
         </View>
 
         {/* Amount Card */}
         <View style={styles.amountCard}>
           <View style={styles.amountTop}>
-            <Text style={styles.amountLabel}>AMOUNT PAID</Text>
+            <Text style={styles.amountLabel}>
+              {type === 'Balance Enquiry' ? 'AVAILABLE BALANCE' : 'AMOUNT PAID'}
+            </Text>
 
             <View style={styles.successBadge}>
               <Text style={styles.successBadgeText}>SUCCESS</Text>
             </View>
           </View>
 
-          <Text style={styles.amount}>₹500.00</Text>
+          <Text style={styles.amount}>₹{Number(balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Text>
 
-          <Text style={styles.txn}>TXN · 06 Mar 2026 · 15:49:22 IST</Text>
+          <Text style={styles.txn}>REF · {ackno}</Text>
         </View>
 
         {/* Receipt Card */}
         <View style={styles.receiptCard}>
           <View style={styles.receiptHeader}>
-            <Text style={styles.receiptTitle}>Payment Receipt</Text>
-            <Text style={styles.txnId}>TXN123456789</Text>
+            <Text style={styles.receiptTitle}>Details</Text>
+            <Text style={styles.txnId}>{type.toUpperCase()}</Text>
           </View>
 
-          <ReceiptRow label="Aadhaar No" value="XXXX XXXX 1234" />
-          <ReceiptRow label="Transaction ID" value="TXN123456789" />
-          <ReceiptRow label="Bank" value="State Bank of India" />
-          <ReceiptRow label="Bank Ref No" value="BRN987654" />
-          <ReceiptRow label="Mobile" value="9876543210" />
+          <ReceiptRow label="Aadhaar No" value={aadhaar.toString().replace(/.(?=.{4})/g, 'X')} />
+          {accountNo !== "N/A" && <ReceiptRow label="Account No" value={accountNo} />}
+          <ReceiptRow label="Bank RRN" value={rrn} />
+          <ReceiptRow label="Bank" value={bankName} />
+          {type === 'Cash Withdrawal' && <ReceiptRow label="Withdrawn Amount" value={`₹${txnValue}`} />}
+          <ReceiptRow label="Mobile" value={mobile} />
+          <ReceiptRow label="Status" value="Successful" />
         </View>
+
+        {/* Mini Statement List */}
+        {type === 'Mini Statement' && statements.length > 0 && (
+          <View style={styles.statementCard}>
+            <Text style={styles.statementTitle}>Recent Transactions</Text>
+            <View style={styles.statementHeader}>
+              <Text style={[styles.shTxt, { flex: 1 }]}>Date</Text>
+              <Text style={[styles.shTxt, { flex: 1, textAlign: 'center' }]}>Type</Text>
+              <Text style={[styles.shTxt, { flex: 1, textAlign: 'right' }]}>Amount</Text>
+            </View>
+            {statements.map((item, idx) => (
+              <View key={idx} style={styles.statementRow}>
+                <View style={{ flex: 1.5 }}>
+                   <Text style={styles.stDate}>{item.date || 'N/A'}</Text>
+                   <Text style={styles.stNarration} numberOfLines={1}>{item.narration || ''}</Text>
+                </View>
+                <Text style={[styles.stType, (item.txnType === 'CR' || item.txnType === 'C') ? styles.cr : styles.dr]}>
+                  {item.txnType || 'N/A'}
+                </Text>
+                <Text style={styles.stAmount}>₹{item.amount || '0.00'}</Text>
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* Buttons */}
         <View style={styles.buttonRow}>
@@ -74,7 +158,10 @@ export default function PaymentReceiptScreen() {
             <Text style={styles.shareText}>Share</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.doneBtn}>
+          <TouchableOpacity 
+            style={styles.doneBtn}
+            onPress={handleDone}
+          >
             <Text style={styles.doneText}>Done</Text>
           </TouchableOpacity>
         </View>
@@ -86,9 +173,7 @@ export default function PaymentReceiptScreen() {
         <View style={styles.pickerContainer}>
           <Picker
             selectedValue={downloadFormat}
-            onValueChange={(itemValue, itemIndex) =>
-              setDownloadFormat(itemValue)
-            }
+            onValueChange={(itemValue) => setDownloadFormat(itemValue)}
             style={styles.picker}
             dropdownIconColor={Colors.primary}
           >
@@ -294,4 +379,64 @@ const styles = StyleSheet.create({
     width: "100%",
   },
 
-});
+  // Statement Styles
+  statementCard: {
+    backgroundColor: Colors.white,
+    marginHorizontal: 20,
+    marginTop: 15,
+    borderRadius: 18,
+    padding: 18,
+  },
+  statementTitle: {
+    fontFamily: Fonts.Bold,
+    fontSize: 15,
+    color: Colors.primary,
+    marginBottom: 15,
+  },
+  statementHeader: {
+    flexDirection: 'row',
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.gray_F0,
+    marginBottom: 5,
+  },
+  shTxt: {
+    fontFamily: Fonts.Bold,
+    fontSize: 12,
+    color: Colors.gray_9E,
+    textTransform: 'uppercase',
+  },
+  statementRow: {
+    flexDirection: 'row',
+    paddingVertical: 12,
+    borderBottomWidth: 0.5,
+    borderBottomColor: Colors.gray_F5,
+    alignItems: 'center',
+  },
+  stDate: {
+    fontFamily: Fonts.Bold,
+    fontSize: 12,
+    color: Colors.gray_66,
+  },
+  stNarration: {
+    fontFamily: Fonts.Regular,
+    fontSize: 10,
+    color: Colors.gray_9E,
+    marginTop: 2,
+  },
+  stType: {
+    fontFamily: Fonts.Bold,
+    fontSize: 12,
+    flex: 1,
+    textAlign: 'center',
+  },
+  stAmount: {
+    fontFamily: Fonts.Bold,
+    fontSize: 13,
+    color: Colors.gray_21,
+    flex: 1,
+    textAlign: 'right',
+  },
+  cr: { color: '#2ECC71' },
+  dr: { color: '#E74C3C' },
+});

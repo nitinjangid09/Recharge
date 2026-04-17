@@ -115,7 +115,7 @@ const AEPS_OnBoard = () => {
             if (res.success || res.status === "SUCCESS") {
                 setStatusData(res.data);
                 if (res.data?.action === "NO-ACTION-REQUIRED") {
-                    NavigationService.navigate("AEPS_Services");
+                    NavigationService.navigate("DailyLogin");
                 }
             }
         } catch (err) {
@@ -137,7 +137,7 @@ const AEPS_OnBoard = () => {
                         type: "success",
                         title: "Authenticated",
                         message: res.data.message || res.message,
-                        onClose: () => NavigationService.navigate("AEPS_Services"),
+                        onClose: () => NavigationService.navigate("DailyLogin"),
                     });
                 } else {
                     transition(SCREENS.BIOMETRIC);
@@ -244,7 +244,7 @@ const AEPS_OnBoard = () => {
                     type: "success",
                     title: "KYC Complete",
                     message: "Biometric verification successful. Opening AEPS…",
-                    onClose: () => NavigationService.navigate("AEPS_Services"),
+                    onClose: () => NavigationService.navigate("DailyLogin"),
                 });
             } else {
                 AlertService.showAlert({ type: "error", title: "KYC Failed", message: res.message || "Backend rejected the PID data." });
@@ -514,7 +514,7 @@ const AEPS_OnBoard = () => {
 
             <TouchableOpacity
                 style={styles.btnSecondary}
-                onPress={() => NavigationService.navigate("AEPS_Services")}
+                onPress={() => NavigationService.navigate("AEPS1")}
             >
                 <Text style={styles.btnSecondaryTxt}>Skip · Open AEPS Services</Text>
                 <Icon name="chevron-right" size={16} color={WHITE_30} />
