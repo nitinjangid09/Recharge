@@ -126,25 +126,16 @@ const DmtLogin = () => {
       });
 
       if (res.success || res.status === "SUCCESS") {
-        // User exists, save and go home
+        // Customer is registered, navigate to Home
+        const customerName = res.data?.CustomerName || "";
         await AsyncStorage.setItem("sender_mobile", mobileNumber);
-        navigation.replace("DmtHome", { mobileNumber });
-      } else if (res.statusCode === 404 || res.message?.toLowerCase().includes("not found")) {
-        // Not registered, trigger OTP and go to registration
-        const otpRes = await generateDmtRegOtp({
-          data: { mobileNumber },
-          headerToken: token,
-          idempotencyKey: `DMT_GEN_OTP_${mobileNumber}_${Date.now()}`
-        });
-
-        if (otpRes.success) {
-          setStep(2);
-          setOtpVisible(true);
-        } else {
-          setError(otpRes.message || "Failed to generate registration OTP");
-        }
+        await AsyncStorage.setItem("sender_name", customerName);
+        navigation.replace("DmtHome", { mobileNumber, customerName });
+      } else if (res.message?.toLowerCase().includes("not registered")) {
+        // Not registered, show Aadhaar field (Step 2)
+        setStep(2);
       } else {
-        setError(res.message || "Something went wrong. Please try again.");
+        setError(res.message || "Customer lookup failed");
       }
     } catch (err) {
       console.log("DMT lookup error:", err);
@@ -154,16 +145,49 @@ const DmtLogin = () => {
     }
   };
 
-  const handleAadhaarSubmit = () => {
+  const handleAadhaarSubmit = async () => {
     if (aadhaarRaw.length !== 12) {
       setError("Please enter a valid 12-digit Aadhaar number");
       return;
     }
     setError("");
-    buttonPress(btnScale).start(() => {
-      setOtp("");
-      setOtpVisible(true);
-    });
+    setIsLoading(true);
+
+    try {
+      const token = await AsyncStorage.getItem("header_token");
+      // Use the provided eKYC logic and PID data
+      const res = await dmtCustomerEkyc({
+        data: {
+          mobileNumber,
+          aadhaarNumber: aadhaarRaw,
+          pidData: "<?xml version=\"1.0\"?><PidData>...</PidData>" // Use provided XML context
+        },
+        headerToken: token,
+        idempotencyKey: `DMT_EKYC_${mobileNumber}_${Date.now()}`
+      });
+
+      if (res.success || res.status === "SUCCESS") {
+        // After eKYC, generate registration OTP
+        const otpRes = await generateDmtRegOtp({
+          data: { mobileNumber },
+          headerToken: token,
+          idempotencyKey: `DMT_GEN_OTP_${mobileNumber}_${Date.now()}`
+        });
+
+        if (otpRes.success) {
+          setOtp("");
+          setOtpVisible(true);
+        } else {
+          setError(otpRes.message || "Failed to generate OTP after eKYC");
+        }
+      } else {
+        setError(res.message || "eKYC Verification failed");
+      }
+    } catch (err) {
+      setError("Network error. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleOtpVerify = async () => {

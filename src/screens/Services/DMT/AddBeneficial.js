@@ -76,10 +76,10 @@ const SelectPicker = ({
           )}
         </View>
 
-        <Icon 
-          name={open ? "chevron-up" : "chevron-down"} 
-          size={rs(20)} 
-          color={open ? Colors.kyc_accent : Colors.gray_9E} 
+        <Icon
+          name={open ? "chevron-up" : "chevron-down"}
+          size={rs(20)}
+          color={open ? Colors.kyc_accent : Colors.gray_9E}
         />
       </TouchableOpacity>
 
@@ -271,7 +271,7 @@ const AddBeneficiary = () => {
       }
 
       const idempotencyKey = `ADD_BEN_${Date.now()}`;
-      
+
       const res = await addDmtBeneficiary({
         data: {
           accountHolderName: formData.holderName,
@@ -286,8 +286,8 @@ const AddBeneficiary = () => {
       });
 
       if (
-        res.success || 
-        res.status === "SUCCESS" || 
+        res.success ||
+        res.status === "SUCCESS" ||
         res.message?.toLowerCase().includes("added")
       ) {
         AlertService.showAlert({
@@ -317,22 +317,24 @@ const AddBeneficiary = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      {/* HEADER */}
+      <View style={styles.header}>
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>SECURE DMT</Text>
+        </View>
+
+        <Text style={styles.title}>
+          <Text style={styles.titleAccent}>Add</Text> Beneficiary
+        </Text>
+
+        <Text style={styles.subtitle}>Secure Domestic Money Transfer</Text>
+      </View>
       <ScrollView
         showsVerticalScrollIndicator={false}
+        style={styles.scrollBody}
         contentContainerStyle={styles.scrollContainer}
       >
-        {/* HEADER */}
-        <View style={styles.header}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>SECURE DMT</Text>
-          </View>
 
-          <Text style={styles.title}>
-            <Text style={styles.titleAccent}>Add</Text> Beneficiary
-          </Text>
-
-          <Text style={styles.subtitle}>Secure Domestic Money Transfer</Text>
-        </View>
 
         {/* FORM CARD */}
         <View style={styles.card}>
@@ -394,8 +396,8 @@ const AddBeneficiary = () => {
           />
 
           {/* BUTTON */}
-          <TouchableOpacity 
-            style={[styles.button, submitting && styles.buttonDisabled]} 
+          <TouchableOpacity
+            style={[styles.button, submitting && styles.buttonDisabled]}
             onPress={handleAddBeneficiary}
             disabled={submitting}
           >
@@ -464,6 +466,15 @@ const styles = StyleSheet.create({
 
   scrollContainer: {
     paddingBottom: 40,
+    flexGrow: 1,
+  },
+
+  scrollBody: {
+    flex: 1,
+    backgroundColor: Colors.bg,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    overflow: "hidden",
   },
 
   /* HEADER */
@@ -508,6 +519,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.bg,
     padding: 20,
+    flex: 1,
   },
 
   /* SECTION */

@@ -106,7 +106,8 @@ const AccountCard = ({ item, index, onTransfer }) => {
 const DmtHome = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const senderMobile = route.params?.mobileNumber || "";
+  const [senderMobile, setSenderMobile] = useState(route.params?.mobileNumber || "");
+  const [senderName, setSenderName] = useState(route.params?.customerName || "");
 
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -123,7 +124,19 @@ const DmtHome = () => {
     setTimeout(() => {
       Animated.parallel([fadeIn(bodyOp, 400), slideUp(bodyTY, 400)]).start();
     }, 200);
+    loadSenderInfo();
   }, []);
+
+  const loadSenderInfo = async () => {
+    if (!senderMobile) {
+      const mob = await AsyncStorage.getItem("sender_mobile");
+      if (mob) setSenderMobile(mob);
+    }
+    if (!senderName) {
+      const name = await AsyncStorage.getItem("sender_name");
+      if (name) setSenderName(name);
+    }
+  };
 
   useFocusEffect(
     React.useCallback(() => {
@@ -134,11 +147,14 @@ const DmtHome = () => {
 
   const fetchLimit = async () => {
     try {
+      const mobile = senderMobile || await AsyncStorage.getItem("sender_mobile");
+      if (!mobile) return;
+
       const token = await AsyncStorage.getItem("header_token");
       const res = await checkDmtLimit({
-        data: { mobileNumber: senderMobile },
+        data: { mobileNumber: mobile },
         headerToken: token,
-        idempotencyKey: `LIMIT_CHECK_${senderMobile}_${Date.now()}`
+        idempotencyKey: `LIMIT_CHECK_${mobile}_${Date.now()}`
       });
       if (res.success || res.status === "SUCCESS") {
         const total = res.data?.CustomerLimit || 0;
@@ -233,7 +249,8 @@ const DmtHome = () => {
             </Text>
           </View>
           <View style={{ alignItems: "flex-end" }}>
-            <Text style={styles.budgetLabel}>User Mobile</Text>
+            <Text style={styles.budgetLabel} />
+            {senderName ? <Text style={styles.senderNameTxt}>{senderName}</Text> : null}
             <Text style={styles.userId}>{senderMobile}</Text>
           </View>
         </View>
@@ -328,7 +345,8 @@ const styles = StyleSheet.create({
   budgetAmount: {
     fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(36), letterSpacing: -0.5, marginTop: vs(2),
   },
-  userId: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(16), marginTop: vs(2) },
+  userId: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(15), marginTop: vs(2) },
+  senderNameTxt: { fontFamily: Fonts.Medium, color: Colors.kyc_accent, fontSize: rs(12), marginTop: vs(2) },
 
   remainingRow: {
     flexDirection: "row", alignItems: "center", gap: scale(10), marginBottom: vs(10),
