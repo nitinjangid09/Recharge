@@ -333,6 +333,7 @@ const AddBeneficiary = () => {
         showsVerticalScrollIndicator={false}
         style={styles.scrollBody}
         contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="handled"
       >
 
 
@@ -519,7 +520,6 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.bg,
     padding: 20,
-    flex: 1,
   },
 
   /* SECTION */

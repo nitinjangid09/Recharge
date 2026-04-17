@@ -15,8 +15,11 @@ import { useNavigation, useFocusEffect, useRoute } from "@react-navigation/nativ
 import Colors from "../../../constants/Colors";
 import Fonts from "../../../constants/Fonts";
 import { fadeIn, slideUp } from "../../../utils/ScreenAnimations";
-import { getDmtBeneficiaries, checkDmtLimit } from "../../../api/AuthApi";
+import { getDmtBeneficiaries, checkDmtLimit, deleteDmtBeneficiary } from "../../../api/AuthApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { Alert } from "react-native";
+import { AlertService } from "../../../componets/Alerts/CustomAlert";
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -36,13 +39,16 @@ const AVATAR_COLORS = [
   "#558B2F", // green
 ];
 
-const getAvatarColor = (name) => {
-  const idx = (name.charCodeAt(0) + (name.charCodeAt(1) || 0)) % AVATAR_COLORS.length;
+const getAvatarColor = (name = "U") => {
+  const safeName = name && name.length > 0 ? name : "U";
+  const idx = (safeName.charCodeAt(0) + (safeName.charCodeAt(1) || 0)) % AVATAR_COLORS.length;
   return AVATAR_COLORS[idx];
 };
 
-const getInitials = (name) =>
-  name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+const getInitials = (name = "U") => {
+  const safeName = name && name.length > 0 ? name : "U";
+  return safeName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+};
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const MAX_ALLOWED_LIMIT = 25000; // Fixed per customer usually
@@ -50,7 +56,7 @@ const MAX_ALLOWED_LIMIT = 25000; // Fixed per customer usually
 // ══════════════════════════════════════════════════════════════════════════════
 //  ACCOUNT CARD
 // ══════════════════════════════════════════════════════════════════════════════
-const AccountCard = ({ item, index, onTransfer }) => {
+const AccountCard = ({ item, index, onTransfer, onDelete }) => {
   const cardOp = useRef(new Animated.Value(0)).current;
   const cardTY = useRef(new Animated.Value(vs(16))).current;
 
@@ -60,42 +66,61 @@ const AccountCard = ({ item, index, onTransfer }) => {
     }, index * 80);
   }, []);
 
-  const avatarColor = getAvatarColor(item.name);
-
   return (
     <Animated.View style={[styles.card, { opacity: cardOp, transform: [{ translateY: cardTY }] }]}>
-      <View style={styles.cardLeft}>
+      {/* Top Right Delete Button */}
+      <TouchableOpacity
+        style={styles.absDeleteBtn}
+        onPress={() => onDelete && onDelete(item)}
+        activeOpacity={0.7}
+      >
+        <Icon name="delete" size={rs(22)} color="#EF4444" />
+      </TouchableOpacity>
 
-        {/* Avatar */}
-        <View style={[styles.avatar, { backgroundColor: avatarColor }]}>
-          <Text style={styles.avatarTxt}>{getInitials(item.name)}</Text>
+      <View style={styles.cardMain}>
+        {/* Avatar Section */}
+        <View style={styles.avatarSection}>
+          <View style={[styles.avatar, { backgroundColor: Colors.kyc_accent }]}>
+            <Text style={styles.avatarTxt}>{getInitials(item.name)}</Text>
+          </View>
+          <View style={styles.avatarDecoration} />
         </View>
 
-        {/* Info */}
-        <View style={styles.cardInfo}>
-          <Text style={styles.cardName}>{item.name}</Text>
-          <Text style={styles.cardBank}>{item.bank}</Text>
-
-          {/* ── Acc no + IFSC on ONE line ── */}
-          <View style={styles.tagRow}>
-            <View style={styles.tag}>
-              <Text style={styles.tagTxt}>{item.accountNumber}</Text>
+        {/* Info Section */}
+        <View style={styles.cardContent}>
+          <View style={styles.nameRow}>
+            <Text style={styles.cardName} numberOfLines={1}>{item.name}</Text>
+            <View style={styles.verifiedBadge}>
+              <Icon name="check-decagram" size={rs(12)} color={Colors.kyc_accent} />
             </View>
-            <View style={[styles.tag, styles.tagIfsc]}>
-              <Text style={[styles.tagTxt, styles.tagIfscTxt]}>{item.ifsc}</Text>
+          </View>
+
+          <Text style={styles.cardBank} numberOfLines={1}>{item.bank}</Text>
+
+          <View style={styles.detailsGrid}>
+            <View style={styles.detailItem}>
+              <Text style={styles.detailLabel}>ACCOUNT</Text>
+              <Text style={styles.detailValue}>{item.accountNumber}</Text>
+            </View>
+            <View style={[styles.detailItem, { borderLeftWidth: 1, borderLeftColor: Colors.gray_F0 }]}>
+              <Text style={styles.detailLabel}>IFSC</Text>
+              <Text style={styles.detailValue}>{item.ifsc}</Text>
             </View>
           </View>
         </View>
-      </View>
 
-      {/* Send button — text only, no icon */}
-      <TouchableOpacity
-        style={styles.sendBtn}
-        onPress={() => onTransfer(item)}
-        activeOpacity={0.85}
-      >
-        <Text style={styles.sendTxt}>Transfer</Text>
-      </TouchableOpacity>
+        {/* Actions Section */}
+        <View style={styles.actionColumn}>
+          <TouchableOpacity
+            style={styles.transferBtn}
+            onPress={() => onTransfer(item)}
+            activeOpacity={0.8}
+          >
+            <Icon name="send" size={rs(14)} color={Colors.white} />
+            <Text style={styles.transferBtnTxt}>Transfer</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </Animated.View>
   );
 };
@@ -168,17 +193,47 @@ const DmtHome = () => {
   const fetchBeneficiaries = async () => {
     try {
       const token = await AsyncStorage.getItem("header_token");
-      const res = await getDmtBeneficiaries({ headerToken: token });
-      if (res.success || res.status === "SUCCESS") {
-        const rawList = Array.isArray(res.data) ? res.data : [];
-        const mapped = rawList.map((b) => ({
-          id: b._id || b.id,
-          name: b.holderName || b.name,
-          bank: b.bankName || b.bank,
-          accountNumber: b.accountNumber,
-          ifsc: b.ifscCode || b.ifsc,
+      const savedMobile = await AsyncStorage.getItem("sender_mobile");
+      const mobile = senderMobile || savedMobile || "GUEST";
+
+      const idempotencyKey = `GET_BENES_${mobile}_${Date.now()}`;
+      const res = await getDmtBeneficiaries({
+        data: { mobile },
+        headerToken: token,
+        idempotencyKey
+      });
+
+      const isSuccess = res.success || res.status === "SUCCESS" || res.status === true || res.statusCode === 200;
+
+      if (isSuccess) {
+        // Handle both direct array and nested data.data array
+        let rawList = [];
+        if (Array.isArray(res.data)) {
+          rawList = res.data;
+        } else if (res.data && Array.isArray(res.data.beneficiaries)) {
+          rawList = res.data.beneficiaries;
+        } else if (res.data && Array.isArray(res.data.data)) {
+          rawList = res.data.data;
+        }
+
+        const mapped = rawList.map((b, idx) => ({
+          id: b._id || b.id || `bene_${idx}_${Date.now()}`,
+          name: b.account_name || b.accountHolderName || b.holderName || b.name || "Unknown Name",
+          bank: b.bank || b.bankName || "Unknown Bank",
+          accountNumber: b.account_no || b.accountNumber || "N/A",
+          ifsc: b.ifsc || b.ifscCode || b.ifsc_code || "N/A",
+          bene_mobile: b.bene_mobile || b.mobile || "",
+          // Store raw fields for deletion
+          raw: {
+            accountHolderName: b.account_name || b.accountHolderName || b.holderName || b.name,
+            accountNumber: b.account_no || b.accountNumber,
+            ifsc: b.ifsc || b.ifscCode || b.ifsc_code,
+            bankName: b.bank || b.bankName,
+          }
         }));
         setAccounts(mapped);
+      } else {
+        console.log("Beneficiary fetch not successful:", res.message);
       }
     } catch (err) {
       console.log("Fetch Beneficiaries Error:", err);
@@ -195,6 +250,52 @@ const DmtHome = () => {
 
   const handleTransfer = (account) => {
     navigation.navigate("MoneyTransfer", { account });
+  };
+
+  const handleDelete = (account) => {
+    AlertService.showAlert({
+      type: "warning",
+      title: "Confirm Delete",
+      message: `Are you sure you want to delete ${account.name}? This action cannot be undone.`,
+      confirmText: "Delete Now",
+      cancelText: "Keep it",
+      onConfirm: async () => {
+        AlertService.hideAlert();
+        try {
+          const token = await AsyncStorage.getItem("header_token");
+          const savedMobile = await AsyncStorage.getItem("sender_mobile");
+          const mobile = senderMobile || savedMobile;
+
+          const payload = {
+            ...account.raw,
+            mobile: mobile
+          };
+
+          const res = await deleteDmtBeneficiary({
+            data: payload,
+            headerToken: token,
+            idempotencyKey: `DEL_BEN_${account.accountNumber}_${Date.now()}`
+          });
+
+          if (res.success || res.status === "SUCCESS") {
+            AlertService.showAlert({
+              type: "success",
+              title: "Deleted",
+              message: res.message || "Beneficiary removed successfully"
+            });
+            fetchBeneficiaries(); // Refresh list
+          } else {
+            AlertService.showAlert({
+              type: "error",
+              title: "Delete Failed",
+              message: res.message || "Unable to delete beneficiary"
+            });
+          }
+        } catch (err) {
+          console.log("Delete Error:", err);
+        }
+      }
+    });
   };
 
   const ListHeader = () => (
@@ -215,7 +316,7 @@ const DmtHome = () => {
         {/* Fetch Beneficiary — different color (primary / dark) */}
         <TouchableOpacity
           style={[styles.actionBtn, styles.actionBtnFetch]}
-          onPress={() => navigation.navigate("FetchBeneficiary")}
+          onPress={fetchBeneficiaries}
           activeOpacity={0.85}
         >
           <Text style={styles.actionBtnIcon}>↓</Text>
@@ -297,7 +398,12 @@ const DmtHome = () => {
             data={accounts}
             keyExtractor={(item) => item.id}
             renderItem={({ item, index }) => (
-              <AccountCard item={item} index={index} onTransfer={handleTransfer} />
+              <AccountCard
+                item={item}
+                index={index}
+                onTransfer={handleTransfer}
+                onDelete={handleDelete}
+              />
             )}
             ListHeaderComponent={ListHeader}
             showsVerticalScrollIndicator={false}
@@ -411,51 +517,146 @@ const styles = StyleSheet.create({
   },
   countTxt: { fontFamily: Fonts.Bold, color: Colors.primary, fontSize: rs(10) },
 
-  // ── Account Card ──
+  // ── Account Card Redesign ──
   card: {
     backgroundColor: Colors.white,
-    borderRadius: scale(18), padding: scale(14),
-    flexDirection: "row", alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: vs(12),
-    elevation: 2,
+    borderRadius: scale(20),
+    marginBottom: vs(16),
+    elevation: 4,
     shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 6,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(212,176,106,0.12)',
+    overflow: 'hidden',
   },
-  cardLeft: { flexDirection: "row", alignItems: "center", flex: 1 },
-
-  avatar: {
-    width: scale(46), height: scale(46), borderRadius: scale(13),
-    alignItems: "center", justifyContent: "center",
+  cardMain: {
+    flexDirection: "row",
+    padding: scale(14),
+    alignItems: "center",
+  },
+  avatarSection: {
     marginRight: scale(12),
-    flexShrink: 0,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  avatarTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(14) },
-
-  cardInfo: { flex: 1 },
-  cardName: { fontFamily: Fonts.Bold, fontSize: rs(13), color: Colors.gray_21, marginBottom: vs(2) },
-  cardBank: { fontFamily: Fonts.Regular, fontSize: rs(11), color: Colors.gray_9E, marginBottom: vs(6) },
-
-  // ── ONE LINE: acc no + ifsc ──
-  tagRow: { flexDirection: "row", alignItems: "center", gap: scale(6), flexWrap: "nowrap" },
-  tag: {
-    backgroundColor: Colors.gray_F0, borderRadius: scale(6),
-    paddingHorizontal: scale(7), paddingVertical: vs(3),
+  avatar: {
+    width: scale(52),
+    height: scale(52),
+    borderRadius: scale(16),
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 2,
+    elevation: 3,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
-  tagTxt: { fontFamily: Fonts.Medium, fontSize: rs(9), color: Colors.gray_75 },
-  tagIfsc: { backgroundColor: Colors.kyc_accent },
-  tagIfscTxt: { fontFamily: Fonts.Medium, color: Colors.white },
-
-  // ── Send button — text only ──
-  sendBtn: {
-    backgroundColor: Colors.kyc_accent,
-    borderRadius: scale(12),
-    paddingVertical: vs(9), paddingHorizontal: scale(16),
+  avatarTxt: {
+    fontFamily: Fonts.Bold,
+    color: Colors.white,
+    fontSize: rs(16),
+  },
+  avatarDecoration: {
+    position: 'absolute',
+    bottom: -scale(4),
+    right: -scale(4),
+    width: scale(20),
+    height: scale(20),
+    borderRadius: scale(8),
+    backgroundColor: 'rgba(212,176,106,0.1)',
+    zIndex: 1,
+  },
+  cardContent: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  nameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: vs(2),
+  },
+  cardName: {
+    fontFamily: Fonts.Bold,
+    fontSize: rs(14),
+    color: "#1E293B",
+    marginRight: scale(4),
+  },
+  cardBank: {
+    fontFamily: Fonts.Medium,
+    fontSize: rs(11),
+    color: "#64748B",
+    marginBottom: vs(8),
+  },
+  detailsGrid: {
+    flexDirection: "row",
+    backgroundColor: "#F8FAFC",
+    borderRadius: scale(10),
+    paddingVertical: vs(6),
+    paddingHorizontal: scale(8),
+    gap: scale(12),
+  },
+  detailItem: {
+    flex: 1,
+    paddingLeft: scale(4),
+  },
+  detailLabel: {
+    fontSize: rs(7),
+    fontFamily: Fonts.Bold,
+    color: "#94A3B8",
+    letterSpacing: 0.5,
+    marginBottom: vs(1),
+  },
+  detailValue: {
+    fontSize: rs(10),
+    fontFamily: Fonts.Medium,
+    color: "#334155",
+  },
+  actionColumn: {
+    alignItems: "center",
+    marginLeft: scale(12),
+    gap: vs(8),
+  },
+  transferBtn: {
+    backgroundColor: Colors.primary,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: vs(8),
+    paddingHorizontal: scale(12),
+    borderRadius: scale(10),
+    gap: scale(4),
     elevation: 2,
     shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
-  sendTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(12) },
+  transferBtnTxt: {
+    fontFamily: Fonts.Bold,
+    color: Colors.white,
+    fontSize: rs(10),
+  },
+  absDeleteBtn: {
+    position: 'absolute',
+    top: scale(8),
+    right: scale(8),
+    width: scale(34),
+    height: scale(34),
+    borderRadius: scale(17),
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 10,
+  },
+  verifiedBadge: {
+    backgroundColor: 'rgba(212,176,106,0.1)',
+    borderRadius: scale(6),
+    width: scale(18),
+    height: scale(18),
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
   center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: Colors.bg },
   loadingTxt: { fontFamily: Fonts.Medium, color: Colors.gray_9E, marginTop: vs(10), fontSize: rs(13) },

@@ -1662,6 +1662,25 @@ export const aepsDailyLogin = async ({ data, headerToken, headerKey, idempotency
   }
 };
 
+/**
+ * onboardAepsUser
+ * POST /user/aeps/onboard-user
+ */
+export const onboardAepsUser = async ({ data, headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/aeps/onboard-user`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Onboard AEPS User API Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "User onboarding failed" };
+  }
+};
+
 
 
 /**
@@ -1685,17 +1704,39 @@ export const addDmtBeneficiary = async ({ data, headerToken, idempotencyKey }) =
 
 /**
  * getDmtBeneficiaries
- * GET /user/dmt-ben/get-beneficiary
+ * POST /user/dmt-ben/get-beneficiary
  */
-export const getDmtBeneficiaries = async ({ headerToken }) => {
+export const getDmtBeneficiaries = async ({ data, headerToken, idempotencyKey }) => {
   try {
-    const response = await axios.get(`${BASE_URL}/user/dmt-ben/get-beneficiary`, {
-      headers: { Authorization: `Bearer ${headerToken}` },
+    const response = await axios.post(`${BASE_URL}/user/dmt-ben/get-beneficiary`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey,
+      },
     });
     return response.data;
   } catch (error) {
     console.log("Get DMT Beneficiaries Error:", error?.response?.data || error);
     return error?.response?.data || { success: false, message: "Unable to fetch beneficiaries" };
+  }
+};
+
+/**
+ * deleteDmtBeneficiary
+ * POST /user/dmt-ben/delete-beneficiary
+ */
+export const deleteDmtBeneficiary = async ({ data, headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/dmt-ben/delete-beneficiary`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Delete DMT Beneficiary Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to delete beneficiary" };
   }
 };
 

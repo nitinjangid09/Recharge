@@ -45,6 +45,9 @@ const GlobalAlertProvider = ({ children }) => {
         title={config.title}
         message={config.message}
         onClose={handleClose}
+        onConfirm={config.onConfirm}
+        confirmText={config.confirmText}
+        cancelText={config.cancelText}
       />
     </>
   );

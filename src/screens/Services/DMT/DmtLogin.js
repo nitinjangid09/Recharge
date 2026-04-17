@@ -26,6 +26,7 @@ import {
 } from "../../../api/AuthApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ActivityIndicator } from "react-native";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -255,12 +256,15 @@ const DmtLogin = () => {
           {/* ─── STEP 1: Mobile ─── */}
           {step === 1 && (
             <View style={styles.formCard}>
-              <Text style={styles.fieldHeading}>ENTER MOBILE NUMBER</Text>
+              <Text style={styles.fieldHeading}>SEARCH CUSTOMER BY MOBILE</Text>
               <View style={[styles.inputRow, error ? styles.inputError : null]}>
+                <View style={styles.searchIconBox}>
+                  <Icon name="account-search-outline" size={rs(20)} color={Colors.primary} />
+                </View>
+                <View style={styles.prefixDivider} />
                 <View style={styles.prefixBox}>
                   <Text style={styles.prefixTxt}>+91</Text>
                 </View>
-                <View style={styles.prefixDivider} />
                 <TextInput
                   style={styles.input}
                   placeholder="Enter mobile number"
@@ -555,7 +559,8 @@ const styles = StyleSheet.create({
   },
   prefixBox: { paddingRight: scale(8) },
   prefixTxt: { fontFamily: Fonts.Bold, color: Colors.primary, fontSize: rs(14), fontWeight: "900" },
-  prefixDivider: { width: 1, height: vs(20), backgroundColor: Colors.gray_E0, marginRight: scale(12) },
+  prefixDivider: { width: 1, height: vs(20), backgroundColor: Colors.gray_E0, marginHorizontal: scale(10) },
+  searchIconBox: { paddingRight: scale(4) },
   aadhaarIcon: { fontSize: rs(16), marginRight: scale(8) },
   clearIcon: {
     fontFamily: Fonts.Bold,
