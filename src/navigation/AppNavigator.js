@@ -30,15 +30,15 @@ import CashWithdraw from "../screens/Services/AEPS1/CashWithdraw";
 import MiniStatement from "../screens/Services/AEPS1/MiniStatements";
 import AepsRegistration from "../screens/Services/AEPS1/AepsRegistration";
 import DailyLogin from "../screens/Services/AEPS1/DailyLogin";
-import DmtLogin from "../screens/DMT/DmtLogin"
-import AddBeneficial from "../screens/DMT/AddBeneficial";
-import DmtHome from "../screens/DMT/DmtHome"
+import DmtLogin from "../screens/Services/DMT/DmtLogin"
+import AddBeneficial from "../screens/Services/DMT/AddBeneficial";
+import DmtHome from "../screens/Services/DMT/DmtHome"
 import ReceiptScreen from "../screens/Services/AEPS1/PaymentReceipt"
 import ChangePassword from "../screens/Account/ChangePassword"
 import ChangePin from "../screens/Account/ChangePin"
 import ForgotPassword from "../screens/Account/ForgotPassword"
 import ForgotPin from "../screens/Account/ForgotPin"
-import MoneyTransfer from "../screens/DMT/MoneyTransfer"
+import MoneyTransfer from "../screens/Services/DMT/MoneyTransfer"
 import SupportScreen from "../screens/Support/SupportScreen"
 import FaqSupportScreen from "../screens/Support/FaQSupport"
 import PaymentVerification from '../screens/AccountActivate/PaymentVerification';
@@ -61,10 +61,7 @@ import AEPSServiceActivation from '../screens/Services/AEPS2/AEPSServiceActivati
 import AePSDashboard from '../screens/Services/AEPS2/AePSDashboardScreen';
 import TransactionAuditScreen from '../screens/Reports/WalletAudit';
 
-import DMTDashboard from '../screens/Services/DMT/DashboardScreen';
-import DMTKYC from '../screens/Services/DMT/KYCScreen';
-import DMTMoneyTransfer from '../screens/Services/DMT/MoneyTransferScreen';
-import DMTRegister from '../screens/Services/DMT/RegisterScreen';
+
 
 const Stack = createStackNavigator();
 
@@ -210,10 +207,7 @@ const AppNavigator = () => {
       <Stack.Screen name="AePSDashboard" component={AePSDashboard} />
       <Stack.Screen name="WalletAudit" component={TransactionAuditScreen} />
 
-      <Stack.Screen name="DMTDashboard" component={DMTDashboard} />
-      <Stack.Screen name="DMTKYC" component={DMTKYC} />
-      <Stack.Screen name="DMTMoneyTransfer" component={DMTMoneyTransfer} />
-      <Stack.Screen name="DMTRegister" component={DMTRegister} />
+
     </Stack.Navigator>
   );
 };

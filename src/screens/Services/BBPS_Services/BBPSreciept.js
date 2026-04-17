@@ -10,8 +10,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import Colors from "../../constants/Colors";
-import Fonts from "../../constants/Fonts";
+import Colors from "../../../constants/Colors";
+import Fonts from "../../../constants/Fonts";
 
 const BbpsReceiptScreen = ({ route }) => {
   const navigation = useNavigation();

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, Component } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -14,10 +14,18 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import Colors from "../../constants/Colors";
-import Fonts from "../../constants/Fonts";
-import { fadeIn, slideUp, buttonPress } from "../../utils/ScreenAnimations";
-import CustomAlert from "../../componets/Alerts/CustomAlert";
+import Colors from "../../../constants/Colors";
+import Fonts from "../../../constants/Fonts";
+import { fadeIn, slideUp, buttonPress } from "../../../utils/ScreenAnimations";
+import CustomAlert from "../../../componets/Alerts/CustomAlert";
+import { 
+  fetchDmtCustomer, 
+  registerDmtCustomer, 
+  dmtCustomerEkyc, 
+  generateDmtRegOtp 
+} from "../../../api/AuthApi";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ActivityIndicator } from "react-native";
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -29,115 +37,29 @@ const rs = (s) => Math.round(Math.sqrt((SW * SH) / (BASE_W * BASE_H)) * s);
 
 // ─── Format Aadhaar: "XXXXXXXXXXXX" → "XXXX XXXX XXXX" ───────────────────────
 const formatAadhaar = (raw) => {
-  // raw is digits only, max 12
   const d = raw.replace(/\D/g, "").slice(0, 12);
   return d.replace(/(\d{4})(?=\d)/g, "$1 ").trim();
 };
 
-// ─── OTP boxes component — fills left to right ───────────────────────────────
-const OtpBoxes = ({ value, onChange }) => {
-  const inputRef = useRef(null);
-  const digits = value.split(""); // array of entered digits
-
-  return (
-    <TouchableOpacity
-      activeOpacity={1}
-      onPress={() => inputRef.current?.focus()}
-      style={otpStyles.row}
-    >
-      {/* Hidden real input — always focused */}
-      <TextInput
-        ref={inputRef}
-        value={value}
-        onChangeText={(t) => onChange(t.replace(/\D/g, "").slice(0, 6))}
-        keyboardType="number-pad"
-        maxLength={6}
-        caretHidden
-        style={otpStyles.hiddenInput}
-        autoFocus
-      />
-
-      {/* 6 visible boxes */}
-      {Array.from({ length: 6 }).map((_, i) => {
-        const filled = i < digits.length;
-        const isCaret = i === digits.length;
-        return (
-          <View
-            key={i}
-            style={[
-              otpStyles.box,
-              filled && otpStyles.boxFilled,
-              isCaret && otpStyles.boxCaret,
-            ]}
-          >
-            <Text style={otpStyles.boxTxt}>{filled ? digits[i] : ""}</Text>
-            {isCaret && <View style={otpStyles.cursor} />}
-          </View>
-        );
-      })}
-    </TouchableOpacity>
-  );
-};
-
-const otpStyles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: scale(8),
-    marginVertical: vs(16),
-    position: "relative",
-  },
-  hiddenInput: {
-    position: "absolute",
-    width: 1,
-    height: 1,
-    opacity: 0,
-  },
-  box: {
-    flex: 1,
-    height: vs(52),
-    borderRadius: scale(12),
-    backgroundColor: Colors.gray_F5, // F7F7F7 equivalent
-    borderWidth: 1.5,
-    borderColor: Colors.gray_E0,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  boxFilled: {
-    backgroundColor: Colors.accent + "10",
-    borderColor: Colors.accent,
-  },
-  boxCaret: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primary + "0A", // #F0F4FF approx
-  },
-  boxTxt: {
-    fontFamily: Fonts.Bold,
-    fontSize: rs(20),
-    fontWeight: "900",
-    color: Colors.primary,
-  },
-  cursor: {
-    position: "absolute",
-    bottom: vs(10),
-    width: scale(2),
-    height: vs(18),
-    backgroundColor: Colors.primary,
-    borderRadius: 1,
-  },
-});
-
-// ══════════════════════════════════════════════════════════════════════════════
-//  MAIN SCREEN
-// ══════════════════════════════════════════════════════════════════════════════
+// ─── MAIN SCREEN ─────────────────────────────────────────────────────────────
 const DmtLogin = () => {
   const navigation = useNavigation();
 
   const [mobileNumber, setMobileNumber] = useState("");
-  const [aadhaarRaw, setAadhaarRaw] = useState(""); // digits only
+  const [aadhaarRaw, setAadhaarRaw] = useState("");
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState(1);
   const [otpVisible, setOtpVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [otpError, setOtpError] = useState("");
+  const [error, setError] = useState("");
+  
+  // Static context as requested
+  const appCtx = {
+    latitude: "26.8881633",
+    longitude: "75.7362708",
+    publicIp: "122.176.4.14"
+  };
 
   // Alert
   const [alertVisible, setAlertVisible] = useState(false);
@@ -166,6 +88,7 @@ const DmtLogin = () => {
   useEffect(() => {
     formOp.setValue(0);
     formTY.setValue(vs(20));
+    setError("");
     Animated.parallel([fadeIn(formOp, 350), slideUp(formTY, 350)]).start();
   }, [step]);
 
@@ -173,6 +96,7 @@ const DmtLogin = () => {
     if (otpVisible) {
       otpScale.setValue(0.85);
       otpOpacity.setValue(0);
+      setOtpError("");
       Animated.parallel([
         Animated.spring(otpScale, { toValue: 1, friction: 7, tension: 90, useNativeDriver: true }),
         Animated.timing(otpOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
@@ -181,26 +105,99 @@ const DmtLogin = () => {
   }, [otpVisible]);
 
   // Handlers
-  const handleMobileSubmit = () => {
-    if (mobileNumber.length !== 10) {
-      return showAlert("error", "Invalid Mobile", "Enter valid 10-digit mobile number");
+  const handleMobileSubmit = async () => {
+    const mobileRegex = /^[6-9][0-9]{9}$/;
+    if (!mobileRegex.test(mobileNumber)) {
+      setError("Please enter a valid 10-digit mobile number starting with 6-9");
+      return;
     }
-    buttonPress(btnScale).start(() => setStep(2));
+    setError("");
+    
+    setIsLoading(true);
+    try {
+      const token = await AsyncStorage.getItem("header_token");
+      const res = await fetchDmtCustomer({
+        data: {
+          mobileNumber,
+          ...appCtx
+        },
+        headerToken: token,
+        idempotencyKey: `DMT_LOOKUP_${mobileNumber}_${Date.now()}`
+      });
+
+      if (res.success || res.status === "SUCCESS") {
+        // User exists, save and go home
+        await AsyncStorage.setItem("sender_mobile", mobileNumber);
+        navigation.replace("DmtHome", { mobileNumber });
+      } else if (res.statusCode === 404 || res.message?.toLowerCase().includes("not found")) {
+        // Not registered, trigger OTP and go to registration
+        const otpRes = await generateDmtRegOtp({
+          data: { mobileNumber },
+          headerToken: token,
+          idempotencyKey: `DMT_GEN_OTP_${mobileNumber}_${Date.now()}`
+        });
+
+        if (otpRes.success) {
+          setStep(2);
+          setOtpVisible(true);
+        } else {
+          setError(otpRes.message || "Failed to generate registration OTP");
+        }
+      } else {
+        setError(res.message || "Something went wrong. Please try again.");
+      }
+    } catch (err) {
+      console.log("DMT lookup error:", err);
+      setError("Unable to reach server. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleAadhaarSubmit = () => {
     if (aadhaarRaw.length !== 12) {
-      return showAlert("error", "Invalid Aadhaar", "Enter valid 12-digit Aadhaar number");
+      setError("Please enter a valid 12-digit Aadhaar number");
+      return;
     }
-    buttonPress(btnScale).start(() => { setOtp(""); setOtpVisible(true); });
+    setError("");
+    buttonPress(btnScale).start(() => {
+      setOtp("");
+      setOtpVisible(true);
+    });
   };
 
-  const handleOtpVerify = () => {
+  const handleOtpVerify = async () => {
     if (otp.length !== 6) {
-      return showAlert("error", "Invalid OTP", "Enter valid 6-digit OTP");
+      setOtpError("Please enter a valid 6-digit OTP");
+      return;
     }
-    setOtpVisible(false);
-    navigation.replace("DmtHome");
+    setOtpError("");
+    setIsLoading(true);
+
+    try {
+      const token = await AsyncStorage.getItem("header_token");
+      const res = await registerDmtCustomer({
+        data: {
+          mobileNumber,
+          otp,
+          ...appCtx
+        },
+        headerToken: token,
+        idempotencyKey: `DMT_REG_${mobileNumber}_${Date.now()}`
+      });
+
+      if (res.success || res.status === "SUCCESS") {
+        setOtpVisible(false);
+        await AsyncStorage.setItem("sender_mobile", mobileNumber);
+        navigation.replace("DmtHome", { mobileNumber });
+      } else {
+        setOtpError(res.message || "Verification failed");
+      }
+    } catch (err) {
+      setOtpError("Network error. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -217,12 +214,10 @@ const DmtLogin = () => {
             <Text style={styles.secureBadgeIcon}>🔒</Text>
             <Text style={styles.secureBadgeTxt}>SECURED BY DMT</Text>
           </View>
-
           <View style={styles.titleRow}>
             <Text style={styles.titleAccent}>DMT </Text>
             <Text style={styles.titleWhite}>Login</Text>
           </View>
-
           <Text style={styles.headerSub}>Secure Domestic Money Transfer</Text>
         </Animated.View>
 
@@ -233,14 +228,11 @@ const DmtLogin = () => {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-
           {/* ─── STEP 1: Mobile ─── */}
           {step === 1 && (
             <View style={styles.formCard}>
               <Text style={styles.fieldHeading}>ENTER MOBILE NUMBER</Text>
-
-              {/* +91 prefix ON LEFT, no flag */}
-              <View style={styles.inputRow}>
+              <View style={[styles.inputRow, error ? styles.inputError : null]}>
                 <View style={styles.prefixBox}>
                   <Text style={styles.prefixTxt}>+91</Text>
                 </View>
@@ -252,24 +244,33 @@ const DmtLogin = () => {
                   keyboardType="number-pad"
                   maxLength={10}
                   value={mobileNumber}
-                  onChangeText={(t) => setMobileNumber(t.replace(/\D/g, ""))}
+                  onChangeText={(t) => {
+                    setMobileNumber(t.replace(/\D/g, ""));
+                    if (error) setError("");
+                  }}
                 />
               </View>
+              {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
               <View style={styles.hintRow}>
-                <Text style={styles.hintTxt}>
-                  Enter your 10-digit registered mobile number
-                </Text>
+                <Text style={styles.hintTxt}>Enter your 10-digit registered mobile number</Text>
               </View>
 
               <Animated.View style={{ transform: [{ scale: btnScale }], marginTop: vs(20) }}>
                 <TouchableOpacity
-                  style={styles.button}
+                  style={[styles.button, isLoading && styles.btnDisabled]}
                   onPress={handleMobileSubmit}
+                  disabled={isLoading}
                   activeOpacity={0.88}
                 >
-                  <Text style={styles.buttonText}>Continue</Text>
-                  <Text style={styles.btnArrowTxt}>→</Text>
+                  {isLoading ? (
+                    <ActivityIndicator color={Colors.white} />
+                  ) : (
+                    <>
+                      <Text style={styles.buttonText}>Continue</Text>
+                      <Text style={styles.btnArrowTxt}>→</Text>
+                    </>
+                  )}
                 </TouchableOpacity>
               </Animated.View>
             </View>
@@ -278,7 +279,6 @@ const DmtLogin = () => {
           {/* ─── STEP 2: Aadhaar ─── */}
           {step === 2 && (
             <View style={styles.formCard}>
-              {/* Step indicator */}
               <View style={styles.stepIndicator}>
                 <View style={[styles.stepDot, styles.stepDotDone]}>
                   <Text style={styles.stepDotTxt}>✓</Text>
@@ -289,7 +289,6 @@ const DmtLogin = () => {
                 </View>
               </View>
 
-              {/* Mobile chip */}
               <View style={styles.mobileChip}>
                 <Text style={styles.mobileChipCode}>+91</Text>
                 <Text style={styles.mobileChipTxt}>{mobileNumber}</Text>
@@ -302,9 +301,7 @@ const DmtLogin = () => {
               </View>
 
               <Text style={styles.fieldHeading}>ENTER AADHAAR NUMBER</Text>
-
-              {/* Aadhaar input — formatted XXXX XXXX XXXX */}
-              <View style={styles.inputRow}>
+              <View style={[styles.inputRow, error ? styles.inputError : null]}>
                 <Text style={styles.aadhaarIcon}>🪪</Text>
                 <View style={styles.prefixDivider} />
                 <TextInput
@@ -312,12 +309,12 @@ const DmtLogin = () => {
                   placeholder="XXXX XXXX XXXX"
                   placeholderTextColor={Colors.gray_BD}
                   keyboardType="number-pad"
-                  maxLength={14} // 12 digits + 2 spaces
+                  maxLength={14}
                   value={formatAadhaar(aadhaarRaw)}
                   onChangeText={(t) => {
-                    // strip spaces → store raw digits
                     const raw = t.replace(/\D/g, "").slice(0, 12);
                     setAadhaarRaw(raw);
+                    if (error) setError("");
                   }}
                 />
                 {aadhaarRaw.length > 0 && (
@@ -329,7 +326,7 @@ const DmtLogin = () => {
                   </TouchableOpacity>
                 )}
               </View>
-
+              {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
               <View style={styles.hintRow}>
                 <Text style={styles.hintTxt}>
@@ -363,44 +360,45 @@ const DmtLogin = () => {
           </View>
         </Animated.ScrollView>
 
-        {/* ══ OTP MODAL ══ */}
         <Modal visible={otpVisible} transparent animationType="none" onRequestClose={() => setOtpVisible(false)}>
           <View style={styles.modalOverlay}>
             <Animated.View
-              style={[
-                styles.otpCard,
-                { opacity: otpOpacity, transform: [{ scale: otpScale }] },
-              ]}
+              style={[styles.otpCard, { opacity: otpOpacity, transform: [{ scale: otpScale }] }]}
             >
               <View style={styles.otpIconWrap}>
                 <Text style={styles.otpIcon}>💬</Text>
               </View>
               <Text style={styles.otpTitle}>Verify OTP</Text>
               <Text style={styles.otpSub}>
-                OTP sent to{" "}
-                <Text style={styles.otpMobile}>+91 {mobileNumber}</Text>
+                OTP sent to <Text style={styles.otpMobile}>+91 {mobileNumber}</Text>
               </Text>
-
-              {/* OTP boxes — fills left to right */}
-              <View style={styles.otpInputRow}>
+              <View style={[styles.otpInputRow, otpError ? styles.inputError : null]}>
                 <TextInput
                   style={styles.otpInput}
                   keyboardType="number-pad"
                   maxLength={6}
                   value={otp}
-                  onChangeText={(t) => setOtp(t.replace(/[^0-9]/g, ""))}
+                  onChangeText={(t) => {
+                    setOtp(t.replace(/[^0-9]/g, ""));
+                    if (otpError) setOtpError("");
+                  }}
                   placeholder="• • • • • •"
                   placeholderTextColor={Colors.gray_BD}
                 />
               </View>
+              {otpError ? <Text style={styles.errorTextModal}>{otpError}</Text> : null}
               <TouchableOpacity
-                style={styles.otpBtn}
+                style={[styles.otpBtn, isLoading && styles.btnDisabled]}
                 onPress={handleOtpVerify}
+                disabled={isLoading}
                 activeOpacity={0.88}
               >
-                <Text style={styles.otpBtnTxt}>Verify OTP</Text>
+                {isLoading ? (
+                  <ActivityIndicator color={Colors.white} />
+                ) : (
+                  <Text style={styles.otpBtnTxt}>Verify OTP</Text>
+                )}
               </TouchableOpacity>
-
               <View style={styles.otpFooter}>
                 <TouchableOpacity>
                   <Text style={styles.resendTxt}>Resend OTP</Text>
@@ -428,15 +426,10 @@ const DmtLogin = () => {
 
 export default DmtLogin;
 
-// ══════════════════════════════════════════════════════════════════════════════
-//  STYLES
-// ══════════════════════════════════════════════════════════════════════════════
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.primary },
   scroll: { flex: 1, backgroundColor: Colors.bg },
   scrollContent: { padding: scale(16), paddingBottom: vs(50) },
-
-  // ── Header ──
   header: {
     backgroundColor: Colors.primary,
     paddingHorizontal: scale(20),
@@ -445,179 +438,286 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: scale(28),
     borderBottomRightRadius: scale(28),
   },
-
   secureBadge: {
-    flexDirection: "row", alignItems: "center",
+    flexDirection: "row",
+    alignItems: "center",
     alignSelf: "flex-start",
     backgroundColor: Colors.whiteOpacity_10,
-    borderWidth: 1, borderColor: Colors.whiteOpacity_18,
+    borderWidth: 1,
+    borderColor: Colors.whiteOpacity_18,
     borderRadius: scale(20),
-    paddingHorizontal: scale(10), paddingVertical: vs(4),
-    marginBottom: vs(14), gap: scale(5),
+    paddingHorizontal: scale(10),
+    paddingVertical: vs(4),
+    marginBottom: vs(14),
+    gap: scale(5),
   },
   secureBadgeIcon: { fontSize: rs(10) },
-  secureBadgeTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(9), fontWeight: "800", letterSpacing: 1.1 },
-
+  secureBadgeTxt: {
+    fontFamily: Fonts.Bold,
+    color: Colors.white,
+    fontSize: rs(9),
+    fontWeight: "800",
+    letterSpacing: 1.1,
+  },
   titleRow: { flexDirection: "row", alignItems: "baseline", marginBottom: vs(6) },
-  titleAccent: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(32), fontWeight: "900", letterSpacing: 0.5 },
-  titleWhite: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(32), fontWeight: "900", letterSpacing: 0.5 },
-  headerSub: { fontFamily: Fonts.Medium, color: Colors.whiteOpacity_65, fontSize: rs(13), fontWeight: "500" },
-
-  // ── Form card ──
+  titleAccent: {
+    fontFamily: Fonts.Bold,
+    color: Colors.white,
+    fontSize: rs(32),
+    fontWeight: "900",
+    letterSpacing: 0.5,
+  },
+  titleWhite: {
+    fontFamily: Fonts.Bold,
+    color: Colors.white,
+    fontSize: rs(32),
+    fontWeight: "900",
+    letterSpacing: 0.5,
+  },
+  headerSub: {
+    fontFamily: Fonts.Medium,
+    color: Colors.whiteOpacity_65,
+    fontSize: rs(13),
+    fontWeight: "500",
+  },
   formCard: {
     backgroundColor: Colors.white,
-    borderRadius: scale(20), padding: scale(18),
-    elevation: 3, shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8,
+    borderRadius: scale(20),
+    padding: scale(18),
+    elevation: 3,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
   },
   fieldHeading: {
-    fontFamily: Fonts.Bold, fontSize: rs(9), fontWeight: "800", color: Colors.primary,
-    letterSpacing: 1.1, marginBottom: vs(10),
+    fontFamily: Fonts.Bold,
+    fontSize: rs(9),
+    fontWeight: "800",
+    color: Colors.primary,
+    letterSpacing: 1.1,
+    marginBottom: vs(10),
   },
-
-  // ── Input row ──
   inputRow: {
-    flexDirection: "row", alignItems: "center",
-    backgroundColor: Colors.gray_FA, borderRadius: scale(14),
-    borderWidth: 1, borderColor: Colors.gray_EB,
-    paddingHorizontal: scale(14), minHeight: vs(54),
-    marginBottom: vs(8),
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.gray_FA,
+    borderRadius: scale(14),
+    borderWidth: 1,
+    borderColor: Colors.gray_EB,
+    paddingHorizontal: scale(14),
+    minHeight: vs(54),
   },
-
-  // +91 prefix — left side, no flag
-  prefixBox: {
-    paddingRight: scale(8),
+  inputError: {
+    borderColor: "#ef4444",
+    borderWidth: 1.5,
   },
-  prefixTxt: {
-    fontFamily: Fonts.Bold, color: Colors.primary, fontSize: rs(14), fontWeight: "900",
+  errorText: {
+    fontFamily: Fonts.Bold,
+    color: "#ef4444",
+    fontSize: rs(10),
+    marginTop: vs(6),
+    marginBottom: vs(4),
+    fontWeight: "600",
   },
-  prefixDivider: {
-    width: 1, height: vs(20), backgroundColor: Colors.gray_E0,
-    marginRight: scale(12),
+  errorTextModal: {
+    fontFamily: Fonts.Bold,
+    color: "#ef4444",
+    fontSize: rs(10),
+    marginTop: vs(2),
+    marginBottom: vs(12),
+    fontWeight: "600",
+    textAlign: "center",
   },
-
+  prefixBox: { paddingRight: scale(8) },
+  prefixTxt: { fontFamily: Fonts.Bold, color: Colors.primary, fontSize: rs(14), fontWeight: "900" },
+  prefixDivider: { width: 1, height: vs(20), backgroundColor: Colors.gray_E0, marginRight: scale(12) },
   aadhaarIcon: { fontSize: rs(16), marginRight: scale(8) },
-  clearIcon: { fontFamily: Fonts.Bold, color: Colors.gray_BD, fontSize: rs(14), fontWeight: "700", marginLeft: scale(6) },
-
+  clearIcon: {
+    fontFamily: Fonts.Bold,
+    color: Colors.gray_BD,
+    fontSize: rs(14),
+    fontWeight: "700",
+    marginLeft: scale(6),
+  },
   input: {
-    fontFamily: Fonts.Bold, flex: 1, fontSize: rs(14), color: Colors.gray_21, padding: 0, fontWeight: "600",
+    fontFamily: Fonts.Bold,
+    flex: 1,
+    fontSize: rs(14),
+    color: Colors.gray_21,
+    padding: 0,
+    fontWeight: "600",
   },
-
-  // Aadhaar progress dots
-  aadhaarProgress: {
-    flexDirection: "row", alignItems: "center",
-    marginBottom: vs(8), gap: scale(3),
+  hintRow: { marginTop: vs(8) },
+  hintTxt: {
+    fontFamily: Fonts.Medium,
+    color: Colors.gray_9E,
+    fontSize: rs(10),
   },
-  aadhaarDot: {
-    width: scale(7), height: scale(7), borderRadius: scale(4),
-    backgroundColor: Colors.gray_E0,
-  },
-  aadhaarDotFilled: { backgroundColor: Colors.accent },
-
-
-  // Step indicator
-  stepIndicator: {
-    flexDirection: "row", alignItems: "center",
-    marginBottom: vs(14),
-  },
+  stepIndicator: { flexDirection: "row", alignItems: "center", marginBottom: vs(14) },
   stepDot: {
-    width: scale(26), height: scale(26), borderRadius: scale(13),
-    alignItems: "center", justifyContent: "center",
+    width: scale(26),
+    height: scale(26),
+    borderRadius: scale(13),
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: Colors.gray_E0,
   },
   stepDotDone: { backgroundColor: Colors.kyc_success },
-  stepDotActive: { backgroundColor: Colors.accent },
+  stepDotActive: { backgroundColor: Colors.primary },
   stepDotTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(10), fontWeight: "900" },
-  stepConnector: {
-    flex: 1, height: 2, backgroundColor: Colors.accent,
-    marginHorizontal: scale(6),
-  },
-
-  // Mobile chip
+  stepConnector: { flex: 1, height: 2, backgroundColor: Colors.primary, marginHorizontal: scale(6) },
   mobileChip: {
-    flexDirection: "row", alignItems: "center",
-    backgroundColor: Colors.accent + "10",
-    borderRadius: scale(10), paddingHorizontal: scale(12), paddingVertical: vs(8),
-    marginBottom: vs(16), gap: scale(8),
-    borderWidth: 1, borderColor: Colors.accent + "25",
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.primary + "10",
+    borderRadius: scale(10),
+    paddingHorizontal: scale(12),
+    paddingVertical: vs(8),
+    marginBottom: vs(16),
+    gap: scale(8),
+    borderWidth: 1,
+    borderColor: Colors.primary + "25",
   },
   mobileChipCode: { fontFamily: Fonts.Bold, color: Colors.primary, fontSize: rs(13), fontWeight: "900" },
-  mobileChipTxt: { fontFamily: Fonts.Bold, flex: 1, fontSize: rs(13), fontWeight: "700", color: Colors.primary },
-  mobileChipEdit: { fontFamily: Fonts.Bold, color: Colors.accent, fontSize: rs(11), fontWeight: "800" },
-
-  // Button
-  button: {
-    backgroundColor: Colors.accent, borderRadius: scale(14),
-    paddingVertical: vs(15), flexDirection: "row",
-    alignItems: "center", justifyContent: "center", gap: scale(10),
-    elevation: 3, shadowColor: Colors.accent,
-    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8,
+  mobileChipTxt: {
+    fontFamily: Fonts.Bold,
+    flex: 1,
+    fontSize: rs(13),
+    fontWeight: "700",
+    color: Colors.primary,
   },
-  buttonText: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(15), fontWeight: "900", letterSpacing: 0.4 },
-
+  mobileChipEdit: { fontFamily: Fonts.Bold, color: Colors.primary, fontSize: rs(11), fontWeight: "800" },
+  button: {
+    backgroundColor: Colors.primary,
+    borderRadius: scale(14),
+    paddingVertical: vs(15),
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: scale(10),
+    elevation: 3,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+  },
+  btnDisabled: {
+    backgroundColor: Colors.gray_BD,
+    elevation: 0,
+    shadowOpacity: 0,
+  },
+  buttonText: {
+    fontFamily: Fonts.Bold,
+    color: Colors.white,
+    fontSize: rs(15),
+    fontWeight: "900",
+    letterSpacing: 0.4,
+  },
   btnArrowTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(14), fontWeight: "900" },
-
-  // Link
   linkBtn: { alignItems: "center", marginTop: vs(16) },
-  linkTxt: { fontFamily: Fonts.Bold, color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
-
-  // Security note
+  linkTxt: { fontFamily: Fonts.Bold, color: Colors.primary, fontSize: rs(12), fontWeight: "700" },
   secureNote: {
-    flexDirection: "row", alignItems: "flex-start",
-    gap: scale(8), marginTop: vs(16),
-    backgroundColor: Colors.bg_F8, borderRadius: scale(12),
-    padding: scale(12), borderWidth: 1, borderColor: Colors.gray_EB,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: scale(8),
+    marginTop: vs(16),
+    backgroundColor: Colors.bg_F8,
+    borderRadius: scale(12),
+    padding: scale(12),
+    borderWidth: 1,
+    borderColor: Colors.gray_EB,
   },
   secureNoteIcon: { fontSize: rs(14), marginTop: vs(1) },
-  secureNoteTxt: { fontFamily: Fonts.Regular, flex: 1, color: Colors.gray_9E, fontSize: rs(10), lineHeight: rs(16) },
-
-  // ── OTP Modal ──
+  secureNoteTxt: {
+    fontFamily: Fonts.Regular,
+    flex: 1,
+    color: Colors.gray_9E,
+    fontSize: rs(10),
+    lineHeight: rs(16),
+  },
   modalOverlay: {
-    flex: 1, backgroundColor: Colors.blackOpacity_45,
-    justifyContent: "center", alignItems: "center",
+    flex: 1,
+    backgroundColor: Colors.blackOpacity_45,
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: scale(24),
   },
   otpCard: {
-    width: "100%", backgroundColor: Colors.white,
+    width: "100%",
+    backgroundColor: Colors.white,
     borderRadius: scale(24),
-    paddingVertical: vs(28), paddingHorizontal: scale(22),
+    paddingVertical: vs(28),
+    paddingHorizontal: scale(22),
     alignItems: "center",
-    elevation: 10, shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.18, shadowRadius: 16,
+    elevation: 10,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
   },
   otpIconWrap: {
-    width: scale(56), height: scale(56), borderRadius: scale(16),
-    backgroundColor: Colors.accent + "15",
-    alignItems: "center", justifyContent: "center", marginBottom: vs(12),
+    width: scale(56),
+    height: scale(56),
+    borderRadius: scale(16),
+    backgroundColor: Colors.primary + "15",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: vs(12),
   },
   otpIcon: { fontSize: rs(26) },
-  otpTitle: { fontFamily: Fonts.Bold, fontSize: rs(18), fontWeight: "900", color: Colors.primary, marginBottom: vs(4) },
+  otpTitle: {
+    fontFamily: Fonts.Bold,
+    fontSize: rs(18),
+    fontWeight: "900",
+    color: Colors.primary,
+    marginBottom: vs(4),
+  },
   otpSub: { fontFamily: Fonts.Medium, fontSize: rs(12), color: Colors.gray_9E, textAlign: "center" },
   otpMobile: { fontFamily: Fonts.Bold, color: Colors.primary, fontWeight: "800" },
-  otpInputRow: { width: "100%", marginBottom: vs(20) },
+  otpInputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.gray_FA,
+    borderRadius: scale(14),
+    borderWidth: 1,
+    borderColor: Colors.gray_EB,
+    paddingHorizontal: scale(14),
+    width: "100%",
+  },
   otpInput: {
     fontFamily: Fonts.Bold,
     width: "100%",
-    backgroundColor: Colors.gray_FA,
-    borderRadius: scale(14),
-    borderWidth: 1, borderColor: Colors.gray_EB,
     paddingVertical: vs(14),
-    fontSize: rs(22), textAlign: "center",
+    fontSize: rs(22),
+    textAlign: "center",
     letterSpacing: scale(8),
-    color: Colors.primary, fontWeight: "800",
+    color: Colors.primary,
+    fontWeight: "800",
   },
   otpBtn: {
-    width: "100%", backgroundColor: Colors.accent,
-    borderRadius: scale(14), paddingVertical: vs(14),
-    alignItems: "center", elevation: 2,
-    shadowColor: Colors.accent,
-    shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 6,
+    width: "100%",
+    backgroundColor: Colors.primary,
+    borderRadius: scale(14),
+    paddingVertical: vs(14),
+    alignItems: "center",
+    elevation: 2,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
     marginBottom: vs(14),
+    marginTop: vs(10),
   },
-  otpBtnTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(14), fontWeight: "900", letterSpacing: 0.3 },
-
+  otpBtnTxt: {
+    fontFamily: Fonts.Bold,
+    color: Colors.white,
+    fontSize: rs(14),
+    fontWeight: "900",
+    letterSpacing: 0.3,
+  },
   otpFooter: { flexDirection: "row", alignItems: "center", gap: scale(12) },
-  resendTxt: { fontFamily: Fonts.Bold, color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
+  resendTxt: { fontFamily: Fonts.Bold, color: Colors.primary, fontSize: rs(12), fontWeight: "700" },
   otpDivider: { color: Colors.gray_E0, fontSize: rs(14) },
   cancelTxt: { fontFamily: Fonts.Medium, color: Colors.gray_9E, fontSize: rs(12), fontWeight: "600" },
 });
