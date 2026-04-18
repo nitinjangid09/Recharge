@@ -1681,7 +1681,99 @@ export const onboardAepsUser = async ({ data, headerToken, idempotencyKey }) => 
   }
 };
 
+/**
+ * activateAepsService
+ * POST /user/aeps/activate
+ */
+export const activateAepsService = async ({ formData, headerToken, idempotencyKey }) => {
+  try {
+    const response = await fetch(`${BASE_URL}/user/aeps/activate`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey,
+      },
+      body: formData,
+    });
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.log("Activate AEPS Service API Error:", error);
+    return { success: false, message: "Service activation failed. Please try again." };
+  }
+};
 
+/**
+ * fetchEBankList
+ * GET /user/ebank/bank-list
+ */
+export const fetchEBankList = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/ebank/bank-list`, {
+      headers: { Authorization: `Bearer ${headerToken}` }
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Fetch AEPS2 Bank List Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch banks" };
+  }
+};
+
+/**
+ * fetchEStateList
+ * GET /user/state/state-list
+ */
+export const fetchEStateList = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/state/state-list`, {
+      headers: { Authorization: `Bearer ${headerToken}` }
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Fetch AEPS2 State List Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch states" };
+  }
+};
+
+/**
+ * generateAepsEkycOtp
+ * POST /user/aeps/generate-ekyc-otp
+ */
+export const generateAepsEkycOtp = async ({ data, headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/aeps/generate-ekyc-otp`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey,
+        "Content-Type": "application/json"
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Generate EKYC OTP Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Request failed" };
+  }
+};
+
+/**
+ * verifyAepsEkycOtp
+ * POST /user/aeps/verify-ekyc-otp
+ */
+export const verifyAepsEkycOtp = async ({ data, headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/aeps/verify-ekyc-otp`, data, {
+      headers: {
+        "Authorization": `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey,
+        "Content-Type": "application/json"
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Verify EKYC OTP Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Verification failed" };
+  }
+};
 
 /**
  * addDmtBeneficiary

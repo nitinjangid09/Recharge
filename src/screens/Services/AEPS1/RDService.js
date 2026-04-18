@@ -21,7 +21,7 @@ import { NativeModules, Platform } from 'react-native';
 
 // ─── RD Service Package IDs ─────────────────────────────────────────────────
 export const RD_PACKAGES = {
-  MANTRA_MFS110: 'com.mantra.mfs110.rdservice',
+  MANTRA: 'com.mantra.mfs110.rdservice',
   MORPHO: 'com.idemia.l1rdservice',
   STARTEK: 'com.startek.rdservice',
   SECUGEN: 'com.secugen.rdservice',
@@ -29,10 +29,10 @@ export const RD_PACKAGES = {
 
 // ─── Human-readable device names ────────────────────────────────────────────
 export const RD_DEVICE_LABELS = {
-  MANTRA_MFS110: 'Mantra MFS110',
-  MORPHO: 'Morpho MSO 1300',
-  STARTEK: 'Startek FM220',
-  SECUGEN: 'SecuGen Hamster',
+  MANTRA: 'MANTRA MFS110',
+  MORPHO: 'MORPHO MSO 1300',
+  STARTEK: 'STARTEK FM220',
+  SECUGEN: 'SECUGEN Hamster',
 };
 
 // ─── Ordered device list for UI dropdowns ────────────────────────────────────
