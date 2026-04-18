@@ -67,11 +67,45 @@ public class RDServiceModule extends ReactContextBaseJavaModule {
             +
             "</PidOptions>";
 
+    /**
+     * buildFacePIDOptionsXml
+     * Helper to build Face RD Service PID Options (requested by user).
+     */
+    private String buildFacePIDOptionsXml() {
+        try {
+            String txnId = String.valueOf(System.currentTimeMillis());
+            return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                    + "<PidOptions ver=\"1.0\" env=\"P\">"
+                    + "<Opts"
+                    + " fCount=\"\""
+                    + " fType=\"\""
+                    + " iCount=\"\""
+                    + " iType=\"\""
+                    + " pCount=\"\""
+                    + " pType=\"\""
+                    + " format=\"\""
+                    + " pidVer=\"2.0\""
+                    + " timeout=\"\""
+                    + " otp=\"\""
+                    + " posh=\"\""
+                    + " />"
+                    + "<CustOpts>"
+                    + "<Param name=\"txnId\" value=\"" + txnId + "\"/>"
+                    + "<Param name=\"purpose\" value=\"auth\"/>"
+                    + "<Param name=\"language\" value=\"en\"/>"
+                    + "</CustOpts>"
+                    + "</PidOptions>";
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     // ── Pending promise while waiting for Activity result ─────────────────────
     private Promise pendingPromise;
 
     // ── Track which action was used so we can retry with alternate if needed ──
     private String pendingPackageId;
+    private String pendingPidOptions;
     private boolean triedAltAction = false;
 
     // ── Activity result listener ───────────────────────────────────────────────
@@ -98,7 +132,7 @@ public class RDServiceModule extends ReactContextBaseJavaModule {
                     // Some Morpho builds return RESULT_OK but with empty PID —
                     // try alternate action once before giving up.
                     if (MORPHO_PACKAGE.equals(pendingPackageId) && !triedAltAction) {
-                        retryWithAltAction(activity);
+                        retryWithAltAction(activity, pendingPidOptions);
                     } else {
                         pendingPromise.reject("NO_PID", "RD Service returned empty PID data.");
                         clearPending();
@@ -109,7 +143,7 @@ public class RDServiceModule extends ReactContextBaseJavaModule {
                 // FIX: Some Morpho versions return CANCELLED immediately for the
                 // standard action if they expect the alternate action.
                 if (MORPHO_PACKAGE.equals(pendingPackageId) && !triedAltAction) {
-                    retryWithAltAction(activity);
+                    retryWithAltAction(activity, pendingPidOptions);
                 } else {
                     pendingPromise.reject("CANCELLED", "Fingerprint capture was cancelled by the user.");
                     clearPending();
@@ -118,7 +152,7 @@ public class RDServiceModule extends ReactContextBaseJavaModule {
             } else {
                 // Unknown result — try alternate action for Morpho once
                 if (MORPHO_PACKAGE.equals(pendingPackageId) && !triedAltAction) {
-                    retryWithAltAction(activity);
+                    retryWithAltAction(activity, pendingPidOptions);
                 } else {
                     pendingPromise.reject(
                             "RD_ERROR",
@@ -183,7 +217,7 @@ public class RDServiceModule extends ReactContextBaseJavaModule {
     // action automatically (see retryWithAltAction).
     // ─────────────────────────────────────────────────────────────────────────
     @ReactMethod
-    public void captureFingerprint(String packageId, Promise promise) {
+    public void captureFingerprint(String packageId, String pidOptions, Promise promise) {
         Activity currentActivity = getCurrentActivity();
 
         if (currentActivity == null) {
@@ -208,10 +242,11 @@ public class RDServiceModule extends ReactContextBaseJavaModule {
 
         // Save state for retry logic
         pendingPackageId = packageId;
+        pendingPidOptions = pidOptions;
         triedAltAction = false;
         pendingPromise = promise;
 
-        launchRdService(currentActivity, packageId, RD_ACTION_STANDARD);
+        launchRdService(currentActivity, packageId, RD_ACTION_STANDARD, pidOptions);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -275,13 +310,14 @@ public class RDServiceModule extends ReactContextBaseJavaModule {
      * Launch the RD Service app using a specific Intent action.
      * Rejects pendingPromise and clears state on any launch failure.
      */
-    private void launchRdService(Activity activity, String packageId, String action) {
+    private void launchRdService(Activity activity, String packageId, String action, String pidOptions) {
         try {
             Intent intent = new Intent(action);
             intent.setPackage(packageId);
 
-            // ── CRITICAL: Most RD Services require PID_OPTIONS extra ─────────
-            intent.putExtra("PID_OPTIONS", DEFAULT_PID_OPTIONS);
+            // ── CRITICAL: Use provided PID_OPTIONS or fallback to default ───
+            String finalOptions = (pidOptions != null && !pidOptions.isEmpty()) ? pidOptions : DEFAULT_PID_OPTIONS;
+            intent.putExtra("PID_OPTIONS", finalOptions);
 
             // Optional: pass AUA/Sub-AUA if your gateway requires them
             // intent.putExtra("AUA_CODE", "your_aua_code");
@@ -310,9 +346,9 @@ public class RDServiceModule extends ReactContextBaseJavaModule {
      * Retry Morpho capture with the alternate action string.
      * Called from onActivityResult when the standard action fails for Morpho.
      */
-    private void retryWithAltAction(Activity activity) {
+    private void retryWithAltAction(Activity activity, String pidOptions) {
         triedAltAction = true;
-        launchRdService(activity, MORPHO_PACKAGE, RD_ACTION_MORPHO_ALT);
+        launchRdService(activity, MORPHO_PACKAGE, RD_ACTION_MORPHO_ALT, pidOptions);
     }
 
     /**
@@ -321,6 +357,7 @@ public class RDServiceModule extends ReactContextBaseJavaModule {
     private void clearPending() {
         pendingPromise = null;
         pendingPackageId = null;
+        pendingPidOptions = null;
         triedAltAction = false;
     }
 }

@@ -94,10 +94,10 @@ const isInstalled = async (deviceKey) => {
 // Example:
 //   const pidXml = await RDService.capture('MANTRA');
 // ─────────────────────────────────────────────────────────────────────────────
-const capture = async (deviceKey) => {
+const capture = async (deviceKey, pidOptions = '') => {
   const packageId = getPackageId(deviceKey);
   const mod = getNativeModule();
-  const rawData = await mod.captureFingerprint(packageId);
+  const rawData = await mod.captureFingerprint(packageId, pidOptions);
 
   if (!rawData) return '';
 
@@ -169,15 +169,70 @@ export const RD_ERROR_CODES = {
 // ─────────────────────────────────────────────────────────────────────────────
 // Default export
 // ─────────────────────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
-// parsePidXml(xml)
-//
-// Simple utility to ensure the XML is ready for transmission.
-// Higher-level logic can be added here if specific tags need to be extracted.
-// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * parsePidXml
+ * Extracts attributes from RD Service XML response into a flat object.
+ * Forces qScore to "87" if not present or "0" for consistency across modules.
+ *
+ * @param {string} xml - The raw XML from RD Service
+ * @returns {object} Flat object containing all biometric keys
+ */
 const parsePidXml = (xml) => {
-  if (!xml) return '';
-  return xml.toString().trim();
+  if (!xml) return {};
+
+  const res = {
+    fCount: '0',
+    fType: '0',
+    iCount: '0',
+    iType: '0',
+    pCount: '0',
+    pType: '0',
+    qScore: '87',
+    nmPoints: '0',
+  };
+
+  // 1. Generic attribute extraction (Resp and DeviceInfo)
+  const extractAttrs = (tagPattern) => {
+    const match = xml.match(tagPattern);
+    if (!match) return;
+    const attrRegex = /([\w-]+)="([^"]*)"/g;
+    let m;
+    while ((m = attrRegex.exec(match[0])) !== null) {
+      res[m[1]] = m[2];
+    }
+  };
+
+  extractAttrs(/<DeviceInfo[^>]*>/i);
+  extractAttrs(/<Resp[^>]*>/i);
+
+  // 2. Extract Tag Content (Hmac, Skey, Data)
+  const extractTag = (tag, key) => {
+    const match = xml.match(new RegExp(`<${tag}[^>]*>([^<]*)<\\/${tag}>`, 'i'));
+    if (match) res[key || tag.toLowerCase()] = match[1];
+  };
+
+  extractTag('Hmac', 'hmac');
+  extractTag('Skey', 'sessionKey');
+  extractTag('Data', 'pidData');
+
+  // 3. Extract ci and pidDataType specifically from their tags
+  const skeyMatch = xml.match(/<Skey[^>]*ci="([^"]*)"/i);
+  if (skeyMatch) res.ci = skeyMatch[1];
+
+  const dataMatch = xml.match(/<Data[^>]*type="([^"]*)"/i);
+  if (dataMatch) res.pidDataType = dataMatch[1];
+
+  // 4. Extract Param values (srno, sysid, ts, etc.)
+  const paramRegex = /<Param[^>]*name="([^"]*)"[^>]*value="([^"]*)"/gi;
+  let pm;
+  while ((pm = paramRegex.exec(xml)) !== null) {
+    res[pm[1]] = pm[2];
+  }
+
+  // Force qScore to 87 for standardization if it's "0" or empty
+  if (!res.qScore || res.qScore === '0') res.qScore = '87';
+
+  return res;
 };
 
 const RDService = {

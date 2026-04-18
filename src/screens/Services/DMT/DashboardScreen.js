@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Colors from '../../../constants/Colors';
 
-// ─── Responsive Scaling ──────────────────────────────────────────────────────
+// ─── Responsive  Scaling ──────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get("window");
 const scale = (n) => Math.round((SW / 375) * n);
 const rs = (n, lo = n * 0.8, hi = n * 1.2) => Math.min(Math.max(scale(n), lo), hi);
@@ -24,9 +24,9 @@ const FontSize = { title: rs(22), lg: rs(18), md: rs(16), base: rs(14), sm: rs(1
 // ─── UI Components ───────────────────────────────────────────────────────────
 const StatCard = ({ label, amount, txnCount, amountColor }) => (
   <View style={{
-    flex: 1, 
-    backgroundColor: Colors.white, 
-    borderRadius: Radius.lg, 
+    flex: 1,
+    backgroundColor: Colors.white,
+    borderRadius: Radius.lg,
     padding: Spacing.md,
     borderWidth: 1,
     borderColor: '#E2E8F0',
@@ -175,72 +175,72 @@ const DashboardScreen = ({ navigation }) => {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-      <View style={styles.header}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.pageTitle}>DMT Dashboard</Text>
-          <Text style={styles.pageSub}>Institutional Money Transfer</Text>
-        </View>
-        <TouchableOpacity
-          style={styles.addBtn}
-          activeOpacity={0.85}
-          onPress={() => navigation?.navigate('DMTRegister')}
-        >
-          <Text style={styles.addBtnIcon}>＋</Text>
-          <Text style={styles.addBtnText}>Add Account</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.statRow}>
-        <StatCard label="Total Limit" amount="₹25k" txnCount={0} amountColor="#22C55E" />
-        <StatCard label="Available" amount="₹25k" txnCount={0} amountColor={Colors.error || '#EF4444'} />
-        <StatCard label="Per Txn" amount="₹5k" txnCount={0} amountColor={Colors.black} />
-      </View>
-
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <View style={styles.sectionBar} />
-          <Text style={styles.sectionTitle}>Account Details</Text>
-        </View>
-
-        <View style={styles.searchWrap}>
-          <Text style={styles.searchIcon}>🔍</Text>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search beneficiary by name..."
-            placeholderTextColor="#94A3B8"
-            value={search}
-            onChangeText={setSearch}
-          />
-        </View>
-
-        <View style={styles.exportRow}>
-          <ExportChip label="📋 Copy" />
-          <ExportChip label="📊 Excel" />
-          <ExportChip label="📄 PDF" />
-          <TouchableOpacity style={styles.colChip} activeOpacity={0.8}>
-            <Text style={styles.colChipText}>Columns ▾</Text>
+        <View style={styles.header}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.pageTitle}>DMT Dashboard</Text>
+            <Text style={styles.pageSub}>Institutional Money Transfer</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.addBtn}
+            activeOpacity={0.85}
+            onPress={() => navigation?.navigate('DMTRegister')}
+          >
+            <Text style={styles.addBtnIcon}>＋</Text>
+            <Text style={styles.addBtnText}>Add Account</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.tableCard}>
-          {filtered.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>No beneficiaries found</Text>
-            </View>
-          ) : (
-            filtered.map((item, idx) => (
-              <BeneficiaryRow
-                key={item.id}
-                item={item}
-                onTransfer={(b) => navigation?.navigate('DMTMoneyTransfer', { beneficiary: b })}
-                onView={(b) => navigation?.navigate('DMTKYC', { beneficiary: b })}
-              />
-            ))
-          )}
+        <View style={styles.statRow}>
+          <StatCard label="Total Limit" amount="₹25k" txnCount={0} amountColor="#22C55E" />
+          <StatCard label="Available" amount="₹25k" txnCount={0} amountColor={Colors.error || '#EF4444'} />
+          <StatCard label="Per Txn" amount="₹5k" txnCount={0} amountColor={Colors.black} />
         </View>
-      </View>
-    </ScrollView>
-  </SafeAreaView>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionBar} />
+            <Text style={styles.sectionTitle}>Account Details</Text>
+          </View>
+
+          <View style={styles.searchWrap}>
+            <Text style={styles.searchIcon}>🔍</Text>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search beneficiary by name..."
+              placeholderTextColor="#94A3B8"
+              value={search}
+              onChangeText={setSearch}
+            />
+          </View>
+
+          <View style={styles.exportRow}>
+            <ExportChip label="📋 Copy" />
+            <ExportChip label="📊 Excel" />
+            <ExportChip label="📄 PDF" />
+            <TouchableOpacity style={styles.colChip} activeOpacity={0.8}>
+              <Text style={styles.colChipText}>Columns ▾</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.tableCard}>
+            {filtered.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyText}>No beneficiaries found</Text>
+              </View>
+            ) : (
+              filtered.map((item, idx) => (
+                <BeneficiaryRow
+                  key={item.id}
+                  item={item}
+                  onTransfer={(b) => navigation?.navigate('DMTMoneyTransfer', { beneficiary: b })}
+                  onView={(b) => navigation?.navigate('DMTKYC', { beneficiary: b })}
+                />
+              ))
+            )}
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
