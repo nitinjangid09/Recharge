@@ -1662,4 +1662,194 @@ export const aepsDailyLogin = async ({ data, headerToken, headerKey, idempotency
   }
 };
 
+/**
+ * onboardAepsUser
+ * POST /user/aeps/onboard-user
+ */
+export const onboardAepsUser = async ({ data, headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/aeps/onboard-user`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Onboard AEPS User API Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "User onboarding failed" };
+  }
+};
 
+
+
+/**
+ * addDmtBeneficiary
+ * POST /user/dmt-ben/add-beneficiary
+ */
+export const addDmtBeneficiary = async ({ data, headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/dmt-ben/add-beneficiary`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Add DMT Beneficiary Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to add beneficiary" };
+  }
+};
+
+/**
+ * getDmtBeneficiaries
+ * POST /user/dmt-ben/get-beneficiary
+ */
+export const getDmtBeneficiaries = async ({ data, headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/dmt-ben/get-beneficiary`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get DMT Beneficiaries Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch beneficiaries" };
+  }
+};
+
+/**
+ * deleteDmtBeneficiary
+ * POST /user/dmt-ben/delete-beneficiary
+ */
+export const deleteDmtBeneficiary = async ({ data, headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/dmt-ben/delete-beneficiary`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Delete DMT Beneficiary Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to delete beneficiary" };
+  }
+};
+
+/**
+ * fetchDmtCustomer
+ * POST /user/dmt/get-customer
+ */
+export const fetchDmtCustomer = async ({ data, headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/dmt/get-customer`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Fetch DMT Customer Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Customer lookup failed" };
+  }
+};
+
+/**
+ * checkDmtLimit
+ * POST /user/dmt/check-limit
+ */
+export const checkDmtLimit = async ({ data, headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/dmt/check-limit`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Check DMT Limit Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Limit check failed" };
+  }
+};
+
+/**
+ * dmtCustomerEkyc
+ * POST /user/dmt/customer-ekyc
+ */
+export const dmtCustomerEkyc = async ({ data, headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/dmt/customer-ekyc`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("DMT Customer eKYC Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "eKYC failed" };
+  }
+};
+
+/**
+ * generateDmtRegOtp
+ * POST /user/dmt/generate-reg-otp
+ */
+export const generateDmtRegOtp = async ({ data, headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/dmt/generate-reg-otp`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Generate DMT Reg OTP Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "OTP generation failed" };
+  }
+};
+
+/**
+ * registerDmtCustomer
+ * POST /user/dmt/register-customer
+ */
+export const registerDmtCustomer = async ({ data, headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/dmt/register-customer`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Register DMT Customer Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Customer registration failed" };
+  }
+};
+
+/**
+ * generateDmtTotp
+ * POST /user/dmt/generate-totp
+ */
+export const generateDmtTotp = async ({ data, headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/dmt/generate-totp`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Generate DMT TOTP Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "TOTP generation failed" };
+  }
+};

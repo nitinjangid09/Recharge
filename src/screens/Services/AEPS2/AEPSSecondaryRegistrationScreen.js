@@ -21,9 +21,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '../../../constants/Colors';
 import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
-import { fetchUserProfile, fetchStateList, fetchCityList } from '../../../api/AuthApi';
+import { fetchUserProfile, fetchStateList, fetchCityList, onboardAepsUser } from '../../../api/AuthApi';
 import { AlertService } from '../../../componets/Alerts/CustomAlert';
-import { Modal } from 'react-native';
+import { Modal, ActivityIndicator } from 'react-native';
+import CalendarModal from '../../../componets/Calendar/CalendarModal';
 
 const { width: SW, height: SH } = Dimensions.get("window");
 const scale = (n) => Math.round((SW / 375) * n);
@@ -85,7 +86,11 @@ const FormField = ({ label, placeholder, value, onChangeText, keyboardType, icon
     <View style={[fieldStyles.inputRow, error && { borderColor: '#ef4444' }]}>
       {icon ? <Text style={fieldStyles.icon}>{icon}</Text> : null}
       <TextInput
-        style={[fieldStyles.input, !editable && fieldStyles.disabled]}
+        style={[
+          fieldStyles.input, 
+          (!editable && !value) && fieldStyles.disabled,
+          (!editable && value) && { opacity: 1 }
+        ]}
         placeholder={placeholder}
         placeholderTextColor={'#9BA5B8'}
         value={value}
@@ -244,7 +249,10 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
     firstName: '', lastName: '', email: '', phone: '',
     pan: '', aadhaar: '', shopName: '',
     address: '', state: '', stateCode: '', city: '', pincode: '',
+    dateOfBirth: '', district: '', area: '',
   });
+  const [loading, setLoading] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [errors, setErrors] = useState({});
   const [lists, setLists] = useState({ states: [], cities: [] });
   const [sel, setSel] = useState({ visible: false, title: '', items: [], key: '' });
@@ -302,14 +310,77 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
     if (!form.pincode) e.pincode = 'Pincode is required';
     else if (form.pincode.length !== 6) e.pincode = 'Enter 6-digit pin';
 
+    if (!form.dateOfBirth) e.dateOfBirth = 'Date of birth is required';
+    if (!form.district) e.district = 'District is required';
+    if (!form.area) e.area = 'Area is required';
+
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const handleRegister = () => {
+  const generateClientRefId = () => {
+    const chars = '0123456789';
+    let result = 'TXN';
+    for (let i = 0; i < 8; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
+  const handleRegister = async () => {
     if (validate()) {
-       AlertService.showAlert({ type: 'success', title: 'Validated', message: 'Information verified. Proceeding...' });
-       navigation.navigate('AEPSServiceActivation');
+      setLoading(true);
+      try {
+        const headerToken = await AsyncStorage.getItem("header_token");
+        const payload = {
+          client_ref_id: generateClientRefId(),
+          mobile: form.phone,
+          panNumber: form.pan,
+          firstName: form.firstName,
+          lastName: form.lastName,
+          email: form.email,
+          dateOfBirth: form.dateOfBirth,
+          shopName: form.shopName,
+          address: {
+            line: form.address,
+            city: form.city,
+            state: form.state,
+            pincode: form.pincode,
+            district: form.district,
+            area: form.area
+          }
+        };
+
+        const res = await onboardAepsUser({ 
+          data: payload, 
+          headerToken,
+          idempotencyKey: payload.client_ref_id
+        });
+
+        if (res.success) {
+          AlertService.showAlert({ 
+            type: 'success', 
+            title: 'Onboarding Success', 
+            message: res.message || 'User onboarded successfully',
+            onClose: () => navigation.navigate('AEPSServiceActivation')
+          });
+        } else {
+          AlertService.showAlert({ 
+            type: 'error', 
+            title: 'Onboarding Failed', 
+            message: res.message || 'Unable to onboard user' 
+          });
+        }
+      } catch (error) {
+        console.log("Onboarding Error:", error);
+        AlertService.showAlert({ 
+          type: 'error', 
+          title: 'System Error', 
+          message: 'Something went wrong during onboarding.' 
+        });
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -322,19 +393,22 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
       const headerToken = await AsyncStorage.getItem("header_token");
       const res = await fetchUserProfile({ headerToken });
       if (res?.success) {
-        setForm({
-          firstName: res.data.firstName || '',
-          lastName: res.data.lastName || '',
-          email: res.data.email || '',
-          phone: res.data.phone || '',
-          shopName: res.data.shopName || '',
-          pan: res.data.panNumber || '',
-          aadhaar: res.data.aadharNumber || '',
-          address: res.data.personalAddress || '',
-          state: res.data.state || '',
-          city: res.data.city || '',
-          pincode: res.data.personalPincode || ''
-        });
+          setForm({
+            firstName: res.data.firstName || '',
+            lastName: res.data.lastName || '',
+            email: res.data.email || '',
+            phone: res.data.phone || '',
+            shopName: res.data.shopName || '',
+            pan: res.data.panNumber || '',
+            aadhaar: res.data.aadharNumber || '',
+            address: res.data.personalAddress || '',
+            state: res.data.state || '',
+            city: res.data.city || '',
+            pincode: res.data.personalPincode || '',
+            dateOfBirth: res.data.dob || '',
+            district: res.data.personalDistrict || '',
+            area: res.data.personalArea || ''
+          });
       }
     } catch (e) {
       console.log("Error loading profile:", e);
@@ -380,16 +454,38 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
             onChangeText={v => updateForm('email', v)}
             error={errors.email}
           />
-          <FormField 
-            label="Phone Number" 
-            placeholder="10-digit number" 
-            icon="📞" 
-            keyboardType="numeric" 
-            value={form.phone} 
-            onChangeText={v => updateForm('phone', v.replace(/\D/g, '').slice(0, 10))}
-            error={errors.phone}
-            maxLength={10}
-          />
+          <View style={{ flexDirection: 'row', gap: rs(10) }}>
+            <View style={{ flex: 1 }}>
+              <FormField 
+                label="Phone Number" 
+                placeholder="10 digits" 
+                icon="📞" 
+                keyboardType="numeric" 
+                value={form.phone} 
+                onChangeText={v => updateForm('phone', v.replace(/\D/g, '').slice(0, 10))}
+                error={errors.phone}
+                maxLength={10}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <TouchableOpacity 
+                activeOpacity={0.7}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <View pointerEvents="none">
+                  <FormField 
+                    label="Date of Birth" 
+                    placeholder="YYYY-MM-DD" 
+                    icon="📅" 
+                    value={form.dateOfBirth} 
+                    onChangeText={() => {}}
+                    error={errors.dateOfBirth}
+                    editable={false}
+                  />
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
         </SectionCard>
 
         <SectionCard>
@@ -457,6 +553,26 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
               />
             </View>
           </View>
+          <View style={{ flexDirection: 'row', gap: rs(10) }}>
+            <View style={{ flex: 1 }}>
+              <FormField 
+                label="District" 
+                placeholder="District Name" 
+                value={form.district} 
+                onChangeText={v => updateForm('district', v)}
+                error={errors.district}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <FormField 
+                label="Area" 
+                placeholder="Area/Locality" 
+                value={form.area} 
+                onChangeText={v => updateForm('area', v)}
+                error={errors.area}
+              />
+            </View>
+          </View>
           <View style={{ width: '48%' }}>
             <FormField 
               label="Pincode" 
@@ -471,9 +587,10 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
         </SectionCard>
 
         <PrimaryButton 
-          label="REGISTER & CONTINUE" 
+          label={loading ? "PROCESSNG..." : "REGISTER & CONTINUE"} 
           onPress={handleRegister} 
         />
+        {loading && <ActivityIndicator color={Colors.primary} style={{ marginTop: 10 }} />}
         <SecurityNote text="Secure 256-Bit Encrypted Registration" />
 
         <View style={{ height: rs(30) }} />
@@ -492,6 +609,23 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
           setSel(s => ({ ...s, visible: false }));
         }}
         onClose={() => setSel(s => ({ ...s, visible: false }))}
+      />
+
+      <CalendarModal
+        visible={showDatePicker}
+        title="Select Date of Birth"
+        initialDate={form.dateOfBirth ? new Date(form.dateOfBirth) : new Date()}
+        onCancel={() => setShowDatePicker(false)}
+        onConfirm={(date) => {
+          if (date) {
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            updateForm('dateOfBirth', `${yyyy}-${mm}-${dd}`);
+          }
+          setShowDatePicker(false);
+        }}
+        maxDate={new Date()}
       />
     </SafeAreaView>
   );
