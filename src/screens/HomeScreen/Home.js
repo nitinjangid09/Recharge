@@ -814,8 +814,13 @@ export default function FinanceHome({ navigation }) {
                     onPress={() => {
                       if (n === "recharge") navigation.navigate("TopUpScreen");
                       else if (n === "bbps") navigation.navigate("PaymentsScreen");
+<<<<<<< HEAD
                       else if (n === "aeps1" || n === "aeps") navigation.navigate("AEPS_OnBoard");
                       else if (n === "aeps2") navigation.navigate("AEPSAadhaarOTP");
+=======
+                      else if (n === "aeps1" || n === "aeps") navigation.navigate("BalanceEnquiry");
+                      else if (n === "aeps2") navigation.navigate("AEPSSecondaryRegistration");
+>>>>>>> 6a6524b71e71d0f3266c81180505f95b3bfd0004
                       else if (n === "dmt") navigation.navigate("DmtLogin");
                     }}
                   >

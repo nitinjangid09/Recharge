@@ -28,7 +28,7 @@ import Geolocation from '@react-native-community/geolocation';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import RDService, { RD_ERROR_CODES } from './RDService';
-import { aepsDailyLogin } from '../../../api/AuthApi';
+import { aepsInstantDailyLogin } from '../../../api/AuthApi';
 import { AlertService } from '../../../componets/Alerts/CustomAlert';
 import * as NavigationService from '../../../utils/NavigationService';
 import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
@@ -184,17 +184,25 @@ const DailyLogin = () => {
       const coords = await getLocation();
 
       const headerToken = await AsyncStorage.getItem('header_token');
+      const headerKey = await AsyncStorage.getItem('header_key');
       const idempotencyKey = `DL_FP_${Date.now()}`;
 
+      // Payload format as requested: matching Balance Enquiry logic (without bankId)
       const payload = {
-        aadhaar: aadhaarNumber,
-        latitude: coords.latitude,
-        longitude: coords.longitude,
+        aadhaar: String(aadhaarNumber),
+        mobile: String(mobileNumber),
+        latitude: Number(coords.latitude),
+        longitude: Number(coords.longitude),
         captureType: 'finger',
-        biometricData: pidData,
+        biometricData: RDService.parsePidXml(pidData),
       };
 
-      const res = await aepsDailyLogin({ data: payload, headerToken, idempotencyKey });
+      const res = await aepsInstantDailyLogin({ 
+        data: payload, 
+        headerToken, 
+        headerKey, 
+        idempotencyKey 
+      });
 
       if (res.success || res.status === 'SUCCESS') {
         AlertService.showAlert({

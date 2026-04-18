@@ -38,51 +38,7 @@ const scale = (s) => Math.round((SW / BASE_W) * s);
 const vs = (s) => Math.round((SH / BASE_H) * s);
 const rs = (s) => Math.round(Math.sqrt((SW * SH) / (BASE_W * BASE_H)) * s);
 
-// ── Local Biometric Parser for Cash Withdrawal ──────────────────────────────
-const parseBiometric = (xml) => {
-  if (!xml) return {};
-  const res = {
-    fCount: "0", fType: "0", iCount: "0", iType: "0", pCount: "0", pType: "0",
-    qScore: "87", nmPoints: "0"
-  };
-
-  const extractAttrs = (tagPattern) => {
-    const match = xml.match(tagPattern);
-    if (!match) return;
-    const attrRegex = /([\w-]+)="([^"]*)"/g;
-    let m;
-    while ((m = attrRegex.exec(match[0])) !== null) {
-      res[m[1]] = m[2];
-    }
-  };
-
-  extractAttrs(/<DeviceInfo[^>]*>/i);
-  extractAttrs(/<Resp[^>]*>/i);
-  
-  const extractTag = (tag, key) => {
-    const match = xml.match(new RegExp(`<${tag}[^>]*>([^<]*)<\\/${tag}>`, 'i'));
-    if (match) res[key || tag.toLowerCase()] = match[1];
-  };
-
-  extractTag('Hmac', 'hmac');
-  extractTag('Skey', 'sessionKey');
-  extractTag('Data', 'pidData');
-
-  const skeyMatch = xml.match(/<Skey[^>]*ci="([^"]*)"/i);
-  if (skeyMatch) res.ci = skeyMatch[1];
-
-  const dataMatch = xml.match(/<Data[^>]*type="([^"]*)"/i);
-  if (dataMatch) res.pidDataType = dataMatch[1];
-
-  const paramRegex = /<Param[^>]*name="([^"]*)"[^>]*value="([^"]*)"/gi;
-  let pm;
-  while ((pm = paramRegex.exec(xml)) !== null) {
-    res[pm[1]] = pm[2];
-  }
-
-  res.qScore = "87";
-  return res;
-};
+// Removed local parseBiometric, now using centralized RDService.parsePidXml
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 // Removed hardcoded BANK_LIST
@@ -256,7 +212,7 @@ const CashWithdraw = () => {
       const headerToken = await AsyncStorage.getItem("header_token");
       const headerKey = await AsyncStorage.getItem("header_key");
       const res = await fetchAepsBanks({ headerToken, headerKey });
-      
+
       if (res.success || res.status === "SUCCESS" || Array.isArray(res.data)) {
         // Try to find the array in common fields
         const rawList = Array.isArray(res.data) ? res.data : (res.banks || res.bankList || []);
@@ -342,7 +298,7 @@ const CashWithdraw = () => {
       const headerToken = await AsyncStorage.getItem("header_token");
       const headerKey = await AsyncStorage.getItem("header_key");
       const idempotencyKey = `CW_${Date.now()}`;
-      
+
       const selectedBank = bankList.find(b => b.value === bank);
       const bankName = selectedBank ? selectedBank.label : "Unknown Bank";
 
@@ -354,14 +310,14 @@ const CashWithdraw = () => {
         latitude: Number(coords.latitude),
         longitude: Number(coords.longitude),
         captureType: 'finger',
-        biometricData: parseBiometric(pidData),
+        biometricData: RDService.parsePidXml(pidData),
       };
 
-      const res = await aepsCashWithdraw({ 
-        data: payload, 
-        headerToken, 
+      const res = await aepsCashWithdraw({
+        data: payload,
+        headerToken,
         headerKey,
-        idempotencyKey 
+        idempotencyKey
       });
 
       if (res.success || res.status === "SUCCESS") {
@@ -401,7 +357,7 @@ const CashWithdraw = () => {
       } else {
         message = err.message || message;
       }
-      
+
       AlertService.showAlert({
         type: "error",
         title: "Error",
@@ -616,9 +572,9 @@ const CashWithdraw = () => {
 
           {/* Submit */}
           <Animated.View style={{ transform: [{ scale: btnScale }], marginTop: vs(20) }}>
-            <TouchableOpacity 
-              style={[styles.button, loading && styles.buttonDisabled]} 
-              onPress={handleSubmit} 
+            <TouchableOpacity
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={handleSubmit}
               activeOpacity={0.88}
               disabled={loading}
             >
@@ -642,7 +598,7 @@ const CashWithdraw = () => {
         animationType="slide"
         onRequestClose={() => setReceiptVisible(false)}
       >
-        <PaymentReceipt 
+        <PaymentReceipt
           response={receiptData}
           details={txnDetails}
           type="Cash Withdrawal"
