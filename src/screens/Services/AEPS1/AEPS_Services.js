@@ -188,12 +188,6 @@ const AEPS_Services = () => {
                             onPress={() => NavigationService.navigate("MiniStatement")}
                         />
                         <ServiceCard
-                            title="Daily Login"
-                            sub="NPCI Mandatory"
-                            Svg={aepsIcon}
-                            onPress={() => NavigationService.navigate("DailyLogin")}
-                        />
-                        <ServiceCard
                             title="AEPS PayOut"
                             sub="AEPS Payout"
                             Svg={aepsIcon}

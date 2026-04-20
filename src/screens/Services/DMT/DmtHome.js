@@ -68,14 +68,7 @@ const AccountCard = ({ item, index, onTransfer, onDelete }) => {
 
   return (
     <Animated.View style={[styles.card, { opacity: cardOp, transform: [{ translateY: cardTY }] }]}>
-      {/* Top Right Delete Button */}
-      <TouchableOpacity
-        style={styles.absDeleteBtn}
-        onPress={() => onDelete && onDelete(item)}
-        activeOpacity={0.7}
-      >
-        <Icon name="delete" size={rs(22)} color="#EF4444" />
-      </TouchableOpacity>
+
 
       <View style={styles.cardMain}>
         {/* Avatar Section */}
@@ -110,7 +103,7 @@ const AccountCard = ({ item, index, onTransfer, onDelete }) => {
         </View>
 
         {/* Actions Section */}
-        <View style={styles.actionColumn}>
+        <View style={styles.actionRowInline}>
           <TouchableOpacity
             style={styles.transferBtn}
             onPress={() => onTransfer(item)}
@@ -118,6 +111,13 @@ const AccountCard = ({ item, index, onTransfer, onDelete }) => {
           >
             <Icon name="send" size={rs(14)} color={Colors.white} />
             <Text style={styles.transferBtnTxt}>Transfer</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => onDelete && onDelete(item)}
+            activeOpacity={0.7}
+          >
+            <Icon name="delete-outline" size={rs(20)} color={Colors.error_dark} />
           </TouchableOpacity>
         </View>
       </View>
@@ -614,11 +614,11 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Medium,
     color: "#334155",
   },
-  actionColumn: {
+  actionRowInline: {
+    flexDirection: "row",
     alignItems: "center",
-    marginLeft: scale(12),
-    gap: vs(8),
   },
+
   transferBtn: {
     backgroundColor: Colors.primary,
     flexDirection: "row",
@@ -631,24 +631,14 @@ const styles = StyleSheet.create({
     shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
-    shadowRadius: 4,
+    shadowRadius: 4, marginRight: scale(2),
   },
   transferBtnTxt: {
     fontFamily: Fonts.Bold,
     color: Colors.white,
     fontSize: rs(10),
   },
-  absDeleteBtn: {
-    position: 'absolute',
-    top: scale(8),
-    right: scale(8),
-    width: scale(34),
-    height: scale(34),
-    borderRadius: scale(17),
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 10,
-  },
+
   verifiedBadge: {
     backgroundColor: 'rgba(212,176,106,0.1)',
     borderRadius: scale(6),

@@ -837,7 +837,7 @@ export default function FinanceHome({ navigation }) {
                             console.log("AEPS Status Response:", statusRes);
 
                             if (statusRes.code === "LOGIN_NOT_REQUIRED") {
-                              navigation.navigate("AEPS_Services");
+                              navigation.navigate("AEPS1");
                             } else if (statusRes.code === "LOGIN_REQUIRED") {
                               navigation.navigate("DailyLogin");
                             } else {
