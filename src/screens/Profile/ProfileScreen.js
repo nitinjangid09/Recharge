@@ -436,12 +436,12 @@ export default function ProfileScreen({ navigation }) {
               isFirst
               onPress={() => navigation.navigate("ChangePassword")}
             />
-            <Row
+            {/* <Row
               icon="dialpad"
               label="Change PIN"
               sub="4-digit wallet PIN"
               onPress={() => navigation.navigate("ChangePin")}
-            />
+            /> */}
           </Card>
 
           {/* Help */}

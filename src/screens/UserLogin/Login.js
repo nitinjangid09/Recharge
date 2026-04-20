@@ -306,7 +306,14 @@ export default function Login({ navigation }) {
         navigation.navigate("Otp", {
           email,
           userName,
-          log_key: result?.log_key || "",
+          password,
+          systemDetails: {
+            location: {
+              latitude: currentLat || 0,
+              longitude: currentLng || 0,
+            },
+            ip: currentIp || "127.0.0.1",
+          }
         });
       } else {
         triggerShake();
