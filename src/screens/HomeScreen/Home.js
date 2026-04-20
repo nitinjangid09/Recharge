@@ -813,7 +813,6 @@ export default function FinanceHome({ navigation }) {
                     key={item._id}
                     style={[S.svcGridItem]}
                     activeOpacity={0.78}
-<<<<<<< HEAD
                     onPress={async () => {
                       if (n === "recharge") {
                         navigation.navigate("TopUpScreen");
@@ -860,15 +859,8 @@ export default function FinanceHome({ navigation }) {
                       } else if (n === "dmt") {
                         navigation.navigate("DmtLogin");
                       }
-=======
-                    onPress={() => {
-                      if (n === "recharge") navigation.navigate("TopUpScreen");
-                      else if (n === "bbps") navigation.navigate("PaymentsScreen");
-                      else if (n === "aeps1" || n === "aeps") navigation.navigate("AEPS_OnBoard");
-                      else if (n === "aeps2") navigation.navigate("AEPSAadhaarOTP");
-                      else if (n === "dmt") navigation.navigate("DmtLogin");
->>>>>>> 1cd473cf31ec77dfd5136535723c70c5e692c882
-                    }}
+                    } }
+
                   >
                     <View style={[S.svcIconCircle]}>
                       {n === "bbps" && typeof BBPSIconSVG === "function" ? (

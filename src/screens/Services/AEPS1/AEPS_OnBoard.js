@@ -219,8 +219,18 @@ const AEPS_OnBoard = () => {
         flashCapture();
 
         try {
-            // Step 1: Capture biometric PID from RD device (Using simple capture like Daily Login)
-            const pidDataXml = await RD_BRIDGE.capture(device);
+            // Standard WADH for onboarding
+            const wadhValue = "E0jzJ/P8UopUHAieZn8CKqS4WPMi5ZSYXgfnlfkWjrc=";
+            
+            // Build PidOptions XML as requested
+            const pidOptString = "<PidOptions>"
+                + `<Opts fCount="1" fType="2" iCount="0" pCount="0" format="0" pidVer="2.0" timeout="20000" otp="" posh="LEFT_INDEX" env="P" wadh="${wadhValue}" />`
+                + "<Demo></Demo>"
+                + "<CustOpts><Param name=\"Param1\" value=\"\" /></CustOpts>"
+                + "</PidOptions>";
+
+            // Step 1: Capture biometric PID from RD device
+            const pidDataXml = await RD_BRIDGE.capture(device, pidOptString);
 
             if (!pidDataXml) {
                 setRdState((s) => ({ ...s, capturing: false }));
@@ -247,7 +257,11 @@ const AEPS_OnBoard = () => {
             const coords = await getLocation();
 
             // Step 3: Prepare and submit parsed PID + Aadhaar to backend KYC API
-            // Matching Daily Login format: RD_BRIDGE.parsePidXml(pidDataXml)
+            const parsedBiometric = RD_BRIDGE.parsePidXml(pidDataXml);
+            
+            // Special requirement: send wadh value in piddata. If get from device send that, otherwise fallback.
+            parsedBiometric.pidData = parsedBiometric.wadh || wadhValue;
+
             const headerToken = await AsyncStorage.getItem("header_token");
             const res = await biometricKyc({
                 data: { 
@@ -255,7 +269,7 @@ const AEPS_OnBoard = () => {
                     latitude: coords.latitude,
                     longitude: coords.longitude,
                     captureType: "finger",
-                    biometricData: RD_BRIDGE.parsePidXml(pidDataXml)
+                    biometricData: parsedBiometric
                 },
                 headerToken,
                 idempotencyKey: `KYC_${Date.now()}`,

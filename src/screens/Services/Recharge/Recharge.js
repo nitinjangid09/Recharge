@@ -253,7 +253,7 @@ export default function TopUpScreen({ navigation, route }) {
     const backAction = () => {
       if (showOperatorModal) { setShowOperatorModal(false); return true; }
       if (showCircleModal) { setShowCircleModal(false); return true; }
-      navigation.goBack();
+      navigation.navigate("FinanceHome");
       return true;
     };
     const handler = BackHandler.addEventListener("hardwareBackPress", backAction);
@@ -407,7 +407,7 @@ export default function TopUpScreen({ navigation, route }) {
       <View style={styles.container}>
 
         <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
-          <HeaderBar title="Mobile Recharge" onBack={() => navigation.goBack()} />
+          <HeaderBar title="Mobile Recharge" onBack={() => navigation.navigate("FinanceHome")} />
         </View>
 
         <KeyboardAvoidingView
