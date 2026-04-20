@@ -260,6 +260,24 @@ export const forgotPassword = async ({ email }) => {
   }
 };
 
+export const resetPassword = async ({ email, otp, newPassword }) => {
+  try {
+    const payload = { 
+      email: String(email).trim(),
+      otp: String(otp).trim(),
+      newPassword: String(newPassword).trim()
+    };
+    const response = await axios.patch(`${BASE_URL}/reset-password`, payload, {
+      headers: { "Content-Type": "application/json" },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Reset Password API Error:", error?.response?.data || error);
+    if (error?.response?.data) return error.response.data;
+    return { success: false, message: "Network error. Unable to reset password." };
+  }
+};
+
 export const getRoleList = async () => {
   try {
     const response = await axios.get(`${BASE_URL}/user/role/get-role-list`);
@@ -1347,6 +1365,22 @@ export const getMyRechargeHistory = async ({ headerToken }) => {
   } catch (error) {
     console.log("[getMyRechargeHistory] error:", error?.message || error);
     return { success: false, message: error.message || "Network error", data: [] };
+  }
+};
+
+export const getBbpsReport = async ({ headerToken, userId }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/bbpsReport/complete-bbps-report`, {
+      params: { user: userId },
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("BBPS Report API Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch BBPS report" };
   }
 };
 

@@ -61,6 +61,7 @@ import AEPSSecondaryRegistration from '../screens/Services/AEPS2/AEPSSecondaryRe
 import AEPSServiceActivation from '../screens/Services/AEPS2/AEPSServiceActivationScreen';
 import AePSDashboard from '../screens/Services/AEPS2/AePSDashboardScreen';
 import TransactionAuditScreen from '../screens/Reports/WalletAudit';
+import AEPSPayOut from '../screens/Services/AEPS1/AEPS_Payout';
 
 
 
@@ -208,6 +209,7 @@ const AppNavigator = () => {
       <Stack.Screen name="AEPSServiceActivation" component={AEPSServiceActivation} />
       <Stack.Screen name="AePSDashboard" component={AePSDashboard} />
       <Stack.Screen name="WalletAudit" component={TransactionAuditScreen} />
+      <Stack.Screen name="AEPSPayOut" component={AEPSPayOut} />
 
 
     </Stack.Navigator>

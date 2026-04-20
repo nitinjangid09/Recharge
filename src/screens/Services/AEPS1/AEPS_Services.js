@@ -193,6 +193,12 @@ const AEPS_Services = () => {
                             Svg={aepsIcon}
                             onPress={() => NavigationService.navigate("DailyLogin")}
                         />
+                        <ServiceCard
+                            title="AEPS PayOut"
+                            sub="AEPS Payout"
+                            Svg={aepsIcon}
+                            onPress={() => NavigationService.navigate("AEPSPayOut")}
+                        />
                     </View>
                 </View>
 

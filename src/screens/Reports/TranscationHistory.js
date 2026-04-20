@@ -12,7 +12,7 @@ import CalendarModal from '../../componets/Calendar/CalendarModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '../../constants/Colors';
 import Fonts from '../../constants/Fonts';
-import { getRechargeReport, getDownlineUsers } from '../../api/AuthApi';
+import { getRechargeReport, getDownlineUsers, getBbpsReport } from '../../api/AuthApi';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import HeaderBar from '../../componets/HeaderBar/HeaderBar';
 import ReceiptModal from '../../componets/ReceiptModal/ReceiptModal';
@@ -65,11 +65,39 @@ const normalizeRecharge = (data = []) =>
     },
   }));
 
+const fetchBbpsTransactions = async ({ from, to, headerToken }) => {
+  const userId = await AsyncStorage.getItem('user_id');
+  const json = await getBbpsReport({ headerToken, userId });
+  if (!json.success) throw new Error(json.message || 'Failed to fetch BBPS report');
+  return normalizeBbps(json.data);
+};
+
+const normalizeBbps = (data = []) =>
+  data.map((item) => ({
+    id: item.referenceId || item._id,
+    amount: String(item.amount ?? 0),
+    category: 'BBPS',
+    status: titleCase(item.status),
+    date: isoToDisplay(item.createdAt),
+    isoDate: item.createdAt,
+    desc: [item.operatorName, item.mobileNumber].filter(Boolean).join(' • ') || 'BBPS Payment',
+    operatorName: item.operatorName || '',
+    userName: item.userName || (item.user && item.user.userName) || '',
+    extra: {
+      commission: item.commission ?? 0,
+      tds: item.tds ?? 0,
+      netCommission: item.netCommission ?? 0,
+      operator: item.operatorName || '',
+      mobile: item.mobileNumber || '',
+      consumerNumber: item.mobileNumber || '',
+    },
+  }));
+
 const TABS = [
   { label: 'Recharge', value: 'Recharge', icon: 'cellphone', fetchFn: fetchRechargeTransactions },
   { label: 'DMT', value: 'DMT', icon: 'bank-transfer', fetchFn: null },
   { label: 'AEPS', value: 'Aeps', icon: 'fingerprint', fetchFn: null },
-  { label: 'BBPS', value: 'BBPS', icon: 'lightning-bolt', fetchFn: null },
+  { label: 'BBPS', value: 'BBPS', icon: 'lightning-bolt', fetchFn: fetchBbpsTransactions },
 ];
 
 const STATUS_CONFIG = {
