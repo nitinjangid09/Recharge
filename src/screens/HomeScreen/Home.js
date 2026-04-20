@@ -859,7 +859,12 @@ export default function FinanceHome({ navigation }) {
                       } else if (n === "dmt") {
                         navigation.navigate("DmtLogin");
                       }
+<<<<<<< HEAD
                     }}
+=======
+                    } }
+
+>>>>>>> 77359fbce99dc21c4dc5631458ae09db1bc1832d
                   >
                     <View style={[S.svcIconCircle]}>
                       {n === "bbps" && typeof BBPSIconSVG === "function" ? (
