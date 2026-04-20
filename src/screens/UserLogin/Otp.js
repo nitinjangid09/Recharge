@@ -16,7 +16,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ActivityIndicator } from "react-native";
 import Colors from "../../constants/Colors";
 import Fonts from "../../constants/Fonts";
-import { verifyUserOtp } from "../../api/AuthApi";
+import { verifyUserOtp, loginUser } from "../../api/AuthApi";
 import CustomAlert from "../../componets/Alerts/CustomAlert";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
@@ -26,11 +26,32 @@ const INPUT_COUNT = 6;
 
 export default function OTP({ navigation, route }) {
   const routeEmail = route?.params?.email;
+  const routeUserName = route?.params?.userName;
+  const routePassword = route?.params?.password;
+  const routeSystemDetails = route?.params?.systemDetails;
+
+  const [timer, setTimer] = useState(15);
+  const [canResend, setCanResend] = useState(false);
+  const [isEditable, setIsEditable] = useState(true);
 
   const inputRefs = useRef([]);
   const [otp, setOtp] = useState(new Array(INPUT_COUNT).fill(""));
   const [loading, setLoading] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
+
+  useEffect(() => {
+    let interval = null;
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    } else {
+      setCanResend(true);
+      setIsEditable(false);
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
 
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertTitle, setAlertTitle] = useState("");
@@ -142,6 +163,42 @@ export default function OTP({ navigation, route }) {
     // multiSet saves all keys in one transaction — faster & atomic
     await AsyncStorage.multiSet(pairs);
     console.log("✅ Session saved | token:", token);
+  };
+
+  /* ── Resend OTP ────────────────────────────────────────────────────────── */
+  const handleResendOtp = async () => {
+    if (!canResend) return;
+
+    try {
+      setLoading(true);
+      const result = await loginUser({
+        email: routeEmail,
+        userName: routeUserName,
+        password: routePassword,
+        systemDetails: routeSystemDetails || {
+          location: { latitude: 0, longitude: 0 },
+          ip: "127.0.0.1",
+        },
+      });
+
+      setLoading(false);
+      if (result?.success) {
+        setTimer(15);
+        setCanResend(false);
+        setIsEditable(true);
+        setOtp(new Array(INPUT_COUNT).fill(""));
+        showAlert(
+          "OTP Resent",
+          "A new verification code has been sent to your email."
+        );
+      } else {
+        showAlert("Error", result?.message || "Failed to resend OTP");
+      }
+    } catch (err) {
+      setLoading(false);
+      console.error("Resend OTP error:", err);
+      showAlert("Error", "Something went wrong. Please try again.");
+    }
   };
 
   /* ── Fade out → navigate ────────────────────────────────────────────────── */
@@ -303,7 +360,7 @@ export default function OTP({ navigation, route }) {
             </View>
             <Text style={styles.title}>Verification Code</Text>
             <Text style={styles.subtitle}>
-              Please enter the code sent to your email to verify your account security.
+              Please enter the code sent to <Text style={{ color: Colors.primary, fontFamily: Fonts.Bold }}>{routeEmail}</Text> to verify your account <Text style={{ color: Colors.primary, fontFamily: Fonts.Bold }}>({routeUserName})</Text>.
             </Text>
           </View>
 
@@ -354,11 +411,24 @@ export default function OTP({ navigation, route }) {
                     textAlign="center"
                     cursorColor={Colors.accent}
                     selectTextOnFocus
+                    editable={isEditable}
                   />
                 </Animated.View>
               );
             })}
           </Animated.View>
+
+          {/* Security Details */}
+          <View style={styles.securityInfo}>
+            <View style={styles.securityIconBox}>
+              <Icon name="information-outline" size={18} color={Colors.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.securityText}>
+                The verification code is valid for 30 seconds. For your security, <Text style={{ fontFamily: Fonts.Bold, color: Colors.text_primary }}>never share this code</Text> with anyone.
+              </Text>
+            </View>
+          </View>
 
           {/* Verify Button */}
           {/* <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
@@ -373,10 +443,18 @@ export default function OTP({ navigation, route }) {
 
           {/* Resend */}
           <View style={styles.resendContainer}>
-            <Text style={styles.resendText}>Didn't receive OTP? </Text>
-            <TouchableOpacity>
-              <Text style={styles.resendLink}>Resend OTP</Text>
-            </TouchableOpacity>
+            {canResend ? (
+              <>
+                <Text style={styles.resendText}>Still waiting for the code? </Text>
+                <TouchableOpacity onPress={handleResendOtp}>
+                  <Text style={styles.resendLink}>Request New OTP</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <Text style={[styles.resendText, { color: Colors.text_placeholder }]}>
+                Request again in <Text style={{ color: Colors.primary, fontFamily: Fonts.Bold }}>{timer}s</Text>
+              </Text>
+            )}
           </View>
 
           {/* Forgot PIN */}
@@ -430,19 +508,19 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   title: {
-    fontSize: 26,
+    fontSize: 28,
     fontFamily: Fonts.Bold,
     color: Colors.text_primary,
     marginBottom: 10,
     letterSpacing: 0.5,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: Fonts.Medium,
     color: Colors.text_secondary,
     textAlign: "center",
     lineHeight: 20,
-    maxWidth: "80%",
+    maxWidth: "85%",
   },
   otpRow: {
     flexDirection: "row",
@@ -495,12 +573,12 @@ const styles = StyleSheet.create({
   resendText: {
     color: Colors.text_secondary,
     fontFamily: Fonts.Medium,
-    fontSize: 14,
+    fontSize: 16,
   },
   resendLink: {
     color: Colors.accent,
     fontFamily: Fonts.Bold,
-    fontSize: 14,
+    fontSize: 16,
   },
   forgotPinBtn: {
     alignItems: "center",
@@ -541,6 +619,31 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderWidth: 1,
     borderColor: Colors.border,
+  },
+  securityInfo: {
+    flexDirection: "row",
+    backgroundColor: Colors.whiteOpacity_08,
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: "center",
+  },
+  securityIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: Colors.secondary,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  securityText: {
+    fontSize: 13,
+    color: Colors.text_secondary,
+    lineHeight: 18,
+    fontFamily: Fonts.Medium,
   },
   circle1: {
     position: "absolute",
