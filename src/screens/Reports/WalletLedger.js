@@ -769,13 +769,20 @@ const WalletTransactionScreen = ({ navigation }) => {
             loading={loading}
           />
         }
-        ListEmptyComponent={searched && !loading && !error ? (
-          <View style={S.emptyWrap}>
-            <Icon name="file-search-outline" size={rs(52)} color={`${Colors.gold}55`} />
-            <Text style={S.emptyTitle}>No transactions found</Text>
-            <Text style={S.emptySub}>Try adjusting your filters</Text>
-          </View>
-        ) : null}
+        ListEmptyComponent={
+          loading ? (
+            <View style={S.emptyWrap}>
+              <ActivityIndicator size="large" color={Colors.finance_accent} />
+              <Text style={[S.emptySub, { marginTop: vs(12) }]}>Fetching your transactions...</Text>
+            </View>
+          ) : searched && !error ? (
+            <View style={S.emptyWrap}>
+              <Icon name="file-search-outline" size={rs(52)} color={`${Colors.gold}55`} />
+              <Text style={S.emptyTitle}>No transactions found</Text>
+              <Text style={S.emptySub}>Try adjusting your filters</Text>
+            </View>
+          ) : null
+        }
         contentContainerStyle={{ paddingBottom: vs(40) }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.finance_accent} colors={[Colors.finance_accent]} />}
       />

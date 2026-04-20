@@ -373,19 +373,19 @@ export default function OTP({ navigation, route }) {
 
           {/* Resend */}
           <View style={styles.resendContainer}>
-            <Text style={styles.resendText}>Didn't receive code? </Text>
+            <Text style={styles.resendText}>Didn't receive OTP? </Text>
             <TouchableOpacity>
-              <Text style={styles.resendLink}>Resend Code</Text>
+              <Text style={styles.resendLink}>Resend OTP</Text>
             </TouchableOpacity>
           </View>
 
           {/* Forgot PIN */}
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.forgotPinBtn}
             onPress={() => navigation.navigate("ForgotPin")}
           >
             <Text style={styles.forgotPinText}>Forgot PIN?</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </ScrollView>
       </Animated.View>
 
