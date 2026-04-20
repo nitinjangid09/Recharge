@@ -22,7 +22,7 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Fonts from "../../constants/Fonts";
 import Colors from "../../constants/Colors";
-import { getWalletBalance, fetchUserProfile, getAllBanners, getWalletReport, BASE_URL } from "../../api/AuthApi";
+import { getWalletBalance, fetchUserProfile, getAllBanners, getWalletReport, getAepsStatus, BASE_URL } from "../../api/AuthApi";
 import FullScreenLoader from "../../componets/Loader/FullScreenLoader";
 import CustomAlert from "../../componets/Alerts/CustomAlert";
 
@@ -192,6 +192,7 @@ export default function FinanceHome({ navigation }) {
   const [mainBalance, setMainBalance] = useState("...");
   const [balanceLoading, setBalanceLoading] = useState(false);
   const [assignedServices, setAssignedServices] = useState([]);
+  const [userProfile, setUserProfile] = useState(null);
   const [servicesLoading, setServicesLoading] = useState(false);
   const [isMainWallet, setIsMainWallet] = useState(true);
   const [showBalance, setShowBalance] = useState(true);
@@ -374,6 +375,7 @@ export default function FinanceHome({ navigation }) {
             const p = res.data;
             setUserName(`${p.firstName ?? ""} ${p.lastName ?? ""}`.trim() || s.user_name?.trim() || "User");
             setAssignedServices(Array.isArray(p.assignedServices) ? p.assignedServices : []);
+            setUserProfile(p);
             setStatusMessage(res?.message || "");
           } else {
             setUserName(s.user_name?.trim() || "User");
@@ -811,12 +813,52 @@ export default function FinanceHome({ navigation }) {
                     key={item._id}
                     style={[S.svcGridItem]}
                     activeOpacity={0.78}
-                    onPress={() => {
-                      if (n === "recharge") navigation.navigate("TopUpScreen");
-                      else if (n === "bbps") navigation.navigate("PaymentsScreen");
-                      else if (n === "aeps1" || n === "aeps") navigation.navigate("BalanceEnquiry");
-                      else if (n === "aeps2") navigation.navigate("AEPSSecondaryRegistration");
-                      else if (n === "dmt") navigation.navigate("DmtLogin");
+                    onPress={async () => {
+                      if (n === "recharge") {
+                        navigation.navigate("TopUpScreen");
+                      } else if (n === "bbps") {
+                        navigation.navigate("PaymentsScreen");
+                      } else if (n === "aeps1" || n === "aeps") {
+                        const aeps1 = userProfile?.aeps1 || {};
+
+                        // Case 1: {} -> AepsRegistration
+                        if (Object.keys(aeps1).length === 0) {
+                          navigation.navigate("AepsRegistration");
+                        }
+                        // Case 2: ACTION-REQUIRED -> AEPS_OnBoard
+                        else if (aeps1.action === "ACTION-REQUIRED") {
+                          navigation.navigate("AEPS_OnBoard");
+                        }
+                        // Case 3: NO-ACTION-REQUIRED -> Check API status
+                        else if (aeps1.action === "NO-ACTION-REQUIRED") {
+                          setBalanceLoading(true);
+                          try {
+                            const statusRes = await getAepsStatus({ headerToken: token });
+                            console.log("AEPS Status Response:", statusRes);
+
+                            if (statusRes.code === "LOGIN_NOT_REQUIRED") {
+                              navigation.navigate("AEPS_Services");
+                            } else if (statusRes.code === "LOGIN_REQUIRED") {
+                              navigation.navigate("DailyLogin");
+                            } else {
+                              // If server doesn't return expected code but is success, default to daily login
+                              navigation.navigate("DailyLogin");
+                            }
+                          } catch (err) {
+                            console.log("AEPS Status Check Error:", err);
+                            showAlert("error", "Status Check Failed", "Unable to verify AEPS session. Please try again.");
+                          } finally {
+                            setBalanceLoading(false);
+                          }
+                        } else {
+                          // Default fallback if action is unknown
+                          navigation.navigate("AEPS_Services");
+                        }
+                      } else if (n === "aeps2") {
+                        navigation.navigate("AEPSSecondaryRegistration");
+                      } else if (n === "dmt") {
+                        navigation.navigate("DmtLogin");
+                      }
                     }}
                   >
                     <View style={[S.svcIconCircle]}>

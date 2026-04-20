@@ -57,15 +57,15 @@ export default function PaymentReceipt({
   
   // Balance checking: prioritize bankAccountBalance
   const rawBalance = (type === 'Balance Enquiry' || type === 'Mini Statement')
-    ? (nestedData.bankAccountBalance ?? nestedData.closingBalance ?? response?.balance)
-    : (nestedData.transactionValue ?? details?.amount);
+    ? (nestedData.bankAccountBalance || nestedData.closingBalance || response?.balance)
+    : (nestedData.transactionValue || details?.amount);
     
-  const balance = (rawBalance !== undefined && rawBalance !== null) ? rawBalance : "0.00";
+  const balance = (rawBalance !== undefined && rawBalance !== null && rawBalance !== "") ? rawBalance : "0.00";
   
   // Transaction IDs from user sample mapping:
-  // User wants "Bank RRN" to be orderid and "REF" to be externalRef
-  const rrn = nestedRoot.orderid || response?.orderid || nestedRoot.ipayId || "N/A";
-  const ackno = nestedData.externalRef || nestedRoot.externalRef || "N/A";
+  // Bank RRN should use externalRef
+  const rrn = nestedData.externalRef || nestedRoot.externalRef || response?.externalRef || "N/A";
+  const ackno = nestedRoot.orderid || response?.orderid || nestedRoot.ipayId || "N/A";
   
   // Bank and User details
   const bankName = nestedData.bankName || details?.bankName || "Aadhaar Bank";
@@ -73,10 +73,27 @@ export default function PaymentReceipt({
   const aadhaar = details?.aadhaar || details?.aadhaarNumber || "XXXX XXXX XXXX";
   const accountNo = nestedData.accountNumber || "N/A";
   const txnValue = nestedData.transactionValue || details?.amount || "0.00";
+  const statusMsg = l1.message || l2.status || response?.message || "Transaction Successful";
   
-  const now = new Date();
-  const dateStr = now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-  const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+  // Date and Time from API timestamp "2026-04-16 18:28:52"
+  const apiTimestamp = l2.timestamp || response?.timestamp;
+  let dateStr, timeStr;
+  
+  if (apiTimestamp && typeof apiTimestamp === 'string') {
+    try {
+      const [d, t] = apiTimestamp.split(' ');
+      dateStr = d || "N/A";
+      timeStr = t || "N/A";
+    } catch (e) {
+      const now = new Date();
+      dateStr = now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    }
+  } else {
+    const now = new Date();
+    dateStr = now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -89,7 +106,7 @@ export default function PaymentReceipt({
 
         {/* Success Banner */}
         <View style={styles.successBanner}>
-          <Text style={styles.successText}>{type === 'Cash Withdrawal' ? 'Payment' : 'Enquiry'} Successful!</Text>
+          <Text style={styles.successText}>{statusMsg}</Text>
           <Text style={styles.successSub}>
             Completed on {dateStr} at {timeStr}
           </Text>
@@ -125,7 +142,7 @@ export default function PaymentReceipt({
           <ReceiptRow label="Bank" value={bankName} />
           {type === 'Cash Withdrawal' && <ReceiptRow label="Withdrawn Amount" value={`₹${txnValue}`} />}
           <ReceiptRow label="Mobile" value={mobile} />
-          <ReceiptRow label="Status" value="Successful" />
+          <ReceiptRow label="Status" value={statusMsg} />
         </View>
 
         {/* Mini Statement List */}

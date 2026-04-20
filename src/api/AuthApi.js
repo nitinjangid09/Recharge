@@ -1853,3 +1853,17 @@ export const generateDmtTotp = async ({ data, headerToken, idempotencyKey }) => 
     return error?.response?.data || { success: false, message: "TOTP generation failed" };
   }
 };
+
+export const getAepsStatus = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/aepsInstant/aeps-status`, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("AEPS Status API Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Failed to fetch AEPS status" };
+  }
+};

@@ -23,7 +23,6 @@ import { AlertService } from "../../../componets/Alerts/CustomAlert";
 import * as NavigationService from "../../../utils/NavigationService";
 import { ActivityIndicator } from "react-native";
 import RDService, { RD_ERROR_CODES } from "./RDService";
-import PaymentReceipt from "./PaymentReceipt";
 import Geolocation from '@react-native-community/geolocation';
 import { PermissionsAndroid, Alert } from "react-native";
 
@@ -521,22 +520,94 @@ const MiniStatement = () => {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* ─── SUCCESS RECEIPT POPUP ─── */}
+      {/* ─── CUSTOM MINI STATEMENT MODAL ─── */}
       <Modal
         visible={receiptVisible}
-        animationType="slide"
+        transparent
+        animationType="fade"
         onRequestClose={() => setReceiptVisible(false)}
       >
-        <PaymentReceipt
-          response={receiptData}
-          details={txnDetails}
-          type="Mini Statement"
-          onClose={() => {
-            setReceiptVisible(false);
-            setReceiptData(null);
-            setTxnDetails(null);
-          }}
-        />
+        <View style={rm.overlay}>
+          <View style={rm.card}>
+            {/* Success Header */}
+            <View style={rm.iconBadge}>
+              <Text style={rm.checkIcon}>✓</Text>
+            </View>
+
+            <Text style={rm.statusTitle}>
+              {(receiptData?.data?.message || receiptData?.message || "Transaction Successful").toUpperCase()}
+            </Text>
+            
+            <View style={rm.amtBox}>
+              <Text style={rm.amtLabel}>AVAILABLE BALANCE</Text>
+              <Text style={rm.amtValue}>
+                ₹{Number(
+                  (receiptData?.data?.response?.data?.bankAccountBalance || 
+                   receiptData?.data?.response?.data?.closingBalance || 
+                   receiptData?.data?.balance || "0.00")
+                ).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              </Text>
+            </View>
+
+            {/* Scrollable Statement Area */}
+            <View style={{ width: '100%', flexShrink: 1, maxHeight: SH * 0.4 }}>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={rm.divider} />
+                
+                {/* Details Section */}
+                <View style={rm.list}>
+                  <View style={rm.row}>
+                    <Text style={rm.rowLabel}>Bank RRN</Text>
+                    <Text style={rm.rowValue}>{receiptData?.data?.response?.data?.externalRef || "N/A"}</Text>
+                  </View>
+                  <View style={rm.row}>
+                    <Text style={rm.rowLabel}>Bank</Text>
+                    <Text style={rm.rowValue}>{receiptData?.data?.response?.data?.bankName || txnDetails?.bankName || "N/A"}</Text>
+                  </View>
+                  <View style={rm.row}>
+                    <Text style={rm.rowLabel}>Account No</Text>
+                    <Text style={rm.rowValue}>{receiptData?.data?.response?.data?.accountNumber || "N/A"}</Text>
+                  </View>
+                </View>
+
+                <View style={rm.divider} />
+
+                {/* Statement List */}
+                <Text style={rm.stTitle}>RECENT TRANSACTIONS</Text>
+                {receiptData?.data?.response?.data?.miniStatement?.length > 0 ? (
+                  receiptData.data.response.data.miniStatement.map((item, idx) => {
+                    const isCredit = item.narration?.toUpperCase().includes(' C ');
+                    return (
+                      <View key={idx} style={rm.stRow}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={rm.stDate}>{item.date || 'N/A'}</Text>
+                          <Text style={rm.stNarration} numberOfLines={1}>{item.narration}</Text>
+                        </View>
+                        <Text style={[rm.stAmt, isCredit ? rm.cr : rm.dr]}>
+                          {isCredit ? '+' : '-'}₹{item.amount}
+                        </Text>
+                      </View>
+                    );
+                  })
+                ) : (
+                  <Text style={rm.emptyTxt}>No recent transactions found</Text>
+                )}
+              </ScrollView>
+            </View>
+
+            <TouchableOpacity 
+              style={rm.closeBtn} 
+              onPress={() => {
+                setReceiptVisible(false);
+                setReceiptData(null);
+                setTxnDetails(null);
+              }}
+              activeOpacity={0.8}
+            >
+              <Text style={rm.closeBtnTxt}>Close Statement</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </Modal>
     </SafeAreaView>
   );
@@ -655,6 +726,76 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Regular, textAlign: "center", color: Colors.gray_BD, fontSize: rs(10),
     marginTop: vs(14), lineHeight: rs(16), paddingHorizontal: scale(10),
   },
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  RECEIPT MODAL STYLES (rm)
+// ══════════════════════════════════════════════════════════════════════════════
+const rm = StyleSheet.create({
+  overlay: {
+    flex: 1, 
+    backgroundColor: 'rgba(0,0,0,0.6)', 
+    justifyContent: 'center', 
+    alignItems: 'center',
+    padding: scale(20),
+  },
+  card: {
+    backgroundColor: Colors.white,
+    width: '100%',
+    borderRadius: scale(24),
+    padding: scale(24),
+    alignItems: 'center',
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.2, shadowRadius: 15,
+  },
+  iconBadge: {
+    width: scale(56), height: scale(56), borderRadius: scale(28),
+    backgroundColor: '#2ECC71', alignItems: 'center', justifyContent: 'center',
+    marginBottom: vs(12),
+  },
+  checkIcon: { color: Colors.white, fontSize: rs(28), fontWeight: 'bold' },
+  statusTitle: {
+    fontFamily: Fonts.Bold, fontSize: rs(13), color: '#2ECC71',
+    letterSpacing: 1.2, marginBottom: vs(16), textAlign: 'center',
+  },
+  amtBox: {
+    width: '100%', backgroundColor: Colors.bg_F8, borderRadius: scale(16),
+    padding: scale(14), alignItems: 'center', marginBottom: vs(6),
+  },
+  amtLabel: {
+    fontFamily: Fonts.Bold, fontSize: rs(9), color: Colors.gray_9E,
+    letterSpacing: 0.8, marginBottom: vs(2),
+  },
+  amtValue: { fontFamily: Fonts.Bold, fontSize: rs(24), color: Colors.primary },
+  divider: { width: '100%', height: 1, backgroundColor: Colors.gray_E0, marginVertical: vs(14) },
+  stTitle: {
+    fontFamily: Fonts.Bold, fontSize: rs(11), color: Colors.primary,
+    letterSpacing: 0.5, marginBottom: vs(12),
+  },
+  list: { width: '100%', gap: vs(10) },
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  rowLabel: { fontFamily: Fonts.Medium, fontSize: rs(11), color: Colors.gray_9E },
+  rowValue: { fontFamily: Fonts.Bold, fontSize: rs(11), color: Colors.gray_21 },
+  
+  // Statement Row
+  stRow: {
+    flexDirection: 'row', alignItems: 'center', paddingVertical: vs(10),
+    borderBottomWidth: 0.5, borderBottomColor: Colors.gray_F0,
+  },
+  stDate: { fontFamily: Fonts.Bold, fontSize: rs(10), color: Colors.gray_21 },
+  stNarration: { fontFamily: Fonts.Medium, fontSize: rs(9), color: Colors.gray_9E, marginTop: vs(2) },
+  stAmt: { fontFamily: Fonts.Bold, fontSize: rs(11), marginLeft: scale(10) },
+  cr: { color: '#2ECC71' },
+  dr: { color: '#E74C3C' },
+  emptyTxt: { fontFamily: Fonts.Medium, color: Colors.gray_BD, fontSize: rs(11), textAlign: 'center', marginTop: vs(10) },
+
+  closeBtn: {
+    width: '100%', backgroundColor: Colors.primary, paddingVertical: vs(14),
+    borderRadius: scale(12), alignItems: 'center', marginTop: vs(20),
+  },
+  closeBtnTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(14) },
 });
 
 // ══════════════════════════════════════════════════════════════════════════════

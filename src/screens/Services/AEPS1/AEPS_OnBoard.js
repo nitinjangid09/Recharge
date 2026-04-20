@@ -219,20 +219,44 @@ const AEPS_OnBoard = () => {
         flashCapture();
 
         try {
-            // Step 1: Capture biometric PID from RD device using native bridge
-            const pidData = await RD_BRIDGE.capture(device);
+            // Step 1: Capture biometric PID from RD device (Using simple capture like Daily Login)
+            const pidDataXml = await RD_BRIDGE.capture(device);
 
-            if (!pidData) {
+            if (!pidDataXml) {
                 setRdState((s) => ({ ...s, capturing: false }));
                 AlertService.showAlert({ type: "error", title: "Capture Failed", message: "No biometric data received." });
                 transition(SCREENS.BIOMETRIC);
                 return;
             }
 
-            // Step 2: Submit PID + Aadhaar to backend KYC API
+            // Step 2: Get Location
+            const getLocation = () =>
+                new Promise((resolve) => {
+                    import('@react-native-community/geolocation').then(Geo => {
+                        Geo.default.getCurrentPosition(
+                            (pos) => resolve(pos.coords),
+                            (err) => {
+                                console.log("Location error, using fallback", err);
+                                resolve({ latitude: 26.889829, longitude: 75.738331 });
+                            },
+                            { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+                        );
+                    }).catch(() => resolve({ latitude: 26.889829, longitude: 75.738331 }));
+                });
+            
+            const coords = await getLocation();
+
+            // Step 3: Prepare and submit parsed PID + Aadhaar to backend KYC API
+            // Matching Daily Login format: RD_BRIDGE.parsePidXml(pidDataXml)
             const headerToken = await AsyncStorage.getItem("header_token");
             const res = await biometricKyc({
-                data: { aadhaarNumber: aadhaar, pidData: pidData },
+                data: { 
+                    aadhaarNumber: aadhaar, 
+                    latitude: coords.latitude,
+                    longitude: coords.longitude,
+                    captureType: "finger",
+                    biometricData: RD_BRIDGE.parsePidXml(pidDataXml)
+                },
                 headerToken,
                 idempotencyKey: `KYC_${Date.now()}`,
             });
@@ -250,9 +274,14 @@ const AEPS_OnBoard = () => {
                 AlertService.showAlert({ type: "error", title: "KYC Failed", message: res.message || "Backend rejected the PID data." });
                 transition(SCREENS.BIOMETRIC);
             }
-        } catch {
+        } catch (err) {
+            console.error("KYC Capture error:", err);
             setRdState((s) => ({ ...s, capturing: false }));
-            AlertService.showAlert({ type: "error", title: "System Error", message: "Verification failed. Check scanner and network." });
+            AlertService.showAlert({ 
+                type: "error", 
+                title: "System Error", 
+                message: err?.message || "Verification failed. Check scanner and network." 
+            });
             transition(SCREENS.BIOMETRIC);
         }
     };
