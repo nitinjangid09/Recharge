@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,10 +15,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import ImagePicker from 'react-native-image-crop-picker';
 import Colors from '../../../constants/Colors';
 import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
-import { fetchAepsBanks, fetchStateList, fetchCityList } from '../../../api/AuthApi';
+import { fetchEBankList, fetchEStateList, fetchCityList, onboardAepsUser, fetchUserProfile, activateAepsService } from '../../../api/AuthApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RDService from '../AEPS1/RDService';
 import { AlertService } from '../../../componets/Alerts/CustomAlert';
+import CalendarModal from '../../../componets/Calendar/CalendarModal';
+import Geolocation from '@react-native-community/geolocation';
 
 const { width: SW, height: SH } = Dimensions.get("window");
 const scale = (n) => Math.round((SW / 375) * n);
@@ -228,12 +230,32 @@ const AddressSection = ({ prefix, form, updateForm, openSelector, errors }) => (
         />
       </View>
       <View style={screenStyles.half}>
-        <DropdownField
+        <FormField
           label="City"
-          placeholder="Select City"
+          placeholder="Enter City"
           value={form[`${prefix}City`]}
-          onPress={() => openSelector('Select City', `${prefix}City`)}
+          onChangeText={(v) => updateForm(`${prefix}City`, v)}
           error={errors[`${prefix}City`]}
+        />
+      </View>
+    </View>
+    <View style={screenStyles.row}>
+      <View style={screenStyles.half}>
+        <FormField
+          label="District"
+          placeholder="Enter District"
+          value={form[`${prefix}District`]}
+          onChangeText={(v) => updateForm(`${prefix}District`, v)}
+          error={errors[`${prefix}District`]}
+        />
+      </View>
+      <View style={screenStyles.half}>
+        <FormField
+          label="Area/Tehsil"
+          placeholder="Enter Area"
+          value={form[`${prefix}Area`]}
+          onChangeText={(v) => updateForm(`${prefix}Area`, v)}
+          error={errors[`${prefix}Area`]}
         />
       </View>
     </View>
@@ -252,25 +274,52 @@ const AddressSection = ({ prefix, form, updateForm, openSelector, errors }) => (
 );
 
 // ─── Item Selector Modal ──────────────────────────────────────────
-const SelectorModal = ({ visible, title, items, onSelect, onClose }) => (
-  <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-    <TouchableOpacity style={selStyles.overlay} activeOpacity={1} onPress={onClose} />
-    <View style={selStyles.sheet}>
-      <View style={selStyles.header}>
-        <Text style={selStyles.title}>{title}</Text>
-        <TouchableOpacity onPress={onClose}><Text style={selStyles.close}>✕</Text></TouchableOpacity>
+const SelectorModal = ({ visible, title, items, onSelect, onClose }) => {
+  const [search, setSearch] = React.useState('');
+
+  React.useEffect(() => {
+    if (!visible) setSearch('');
+  }, [visible]);
+
+  const filteredItems = items.filter(item => {
+    const lbl = typeof item === 'object' ? (item.label || '') : String(item);
+    return lbl.toLowerCase().includes(search.toLowerCase());
+  });
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <TouchableOpacity style={selStyles.overlay} activeOpacity={1} onPress={onClose} />
+      <View style={selStyles.sheet}>
+        <View style={selStyles.header}>
+          <Text style={selStyles.title}>{title}</Text>
+          <TouchableOpacity onPress={onClose}><Text style={selStyles.close}>✕</Text></TouchableOpacity>
+        </View>
+        <View style={selStyles.searchWrap}>
+          <TextInput
+            style={selStyles.searchInput}
+            placeholder="Search here..."
+            placeholderTextColor="#94A3B8"
+            value={search}
+            onChangeText={setSearch}
+          />
+        </View>
+        <ScrollView style={selStyles.list} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          {filteredItems.map((item, idx) => {
+            const textLabel = typeof item === 'object' ? (item.label || JSON.stringify(item)) : String(item);
+            return (
+              <TouchableOpacity key={idx} style={selStyles.item} onPress={() => onSelect(item)}>
+                <Text style={selStyles.itemText}>{textLabel}</Text>
+              </TouchableOpacity>
+            );
+          })}
+          {filteredItems.length === 0 && (
+            <Text style={selStyles.empty}>{items.length === 0 ? 'Loading items...' : 'No results found'}</Text>
+          )}
+        </ScrollView>
       </View>
-      <ScrollView style={selStyles.list} showsVerticalScrollIndicator={false}>
-        {items.map((item, idx) => (
-          <TouchableOpacity key={idx} style={selStyles.item} onPress={() => onSelect(item)}>
-            <Text style={selStyles.itemText}>{item.label || item}</Text>
-          </TouchableOpacity>
-        ))}
-        {items.length === 0 && <Text style={selStyles.empty}>Loading items...</Text>}
-      </ScrollView>
-    </View>
-  </Modal>
-);
+    </Modal>
+  );
+};
 
 const selStyles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' },
@@ -278,6 +327,8 @@ const selStyles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: rs(20), borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
   title: { fontSize: rs(16), fontWeight: '800', color: Colors.black },
   close: { fontSize: rs(18), color: '#94A3B8' },
+  searchWrap: { paddingHorizontal: rs(20), paddingVertical: rs(10), borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
+  searchInput: { backgroundColor: '#f8fafc', borderRadius: rs(10), paddingHorizontal: rs(16), paddingVertical: rs(12), fontSize: rs(14), color: Colors.black },
   item: { padding: rs(18), borderBottomWidth: 1, borderBottomColor: '#f8fafc' },
   itemText: { fontSize: rs(14), color: '#334155', fontWeight: '500' },
   empty: { textAlign: 'center', padding: rs(40), color: '#94A3B8' }
@@ -288,14 +339,50 @@ export default function AEPSServiceActivationScreen({ navigation }) {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [calVisible, setCalVisible] = useState(false);
   const [activeDoc, setActiveDoc] = useState(null);
+  const [coords, setCoords] = useState({ lat: '26.889811', lon: '75.738343' });
 
   const [form, setForm] = useState({
+    firstName: '', lastName: '', email: '', mobile: '', panNumber: '', dob: '', shopName: '',
     model: '', modelLabel: '', deviceNo: '', aadhaar: '', bank: '', bankLabel: '', accNo: '', ifsc: '',
-    officeAddr: '', officeState: '', officeStateCode: '', officeCity: '', officePincode: '',
-    aadhaarAddr: '', aadhaarState: '', aadhaarStateCode: '', aadhaarCity: '', aadhaarPincode: '',
-    panFile: null, aadhaarFront: null, aadhaarBack: null, shopImg: null
+    officeAddr: '', officeState: '', officeStateCode: '', officeCity: '', officePincode: '', officeDistrict: '', officeArea: '',
+    aadhaarAddr: '', aadhaarState: '', aadhaarStateCode: '', aadhaarCity: '', aadhaarPincode: '', aadhaarDistrict: '', aadhaarArea: '',
+    panFile: null, aadhaarFront: null, aadhaarBack: null
   });
+
+  useEffect(() => {
+    const initProfile = async () => {
+      try {
+        const hToken = await AsyncStorage.getItem("header_token");
+        if (!hToken) return;
+        const res = await fetchUserProfile({ headerToken: hToken });
+        if (res.success || res.status === "SUCCESS") {
+          const p = res.data;
+          setForm(prev => ({
+            ...prev,
+            firstName: p.firstName || '',
+            lastName: p.lastName || '',
+            email: p.email || '',
+            mobile: p.phone || p.mobile || '',
+            panNumber: p.panNumber || '',
+            dob: p.dob || '',
+            shopName: p.shopName || '',
+          }));
+        }
+      } catch (err) {
+        console.log("Profile Fetch Error:", err);
+      }
+    };
+    initProfile();
+
+    // Get live location
+    Geolocation.getCurrentPosition(
+      (pos) => setCoords({ lat: String(pos.coords.latitude), lon: String(pos.coords.longitude) }),
+      (err) => console.log("Location Error:", err),
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+    );
+  }, []);
 
   const [sel, setSel] = useState({ visible: false, title: '', items: [], key: '' });
   const [lists, setLists] = useState({ banks: [], states: [], cities: [], models: RDService.DEVICE_LIST });
@@ -310,7 +397,7 @@ export default function AEPSServiceActivationScreen({ navigation }) {
     if (key === 'bank') {
       if (lists.banks.length === 0) {
         const hToken = await AsyncStorage.getItem("header_token");
-        const res = await fetchAepsBanks({ headerToken: hToken });
+        const res = await fetchEBankList({ headerToken: hToken });
         if (res.success || Array.isArray(res.data)) {
           const mapped = (res.data || []).map(b => ({ label: b.name || b.bankName, value: b._id || b.bankId }));
           setLists(prev => ({ ...prev, banks: mapped }));
@@ -320,24 +407,13 @@ export default function AEPSServiceActivationScreen({ navigation }) {
     } else if (key.includes('State')) {
       if (lists.states.length === 0) {
         const hToken = await AsyncStorage.getItem("header_token");
-        const res = await fetchStateList({ headerToken: hToken });
+        const res = await fetchEStateList({ headerToken: hToken });
         if (res.success && res.data) {
-          const mapped = res.data.map(s => ({ label: s.stateName, value: s.stateCode }));
+          const mapped = res.data.map(s => ({ label: s.label || s.stateName || s.name || s.title || "Unknown", id: s._id }));
           setLists(prev => ({ ...prev, states: mapped }));
           items = mapped;
         }
       } else items = lists.states;
-    } else if (key.includes('City')) {
-      const stateCode = key === 'officeCity' ? form.officeStateCode : form.aadhaarStateCode;
-      if (!stateCode) {
-        AlertService.showAlert({ type: 'error', title: 'State Required', message: 'Please select a state first' });
-        return;
-      }
-      const hToken = await AsyncStorage.getItem("header_token");
-      const res = await fetchCityList({ stateCode, headerToken: hToken });
-      if (res.success && res.data) {
-        items = res.data.map(c => ({ label: c.cityName, value: c.cityCode }));
-      }
     } else if (key === 'model') {
       items = lists.models;
     }
@@ -347,10 +423,8 @@ export default function AEPSServiceActivationScreen({ navigation }) {
   const handleSelect = (item) => {
     if (sel.key === 'model') { updateForm('model', item.value); updateForm('modelLabel', item.label); }
     else if (sel.key === 'bank') { updateForm('bank', item.value); updateForm('bankLabel', item.label); }
-    else if (sel.key === 'officeState') { updateForm('officeState', item.label); updateForm('officeStateCode', item.value); updateForm('officeCity', ''); }
-    else if (sel.key === 'aadhaarState') { updateForm('aadhaarState', item.label); updateForm('aadhaarStateCode', item.value); updateForm('aadhaarCity', ''); }
-    else if (sel.key === 'officeCity') updateForm('officeCity', item.label);
-    else if (sel.key === 'aadhaarCity') updateForm('aadhaarCity', item.label);
+    else if (sel.key === 'officeState') { updateForm('officeState', item.label); updateForm('officeStateCode', item.id); updateForm('officeCity', ''); }
+    else if (sel.key === 'aadhaarState') { updateForm('aadhaarState', item.label); updateForm('aadhaarStateCode', item.id); updateForm('aadhaarCity', ''); }
     setSel(s => ({ ...s, visible: false }));
   };
 
@@ -363,8 +437,24 @@ export default function AEPSServiceActivationScreen({ navigation }) {
     } catch (e) { console.log("Picker Error:", e); }
   };
 
+  const handleDateConfirm = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    updateForm('dob', `${y}-${m}-${d}`);
+    setCalVisible(false);
+  };
+
   const validateAll = () => {
     const e = {};
+    // Section 0: Merchant
+    if (!form.firstName) e.firstName = 'First name required';
+    if (!form.lastName) e.lastName = 'Last name required';
+    if (!form.email) e.email = 'Email required';
+    if (!form.panNumber) e.panNumber = 'PAN required';
+    if (!form.dob) e.dob = 'DOB required';
+    if (!form.shopName) e.shopName = 'Shop name required';
+
     // Section 1: Device & Bank
     if (!form.model) e.model = 'Select device model';
     if (!form.deviceNo) e.deviceNo = 'Enter device serial no';
@@ -378,6 +468,8 @@ export default function AEPSServiceActivationScreen({ navigation }) {
     if (!form.officeAddr) e.officeAddr = 'Enter office address';
     if (!form.officeState) e.officeState = 'Select state';
     if (!form.officeCity) e.officeCity = 'Select city';
+    if (!form.officeDistrict) e.officeDistrict = 'Enter district';
+    if (!form.officeArea) e.officeArea = 'Enter area';
     if (!form.officePincode) e.officePincode = 'Enter pincode';
     else if (form.officePincode.length !== 6) e.officePincode = 'Invalid pincode';
 
@@ -392,7 +484,6 @@ export default function AEPSServiceActivationScreen({ navigation }) {
     if (!form.panFile) e.panFile = 'PAN file required';
     if (!form.aadhaarFront) e.aadhaarFront = 'Aadhaar Front required';
     if (!form.aadhaarBack) e.aadhaarBack = 'Aadhaar Back required';
-    if (!form.shopImg) e.shopImg = 'Shop image required';
 
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -400,18 +491,87 @@ export default function AEPSServiceActivationScreen({ navigation }) {
 
   const handleSubmit = async () => {
     if (!validateAll()) return;
-    
+
     setLoading(true);
-    // Simulate API process
-    setTimeout(() => {
-      setLoading(false);
-      AlertService.showAlert({ 
-        type: 'success', 
-        title: 'Request Submitted', 
-        message: 'Your activation request has been captured successfully. Redirecting to verification.',
-        onClose: () => navigation.navigate('AEPSAadhaarOTP')
+    try {
+      const hToken = await AsyncStorage.getItem("header_token");
+      const client_ref_id = `ACT${Date.now()}${(Math.random() * 1000).toFixed(0)}`;
+
+      const formD = new FormData();
+
+      // Basic Fields
+      formD.append('aadhaar', form.aadhaar);
+      formD.append('accountNumber', form.accNo);
+      formD.append('ifsc', form.ifsc);
+      formD.append('deviceNumber', form.deviceNo);
+      formD.append('modelName', form.model);
+      formD.append('bank', form.bank);
+      formD.append('latitude', coords.lat);
+      formD.append('longitude', coords.lon);
+
+      // Office Address (Bracketed Keys)
+      formD.append('officeAddress[line]', form.officeAddr);
+      formD.append('officeAddress[city]', form.officeCity);
+      formD.append('officeAddress[state]', form.officeStateCode);
+      formD.append('officeAddress[pincode]', form.officePincode);
+      formD.append('officeAddress[district]', form.officeDistrict);
+      formD.append('officeAddress[area]', form.officeArea);
+
+      // Personal/Aadhaar Address (Bracketed Keys)
+      formD.append('address[line]', form.aadhaarAddr);
+      formD.append('address[city]', form.aadhaarCity);
+      formD.append('address[state]', form.aadhaarStateCode);
+      formD.append('address[pincode]', form.aadhaarPincode);
+      formD.append('address[district]', form.aadhaarDistrict);
+      formD.append('address[area]', form.aadhaarArea);
+
+      // Files
+      const appendFile = (key, path) => {
+        if (!path) return;
+        const name = path.split('/').pop() || 'upload.jpg';
+        formD.append(key, {
+          uri: Platform.OS === 'android' ? path : path.replace('file://', ''),
+          name,
+          type: 'image/jpeg'
+        });
+      };
+
+      appendFile('panCard', form.panFile);
+      appendFile('aadhaarFront', form.aadhaarFront);
+      appendFile('aadhaarBack', form.aadhaarBack);
+
+      const res = await activateAepsService({
+        formData: formD,
+        headerToken: hToken,
+        idempotencyKey: `ACT_${client_ref_id}`
       });
-    }, 1500);
+
+      const isSuccess = res.success === true || res.status === "SUCCESS";
+      const isAlreadyActive = res?.data?.status === "Activated";
+      const rawMsg = res?.data?.message || res.message;
+      const displayMsg = typeof rawMsg === 'object' ? JSON.stringify(rawMsg) : (rawMsg || (isAlreadyActive ? 'This service already exist for the user code' : 'Your service activation is processing. Please complete OTP verification.'));
+
+      if (isSuccess || isAlreadyActive) {
+        AlertService.showAlert({
+          type: 'success',
+          title: isAlreadyActive ? 'Service Active' : 'Activation Initiated',
+          message: displayMsg,
+          onClose: () => navigation.navigate('AEPSAadhaarOTP')
+        });
+      } else {
+        AlertService.showAlert({
+          type: 'error',
+          title: 'Activation Failed',
+          message: typeof res.message === 'object' ? JSON.stringify(res.message) : (res.message || 'Something went wrong during activation.')
+        });
+      }
+    } catch (err) {
+      console.log("Activation Error:", err);
+      const errMsg = typeof err?.message === 'object' ? JSON.stringify(err.message) : (err?.message || 'Failed to reaches server.');
+      AlertService.showAlert({ type: 'error', title: 'Network Error', message: errMsg });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -429,9 +589,72 @@ export default function AEPSServiceActivationScreen({ navigation }) {
       >
         <View style={{ height: rs(12) }} />
 
+        {/* Section 0: Merchant Information */}
+        <SectionCard>
+          <StepCardHeader step="1" variant="gold" title="Merchant Information" subtitle="Basic Profile Details" />
+          <View style={screenStyles.row}>
+            <View style={screenStyles.half}>
+              <FormField
+                label="First Name"
+                placeholder="Abhishek"
+                value={form.firstName}
+                onChangeText={(v) => updateForm('firstName', v)}
+                error={errors.firstName}
+              />
+            </View>
+            <View style={screenStyles.half}>
+              <FormField
+                label="Last Name"
+                placeholder="Sharma"
+                value={form.lastName}
+                onChangeText={(v) => updateForm('lastName', v)}
+                error={errors.lastName}
+              />
+            </View>
+          </View>
+          <FormField
+            label="Email Address"
+            placeholder="example@gmail.com"
+            value={form.email}
+            onChangeText={(v) => updateForm('email', v)}
+            error={errors.email}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <View style={screenStyles.row}>
+            <View style={screenStyles.half}>
+              <FormField
+                label="PAN Number"
+                placeholder="OHXPS1792H"
+                value={form.panNumber}
+                onChangeText={(v) => updateForm('panNumber', v.toUpperCase())}
+                error={errors.panNumber}
+                maxLength={10}
+                autoCapitalize="characters"
+              />
+            </View>
+            <View style={screenStyles.half}>
+              <DropdownField
+                label="Date of Birth"
+                placeholder="Select Date"
+                value={form.dob}
+                onPress={() => setCalVisible(true)}
+                error={errors.dob}
+              />
+            </View>
+          </View>
+          <FormField
+            label="Shop Name"
+            placeholder="Tech Dost"
+            value={form.shopName}
+            onChangeText={(v) => updateForm('shopName', v)}
+            error={errors.shopName}
+          />
+        </SectionCard>
+
         {/* Section 1: Device & Bank */}
         <SectionCard>
-          <StepCardHeader step="1" variant="dark" title="Device & Bank Information" subtitle="Personal & Device Details" />
+          <StepCardHeader step="2" variant="dark" title="Device & Bank Information" subtitle="Personal & Device Details" />
           <View style={screenStyles.row}>
             <View style={screenStyles.half}>
               <DropdownField
@@ -496,29 +719,28 @@ export default function AEPSServiceActivationScreen({ navigation }) {
 
         {/* Section 2: Office Address */}
         <SectionCard>
-          <StepCardHeader step="2" variant="gold" title="Office Address Details" subtitle="Permanent Business Location" />
+          <StepCardHeader step="3" variant="gold" title="Office Address Details" subtitle="Permanent Business Location" />
           <AddressSection prefix="office" form={form} updateForm={updateForm} openSelector={openSelector} errors={errors} />
         </SectionCard>
 
         {/* Section 3: Aadhaar Address */}
         <SectionCard>
-          <StepCardHeader step="3" variant="dark" title="Address As Per Aadhaar" subtitle="Identity Document Address" />
+          <StepCardHeader step="4" variant="dark" title="Address As Per Aadhaar" subtitle="Identity Document Address" />
           <AddressSection prefix="aadhaar" form={form} updateForm={updateForm} openSelector={openSelector} errors={errors} />
         </SectionCard>
 
         {/* Section 4: Documents */}
         <SectionCard>
-          <StepCardHeader step="4" variant="gold" title="KYC Documents" subtitle="Upload Required Identities" />
+          <StepCardHeader step="5" variant="gold" title="KYC Documents" subtitle="Upload Required Identities" />
           <View style={screenStyles.row}>
             <DocUploadCard label="PAN Card" uri={form.panFile} onPress={() => { setActiveDoc('panFile'); setModalVisible(true); }} />
             <DocUploadCard label="Aadhaar Front" uri={form.aadhaarFront} onPress={() => { setActiveDoc('aadhaarFront'); setModalVisible(true); }} />
           </View>
           <View style={screenStyles.row}>
             <DocUploadCard label="Aadhaar Back" uri={form.aadhaarBack} onPress={() => { setActiveDoc('aadhaarBack'); setModalVisible(true); }} />
-            <DocUploadCard label="Shop Image" uri={form.shopImg} onPress={() => { setActiveDoc('shopImg'); setModalVisible(true); }} />
           </View>
-          {errors.panFile || errors.aadhaarFront || errors.aadhaarBack || errors.shopImg ? (
-             <Text style={[screenStyles.errorText, { textAlign: 'center', marginBottom: rs(10) }]}>Please upload all documents</Text>
+          {errors.panFile || errors.aadhaarFront || errors.aadhaarBack ? (
+            <Text style={[screenStyles.errorText, { textAlign: 'center', marginBottom: rs(10) }]}>Please upload all documents</Text>
           ) : null}
         </SectionCard>
 
@@ -552,6 +774,15 @@ export default function AEPSServiceActivationScreen({ navigation }) {
           </View>
         </TouchableOpacity>
       </Modal>
+
+      <CalendarModal
+        visible={calVisible}
+        title="Select Date of Birth"
+        onConfirm={handleDateConfirm}
+        onCancel={() => setCalVisible(false)}
+        initialDate={form.dob ? new Date(form.dob) : new Date(2000, 0, 1)}
+        maxDate={new Date()}
+      />
     </SafeAreaView>
   );
 }
@@ -560,7 +791,7 @@ const screenStyles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.bg },
   scroll: { flex: 1 },
   content: { paddingHorizontal: rs(16), paddingBottom: rs(30) },
-  row: { flexDirection: 'row', gap: rs(10) },
+  row: { flexDirection: 'row', gap: rs(10), paddingBottom: rs(10) },
   half: { flex: 1 },
   terms: {
     textAlign: 'center',

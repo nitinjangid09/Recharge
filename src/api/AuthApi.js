@@ -102,18 +102,16 @@ const handleFetchResponse = async (response) => {
  *
  * Returns { headerToken, headerKey } or null if either is missing.
  */
-const getAuthHeaders = async () => {
+export const getAuthHeaders = async () => {
   try {
     const [headerToken, headerKey] = await AsyncStorage.multiGet([
       "header_token",
       "header_key",
     ]).then((pairs) => pairs.map(([, v]) => v));
 
-    if (!headerToken || !headerKey) {
+    if (!headerToken) {
       console.log(
-        "[AUTH] Missing credentials →",
-        `headerToken: ${headerToken ? "✓" : "✗"}`,
-        `headerKey: ${headerKey ? "✓" : "✗"}`
+        "[AUTH] Missing credentials → headerToken: ✗"
       );
       return null;
     }
@@ -223,6 +221,42 @@ export const logoutUser = async ({ headerToken, headerKey }) => {
     return (
       error?.response?.data || { status: "ERROR", message: "Logout failed" }
     );
+  }
+};
+
+export const changeUserPassword = async ({ currentPassword, newPassword, headerToken, headerKey }) => {
+  try {
+    const payload = {
+      currentPassword: String(currentPassword).trim(),
+      newPassword: String(newPassword).trim()
+    };
+    const response = await axios.patch(`${BASE_URL}/change-user-password`, payload, {
+      headers: {
+        headerToken,
+        headerKey,
+        Authorization: `Bearer ${headerToken}`,
+        "Content-Type": "application/json"
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Change Password API Error:", error?.response?.data || error);
+    if (error?.response?.data) return error.response.data;
+    return { success: false, message: "Network error. Please check your connection." };
+  }
+};
+
+export const forgotPassword = async ({ email }) => {
+  try {
+    const payload = { email: String(email).trim() };
+    const response = await axios.patch(`${BASE_URL}/forgot-password`, payload, {
+      headers: { "Content-Type": "application/json" },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Forgot Password API Error:", error?.response?.data || error);
+    if (error?.response?.data) return error.response.data;
+    return { success: false, message: "Network error. Unable to send OTP." };
   }
 };
 
@@ -1681,7 +1715,99 @@ export const onboardAepsUser = async ({ data, headerToken, idempotencyKey }) => 
   }
 };
 
+/**
+ * activateAepsService
+ * POST /user/aeps/activate
+ */
+export const activateAepsService = async ({ formData, headerToken, idempotencyKey }) => {
+  try {
+    const response = await fetch(`${BASE_URL}/user/aeps/activate`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey,
+      },
+      body: formData,
+    });
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.log("Activate AEPS Service API Error:", error);
+    return { success: false, message: "Service activation failed. Please try again." };
+  }
+};
 
+/**
+ * fetchEBankList
+ * GET /user/ebank/bank-list
+ */
+export const fetchEBankList = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/ebank/bank-list`, {
+      headers: { Authorization: `Bearer ${headerToken}` }
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Fetch AEPS2 Bank List Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch banks" };
+  }
+};
+
+/**
+ * fetchEStateList
+ * GET /user/state/state-list
+ */
+export const fetchEStateList = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/state/state-list`, {
+      headers: { Authorization: `Bearer ${headerToken}` }
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Fetch AEPS2 State List Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch states" };
+  }
+};
+
+/**
+ * generateAepsEkycOtp
+ * POST /user/aeps/generate-ekyc-otp
+ */
+export const generateAepsEkycOtp = async ({ data, headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/aeps/generate-ekyc-otp`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey,
+        "Content-Type": "application/json"
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Generate EKYC OTP Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Request failed" };
+  }
+};
+
+/**
+ * verifyAepsEkycOtp
+ * POST /user/aeps/verify-ekyc-otp
+ */
+export const verifyAepsEkycOtp = async ({ data, headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/aeps/verify-ekyc-otp`, data, {
+      headers: {
+        "Authorization": `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey,
+        "Content-Type": "application/json"
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Verify EKYC OTP Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Verification failed" };
+  }
+};
 
 /**
  * addDmtBeneficiary

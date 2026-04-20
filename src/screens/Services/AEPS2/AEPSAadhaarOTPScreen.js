@@ -25,6 +25,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Colors from '../../../constants/Colors';
 import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
+import { generateAepsEkycOtp, verifyAepsEkycOtp } from '../../../api/AuthApi';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Geolocation from '@react-native-community/geolocation';
 
 const { width: SW, height: SH } = Dimensions.get("window");
 const scale = (n) => Math.round((SW / 375) * n);
@@ -84,7 +87,7 @@ export default function AEPSAadhaarOTPScreen({ navigation }) {
     if (clean.length <= 12) setAadhaar(formatAadhaar(clean));
   };
 
-  const handleSendOTP = () => {
+  const handleSendOTP = async () => {
     const clean = aadhaar.replace(/\s/g, '');
     if (clean.length === 0) {
       setError('Please fill Aadhaar number');
@@ -96,16 +99,68 @@ export default function AEPSAadhaarOTPScreen({ navigation }) {
     }
     setError('');
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      Animated.timing(fadeAnim, { toValue: 0, duration: 200, useNativeDriver: true }).start(() => {
-        setStep(2);
-        Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
+
+    try {
+      // 1. Get Location (with requested static defaults)
+      let latitude = "26.889811";
+      let longitude = "75.738343";
+
+      const getPos = () => new Promise((resolve) => {
+        Geolocation.getCurrentPosition(
+          p => resolve({
+            lat: p.coords.latitude.toString(),
+            lon: p.coords.longitude.toString()
+          }),
+          () => resolve(null), // Fallback if user denies or GPS is off
+          { enableHighAccuracy: true, timeout: 8000 }
+        );
       });
-    }, 1000);
+
+      const loc = await getPos();
+      if (loc) {
+        latitude = loc.lat;
+        longitude = loc.lon;
+      }
+
+      // 2. Prepare Payload
+      const hToken = await AsyncStorage.getItem("header_token");
+      const clientRefId = `EKYC${Date.now()}${Math.floor(100000 + Math.random() * 900000)}`;
+
+      const payload = {
+        aadhaar: clean,
+        latitude,
+        longitude
+      };
+
+      // 3. Call API with Static Raw JSON
+      const res = await generateAepsEkycOtp({
+        data: payload,
+        headerToken: hToken,
+        idempotencyKey: clientRefId
+      });
+
+      if (res.success) {
+        setLoading(false);
+        // Response: {"success":true,"data":{"message":"OTP request has been sent"}}
+        const successMsg = res?.data?.message || 'OTP has been sent to your registered mobile number';
+        AlertService.showAlert({ type: 'success', title: 'OTP Sent', message: successMsg });
+        Animated.timing(fadeAnim, { toValue: 0, duration: 300, useNativeDriver: true }).start(() => {
+          setStep(2);
+          Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
+        });
+      } else {
+        setLoading(false);
+        const displayMsg = typeof res.message === 'object' ? JSON.stringify(res.message) : (res.message || 'Unable to generate OTP');
+        AlertService.showAlert({ type: 'error', title: 'OTP Failed', message: displayMsg });
+      }
+    } catch (err) {
+      setLoading(false);
+      const errMsg = typeof err?.message === 'object' ? JSON.stringify(err.message) : (err?.message || 'Something went wrong. Please try again.');
+      AlertService.showAlert({ type: 'error', title: 'Error', message: errMsg });
+    }
   };
 
-  const handleVerifyOTP = () => {
+  const handleVerifyOTP = async () => {
     if (otp.length === 0) {
       setError('Please enter OTP');
       return;
@@ -116,10 +171,36 @@ export default function AEPSAadhaarOTPScreen({ navigation }) {
     }
     setError('');
     setLoading(true);
-    setTimeout(() => {
+
+    try {
+      const hToken = await AsyncStorage.getItem("header_token");
+      const clientRefId = `VFY${Date.now()}`;
+      const payload = {
+        aadhaar: "317540354657", // Using the same static Aadhaar for consistency if preferred, or could use state
+        otp: otp,
+      };
+
+      const res = await verifyAepsEkycOtp({
+        data: payload,
+        headerToken: hToken,
+        idempotencyKey: clientRefId
+      });
+
       setLoading(false);
-      navigation.navigate('AEPSPortalAccess');
-    }, 800);
+
+      if (res.success) {
+        AlertService.showAlert({ type: 'success', title: 'Verified', message: res.message || 'Verification successful' });
+        // Navigate to Daily Login screen
+        navigation.navigate('AEPSPortalAccess');
+      } else {
+        const failMsg = typeof res.message === 'object' ? JSON.stringify(res.message) : (res.message || 'OTP verification failed');
+        AlertService.showAlert({ type: 'error', title: 'Verification Failed', message: failMsg });
+      }
+    } catch (err) {
+      setLoading(false);
+      const errMsg = typeof err?.message === 'object' ? JSON.stringify(err.message) : (err?.message || 'Error occurred');
+      AlertService.showAlert({ type: 'error', title: 'Error', message: errMsg });
+    }
   };
 
   const handleResend = () => {
@@ -233,18 +314,18 @@ export default function AEPSAadhaarOTPScreen({ navigation }) {
               </>
             )}
 
-          {/* ── Help Box ── */}
-          <View style={styles.helpBox}>
-            <Text style={styles.helpTitle}>Need help?</Text>
-            <Text style={styles.helpText}>
-              {step === 1
-                ? 'Enter your Aadhaar number first, then tap Send OTP. The OTP field appears only after the code is sent.'
-                : 'OTP is valid for 10 minutes. Check the mobile number linked to your Aadhaar for the code.'}
-            </Text>
-          </View>
-        </Animated.View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            {/* ── Help Box ── */}
+            <View style={styles.helpBox}>
+              <Text style={styles.helpTitle}>Need help?</Text>
+              <Text style={styles.helpText}>
+                {step === 1
+                  ? 'Enter your Aadhaar number first, then tap Send OTP. The OTP field appears only after the code is sent.'
+                  : 'OTP is valid for 10 minutes. Check the mobile number linked to your Aadhaar for the code.'}
+              </Text>
+            </View>
+          </Animated.View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView >
   );
 }

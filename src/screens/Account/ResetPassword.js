@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Animated,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -16,8 +17,7 @@ import CustomAlert from "../../componets/Alerts/CustomAlert";
 import Fonts from "../../constants/Fonts";
 import Colors from "../../constants/Colors";
 import HeaderBar from "../../componets/HeaderBar/HeaderBar";
-import { changeUserPassword, getAuthHeaders } from "../../api/AuthApi";
-import { ActivityIndicator } from "react-native";
+import { resetPassword } from "../../api/AuthApi";
 
 
 /* ─────────────────────────────────────────────
@@ -36,9 +36,9 @@ function calcStrength(v) {
 }
 
 /* ─────────────────────────────────────────────
-   FLOATING-LABEL INPUT  (mirrors .f-field)
+   FLOATING-LABEL INPUT
 ───────────────────────────────────────────── */
-const FloatInput = ({ id, label, value, onChangeText, secureTextEntry, onToggleSecure, showSecure, error, success }) => {
+const FloatInput = ({ label, value, onChangeText, secureTextEntry, onToggleSecure, showSecure, error, success }) => {
   const labelAnim = useRef(new Animated.Value(value ? 1 : 0)).current;
   const borderAnim = useRef(new Animated.Value(0)).current;
   const [focused, setFocused] = useState(false);
@@ -56,14 +56,11 @@ const FloatInput = ({ id, label, value, onChangeText, secureTextEntry, onToggleS
   const labelSize = labelAnim.interpolate({ inputRange: [0, 1], outputRange: [14, 10.5] });
   const labelColor = labelAnim.interpolate({ inputRange: [0, 1], outputRange: [Colors.ink3, Colors.amber] });
 
-  // Custom border color handling for Error vs Success
   let finalBorderColor = error ? Colors.red : (success ? Colors.green : Colors.ink5);
   const borderColor = borderAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [finalBorderColor, success ? Colors.green : Colors.amber]
   });
-
-  const shadowOpacity = borderAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
 
   return (
     <View style={styles.fFieldContainer}>
@@ -80,17 +77,12 @@ const FloatInput = ({ id, label, value, onChangeText, secureTextEntry, onToggleS
           },
         ]}
       >
-        {/* Floating label */}
         <Animated.Text
-          style={[
-            styles.fLabel,
-            { top: labelTop, fontSize: labelSize, color: labelColor },
-          ]}
+          style={[styles.fLabel, { top: labelTop, fontSize: labelSize, color: labelColor }]}
           pointerEvents="none"
         >
           {label}
         </Animated.Text>
-        {/* Text input */}
         <TextInput
           style={styles.fInput}
           value={value}
@@ -104,7 +96,6 @@ const FloatInput = ({ id, label, value, onChangeText, secureTextEntry, onToggleS
           autoCorrect={false}
           maxLength={32}
         />
-        {/* Eye toggle */}
         <TouchableOpacity
           style={styles.fIcon}
           onPress={onToggleSecure}
@@ -141,10 +132,7 @@ const StrengthBar = ({ value }) => {
         {[0, 1, 2, 3].map((i) => (
           <View
             key={i}
-            style={[
-              styles.strengthSeg,
-              i < s && { backgroundColor: color },
-            ]}
+            style={[styles.strengthSeg, i < s && { backgroundColor: color }]}
           />
         ))}
       </View>
@@ -152,23 +140,22 @@ const StrengthBar = ({ value }) => {
   );
 };
 
-
 /* ─────────────────────────────────────────────
    MAIN SCREEN
 ───────────────────────────────────────────── */
-const ChangePasswordScreen = ({ navigation }) => {
-  const [currentPassword, setcurrentPassword] = useState("");
+const ResetPasswordScreen = ({ navigation, route }) => {
+  const { email, otp } = route.params || {};
+
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [showOld, setShowOld] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertData, setAlertData] = useState({ type: "", title: "", message: "", onClose: null });
-  const [loading, setLoading] = useState(false);
 
   const btnScale = useRef(new Animated.Value(1)).current;
 
@@ -180,9 +167,8 @@ const ChangePasswordScreen = ({ navigation }) => {
   const pressIn = () => Animated.timing(btnScale, { toValue: 0.97, duration: 80, useNativeDriver: true }).start();
   const pressOut = () => Animated.timing(btnScale, { toValue: 1, duration: 160, useNativeDriver: true }).start();
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     const newErrors = {};
-    if (!currentPassword) newErrors.old = "Current password is required";
     if (!newPassword) newErrors.new = "New password is required";
     else if (newPassword.length < 8) newErrors.new = "Password must be at least 8 characters";
 
@@ -194,101 +180,66 @@ const ChangePasswordScreen = ({ navigation }) => {
       return;
     }
 
-    if (currentPassword === newPassword) {
-      setErrors({ new: "New password must differ from current" });
-      return;
-    }
-
     setErrors({});
+    setLoading(true);
 
-    const performSubmit = async () => {
-      setLoading(true);
-      try {
-        const auth = await getAuthHeaders();
-        if (!auth) {
-          showAlert("error", "Session Expired", "Please login again.");
-          return;
-        }
+    try {
+      const response = await resetPassword({ 
+        email, 
+        otp, 
+        newPassword 
+      });
 
-        const response = await changeUserPassword({
-          currentPassword: currentPassword,
-          newPassword: newPassword,
-          headerToken: auth.headerToken,
-          headerKey: auth.headerKey
+      if (response.success || response.status === "SUCCESS") {
+        showAlert("success", "Success", response.message || "Password reset successfully.", () => {
+          navigation.navigate("Login");
         });
-
-        if (response.success) {
-          showAlert("success", "Success", response.message || "Password changed successfully.", () => {
-            navigation.goBack();
-          });
-        } else {
-          showAlert("error", "Failed", response.message || "Unable to change password.");
-        }
-      } catch (err) {
-        console.log("[PW] Submit Error:", err);
-        showAlert("error", "Error", "Something went wrong. Please try again.");
-      } finally {
-        setLoading(false);
+      } else {
+        showAlert("error", "Failed", response.message || "Unable to reset password.");
       }
-    };
-
-    performSubmit();
-  }, [currentPassword, newPassword, confirmPassword, navigation]);
+    } catch (err) {
+      showAlert("error", "Error", "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, [email, otp, newPassword, confirmPassword, navigation]);
 
   return (
     <SafeAreaView style={styles.safe}>
-      <HeaderBar title="Change Password" onBack={() => navigation?.goBack()} />
+      <HeaderBar title="Reset Password" onBack={() => navigation?.goBack()} />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={0}
       >
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* ── pw-head ── */}
           <View style={styles.pwHead}>
             <View style={styles.pwHeadIc}>
-              <Icon name="lock-outline" size={20} color={Colors.amber} />
+              <Icon name="lock-reset" size={20} color={Colors.amber} />
             </View>
-            <Text style={styles.pwHeadTitle}>Change Password</Text>
+            <Text style={styles.pwHeadTitle}>New Password</Text>
             <Text style={styles.pwHeadSub}>
-              Keep your account secure with a unique, hard-to-guess password
+              Set a strong password to protect your account for {email}
             </Text>
           </View>
 
-          {/* ── Form body ── */}
           <View style={styles.formBody}>
-            {/* Current password */}
-            <FloatInput
-              label="Current Password"
-              value={currentPassword}
-              onChangeText={(t) => { setcurrentPassword(t); setErrors(p => ({ ...p, old: null })); }}
-              secureTextEntry={!showOld}
-              showSecure={showOld}
-              onToggleSecure={() => setShowOld((v) => !v)}
-              error={errors.old}
-            />
-
-            {/* New password */}
             <FloatInput
               label="New Password"
               value={newPassword}
               onChangeText={(t) => { setNewPassword(t); setErrors(p => ({ ...p, new: null })); }}
               secureTextEntry={!showNew}
               showSecure={showNew}
-              onToggleSecure={() => setShowNew((v) => !v)}
+              onToggleSecure={() => setShowNew(!showNew)}
               error={errors.new}
             />
 
-            {/* Strength bar */}
             <StrengthBar value={newPassword} />
 
-            {/* Confirm password */}
             <FloatInput
               label="Confirm New Password"
               value={confirmPassword}
@@ -302,20 +253,18 @@ const ChangePasswordScreen = ({ navigation }) => {
               }}
               secureTextEntry={!showConfirm}
               showSecure={showConfirm}
-              onToggleSecure={() => setShowConfirm((v) => !v)}
+              onToggleSecure={() => setShowConfirm(!showConfirm)}
               error={errors.confirm}
               success={newPassword && confirmPassword && newPassword === confirmPassword ? "Passwords Match" : null}
             />
 
-            {/* Tip box */}
             <View style={styles.tipBox}>
               <Icon name="shield-outline" size={14} color={Colors.ink4} style={{ marginTop: 1 }} />
               <Text style={styles.tipText}>
-                Use 8+ characters with a mix of uppercase letters, numbers, and symbols for maximum security.
+                Use 8+ characters with a mix of uppercase letters, numbers, and symbols.
               </Text>
             </View>
 
-            {/* Buttons */}
             <View style={styles.btnGroup}>
               <Animated.View style={{ transform: [{ scale: btnScale }] }}>
                 <TouchableOpacity
@@ -323,13 +272,12 @@ const ChangePasswordScreen = ({ navigation }) => {
                   onPressIn={pressIn}
                   onPressOut={pressOut}
                   onPress={handleSubmit}
-                  activeOpacity={1}
                   disabled={loading}
                 >
                   {loading ? (
                     <ActivityIndicator size="small" color="#fff" />
                   ) : (
-                    <Text style={styles.btnSolidTxt}>Update Password</Text>
+                    <Text style={styles.btnSolidTxt}>Reset Password</Text>
                   )}
                 </TouchableOpacity>
               </Animated.View>
@@ -345,208 +293,53 @@ const ChangePasswordScreen = ({ navigation }) => {
         message={alertData.message}
         onClose={() => {
           setAlertVisible(false);
-          if (alertData.onClose) alertData.onClose();
+          alertData.onClose && alertData.onClose();
         }}
       />
     </SafeAreaView>
   );
 };
 
-export default ChangePasswordScreen;
+export default ResetPasswordScreen;
 
-/* ─────────────────────────────────────────────
-   STYLES
-───────────────────────────────────────────── */
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: Colors.bg,
-  },
-  scroll: {
-    flex: 1,
-    backgroundColor: Colors.bg,
-  },
-  scrollContent: {
-    paddingBottom: 48,
-  },
-
-
-  /* ── pw-head ── */
+  safe: { flex: 1, backgroundColor: Colors.bg },
+  scroll: { flex: 1, backgroundColor: Colors.bg },
+  scrollContent: { paddingBottom: 48 },
   pwHead: {
     paddingHorizontal: 22,
     paddingTop: 28,
     paddingBottom: 24,
     borderBottomWidth: 1,
     borderBottomColor: Colors.ink5,
-    backgroundColor: Colors.bg,
   },
   pwHeadIc: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 44, height: 44, borderRadius: 12,
     backgroundColor: Colors.amberBg,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 14,
+    alignItems: "center", justifyContent: "center", marginBottom: 14,
   },
-  pwHeadTitle: {
-    fontFamily: Fonts.Bold,
-    fontSize: 24,
-    color: Colors.ink,
-    letterSpacing: -0.72,
-    marginBottom: 4,
-  },
-  pwHeadSub: {
-    fontFamily: Fonts.Regular,
-    fontSize: 13,
-    color: Colors.ink3,
-    lineHeight: 19.5,
-  },
-
-  /* ── Form body ── */
-  formBody: {
-    paddingHorizontal: 16,
-    paddingTop: 20,
-  },
-
-  /* ── Floating field ── */
-  fFieldContainer: {
-    marginBottom: 14,
-  },
+  pwHeadTitle: { fontFamily: Fonts.Bold, fontSize: 24, color: Colors.ink, letterSpacing: -0.72, marginBottom: 4 },
+  pwHeadSub: { fontFamily: Fonts.Regular, fontSize: 13, color: Colors.ink3, lineHeight: 19.5 },
+  formBody: { paddingHorizontal: 16, paddingTop: 20 },
+  fFieldContainer: { marginBottom: 14 },
   fField: {
-    position: "relative",
-    height: 56,
-    backgroundColor: Colors.white,
-    borderWidth: 1.5,
-    borderColor: Colors.ink5,
-    borderRadius: 14,
-    flexDirection: "row",
-    alignItems: "center",
+    height: 56, backgroundColor: Colors.white, borderWidth: 1.5, borderColor: Colors.ink5,
+    borderRadius: 14, flexDirection: "row", alignItems: "center",
   },
-  fLabel: {
-    position: "absolute",
-    left: 14,
-    fontFamily: Fonts.Regular,
-    color: Colors.ink3,
-    pointerEvents: "none",
-  },
-  fError: {
-    fontFamily: Fonts.Medium,
-    fontSize: 10,
-    color: Colors.red,
-    marginTop: 4,
-    marginLeft: 14,
-  },
-  fSuccess: {
-    fontFamily: Fonts.Medium,
-    fontSize: 10,
-    color: Colors.green,
-    marginTop: 4,
-    marginLeft: 14,
-  },
-  fInput: {
-    flex: 1,
-    height: "100%",
-    paddingHorizontal: 14,
-    paddingTop: 20,
-    paddingBottom: 8,
-    fontFamily: Fonts.Medium,
-    fontSize: 14,
-    color: Colors.ink,
-  },
-  fIcon: {
-    paddingHorizontal: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    height: "100%",
-  },
-
-  /* ── Strength bar ── */
-  strength: {
-    marginBottom: 20,
-    marginTop: -6,
-  },
-  strengthLabelRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 6,
-  },
-  strengthLabelTxt: {
-    fontFamily: Fonts.SemiBold,
-    fontSize: 11,
-    color: Colors.ink3,
-  },
-  strengthVal: {
-    fontFamily: Fonts.SemiBold,
-    fontSize: 11,
-  },
-  strengthBar: {
-    flexDirection: "row",
-    gap: 4,
-  },
-  strengthSeg: {
-    flex: 1,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: Colors.surface3,
-  },
-
-  /* ── Tip box ── */
-  tipBox: {
-    flexDirection: "row",
-    gap: 10,
-    padding: 13,
-    backgroundColor: Colors.white,
-    borderRadius: 14,
-    marginTop: 2,
-    marginBottom: 0,
-    borderWidth: 1,
-    borderColor: Colors.ink5,
-  },
-  tipText: {
-    flex: 1,
-    fontFamily: Fonts.Regular,
-    fontSize: 12,
-    color: Colors.ink3,
-    lineHeight: 18,
-  },
-
-  /* ── Buttons ── */
-  btnGroup: {
-    marginTop: 20,
-    gap: 10,
-  },
-  btnSolid: {
-    height: 52,
-    borderRadius: 999,
-    backgroundColor: Colors.ink,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 7,
-    shadowColor: Colors.ink,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 6,
-  },
-  btnSolidTxt: {
-    fontFamily: Fonts.SemiBold,
-    fontSize: 14,
-    color: "#fff",
-    letterSpacing: -0.14,
-  },
-  btnGhost: {
-    height: 42,
-    borderRadius: 999,
-    backgroundColor: Colors.surface2,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  btnGhostTxt: {
-    fontFamily: Fonts.SemiBold,
-    fontSize: 13,
-    color: Colors.ink2,
-    letterSpacing: -0.13,
-  },
+  fLabel: { position: "absolute", left: 14, fontFamily: Fonts.Regular, color: Colors.ink3 },
+  fError: { fontFamily: Fonts.Medium, fontSize: 10, color: Colors.red, marginTop: 4, marginLeft: 14 },
+  fSuccess: { fontFamily: Fonts.Medium, fontSize: 10, color: Colors.green, marginTop: 4, marginLeft: 14 },
+  fInput: { flex: 1, height: "100%", paddingHorizontal: 14, paddingTop: 20, paddingBottom: 8, fontFamily: Fonts.Medium, fontSize: 14, color: Colors.ink },
+  fIcon: { paddingHorizontal: 14, alignItems: "center", justifyContent: "center", height: "100%" },
+  strength: { marginBottom: 20, marginTop: -6 },
+  strengthLabelRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 6 },
+  strengthLabelTxt: { fontFamily: Fonts.SemiBold, fontSize: 11, color: Colors.ink3 },
+  strengthVal: { fontFamily: Fonts.SemiBold, fontSize: 11 },
+  strengthBar: { flexDirection: "row", gap: 4 },
+  strengthSeg: { flex: 1, height: 3, borderRadius: 2, backgroundColor: Colors.surface3 },
+  tipBox: { flexDirection: "row", gap: 10, padding: 13, backgroundColor: Colors.white, borderRadius: 14, marginTop: 2, borderWidth: 1, borderColor: Colors.ink5 },
+  tipText: { flex: 1, fontFamily: Fonts.Regular, fontSize: 12, color: Colors.ink3, lineHeight: 18 },
+  btnGroup: { marginTop: 20 },
+  btnSolid: { height: 52, borderRadius: 999, backgroundColor: Colors.ink, alignItems: "center", justifyContent: "center", elevation: 6 },
+  btnSolidTxt: { fontFamily: Fonts.SemiBold, fontSize: 14, color: "#fff" },
 });

@@ -21,7 +21,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '../../../constants/Colors';
 import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
-import { fetchUserProfile, fetchStateList, fetchCityList, onboardAepsUser } from '../../../api/AuthApi';
+import { fetchUserProfile, fetchEStateList, fetchCityList, onboardAepsUser } from '../../../api/AuthApi';
 import { AlertService } from '../../../componets/Alerts/CustomAlert';
 import { Modal, ActivityIndicator } from 'react-native';
 import CalendarModal from '../../../componets/Calendar/CalendarModal';
@@ -87,7 +87,7 @@ const FormField = ({ label, placeholder, value, onChangeText, keyboardType, icon
       {icon ? <Text style={fieldStyles.icon}>{icon}</Text> : null}
       <TextInput
         style={[
-          fieldStyles.input, 
+          fieldStyles.input,
           (!editable && !value) && fieldStyles.disabled,
           (!editable && value) && { opacity: 1 }
         ]}
@@ -128,9 +128,9 @@ const fieldStyles = StyleSheet.create({
 const DropdownField = ({ label, placeholder, value, onPress, error }) => (
   <View style={fieldStyles.wrap}>
     <Text style={fieldStyles.label}>{label}</Text>
-    <TouchableOpacity 
-      activeOpacity={0.7} 
-      onPress={onPress} 
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={onPress}
       style={[dropStyles.row, error && { borderColor: '#ef4444' }]}
     >
       <Text style={[dropStyles.text, value && { color: '#0B0F1A' }]}>
@@ -212,25 +212,52 @@ const UploadSlot = ({ label }) => (
 );
 
 // ─── Item Selector Modal ──────────────────────────────────────────
-const SelectorModal = ({ visible, title, items, onSelect, onClose }) => (
-  <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-    <TouchableOpacity style={selStyles.overlay} activeOpacity={1} onPress={onClose} />
-    <View style={selStyles.sheet}>
-      <View style={selStyles.header}>
-        <Text style={selStyles.title}>{title}</Text>
-        <TouchableOpacity onPress={onClose}><Text style={selStyles.close}>✕</Text></TouchableOpacity>
+const SelectorModal = ({ visible, title, items, onSelect, onClose }) => {
+  const [search, setSearch] = React.useState('');
+
+  React.useEffect(() => {
+    if (!visible) setSearch('');
+  }, [visible]);
+
+  const filteredItems = items.filter(item => {
+    const lbl = typeof item === 'object' ? (item.label || '') : String(item);
+    return lbl.toLowerCase().includes(search.toLowerCase());
+  });
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <TouchableOpacity style={selStyles.overlay} activeOpacity={1} onPress={onClose} />
+      <View style={selStyles.sheet}>
+        <View style={selStyles.header}>
+          <Text style={selStyles.title}>{title}</Text>
+          <TouchableOpacity onPress={onClose}><Text style={selStyles.close}>✕</Text></TouchableOpacity>
+        </View>
+        <View style={selStyles.searchWrap}>
+          <TextInput
+            style={selStyles.searchInput}
+            placeholder="Search here..."
+            placeholderTextColor="#94A3B8"
+            value={search}
+            onChangeText={setSearch}
+          />
+        </View>
+        <ScrollView style={selStyles.list} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          {filteredItems.map((item, idx) => {
+            const textLabel = typeof item === 'object' ? (item.label || JSON.stringify(item)) : String(item);
+            return (
+              <TouchableOpacity key={idx} style={selStyles.item} onPress={() => onSelect(item)}>
+                <Text style={selStyles.itemText}>{textLabel}</Text>
+              </TouchableOpacity>
+            );
+          })}
+          {filteredItems.length === 0 && (
+            <Text style={selStyles.empty}>{items.length === 0 ? 'Loading items...' : 'No results found'}</Text>
+          )}
+        </ScrollView>
       </View>
-      <ScrollView style={selStyles.list} showsVerticalScrollIndicator={false}>
-        {items.map((item, idx) => (
-          <TouchableOpacity key={idx} style={selStyles.item} onPress={() => onSelect(item)}>
-            <Text style={selStyles.itemText}>{item.label || item}</Text>
-          </TouchableOpacity>
-        ))}
-        {items.length === 0 && <Text style={selStyles.empty}>Loading items...</Text>}
-      </ScrollView>
-    </View>
-  </Modal>
-);
+    </Modal>
+  );
+};
 
 const selStyles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' },
@@ -238,6 +265,8 @@ const selStyles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: rs(20), borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
   title: { fontSize: rs(16), fontWeight: '800', color: Colors.black },
   close: { fontSize: rs(18), color: '#94A3B8' },
+  searchWrap: { paddingHorizontal: rs(20), paddingVertical: rs(10), borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
+  searchInput: { backgroundColor: '#f8fafc', borderRadius: rs(10), paddingHorizontal: rs(16), paddingVertical: rs(12), fontSize: rs(14), color: Colors.black },
   item: { padding: rs(18), borderBottomWidth: 1, borderBottomColor: '#f8fafc' },
   itemText: { fontSize: rs(14), color: '#334155', fontWeight: '500' },
   empty: { textAlign: 'center', padding: rs(40), color: '#94A3B8' }
@@ -267,9 +296,9 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
     if (key === 'state') {
       if (lists.states.length === 0) {
         const hToken = await AsyncStorage.getItem("header_token");
-        const res = await fetchStateList({ headerToken: hToken });
+        const res = await fetchEStateList({ headerToken: hToken });
         if (res.success && res.data) {
-          const mapped = res.data.map(s => ({ label: s.stateName, value: s.stateCode }));
+          const mapped = res.data.map(s => ({ label: s.label || s.stateName || s.name || s.title || "Unknown", id: s._id }));
           setLists(prev => ({ ...prev, states: mapped }));
           items = mapped;
         }
@@ -292,7 +321,7 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
     if (!form.lastName) e.lastName = 'Please enter last name';
     if (!form.phone) e.phone = 'Mobile number is required';
     else if (form.phone.length !== 10) e.phone = 'Should be 10 digits';
-    
+
     if (!form.email) e.email = 'Email address is required';
     else if (!form.email.includes('@')) e.email = 'Enter valid email';
 
@@ -306,7 +335,7 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
     if (!form.address) e.address = 'Business address is required';
     if (!form.state) e.state = 'Please select state';
     if (!form.city) e.city = 'Please select city';
-    
+
     if (!form.pincode) e.pincode = 'Pincode is required';
     else if (form.pincode.length !== 6) e.pincode = 'Enter 6-digit pin';
 
@@ -344,39 +373,39 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
           address: {
             line: form.address,
             city: form.city,
-            state: form.state,
+            state: form.stateCode,
             pincode: form.pincode,
             district: form.district,
             area: form.area
           }
         };
 
-        const res = await onboardAepsUser({ 
-          data: payload, 
+        const res = await onboardAepsUser({
+          data: payload,
           headerToken,
           idempotencyKey: payload.client_ref_id
         });
 
         if (res.success) {
-          AlertService.showAlert({ 
-            type: 'success', 
-            title: 'Onboarding Success', 
+          AlertService.showAlert({
+            type: 'success',
+            title: 'Onboarding Success',
             message: res.message || 'User onboarded successfully',
             onClose: () => navigation.navigate('AEPSServiceActivation')
           });
         } else {
-          AlertService.showAlert({ 
-            type: 'error', 
-            title: 'Onboarding Failed', 
-            message: res.message || 'Unable to onboard user' 
+          AlertService.showAlert({
+            type: 'error',
+            title: 'Onboarding Failed',
+            message: res.message || 'Unable to onboard user'
           });
         }
       } catch (error) {
         console.log("Onboarding Error:", error);
-        AlertService.showAlert({ 
-          type: 'error', 
-          title: 'System Error', 
-          message: 'Something went wrong during onboarding.' 
+        AlertService.showAlert({
+          type: 'error',
+          title: 'System Error',
+          message: 'Something went wrong during onboarding.'
         });
       } finally {
         setLoading(false);
@@ -393,22 +422,22 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
       const headerToken = await AsyncStorage.getItem("header_token");
       const res = await fetchUserProfile({ headerToken });
       if (res?.success) {
-          setForm({
-            firstName: res.data.firstName || '',
-            lastName: res.data.lastName || '',
-            email: res.data.email || '',
-            phone: res.data.phone || '',
-            shopName: res.data.shopName || '',
-            pan: res.data.panNumber || '',
-            aadhaar: res.data.aadharNumber || '',
-            address: res.data.personalAddress || '',
-            state: res.data.state || '',
-            city: res.data.city || '',
-            pincode: res.data.personalPincode || '',
-            dateOfBirth: res.data.dob || '',
-            district: res.data.personalDistrict || '',
-            area: res.data.personalArea || ''
-          });
+        setForm({
+          firstName: res.data.firstName || '',
+          lastName: res.data.lastName || '',
+          email: res.data.email || '',
+          phone: res.data.phone || '',
+          shopName: res.data.shopName || '',
+          pan: res.data.panNumber || '',
+          aadhaar: res.data.aadharNumber || '',
+          address: res.data.personalAddress || '',
+          state: res.data.state || '',
+          city: res.data.city || '',
+          pincode: res.data.personalPincode || '',
+          dateOfBirth: res.data.dob || '',
+          district: res.data.personalDistrict || '',
+          area: res.data.personalArea || ''
+        });
       }
     } catch (e) {
       console.log("Error loading profile:", e);
@@ -428,57 +457,57 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
           <CardHeader icon="👤" title="Personal Details" subtitle="Full Legal Identity" />
           <View style={{ flexDirection: 'row', gap: rs(10) }}>
             <View style={{ flex: 1 }}>
-              <FormField 
-                label="First Name" 
-                placeholder="First Name" 
-                value={form.firstName} 
+              <FormField
+                label="First Name"
+                placeholder="First Name"
+                value={form.firstName}
                 onChangeText={v => updateForm('firstName', v)}
                 error={errors.firstName}
               />
             </View>
             <View style={{ flex: 1 }}>
-              <FormField 
-                label="Last Name" 
-                placeholder="Last Name" 
-                value={form.lastName} 
+              <FormField
+                label="Last Name"
+                placeholder="Last Name"
+                value={form.lastName}
                 onChangeText={v => updateForm('lastName', v)}
                 error={errors.lastName}
               />
             </View>
           </View>
-          <FormField 
-            label="Email Address" 
-            placeholder="example@mail.com" 
-            icon="✉️" 
-            value={form.email} 
+          <FormField
+            label="Email Address"
+            placeholder="example@mail.com"
+            icon="✉️"
+            value={form.email}
             onChangeText={v => updateForm('email', v)}
             error={errors.email}
           />
           <View style={{ flexDirection: 'row', gap: rs(10) }}>
             <View style={{ flex: 1 }}>
-              <FormField 
-                label="Phone Number" 
-                placeholder="10 digits" 
-                icon="📞" 
-                keyboardType="numeric" 
-                value={form.phone} 
+              <FormField
+                label="Phone Number"
+                placeholder="10 digits"
+                icon="📞"
+                keyboardType="numeric"
+                value={form.phone}
                 onChangeText={v => updateForm('phone', v.replace(/\D/g, '').slice(0, 10))}
                 error={errors.phone}
                 maxLength={10}
               />
             </View>
             <View style={{ flex: 1 }}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => setShowDatePicker(true)}
               >
                 <View pointerEvents="none">
-                  <FormField 
-                    label="Date of Birth" 
-                    placeholder="YYYY-MM-DD" 
-                    icon="📅" 
-                    value={form.dateOfBirth} 
-                    onChangeText={() => {}}
+                  <FormField
+                    label="Date of Birth"
+                    placeholder="YYYY-MM-DD"
+                    icon="📅"
+                    value={form.dateOfBirth}
+                    onChangeText={() => { }}
                     error={errors.dateOfBirth}
                     editable={false}
                   />
@@ -490,20 +519,20 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
 
         <SectionCard>
           <CardHeader icon="🏪" title="Business & Identity" subtitle="KYC Verification Data" />
-          <FormField 
-            label="Shop Name" 
-            placeholder="Official Business Name" 
-            icon="🏠" 
-            value={form.shopName} 
+          <FormField
+            label="Shop Name"
+            placeholder="Official Business Name"
+            icon="🏠"
+            value={form.shopName}
             onChangeText={v => updateForm('shopName', v)}
             error={errors.shopName}
           />
           <View style={{ flexDirection: 'row', gap: rs(10) }}>
             <View style={{ flex: 1 }}>
-              <FormField 
-                label="PAN Number" 
-                placeholder="ABCDE1234F" 
-                value={form.pan} 
+              <FormField
+                label="PAN Number"
+                placeholder="ABCDE1234F"
+                value={form.pan}
                 onChangeText={v => updateForm('pan', v.toUpperCase().slice(0, 10))}
                 error={errors.pan}
                 maxLength={10}
@@ -511,11 +540,11 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
               />
             </View>
             <View style={{ flex: 1 }}>
-              <FormField 
-                label="Aadhaar No" 
-                placeholder="12 digit number" 
-                keyboardType="numeric" 
-                value={form.aadhaar} 
+              <FormField
+                label="Aadhaar No"
+                placeholder="12 digit number"
+                keyboardType="numeric"
+                value={form.aadhaar}
                 onChangeText={v => updateForm('aadhaar', v.replace(/\D/g, '').slice(0, 12))}
                 error={errors.aadhaar}
                 maxLength={12}
@@ -526,28 +555,28 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
 
         <SectionCard>
           <CardHeader icon="📍" title="Business Address" subtitle="Operating Location" />
-          <FormField 
-            label="Street Address" 
-            placeholder="Shop Address" 
-            value={form.address} 
+          <FormField
+            label="Street Address"
+            placeholder="Shop Address"
+            value={form.address}
             onChangeText={v => updateForm('address', v)}
             error={errors.address}
           />
           <View style={{ flexDirection: 'row', gap: rs(10) }}>
             <View style={{ flex: 1 }}>
-              <DropdownField 
-                label="State" 
-                placeholder="Select State" 
-                value={form.state} 
+              <DropdownField
+                label="State"
+                placeholder="Select State"
+                value={form.state}
                 onPress={() => openSelector('Select State', 'state')}
                 error={errors.state}
               />
             </View>
             <View style={{ flex: 1 }}>
-              <DropdownField 
-                label="City" 
-                placeholder="Select City" 
-                value={form.city} 
+              <DropdownField
+                label="City"
+                placeholder="Select City"
+                value={form.city}
                 onPress={() => openSelector('Select City', 'city')}
                 error={errors.city}
               />
@@ -555,30 +584,30 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
           </View>
           <View style={{ flexDirection: 'row', gap: rs(10) }}>
             <View style={{ flex: 1 }}>
-              <FormField 
-                label="District" 
-                placeholder="District Name" 
-                value={form.district} 
+              <FormField
+                label="District"
+                placeholder="District Name"
+                value={form.district}
                 onChangeText={v => updateForm('district', v)}
                 error={errors.district}
               />
             </View>
             <View style={{ flex: 1 }}>
-              <FormField 
-                label="Area" 
-                placeholder="Area/Locality" 
-                value={form.area} 
+              <FormField
+                label="Area"
+                placeholder="Area/Locality"
+                value={form.area}
                 onChangeText={v => updateForm('area', v)}
                 error={errors.area}
               />
             </View>
           </View>
           <View style={{ width: '48%' }}>
-            <FormField 
-              label="Pincode" 
-              placeholder="6 digits" 
-              keyboardType="numeric" 
-              value={form.pincode} 
+            <FormField
+              label="Pincode"
+              placeholder="6 digits"
+              keyboardType="numeric"
+              value={form.pincode}
               onChangeText={v => updateForm('pincode', v.replace(/\D/g, '').slice(0, 6))}
               error={errors.pincode}
               maxLength={6}
@@ -586,9 +615,9 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
           </View>
         </SectionCard>
 
-        <PrimaryButton 
-          label={loading ? "PROCESSNG..." : "REGISTER & CONTINUE"} 
-          onPress={handleRegister} 
+        <PrimaryButton
+          label={loading ? "PROCESSNG..." : "REGISTER & CONTINUE"}
+          onPress={handleRegister}
         />
         {loading && <ActivityIndicator color={Colors.primary} style={{ marginTop: 10 }} />}
         <SecurityNote text="Secure 256-Bit Encrypted Registration" />
@@ -596,14 +625,14 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
         <View style={{ height: rs(30) }} />
       </ScrollView>
 
-      <SelectorModal 
+      <SelectorModal
         visible={sel.visible}
         title={sel.title}
         items={sel.items}
         onSelect={(item) => {
           if (sel.key === 'state') {
             updateForm('state', item.label);
-            updateForm('stateCode', item.value);
+            updateForm('stateCode', item.id);
             updateForm('city', '');
           } else updateForm('city', item.label);
           setSel(s => ({ ...s, visible: false }));

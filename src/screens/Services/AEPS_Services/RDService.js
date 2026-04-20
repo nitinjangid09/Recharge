@@ -29,10 +29,10 @@ export const RD_PACKAGES = {
 
 // ─── Human-readable device names ────────────────────────────────────────────
 export const RD_DEVICE_LABELS = {
-  MANTRA: 'MANTRA MFS110',
-  MORPHO: 'MORPHO MSO 1300',
-  STARTEK: 'STARTEK FM220',
-  SECUGEN: 'SECUGEN Hamster',
+  MANTRA: 'Mantra MFS110',
+  MORPHO: 'Morpho MSO 1300',
+  STARTEK: 'Startek FM220',
+  SECUGEN: 'SecuGen Hamster',
 };
 
 // ─── Ordered device list for UI dropdowns ────────────────────────────────────
@@ -94,23 +94,10 @@ const isInstalled = async (deviceKey) => {
 // Example:
 //   const pidXml = await RDService.capture('MANTRA');
 // ─────────────────────────────────────────────────────────────────────────────
-const capture = async (deviceKey, pidOptions = '') => {
+const capture = async (deviceKey) => {
   const packageId = getPackageId(deviceKey);
   const mod = getNativeModule();
-  const rawData = await mod.captureFingerprint(packageId, pidOptions);
-
-  if (!rawData) return '';
-
-  // ─── XML Normalization ───────────────────────────────────────────────────
-  // Some RD Services (like Mantra) return XML with newlines and indentation.
-  // This can cause 'invalid format' errors on the backend.
-  // We strip all whitespace between tags and newlines to ensure a compact string.
-  const cleanedData = rawData
-    .replace(/\r?\n|\r/g, '')     // Remove newlines
-    .replace(/>\s+</g, '><')      // Remove spaces between tags
-    .trim();
-
-  return cleanedData;
+  return await mod.captureFingerprint(packageId);
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -169,78 +156,11 @@ export const RD_ERROR_CODES = {
 // ─────────────────────────────────────────────────────────────────────────────
 // Default export
 // ─────────────────────────────────────────────────────────────────────────────
-/**
- * parsePidXml
- * Extracts attributes from RD Service XML response into a flat object.
- * Forces qScore to "87" if not present or "0" for consistency across modules.
- *
- * @param {string} xml - The raw XML from RD Service
- * @returns {object} Flat object containing all biometric keys
- */
-const parsePidXml = (xml) => {
-  if (!xml) return {};
-
-  const res = {
-    fCount: '0',
-    fType: '0',
-    iCount: '0',
-    iType: '0',
-    pCount: '0',
-    pType: '0',
-    qScore: '87',
-    nmPoints: '0',
-  };
-
-  // 1. Generic attribute extraction (Resp and DeviceInfo)
-  const extractAttrs = (tagPattern) => {
-    const match = xml.match(tagPattern);
-    if (!match) return;
-    const attrRegex = /([\w-]+)="([^"]*)"/g;
-    let m;
-    while ((m = attrRegex.exec(match[0])) !== null) {
-      res[m[1]] = m[2];
-    }
-  };
-
-  extractAttrs(/<DeviceInfo[^>]*>/i);
-  extractAttrs(/<Resp[^>]*>/i);
-
-  // 2. Extract Tag Content (Hmac, Skey, Data)
-  const extractTag = (tag, key) => {
-    const match = xml.match(new RegExp(`<${tag}[^>]*>([^<]*)<\\/${tag}>`, 'i'));
-    if (match) res[key || tag.toLowerCase()] = match[1];
-  };
-
-  extractTag('Hmac', 'hmac');
-  extractTag('Skey', 'sessionKey');
-  extractTag('Data', 'pidData');
-
-  // 3. Extract ci and pidDataType specifically from their tags
-  const skeyMatch = xml.match(/<Skey[^>]*ci="([^"]*)"/i);
-  if (skeyMatch) res.ci = skeyMatch[1];
-
-  const dataMatch = xml.match(/<Data[^>]*type="([^"]*)"/i);
-  if (dataMatch) res.pidDataType = dataMatch[1];
-
-  // 4. Extract Param values (srno, sysid, ts, etc.)
-  const paramRegex = /<Param[^>]*name="([^"]*)"[^>]*value="([^"]*)"/gi;
-  let pm;
-  while ((pm = paramRegex.exec(xml)) !== null) {
-    res[pm[1]] = pm[2];
-  }
-
-  // Force qScore to 87 for standardization if it's "0" or empty
-  if (!res.qScore || res.qScore === '0') res.qScore = '87';
-
-  return res;
-};
-
 const RDService = {
   isInstalled,
   capture,
   openInstallPage,
   getDeviceLabel,
-  parsePidXml,
   DEVICE_LIST,
   RD_PACKAGES,
   RD_ERROR_CODES,
