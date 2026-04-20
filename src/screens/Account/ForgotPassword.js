@@ -11,6 +11,7 @@ import {
   Animated,
   Modal,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -18,6 +19,7 @@ import CustomAlert from "../../componets/Alerts/CustomAlert";
 import Fonts from "../../constants/Fonts";
 import Colors from "../../constants/Colors";
 import HeaderBar from "../../componets/HeaderBar/HeaderBar";
+import { forgotPassword } from "../../api/AuthApi";
 
 const { width } = Dimensions.get("window");
 
@@ -169,6 +171,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
   const [otp, setOtp] = useState("");
   const [otpModal, setOtpModal] = useState(false);
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertData, setAlertData] = useState({ type: "", title: "", message: "" });
@@ -204,7 +207,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
   };
 
   /* ── Send OTP ── */
-  const handleSendOtp = useCallback(() => {
+  const handleSendOtp = useCallback(async () => {
     const newErrors = {};
     if (!email.trim()) newErrors.email = "Email address is required";
     else if (!isValidEmail(email)) newErrors.email = "Enter a valid email address";
@@ -215,8 +218,23 @@ const ForgotPasswordScreen = ({ navigation }) => {
     }
 
     setErrors({});
-    setOtp("");
-    openModal();
+    setLoading(true);
+
+    try {
+      const response = await forgotPassword({ email: email.trim() });
+      if (response.success) {
+        setOtp("");
+        openModal();
+      } else {
+        showAlert("error", "Failed", response.message || "Unable to send OTP");
+      }
+    } catch (err) {
+      showAlert("error", "Error", "Something went wrong. Please try again.");
+    } finally {
+      setLoading(true); // Keeping loading true as modal is open, or set to false?
+      // Actually set to false so button is re-enabled if they close modal
+      setLoading(false);
+    }
   }, [email]);
 
   /* ── Verify OTP ── */
@@ -230,8 +248,8 @@ const ForgotPasswordScreen = ({ navigation }) => {
       return;
     }
     closeModal();
-    navigation?.navigate("ResetPassword");
-  }, [otp]);
+    navigation?.navigate("ResetPassword", { email: email.trim(), otp: otp.trim() });
+  }, [email, otp, navigation]);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -282,14 +300,21 @@ const ForgotPasswordScreen = ({ navigation }) => {
             <View style={styles.btnGroup}>
               <Animated.View style={{ transform: [{ scale: btnScale }] }}>
                 <TouchableOpacity
-                  style={styles.btnSolid}
+                  style={[styles.btnSolid, loading && { opacity: 0.8 }]}
                   onPressIn={pressIn}
                   onPressOut={pressOut}
                   onPress={handleSendOtp}
+                  disabled={loading}
                   activeOpacity={1}
                 >
-                  <Icon name="send-outline" size={16} color="#fff" />
-                  <Text style={styles.btnSolidTxt}>Send OTP</Text>
+                  {loading ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <>
+                      <Icon name="send-outline" size={16} color="#fff" />
+                      <Text style={styles.btnSolidTxt}>Send OTP</Text>
+                    </>
+                  )}
                 </TouchableOpacity>
               </Animated.View>
             </View>

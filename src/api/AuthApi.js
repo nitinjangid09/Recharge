@@ -226,7 +226,7 @@ export const logoutUser = async ({ headerToken, headerKey }) => {
 
 export const changeUserPassword = async ({ currentPassword, newPassword, headerToken, headerKey }) => {
   try {
-    const payload = { 
+    const payload = {
       currentPassword: String(currentPassword).trim(),
       newPassword: String(newPassword).trim()
     };
@@ -243,6 +243,20 @@ export const changeUserPassword = async ({ currentPassword, newPassword, headerT
     console.log("Change Password API Error:", error?.response?.data || error);
     if (error?.response?.data) return error.response.data;
     return { success: false, message: "Network error. Please check your connection." };
+  }
+};
+
+export const forgotPassword = async ({ email }) => {
+  try {
+    const payload = { email: String(email).trim() };
+    const response = await axios.patch(`${BASE_URL}/forgot-password`, payload, {
+      headers: { "Content-Type": "application/json" },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Forgot Password API Error:", error?.response?.data || error);
+    if (error?.response?.data) return error.response.data;
+    return { success: false, message: "Network error. Unable to send OTP." };
   }
 };
 

@@ -38,6 +38,7 @@ import ChangePassword from "../screens/Account/ChangePassword"
 import ChangePin from "../screens/Account/ChangePin"
 import ForgotPassword from "../screens/Account/ForgotPassword"
 import ForgotPin from "../screens/Account/ForgotPin"
+import ResetPassword from "../screens/Account/ResetPassword"
 import MoneyTransfer from "../screens/Services/DMT/MoneyTransfer"
 import SupportScreen from "../screens/Support/SupportScreen"
 import FaqSupportScreen from "../screens/Support/FaQSupport"
@@ -181,6 +182,7 @@ const AppNavigator = () => {
       <Stack.Screen name="ChangePin" component={ChangePin} />
       <Stack.Screen name="ForgotPasswordScreen" component={ForgotPassword} />
       <Stack.Screen name="ForgotPin" component={ForgotPin} />
+      <Stack.Screen name="ResetPassword" component={ResetPassword} />
       <Stack.Screen name="SupportScreen" component={SupportScreen} />
       <Stack.Screen name="FaqSupportScreen" component={FaqSupportScreen} />
       <Stack.Screen name="Signup" component={Signup} />
