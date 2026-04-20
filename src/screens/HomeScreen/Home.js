@@ -852,19 +852,14 @@ export default function FinanceHome({ navigation }) {
                           }
                         } else {
                           // Default fallback if action is unknown
-                          navigation.navigate("AePSDashboard");
+                          navigation.navigate("AEPSAadhaarOTP");
                         }
                       } else if (n === "aeps2") {
-                        navigation.navigate("AEPS1");
+                        navigation.navigate("AEPSAadhaarOTP");
                       } else if (n === "dmt") {
                         navigation.navigate("DmtLogin");
                       }
-<<<<<<< HEAD
                     }}
-=======
-                    } }
-
->>>>>>> 77359fbce99dc21c4dc5631458ae09db1bc1832d
                   >
                     <View style={[S.svcIconCircle]}>
                       {n === "bbps" && typeof BBPSIconSVG === "function" ? (

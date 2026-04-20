@@ -910,8 +910,8 @@ const styles = StyleSheet.create({
 
 export default function App() {
   return (
-    <View style={{ flex: 1, backgroundColor: C.goldMid }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: C.goldMid }}>
       <DashboardScreen />
-    </View>
+    </SafeAreaView>
   );
 }
