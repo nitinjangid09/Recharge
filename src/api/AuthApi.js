@@ -102,18 +102,16 @@ const handleFetchResponse = async (response) => {
  *
  * Returns { headerToken, headerKey } or null if either is missing.
  */
-const getAuthHeaders = async () => {
+export const getAuthHeaders = async () => {
   try {
     const [headerToken, headerKey] = await AsyncStorage.multiGet([
       "header_token",
       "header_key",
     ]).then((pairs) => pairs.map(([, v]) => v));
 
-    if (!headerToken || !headerKey) {
+    if (!headerToken) {
       console.log(
-        "[AUTH] Missing credentials →",
-        `headerToken: ${headerToken ? "✓" : "✗"}`,
-        `headerKey: ${headerKey ? "✓" : "✗"}`
+        "[AUTH] Missing credentials → headerToken: ✗"
       );
       return null;
     }
@@ -223,6 +221,28 @@ export const logoutUser = async ({ headerToken, headerKey }) => {
     return (
       error?.response?.data || { status: "ERROR", message: "Logout failed" }
     );
+  }
+};
+
+export const changeUserPassword = async ({ currentPassword, newPassword, headerToken, headerKey }) => {
+  try {
+    const payload = { 
+      currentPassword: String(currentPassword).trim(),
+      newPassword: String(newPassword).trim()
+    };
+    const response = await axios.patch(`${BASE_URL}/change-user-password`, payload, {
+      headers: {
+        headerToken,
+        headerKey,
+        Authorization: `Bearer ${headerToken}`,
+        "Content-Type": "application/json"
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Change Password API Error:", error?.response?.data || error);
+    if (error?.response?.data) return error.response.data;
+    return { success: false, message: "Network error. Please check your connection." };
   }
 };
 

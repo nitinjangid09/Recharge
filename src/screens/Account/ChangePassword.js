@@ -16,6 +16,8 @@ import CustomAlert from "../../componets/Alerts/CustomAlert";
 import Fonts from "../../constants/Fonts";
 import Colors from "../../constants/Colors";
 import HeaderBar from "../../componets/HeaderBar/HeaderBar";
+import { changeUserPassword, getAuthHeaders } from "../../api/AuthApi";
+import { ActivityIndicator } from "react-native";
 
 
 /* ─────────────────────────────────────────────
@@ -53,12 +55,12 @@ const FloatInput = ({ id, label, value, onChangeText, secureTextEntry, onToggleS
   const labelTop = labelAnim.interpolate({ inputRange: [0, 1], outputRange: [18, 9] });
   const labelSize = labelAnim.interpolate({ inputRange: [0, 1], outputRange: [14, 10.5] });
   const labelColor = labelAnim.interpolate({ inputRange: [0, 1], outputRange: [Colors.ink3, Colors.amber] });
-  
+
   // Custom border color handling for Error vs Success
   let finalBorderColor = error ? Colors.red : (success ? Colors.green : Colors.ink5);
-  const borderColor = borderAnim.interpolate({ 
-    inputRange: [0, 1], 
-    outputRange: [finalBorderColor, success ? Colors.green : Colors.amber] 
+  const borderColor = borderAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [finalBorderColor, success ? Colors.green : Colors.amber]
   });
 
   const shadowOpacity = borderAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
@@ -100,7 +102,7 @@ const FloatInput = ({ id, label, value, onChangeText, secureTextEntry, onToggleS
           placeholderTextColor="transparent"
           autoCapitalize="none"
           autoCorrect={false}
-          maxLength={10}
+          maxLength={32}
         />
         {/* Eye toggle */}
         <TouchableOpacity
@@ -109,9 +111,9 @@ const FloatInput = ({ id, label, value, onChangeText, secureTextEntry, onToggleS
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           {success && !error ? (
-              <Icon name="check-circle" size={16} color={Colors.green} />
+            <Icon name="check-circle" size={16} color={Colors.green} />
           ) : (
-              <Icon name={showSecure ? "eye-outline" : "eye-off-outline"} size={14} color={focused ? Colors.amber : Colors.ink4} />
+            <Icon name={showSecure ? "eye-outline" : "eye-off-outline"} size={14} color={focused ? Colors.amber : Colors.ink4} />
           )}
         </TouchableOpacity>
       </Animated.View>
@@ -155,7 +157,7 @@ const StrengthBar = ({ value }) => {
    MAIN SCREEN
 ───────────────────────────────────────────── */
 const ChangePasswordScreen = ({ navigation }) => {
-  const [oldPassword, setOldPassword] = useState("");
+  const [currentPassword, setcurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showOld, setShowOld] = useState(false);
@@ -165,12 +167,13 @@ const ChangePasswordScreen = ({ navigation }) => {
   const [errors, setErrors] = useState({});
 
   const [alertVisible, setAlertVisible] = useState(false);
-  const [alertData, setAlertData] = useState({ type: "", title: "", message: "" });
+  const [alertData, setAlertData] = useState({ type: "", title: "", message: "", onClose: null });
+  const [loading, setLoading] = useState(false);
 
   const btnScale = useRef(new Animated.Value(1)).current;
 
-  const showAlert = (type, title, message) => {
-    setAlertData({ type, title, message });
+  const showAlert = (type, title, message, onClose = null) => {
+    setAlertData({ type, title, message, onClose });
     setAlertVisible(true);
   };
 
@@ -179,10 +182,10 @@ const ChangePasswordScreen = ({ navigation }) => {
 
   const handleSubmit = useCallback(() => {
     const newErrors = {};
-    if (!oldPassword) newErrors.old = "Current password is required";
+    if (!currentPassword) newErrors.old = "Current password is required";
     if (!newPassword) newErrors.new = "New password is required";
     else if (newPassword.length < 8) newErrors.new = "Password must be at least 8 characters";
-    
+
     if (!confirmPassword) newErrors.confirm = "Confirm password is required";
     else if (newPassword !== confirmPassword) newErrors.confirm = "Passwords do not match";
 
@@ -191,14 +194,46 @@ const ChangePasswordScreen = ({ navigation }) => {
       return;
     }
 
-    if (oldPassword === newPassword) {
+    if (currentPassword === newPassword) {
       setErrors({ new: "New password must differ from current" });
       return;
     }
 
     setErrors({});
-    showAlert("success", "Success", "Password changed successfully.");
-  }, [oldPassword, newPassword, confirmPassword]);
+
+    const performSubmit = async () => {
+      setLoading(true);
+      try {
+        const auth = await getAuthHeaders();
+        if (!auth) {
+          showAlert("error", "Session Expired", "Please login again.");
+          return;
+        }
+
+        const response = await changeUserPassword({
+          currentPassword: currentPassword,
+          newPassword: newPassword,
+          headerToken: auth.headerToken,
+          headerKey: auth.headerKey
+        });
+
+        if (response.success) {
+          showAlert("success", "Success", response.message || "Password changed successfully.", () => {
+            navigation.goBack();
+          });
+        } else {
+          showAlert("error", "Failed", response.message || "Unable to change password.");
+        }
+      } catch (err) {
+        console.log("[PW] Submit Error:", err);
+        showAlert("error", "Error", "Something went wrong. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    performSubmit();
+  }, [currentPassword, newPassword, confirmPassword, navigation]);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -231,8 +266,8 @@ const ChangePasswordScreen = ({ navigation }) => {
             {/* Current password */}
             <FloatInput
               label="Current Password"
-              value={oldPassword}
-              onChangeText={(t) => { setOldPassword(t); setErrors(p => ({ ...p, old: null })); }}
+              value={currentPassword}
+              onChangeText={(t) => { setcurrentPassword(t); setErrors(p => ({ ...p, old: null })); }}
               secureTextEntry={!showOld}
               showSecure={showOld}
               onToggleSecure={() => setShowOld((v) => !v)}
@@ -284,13 +319,18 @@ const ChangePasswordScreen = ({ navigation }) => {
             <View style={styles.btnGroup}>
               <Animated.View style={{ transform: [{ scale: btnScale }] }}>
                 <TouchableOpacity
-                  style={styles.btnSolid}
+                  style={[styles.btnSolid, loading && { opacity: 0.8 }]}
                   onPressIn={pressIn}
                   onPressOut={pressOut}
                   onPress={handleSubmit}
                   activeOpacity={1}
+                  disabled={loading}
                 >
-                  <Text style={styles.btnSolidTxt}>Update Password</Text>
+                  {loading ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.btnSolidTxt}>Update Password</Text>
+                  )}
                 </TouchableOpacity>
               </Animated.View>
             </View>
@@ -303,7 +343,10 @@ const ChangePasswordScreen = ({ navigation }) => {
         type={alertData.type}
         title={alertData.title}
         message={alertData.message}
-        onClose={() => setAlertVisible(false)}
+        onClose={() => {
+          setAlertVisible(false);
+          if (alertData.onClose) alertData.onClose();
+        }}
       />
     </SafeAreaView>
   );
