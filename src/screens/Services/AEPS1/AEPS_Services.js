@@ -188,7 +188,7 @@ const AEPS_Services = () => {
                             onPress={() => NavigationService.navigate("MiniStatement")}
                         />
                         <ServiceCard
-                            title="AEPS PayOut"
+                            title="Payout Hub"
                             sub="AEPS Payout"
                             Svg={aepsIcon}
                             onPress={() => NavigationService.navigate("AEPSPayOut")}

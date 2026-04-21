@@ -15,7 +15,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Colors from '../../../constants/Colors';
 import Fonts from '../../../constants/Fonts';
 import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
-import { requestAepsPayoutBank, getAepsPayoutBanks, getWalletBalance } from '../../../api/AuthApi';
+import { requestAepsPayoutBank, getAepsPayoutBanks, getWalletBalance, deleteAepsPayoutBank } from '../../../api/AuthApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AlertService } from '../../../componets/Alerts/CustomAlert';
 import { ActivityIndicator, RefreshControl } from 'react-native';
@@ -59,6 +59,34 @@ export default function AEPS_Payout({ navigation }) {
     }
   };
 
+  const handleDeleteBank = async (bankId) => {
+    setIsLoading(true);
+    try {
+      const headerToken = await AsyncStorage.getItem('header_token');
+      const res = await deleteAepsPayoutBank({ bankId, headerToken });
+
+      if (res?.success) {
+        AlertService.showAlert({
+          type: 'success',
+          title: 'Success',
+          message: res.message || 'Beneficiary removed successfully'
+        });
+        loadAllData(); // Refresh list
+      } else {
+        AlertService.showAlert({
+          type: 'error',
+          title: 'Error',
+          message: res.message || 'Failed to remove beneficiary'
+        });
+      }
+    } catch (e) {
+      console.log('Delete Bank Error:', e);
+      AlertService.showAlert({ type: 'error', title: 'Error', message: 'Something went wrong while deleting bank' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <HeaderBar
@@ -74,6 +102,7 @@ export default function AEPS_Payout({ navigation }) {
           loading={isLoading}
           balance={walletBalance}
           onRefresh={loadAllData}
+          onDeleteBank={handleDeleteBank}
         />
       </View>
     </SafeAreaView>
@@ -81,7 +110,7 @@ export default function AEPS_Payout({ navigation }) {
 }
 
 // ─── Dashboard Fragment ─────────────────────────────────────────────────────────
-function DashboardContent({ onTransfer, onAddBank, banks, loading, onRefresh, balance }) {
+function DashboardContent({ onTransfer, onAddBank, banks, loading, onRefresh, balance, onDeleteBank }) {
   // Use real banks from API or fallback to mock if list is empty for demo/visuals
   const displayBanks = banks.length > 0 ? banks : [
     { _id: '1', accountHolderName: 'Demo User', bankName: 'Fetching...', accountNumber: '0000****0000', status: 'PENDING', color: Colors.goldMid },
@@ -159,16 +188,30 @@ function DashboardContent({ onTransfer, onAddBank, banks, loading, onRefresh, ba
             <Text style={styles.beneName}>{bene.accountHolderName}</Text>
             <Text style={styles.beneDetail}>{bene.bankName} • {bene.accountNumber}</Text>
           </View>
-          <View style={[
-            styles.statusBadge,
-            { backgroundColor: (bene.status?.toLowerCase() === 'approved' || bene.status?.toLowerCase() === 'active') ? Colors.successOpacity_10 : Colors.warningOpacity_10 }
-          ]}>
-            <Text style={[
-              styles.statusText,
-              { color: (bene.status?.toLowerCase() === 'approved' || bene.status?.toLowerCase() === 'active') ? Colors.success : Colors.amber }
+          <View style={styles.beneRightRow}>
+            <View style={[
+              styles.statusBadge,
+              { backgroundColor: (bene.status?.toLowerCase() === 'approved' || bene.status?.toLowerCase() === 'active') ? Colors.successOpacity_10 : Colors.warningOpacity_10 }
             ]}>
-              {bene.status || 'PENDING'}
-            </Text>
+              <Text style={[
+                styles.statusText,
+                { color: (bene.status?.toLowerCase() === 'approved' || bene.status?.toLowerCase() === 'active') ? Colors.success : Colors.amber }
+              ]}>
+                {bene.status || 'PENDING'}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={styles.deleteBtn}
+              onPress={() => AlertService.showAlert({
+                type: 'warning',
+                title: 'Confirm Delete',
+                message: `Are you sure you want to remove ${bene.accountHolderName}?`,
+                onConfirm: () => onDeleteBank(bene._id)
+              })}
+            >
+              <Icon name="delete-outline" size={rs(18)} color={Colors.error} />
+            </TouchableOpacity>
           </View>
         </TouchableOpacity>
       ))}
@@ -332,7 +375,7 @@ const styles = StyleSheet.create({
 
   // ── Beneficiary List ──
   beneCard: {
-    backgroundColor: Colors.homebg,
+    backgroundColor: Colors.white,
     borderRadius: rs(20),
     padding: rs(12),
     flexDirection: 'row',
@@ -371,6 +414,17 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: rs(10),
     fontFamily: Fonts.Bold,
+  },
+  beneRightRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  deleteBtn: {
+    width: rs(32),
+    height: rs(32),
+    borderRadius: rs(8),
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   // ── Transfer Form ──

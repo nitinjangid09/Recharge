@@ -2114,3 +2114,20 @@ export const initiateAepsPayoutTransfer = async ({ data, headerToken }) => {
     return error?.response?.data || { success: false, message: "Failed to initiate transfer" };
   }
 };
+
+export const deleteAepsPayoutBank = async ({ bankId, headerToken }) => {
+  try {
+    const response = await axios.delete(`${BASE_URL}/user/aepsPayoutBank/delete-aeps-payout-bank`, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "Content-Type": "application/json",
+      },
+      data: { bankId },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Delete AEPS Payout Bank Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Failed to delete payout bank" };
+  }
+};
+
