@@ -8,11 +8,11 @@ import {
     StatusBar,
     Animated,
     Platform,
-    Clipboard,
     ToastAndroid,
     Alert,
     Dimensions,
 } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import { SafeAreaView } from 'react-native-safe-area-context';

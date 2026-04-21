@@ -42,7 +42,7 @@ export default function AEPS_Payout({ navigation }) {
     setIsLoading(true);
     try {
       const headerToken = await AsyncStorage.getItem('header_token');
-      
+
       const [bankRes, balanceRes] = await Promise.all([
         getAepsPayoutBanks({ headerToken }),
         getWalletBalance({ headerToken })
@@ -62,14 +62,14 @@ export default function AEPS_Payout({ navigation }) {
   return (
     <SafeAreaView style={styles.safe}>
       <HeaderBar
-        title="Payout Hub"
+        title="AEPS Payout"
         onBack={() => navigation.goBack()}
       />
 
       <View style={styles.container}>
-        <DashboardContent 
-          onTransfer={() => navigation.navigate("AEPSTransfer", { banks: approvedBanks })} 
-          onAddBank={() => navigation.navigate("AddPayoutBank")} 
+        <DashboardContent
+          onTransfer={() => navigation.navigate("AEPSTransfer", { banks: approvedBanks })}
+          onAddBank={() => navigation.navigate("AddPayoutBank")}
           banks={approvedBanks}
           loading={isLoading}
           balance={walletBalance}
@@ -90,8 +90,8 @@ function DashboardContent({ onTransfer, onAddBank, banks, loading, onRefresh, ba
   const [main, decimal] = (balance || '0.00').split('.');
 
   return (
-    <ScrollView 
-      showsVerticalScrollIndicator={false} 
+    <ScrollView
+      showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.scrollContent}
       refreshControl={
         <RefreshControl refreshing={loading} onRefresh={onRefresh} colors={[Colors.primary]} />
@@ -160,11 +160,11 @@ function DashboardContent({ onTransfer, onAddBank, banks, loading, onRefresh, ba
             <Text style={styles.beneDetail}>{bene.bankName} • {bene.accountNumber}</Text>
           </View>
           <View style={[
-            styles.statusBadge, 
+            styles.statusBadge,
             { backgroundColor: (bene.status?.toLowerCase() === 'approved' || bene.status?.toLowerCase() === 'active') ? Colors.successOpacity_10 : Colors.warningOpacity_10 }
           ]}>
             <Text style={[
-              styles.statusText, 
+              styles.statusText,
               { color: (bene.status?.toLowerCase() === 'approved' || bene.status?.toLowerCase() === 'active') ? Colors.success : Colors.amber }
             ]}>
               {bene.status || 'PENDING'}

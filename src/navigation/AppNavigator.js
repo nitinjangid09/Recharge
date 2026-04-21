@@ -63,7 +63,7 @@ import AePSDashboard from '../screens/Services/AEPS2/AePSDashboardScreen';
 import TransactionAuditScreen from '../screens/Reports/WalletAudit';
 import AEPSPayOut from '../screens/Services/AEPS1/AEPS_Payout';
 import AddPayoutBank from '../screens/Services/AEPS1/AddPayoutBank';
-import AEPSTransfer from '../screens/Services/AEPS1/AEPS_Transfer';
+import AEPSTransfer from '../screens/Services/AEPS1/AEPS_PayOut_Transfer';
 
 
 
