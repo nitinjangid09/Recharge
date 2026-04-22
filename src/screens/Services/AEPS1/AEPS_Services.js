@@ -63,7 +63,7 @@ const AEPS_Services = () => {
                 const d = profRes.data;
                 setUser({
                     name: `${d.firstName || ""} ${d.lastName || ""}`.trim() || d.userName,
-                    mid: d.merchantId || d._id?.slice(-8).toUpperCase() || "MID-XXXXX"
+                    mid: d.merchantId || d._id?.slice(-8)?.toUpperCase() || "MID-XXXXX"
                 });
             }
 
@@ -188,13 +188,7 @@ const AEPS_Services = () => {
                             onPress={() => NavigationService.navigate("MiniStatement")}
                         />
                         <ServiceCard
-                            title="Daily Login"
-                            sub="NPCI Mandatory"
-                            Svg={aepsIcon}
-                            onPress={() => NavigationService.navigate("DailyLogin")}
-                        />
-                        <ServiceCard
-                            title="AEPS PayOut"
+                            title="Payout Hub"
                             sub="AEPS Payout"
                             Svg={aepsIcon}
                             onPress={() => NavigationService.navigate("AEPSPayOut")}

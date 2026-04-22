@@ -27,7 +27,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from '@react-native-community/geolocation';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-import RDService, { RD_ERROR_CODES } from './RDService';
+import RDService, { RD_ERROR_CODES } from '../../../utils/RDService';
 import { aepsInstantDailyLogin } from '../../../api/AuthApi';
 import { AlertService } from '../../../componets/Alerts/CustomAlert';
 import * as NavigationService from '../../../utils/NavigationService';

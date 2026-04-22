@@ -30,7 +30,7 @@ import Colors from '../../../constants/Colors';
 import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
 import { fetchUserProfile, getWalletBalance, fetchUserWallet, fetchAepsBanks } from '../../../api/AuthApi';
 import { AlertService } from '../../../componets/Alerts/CustomAlert';
-import RDService from '../AEPS1/RDService';
+import RDService from '../../../utils/RDService';
 
 const { width: SW, height: SH } = Dimensions.get("window");
 const scale = (n) => Math.round((SW / 375) * n);

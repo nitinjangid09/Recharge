@@ -11,8 +11,8 @@ import {
     Platform,
     StatusBar,
     Alert,
-    Clipboard,
 } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CalendarModal from '../../componets/Calendar/CalendarModal';
 import ImagePicker from 'react-native-image-crop-picker';

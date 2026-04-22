@@ -262,7 +262,7 @@ export const forgotPassword = async ({ email }) => {
 
 export const resetPassword = async ({ email, otp, newPassword }) => {
   try {
-    const payload = { 
+    const payload = {
       email: String(email).trim(),
       otp: String(otp).trim(),
       newPassword: String(newPassword).trim()
@@ -1730,6 +1730,28 @@ export const aepsDailyLogin = async ({ data, headerToken, headerKey, idempotency
   }
 };
 
+export const aeps2DailyLogin = async ({ data, headerToken, headerKey, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/aeps/daily-login`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey,
+        headerToken,
+        headerKey,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("AEPS2 Daily Login API Error:", error?.response?.data || error);
+    return (
+      error?.response?.data || {
+        success: false,
+        message: "Daily login request failed",
+      }
+    );
+  }
+};
+
 /**
  * onboardAepsUser
  * POST /user/aeps/onboard-user
@@ -2027,3 +2049,107 @@ export const getAepsStatus = async ({ headerToken }) => {
     return error?.response?.data || { success: false, message: "Failed to fetch AEPS status" };
   }
 };
+
+export const addAepsPayoutBank = async ({ data, headerToken }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/aepsPayoutBank/add-aeps-payout-bank`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "Content-Type": "multipart/form-data",
+      },
+
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Add AEPS Payout Bank Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Failed to add payout bank" };
+  }
+};
+
+export const getApprovedAepsBanks = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/aepsPayoutBank/approved-aeps-banks`, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get Approved AEPS Banks Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Failed to fetch approved banks" };
+  }
+};
+
+export const getAepsPayoutBanks = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/aepsPayoutBank/aeps-payout-banks`, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get AEPS Payout Banks Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Failed to fetch payout banks" };
+  }
+};
+
+export const getPayoutBankList = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/payout-bank/bank-list`, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get Payout Bank List Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Failed to fetch payout bank list" };
+  }
+};
+
+export const initiateAepsPayoutTransfer = async ({ data, headerToken }) => {
+  const generateIdempotencyKey = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = 'PTR_';
+    for (let i = 0; i < 8; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
+  try {
+    const idempotencyKey = generateIdempotencyKey();
+    const response = await axios.post(`${BASE_URL}/user/aepsPayout/initiate-payout-transfer`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "Content-Type": "application/json",
+        "idempotency-key": idempotencyKey
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Initiate Payout Transfer Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Failed to initiate transfer" };
+  }
+};
+
+export const deleteAepsPayoutBank = async ({ bankId, headerToken }) => {
+  try {
+    const response = await axios.delete(`${BASE_URL}/user/aepsPayoutBank/delete-aeps-payout-bank`, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "Content-Type": "application/json",
+      },
+      data: { bankId },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Delete AEPS Payout Bank Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Failed to delete payout bank" };
+  }
+};
+

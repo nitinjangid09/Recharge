@@ -205,7 +205,7 @@ export default function OfflineServiceForm({ navigation, route }) {
     if (loading) {
         return (
             <SafeAreaView style={styles.loadingContainer}>
-                <HeaderBar title={service.serviceName.toUpperCase()} onBack={() => navigation.goBack()} />
+                <HeaderBar title={service.serviceName?.toUpperCase() || "SERVICE"} onBack={() => navigation.goBack()} />
                 <View style={styles.loaderCentering}>
                     <ActivityIndicator size="large" color={Colors.finance_accent} />
                     <Text style={styles.loadingText}>Loading protocol requirements...</Text>
@@ -216,7 +216,7 @@ export default function OfflineServiceForm({ navigation, route }) {
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            <HeaderBar title={service.serviceName.toUpperCase()} onBack={() => navigation.goBack()} />
+            <HeaderBar title={service.serviceName?.toUpperCase() || "SERVICE"} onBack={() => navigation.goBack()} />
 
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}

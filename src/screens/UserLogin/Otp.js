@@ -31,7 +31,7 @@ export default function OTP({ navigation, route }) {
   const routePassword = route?.params?.password;
   const routeSystemDetails = route?.params?.systemDetails;
 
-  const [timer, setTimer] = useState(15);
+  const [timer, setTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const [isEditable, setIsEditable] = useState(true);
 
@@ -184,7 +184,7 @@ export default function OTP({ navigation, route }) {
 
       setLoading(false);
       if (result?.success) {
-        setTimer(15);
+        setTimer(60);
         setCanResend(false);
         setIsEditable(true);
         setOtp(new Array(INPUT_COUNT).fill(""));

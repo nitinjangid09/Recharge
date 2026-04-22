@@ -217,7 +217,7 @@ export default function OfflineServices({ navigation }) {
                                     </View>
                                 )}
                                 <View style={styles.itrInfo}>
-                                    <Text style={styles.itrTitle}>{svc.serviceName.toUpperCase()}</Text>
+                                    <Text style={styles.itrTitle}>{svc.serviceName?.toUpperCase() || "SERVICE"}</Text>
                                     <Text style={styles.itrDesc} numberOfLines={2}>
                                         {svc.description}
                                     </Text>

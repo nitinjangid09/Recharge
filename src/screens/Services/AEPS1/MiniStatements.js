@@ -22,7 +22,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AlertService } from "../../../componets/Alerts/CustomAlert";
 import * as NavigationService from "../../../utils/NavigationService";
 import { ActivityIndicator } from "react-native";
-import RDService, { RD_ERROR_CODES } from "./RDService";
+import RDService, { RD_ERROR_CODES } from "../../../utils/RDService";
 import Geolocation from '@react-native-community/geolocation';
 import { PermissionsAndroid, Alert } from "react-native";
 
@@ -576,9 +576,15 @@ const MiniStatement = () => {
 
                 {/* Statement List */}
                 <Text style={rm.stTitle}>RECENT TRANSACTIONS</Text>
+<<<<<<< HEAD
                 {(receiptData?.data?.data?.miniStatement || receiptData?.data?.response?.data?.miniStatement)?.length > 0 ? (
                   (receiptData?.data?.data?.miniStatement || receiptData?.data?.response?.data?.miniStatement).map((item, idx) => {
                     const isCredit = item.txnType === 'C' || item.txnType === 'c' || item.narration?.toUpperCase().includes(' C ');
+=======
+                {receiptData?.data?.response?.data?.miniStatement?.length > 0 ? (
+                  receiptData.data.response.data.miniStatement.map((item, idx) => {
+                    const isCredit = item.narration?.toUpperCase()?.includes(' C ');
+>>>>>>> 5e6b4c62173ef915db8ea3897eb5502950a7318d
                     return (
                       <View key={idx} style={rm.stRow}>
                         <View style={{ flex: 1 }}>
