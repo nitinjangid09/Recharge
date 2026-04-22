@@ -14,11 +14,13 @@ import {
     ActivityIndicator,
     ScrollView,
     Platform,
+    PermissionsAndroid,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import LinearGradient from "react-native-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Geolocation from '@react-native-community/geolocation';
 
 import Colors from "../../../constants/Colors";
 import Fonts from "../../../constants/Fonts";
@@ -26,7 +28,7 @@ import * as NavigationService from "../../../utils/NavigationService";
 import { getAepsKycStatus, biometricKyc } from "../../../api/AuthApi";
 import { AlertService } from "../../../componets/Alerts/CustomAlert";
 
-import RD_BRIDGE from "./RDService";
+import RD_BRIDGE, { RD_ERROR_CODES } from "./RDService";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const { width: SW } = Dimensions.get("window");
@@ -214,89 +216,144 @@ const AEPS_OnBoard = () => {
             return;
         }
 
-        setRdState((s) => ({ ...s, capturing: true }));
-        transition(SCREENS.CAPTURING);
-        flashCapture();
-
         try {
-            // Standard WADH for onboarding
-            const wadhValue = "E0jzJ/P8UopUHAieZn8CKqS4WPMi5ZSYXgfnlfkWjrc=";
-            
-            // Build PidOptions XML as requested
-            const pidOptString = "<PidOptions>"
-                + `<Opts fCount="1" fType="2" iCount="0" pCount="0" format="0" pidVer="2.0" timeout="20000" otp="" posh="LEFT_INDEX" env="P" wadh="${wadhValue}" />`
-                + "<Demo></Demo>"
-                + "<CustOpts><Param name=\"Param1\" value=\"\" /></CustOpts>"
-                + "</PidOptions>";
+            setLoading(true);
 
-            // Step 1: Capture biometric PID from RD device
+            // ── 1. Request Location Permission (Android) ──
+            if (Platform.OS === 'android') {
+                const granted = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+                );
+                if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+                    AlertService.showAlert({ 
+                        type: "error", 
+                        title: "Permission Denied", 
+                        message: "Location permission is required for AEPS onboarding." 
+                    });
+                    setLoading(false);
+                    return;
+                }
+            }
+
+            setRdState((s) => ({ ...s, capturing: true }));
+            transition(SCREENS.CAPTURING);
+            flashCapture();
+
+            // ── 2. Build PidOptions XML with specific wadh ──────────────────
+            const wadhValue = "E0jzJ/P8UopUHAieZn8CKqS4WPMi5ZSYXgfnlfkWjrc=";
+            const pidOptString = '<PidOptions ver="1.0">'
+                + `<Opts fCount="1" fType="2" iCount="0" pCount="0" format="0" pidVer="2.0" timeout="20000" otp="" posh="UNKNOWN" env="P" wadh="${wadhValue}" />`
+                + '<Demo></Demo>'
+                + '<CustOpts></CustOpts>'
+                + '</PidOptions>';
+
+            // ── 3. Capture biometric PID from RD Service ────────────────────
             const pidDataXml = await RD_BRIDGE.capture(device, pidOptString);
 
             if (!pidDataXml) {
-                setRdState((s) => ({ ...s, capturing: false }));
-                AlertService.showAlert({ type: "error", title: "Capture Failed", message: "No biometric data received." });
-                transition(SCREENS.BIOMETRIC);
-                return;
+                throw { code: 'NO_PID', message: "No biometric data received from scanner." };
             }
 
-            // Step 2: Get Location
+            // ── 4. Get User Location ──────────────────────────────────────────
             const getLocation = () =>
                 new Promise((resolve) => {
-                    import('@react-native-community/geolocation').then(Geo => {
-                        Geo.default.getCurrentPosition(
-                            (pos) => resolve(pos.coords),
-                            (err) => {
-                                console.log("Location error, using fallback", err);
-                                resolve({ latitude: 26.889829, longitude: 75.738331 });
-                            },
-                            { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-                        );
-                    }).catch(() => resolve({ latitude: 26.889829, longitude: 75.738331 }));
+                    try {
+                        const geo = Geolocation || (typeof navigator !== 'undefined' && navigator.geolocation);
+                        
+                        if (geo && typeof geo.getCurrentPosition === 'function') {
+                            geo.getCurrentPosition(
+                                (pos) => resolve(pos.coords),
+                                (err) => {
+                                    console.log("[GEOLOCATION] Error:", err);
+                                    resolve({ latitude: 26.88978, longitude: 75.738251 });
+                                },
+                                { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+                            );
+                        } else {
+                            console.warn("[GEOLOCATION] Method not found, using fallback");
+                            resolve({ latitude: 26.88978, longitude: 75.738251 });
+                        }
+                    } catch (e) {
+                        console.warn("[GEOLOCATION] Exception:", e);
+                        resolve({ latitude: 26.88978, longitude: 75.738251 });
+                    }
                 });
             
             const coords = await getLocation();
 
-            // Step 3: Prepare and submit parsed PID + Aadhaar to backend KYC API
-            const parsedBiometric = RD_BRIDGE.parsePidXml(pidDataXml);
-            
-            // Special requirement: send wadh value in piddata. If get from device send that, otherwise fallback.
-            parsedBiometric.pidData = parsedBiometric.wadh || wadhValue;
-
+            // ── 5. Prepare and submit parsed PID + Aadhaar to backend KYC API ───
             const headerToken = await AsyncStorage.getItem("header_token");
-            const res = await biometricKyc({
-                data: { 
-                    aadhaarNumber: aadhaar, 
-                    latitude: coords.latitude,
-                    longitude: coords.longitude,
-                    captureType: "finger",
-                    biometricData: parsedBiometric
-                },
-                headerToken,
-                idempotencyKey: `KYC_${Date.now()}`,
-            });
+            const headerKey = await AsyncStorage.getItem("header_key");
+            const idempotencyKey = `KYC_${Date.now()}`;
 
-            setRdState((s) => ({ ...s, capturing: false }));
+            const payload = {
+                aadhaarNumber: String(aadhaar),
+                latitude: Number(coords.latitude),
+                longitude: Number(coords.longitude),
+                captureType: "finger",
+                biometricData: RD_BRIDGE.parsePidXml(pidDataXml),
+                // Include any reference from status check to prevent "reference key expired" error
+                primaryKey: statusData?.primaryKey || statusData?.refId || statusData?.referenceKey,
+                referenceKey: statusData?.referenceKey || statusData?.primaryKey,
+            };
+
+            const res = await biometricKyc({
+                data: payload,
+                headerToken,
+                headerKey,
+                idempotencyKey,
+            });
 
             if (res.success || res.status === "SUCCESS") {
                 AlertService.showAlert({
                     type: "success",
                     title: "KYC Complete",
-                    message: "Biometric verification successful. Opening AEPS…",
+                    message: res.message || "Biometric verification successful. Opening AEPS…",
                     onClose: () => NavigationService.navigate("DailyLogin"),
                 });
             } else {
-                AlertService.showAlert({ type: "error", title: "KYC Failed", message: res.message || "Backend rejected the PID data." });
+                // If reference key expired, refresh status in background for next attempt
+                if (res.message?.toLowerCase().includes("expired") || res.message?.toLowerCase().includes("reference")) {
+                    checkInitialStatus();
+                }
+
+                AlertService.showAlert({ 
+                    type: "error", 
+                    title: "KYC Failed", 
+                    message: res.message || "Biometric verification rejected by server." 
+                });
                 transition(SCREENS.BIOMETRIC);
             }
+
         } catch (err) {
-            console.error("KYC Capture error:", err);
-            setRdState((s) => ({ ...s, capturing: false }));
+            let message = 'Fingerprint capture failed. Please try again.';
+
+            switch (err?.code) {
+                case RD_ERROR_CODES.NOT_INSTALLED:
+                    message = `RD Service app is not installed for ${RD_BRIDGE.getDeviceLabel(device)}.`;
+                    break;
+                case RD_ERROR_CODES.CANCELLED:
+                    message = 'Fingerprint capture was cancelled.';
+                    break;
+                case RD_ERROR_CODES.NO_PID:
+                    message = err.message || 'No fingerprint data received. Please try again.';
+                    break;
+                case RD_ERROR_CODES.BUSY:
+                    message = 'A fingerprint capture is already in progress.';
+                    break;
+                default:
+                    message = err?.message || message;
+            }
+
             AlertService.showAlert({ 
                 type: "error", 
-                title: "System Error", 
-                message: err?.message || "Verification failed. Check scanner and network." 
+                title: "Verification Error", 
+                message 
             });
             transition(SCREENS.BIOMETRIC);
+        } finally {
+            setLoading(false);
+            setRdState((s) => ({ ...s, capturing: false }));
         }
     };
 

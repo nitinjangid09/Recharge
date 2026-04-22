@@ -542,7 +542,9 @@ const MiniStatement = () => {
               <Text style={rm.amtLabel}>AVAILABLE BALANCE</Text>
               <Text style={rm.amtValue}>
                 ₹{Number(
-                  (receiptData?.data?.response?.data?.bankAccountBalance || 
+                  (receiptData?.data?.data?.bankAccountBalance || 
+                   receiptData?.data?.data?.balance || 
+                   receiptData?.data?.response?.data?.bankAccountBalance || 
                    receiptData?.data?.response?.data?.closingBalance || 
                    receiptData?.data?.balance || "0.00")
                 ).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
@@ -550,23 +552,23 @@ const MiniStatement = () => {
             </View>
 
             {/* Scrollable Statement Area */}
-            <View style={{ width: '100%', flexShrink: 1, maxHeight: SH * 0.4 }}>
+            <View style={{ width: '100%', flexShrink: 1, maxHeight: SH * 0.45 }}>
               <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={rm.divider} />
                 
                 {/* Details Section */}
                 <View style={rm.list}>
                   <View style={rm.row}>
-                    <Text style={rm.rowLabel}>Bank RRN</Text>
-                    <Text style={rm.rowValue}>{receiptData?.data?.response?.data?.externalRef || "N/A"}</Text>
+                    <Text style={rm.rowLabel}>Transaction ID</Text>
+                    <Text style={rm.rowValue}>{receiptData?.data?.transactionId || receiptData?.data?.response?.data?.externalRef || "N/A"}</Text>
                   </View>
                   <View style={rm.row}>
-                    <Text style={rm.rowLabel}>Bank</Text>
-                    <Text style={rm.rowValue}>{receiptData?.data?.response?.data?.bankName || txnDetails?.bankName || "N/A"}</Text>
+                    <Text style={rm.rowLabel}>Bank Name</Text>
+                    <Text style={rm.rowValue}>{receiptData?.data?.data?.bankName || receiptData?.data?.response?.data?.bankName || txnDetails?.bankName || "N/A"}</Text>
                   </View>
                   <View style={rm.row}>
-                    <Text style={rm.rowLabel}>Account No</Text>
-                    <Text style={rm.rowValue}>{receiptData?.data?.response?.data?.accountNumber || "N/A"}</Text>
+                    <Text style={rm.rowLabel}>Aadhaar Number</Text>
+                    <Text style={rm.rowValue}>{receiptData?.data?.data?.aadhaarNumber || txnDetails?.aadhaar || "N/A"}</Text>
                   </View>
                 </View>
 
@@ -574,14 +576,14 @@ const MiniStatement = () => {
 
                 {/* Statement List */}
                 <Text style={rm.stTitle}>RECENT TRANSACTIONS</Text>
-                {receiptData?.data?.response?.data?.miniStatement?.length > 0 ? (
-                  receiptData.data.response.data.miniStatement.map((item, idx) => {
-                    const isCredit = item.narration?.toUpperCase().includes(' C ');
+                {(receiptData?.data?.data?.miniStatement || receiptData?.data?.response?.data?.miniStatement)?.length > 0 ? (
+                  (receiptData?.data?.data?.miniStatement || receiptData?.data?.response?.data?.miniStatement).map((item, idx) => {
+                    const isCredit = item.txnType === 'C' || item.txnType === 'c' || item.narration?.toUpperCase().includes(' C ');
                     return (
                       <View key={idx} style={rm.stRow}>
                         <View style={{ flex: 1 }}>
                           <Text style={rm.stDate}>{item.date || 'N/A'}</Text>
-                          <Text style={rm.stNarration} numberOfLines={1}>{item.narration}</Text>
+                          <Text style={rm.stNarration} numberOfLines={1}>{item.narration || item.txnType}</Text>
                         </View>
                         <Text style={[rm.stAmt, isCredit ? rm.cr : rm.dr]}>
                           {isCredit ? '+' : '-'}₹{item.amount}

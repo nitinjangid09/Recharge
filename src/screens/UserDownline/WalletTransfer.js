@@ -22,6 +22,7 @@ import Fonts from '../../constants/Fonts';
 import { getWalletBalance, transferAepsToMainWallet, getWalletHistory } from '../../api/AuthApi';
 import CustomAlert from '../../componets/Alerts/CustomAlert';
 import HeaderBar from '../../componets/HeaderBar/HeaderBar';
+import FullScreenLoader from '../../componets/Loader/FullScreenLoader';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -172,9 +173,9 @@ const WalletTransfer = ({ navigation }) => {
       <StatusBar barStyle="light-content" backgroundColor={Colors.slate_900} />
 
       {/* ── HEADER ── */}
-      <HeaderBar 
-        title="Wallet Transfer" 
-        onBack={() => navigation.goBack()} 
+      <HeaderBar
+        title="Wallet Transfer"
+        onBack={() => navigation.goBack()}
       />
 
       <ScrollView
@@ -303,7 +304,7 @@ const WalletTransfer = ({ navigation }) => {
               <TextInput
                 style={styles.amountInput}
                 placeholder="0.00"
-                placeholderTextColor={Colors.whiteOpacity_30}
+                placeholderTextColor={Colors.white}
                 keyboardType="numeric"
                 value={amount}
                 onChangeText={setAmount}
@@ -383,6 +384,7 @@ const WalletTransfer = ({ navigation }) => {
           alertAction && alertAction();
         }}
       />
+      <FullScreenLoader visible={isTransferring} label="Processing Transfer..." />
     </SafeAreaView>
   );
 };

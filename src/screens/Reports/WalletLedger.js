@@ -23,6 +23,7 @@ import { fadeIn, slideUp, buttonPress, FadeSlideUp } from '../../utils/ScreenAni
 import HeaderBar from '../../componets/HeaderBar/HeaderBar';
 import ReceiptModal from '../../componets/ReceiptModal/ReceiptModal';
 import CalendarModal from '../../componets/Calendar/CalendarModal';
+import FullScreenLoader from '../../componets/Loader/FullScreenLoader';
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get('window');
@@ -772,8 +773,7 @@ const WalletTransactionScreen = ({ navigation }) => {
         ListEmptyComponent={
           loading ? (
             <View style={S.emptyWrap}>
-              <ActivityIndicator size="large" color={Colors.finance_accent} />
-              <Text style={[S.emptySub, { marginTop: vs(12) }]}>Fetching your transactions...</Text>
+              <View style={{ height: vs(100) }} />
             </View>
           ) : searched && !error ? (
             <View style={S.emptyWrap}>
@@ -802,6 +802,7 @@ const WalletTransactionScreen = ({ navigation }) => {
       } : null}
       />
       <FilterSheet visible={filterVisible} activeFilters={filters} startDate={startDate} endDate={endDate} onOpenCal={openCal} userOptions={[{ key: 'all', label: 'All Users', icon: 'account-group' }, ...downlineUsers]} onClose={() => setFilterVisible(false)} onApply={onApplyFilters} />
+      <FullScreenLoader visible={loading} label="Fetching Records..." />
     </SafeAreaView>
   );
 };

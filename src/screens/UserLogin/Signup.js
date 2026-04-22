@@ -34,6 +34,7 @@ export default function Signup({ navigation }) {
     const [rolesList, setRolesList] = useState([]);
     const [roleOpen, setRoleOpen] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [errors, setErrors] = useState({});
 
     const [focusedInput, setFocusedInput] = useState(null);
 
@@ -99,22 +100,27 @@ export default function Signup({ navigation }) {
         Keyboard.dismiss();
         animateButton();
 
-        if (!firstName || !lastName || !phone || !email || !role) {
-            triggerShake();
-            showAlert("Error", "Please fill all fields");
-            return;
-        }
+        let newErrors = {};
+        let hasError = false;
 
-        if (phone.length !== 10) {
-            triggerShake();
-            showAlert("Error", "Please enter a valid 10-digit mobile number");
-            return;
-        }
+        if (!firstName.trim()) { newErrors.firstName = "First name is required"; hasError = true; }
+        else if (firstName.trim().length > 50) { newErrors.firstName = "First name cannot exceed 50 characters"; hasError = true; }
+
+        if (!lastName.trim()) { newErrors.lastName = "Last name is required"; hasError = true; }
+        else if (lastName.trim().length > 50) { newErrors.lastName = "Last name cannot exceed 50 characters"; hasError = true; }
+
+        if (!phone.trim()) { newErrors.phone = "Mobile number is required"; hasError = true; }
+        else if (phone.length !== 10) { newErrors.phone = "Mobile number must be 10 digits"; hasError = true; }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email.trim())) {
+        if (!email.trim()) { newErrors.email = "Email address is required"; hasError = true; }
+        else if (!emailRegex.test(email.trim())) { newErrors.email = "Please enter a valid email address"; hasError = true; }
+
+        if (!role) { newErrors.role = "Please select a role"; hasError = true; }
+
+        if (hasError) {
+            setErrors(newErrors);
             triggerShake();
-            showAlert("Error", "Please enter a valid email address");
             return;
         }
 
@@ -139,6 +145,7 @@ export default function Signup({ navigation }) {
                 setPhone("");
                 setEmail("");
                 setRole("");
+                setErrors({});
                 // Auto navigate to login after a brief delay
                 setTimeout(() => {
                     setAlertVisible(false);
@@ -160,6 +167,7 @@ export default function Signup({ navigation }) {
 
     const renderInput = (label, icon, value, setValue, keyName, keyboardType = 'default', extraProps = {}) => {
         const isFocused = focusedInput === keyName;
+        const hasError = !!errors[keyName];
         return (
             <View style={styles.inputContainer}>
                 <Text style={styles.label}>{label}</Text>
@@ -167,19 +175,24 @@ export default function Signup({ navigation }) {
                     style={[
                         styles.inputBox,
                         {
-                            borderColor: getBorderColor(isFocused),
+                            borderColor: hasError ? Colors.red : getBorderColor(isFocused),
                             transform: [{ scale: getScale(isFocused) }],
                             backgroundColor: getBgColor(isFocused)
                         }
                     ]}
                 >
-                    <MaterialCommunityIcons name={icon} size={20} color={isFocused ? Colors.icon_primary : Colors.icon_secondary} style={styles.inputIcon} />
+                    <MaterialCommunityIcons name={icon} size={20} color={hasError ? Colors.red : isFocused ? Colors.icon_primary : Colors.icon_secondary} style={styles.inputIcon} />
                     <TextInput
                         placeholder={`Enter ${label}`}
                         placeholderTextColor={Colors.text_placeholder}
                         keyboardType={keyboardType}
                         value={value}
-                        onChangeText={setValue}
+                        onChangeText={(text) => {
+                            setValue(text);
+                            if (errors[keyName]) {
+                                setErrors(prev => ({ ...prev, [keyName]: "" }));
+                            }
+                        }}
                         onFocus={() => setFocusedInput(keyName)}
                         onBlur={() => setFocusedInput(null)}
                         style={styles.input}
@@ -187,6 +200,11 @@ export default function Signup({ navigation }) {
                         {...extraProps}
                     />
                 </Animated.View>
+                {hasError && (
+                    <Text style={styles.errorText}>
+                        <MaterialCommunityIcons name="alert-circle-outline" size={12} /> {errors[keyName]}
+                    </Text>
+                )}
             </View>
         );
     };
@@ -222,8 +240,8 @@ export default function Signup({ navigation }) {
                         <Text style={styles.welcome}>Sign Up</Text>
                         <Text style={styles.subTitle}>Join us today!</Text>
 
-                        {renderInput("First Name", "account", firstName, setFirstName, "firstName")}
-                        {renderInput("Last Name", "account-outline", lastName, setLastName, "lastName")}
+                        {renderInput("First Name", "account", firstName, setFirstName, "firstName", 'default', { maxLength: 50 })}
+                        {renderInput("Last Name", "account-outline", lastName, setLastName, "lastName", 'default', { maxLength: 50 })}
                         {renderInput("Mobile Number", "phone", phone, (text) => setPhone(text.replace(/[^0-9]/g, "")), "phone", "phone-pad", { maxLength: 10 })}
                         {renderInput("Email Address", "email", email, setEmail, "email", "email-address")}
 
@@ -237,20 +255,29 @@ export default function Signup({ navigation }) {
                                         justifyContent: 'space-between',
                                         paddingHorizontal: 16 * scale,
                                         backgroundColor: roleOpen ? Colors.white : Colors.input_bg,
-                                        borderColor: roleOpen ? Colors.input_border_focus : Colors.input_border
+                                        borderColor: errors.role ? Colors.red : roleOpen ? Colors.input_border_focus : Colors.input_border
                                     }
                                 ]}
-                                onPress={() => setRoleOpen(!roleOpen)}
+                                onPress={() => {
+                                    setRoleOpen(!roleOpen);
+                                    if (errors.role) setErrors(prev => ({ ...prev, role: "" }));
+                                }}
                                 activeOpacity={0.85}
                             >
                                 <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                                    <MaterialCommunityIcons name="account-group-outline" size={20} color={role ? Colors.icon_primary : Colors.icon_secondary} style={styles.inputIcon} />
+                                    <MaterialCommunityIcons name="account-group-outline" size={20} color={errors.role ? Colors.red : role ? Colors.icon_primary : Colors.icon_secondary} style={styles.inputIcon} />
                                     <Text style={[styles.input, { color: role ? Colors.black : Colors.text_placeholder }]}>
                                         {rolesList.find(r => r.value === role)?.label || "Select Role..."}
                                     </Text>
                                 </View>
                                 <MaterialCommunityIcons name="chevron-down" size={20} color={Colors.icon_secondary} />
                             </TouchableOpacity>
+
+                            {errors.role && (
+                                <Text style={styles.errorText}>
+                                    <MaterialCommunityIcons name="alert-circle-outline" size={12} /> {errors.role}
+                                </Text>
+                            )}
 
                             {roleOpen && (
                                 <View style={styles.customDropContainer}>
@@ -339,6 +366,13 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16 * scale, borderWidth: 1
     },
     inputIcon: { marginRight: 10 * scale },
+    errorText: {
+        fontSize: 12 * scale,
+        fontFamily: Fonts.Medium,
+        color: Colors.red,
+        marginLeft: 12 * scale,
+        marginTop: 4 * scale,
+    },
     input: { flex: 1, fontSize: 15 * scale, color: Colors.black, fontFamily: Fonts.Medium, padding: 0 },
     loginBtn: {
         backgroundColor: Colors.button_bg, borderRadius: 25 * scale, height: 50 * scale,

@@ -47,7 +47,7 @@ import Offlinekyc from '../screens/kyc/Offlinekyc';
 import KycSubmitted from '../screens/kyc/KycSubmitted';
 import OfflineTopup from '../screens/OfflineTopup';
 import BbpsDynamicServiceScreen from '../screens/Services/BBPS_Services/BbpsDynamicServiceScreen';
-import WalletTransfer from '../screens/UserDownline/DownlineWalletTransfer';
+import WalletTransfer from '../screens/UserDownline/WalletTransfer';
 import CommisionPlan from '../screens/CommisionPlan';
 import UserWalletRefill from '../screens/UserDownline/UserWalletRefill';
 import OfflineServices from '../screens/Services/OfflineServices/OfflineServices';

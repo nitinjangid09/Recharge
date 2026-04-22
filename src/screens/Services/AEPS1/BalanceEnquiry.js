@@ -564,7 +564,8 @@ const BalanceEnquiry = () => {
               <Text style={rm.amtLabel}>AVAILABLE BALANCE</Text>
               <Text style={rm.amtValue}>
                 ₹{Number(
-                  (receiptData?.data?.response?.data?.bankAccountBalance || 
+                  (receiptData?.data?.data?.balance || 
+                   receiptData?.data?.response?.data?.bankAccountBalance || 
                    receiptData?.data?.response?.data?.closingBalance || 
                    receiptData?.data?.balance || "0.00")
                 ).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
@@ -576,20 +577,16 @@ const BalanceEnquiry = () => {
             {/* Details List */}
             <View style={rm.list}>
               <View style={rm.row}>
-                <Text style={rm.rowLabel}>Bank RRN</Text>
-                <Text style={rm.rowValue}>{receiptData?.data?.response?.data?.externalRef || "N/A"}</Text>
+                <Text style={rm.rowLabel}>Transaction ID</Text>
+                <Text style={rm.rowValue}>{receiptData?.data?.transactionId || receiptData?.data?.response?.data?.externalRef || "N/A"}</Text>
               </View>
               <View style={rm.row}>
                 <Text style={rm.rowLabel}>Bank Name</Text>
-                <Text style={rm.rowValue}>{receiptData?.data?.response?.data?.bankName || txnDetails?.bankName || "N/A"}</Text>
+                <Text style={rm.rowValue}>{receiptData?.data?.data?.bankName || receiptData?.data?.response?.data?.bankName || txnDetails?.bankName || "N/A"}</Text>
               </View>
               <View style={rm.row}>
-                <Text style={rm.rowLabel}>Account No</Text>
-                <Text style={rm.rowValue}>{receiptData?.data?.response?.data?.accountNumber || "N/A"}</Text>
-              </View>
-              <View style={rm.row}>
-                <Text style={rm.rowLabel}>Date & Time</Text>
-                <Text style={rm.rowValue}>{receiptData?.data?.response?.timestamp || "N/A"}</Text>
+                <Text style={rm.rowLabel}>Aadhaar Number</Text>
+                <Text style={rm.rowValue}>{receiptData?.data?.data?.aadhaarNumber || txnDetails?.aadhaar || "N/A"}</Text>
               </View>
               <View style={rm.row}>
                 <Text style={rm.rowLabel}>Mobile</Text>

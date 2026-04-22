@@ -57,9 +57,9 @@ const RX = {
   dob: /^(0[1-9]|[12]\d|3[01])-(0[1-9]|1[0-2])-\d{4}$/,
   pan: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
   aadhaar: /^\d{12}$/,
-  ifsc: /^[A-Z]{4}0[A-Z0-9]{6}$/,
+  ifsc: /^[A-Z0-9]{4,15}$/,
   gst: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
-  accNum: /^[0-9]{9,20}$/,
+  accNum: /^[0-9]{12,20}$/,
   accountHolderName: /^[A-Za-z\s.]+$/,
   bankName: /^[A-Za-z\s.&]+$/,
 };
@@ -503,10 +503,16 @@ export default function Offlinekyc({ navigation, route }) {
     const e = {};
     if (!personal.gender || !["male", "female", "other"].includes(personal.gender.toLowerCase())) e.gender = "Required";
     if (!personal.firstName.trim() || personal.firstName.trim().length < 3) e.firstName = "Min 3 chars";
+    else if (personal.firstName.trim().length > 100) e.firstName = "Max 100 chars";
+
     if (!personal.lastName.trim() || personal.lastName.trim().length < 3) e.lastName = "Min 3 chars";
+    else if (personal.lastName.trim().length > 100) e.lastName = "Max 100 chars";
+
     if (!personal.fatherName.trim() || personal.fatherName.trim().length < 3) e.fatherName = "Min 3 chars";
-    if (!personal.email.trim() || !RX.email.test(personal.email.trim())) e.email = "Invalid email";
-    if (!personal.phone.trim() || !RX.phone.test(personal.phone.trim())) e.phone = "Invalid phone";
+    else if (personal.fatherName.trim().length > 100) e.fatherName = "Max 100 chars";
+
+    if (!personal.email.trim() || !personal.email.includes("@") || !RX.email.test(personal.email.trim())) e.email = "Invalid email";
+    if (!personal.phone.trim() || personal.phone.trim().length !== 10 || !RX.phone.test(personal.phone.trim())) e.phone = "Must be 10 digits";
     if (!personal.dob.trim() || !RX.dob.test(personal.dob.trim())) {
       e.dob = "DD-MM-YYYY";
     } else {
@@ -519,7 +525,9 @@ export default function Offlinekyc({ navigation, route }) {
       if (dobDate > today || age < 18) e.dob = "Must be at least 18 years old";
     }
     if (!personal.personalAddress.trim() || personal.personalAddress.trim().length < 5) e.personalAddress = "Min 5 chars";
-    if (!RX.pincode.test(personal.personalPincode.trim())) e.personalPincode = "Invalid pincode";
+    else if (personal.personalAddress.trim().length > 500) e.personalAddress = "Max 500 chars";
+
+    if (personal.personalPincode.trim().length !== 6 || !RX.pincode.test(personal.personalPincode.trim())) e.personalPincode = "Must be 6 digits";
     if (!personal.personalState.trim()) e.personalState = "Required";
     if (!personal.personalCity.trim()) e.personalCity = "Required";
     setErrors(e);
@@ -529,8 +537,12 @@ export default function Offlinekyc({ navigation, route }) {
   const validateBusiness = () => {
     const e = {};
     if (!business.shopName.trim()) e.shopName = "Required";
+    else if (business.shopName.trim().length > 100) e.shopName = "Max 100 chars";
+
     if (!business.businessAddress.trim() || business.businessAddress.trim().length < 5) e.businessAddress = "Min 5 chars";
-    if (!RX.pincode.test(business.businessPincode.trim())) e.businessPincode = "Invalid pincode";
+    else if (business.businessAddress.trim().length > 200) e.businessAddress = "Max 200 chars";
+
+    if (business.businessPincode.trim().length !== 6 || !RX.pincode.test(business.businessPincode.trim())) e.businessPincode = "Must be 6 digits";
     if (!business.businessState.trim()) e.businessState = "Required";
     if (!business.businessCity.trim()) e.businessCity = "Required";
     if (!business.panNumber.trim() || !RX.pan.test(business.panNumber.trim())) e.panNumber = "Invalid PAN";
@@ -545,11 +557,13 @@ export default function Offlinekyc({ navigation, route }) {
   const validateBanking = () => {
     const e = {};
     if (!banking.accountHolderName.trim() || !RX.accountHolderName.test(banking.accountHolderName.trim())) e.accountHolderName = "Letters only, min 2 chars";
+    else if (banking.accountHolderName.trim().length > 100) e.accountHolderName = "Max 100 chars";
+
     if (!banking.bankName.trim() || !RX.bankName.test(banking.bankName.trim())) e.bankName = "Required";
-    if (!RX.accNum.test(banking.accountNumber.trim())) e.accountNumber = "9–20 digits";
+    if (!RX.accNum.test(banking.accountNumber.trim())) e.accountNumber = "12–20 digits";
     if (!banking.confirmAccountNumber.trim()) e.confirmAccountNumber = "Please confirm account number";
     else if (banking.accountNumber !== banking.confirmAccountNumber) e.confirmAccountNumber = "Account numbers don't match";
-    if (!RX.ifsc.test(banking.ifscCode.trim())) e.ifscCode = "Invalid IFSC code";
+    if (!RX.ifsc.test(banking.ifscCode.trim())) e.ifscCode = "Invalid IFSC code (4-15 chars)";
     if (!banking.branchName.trim()) e.branchName = "Required";
     setErrors(e);
     return e;
@@ -719,13 +733,13 @@ export default function Offlinekyc({ navigation, route }) {
 
                 <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
                   onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.firstName = y; fieldCoords.current.lastName = y; }}>
-                  <Field label="First Name" value={personal.firstName} onChange={v => setPersonal(p => ({ ...p, firstName: v }))} error={errors.firstName} placeholder="First name" maxLength={50} locked={lockedPersonal.firstName} />
-                  <Field label="Last Name" value={personal.lastName} onChange={v => setPersonal(p => ({ ...p, lastName: v }))} error={errors.lastName} placeholder="Last name" maxLength={50} locked={lockedPersonal.lastName} />
+                  <Field label="First Name" value={personal.firstName} onChange={v => setPersonal(p => ({ ...p, firstName: v }))} error={errors.firstName} placeholder="First name" maxLength={100} locked={lockedPersonal.firstName} />
+                  <Field label="Last Name" value={personal.lastName} onChange={v => setPersonal(p => ({ ...p, lastName: v }))} error={errors.lastName} placeholder="Last name" maxLength={100} locked={lockedPersonal.lastName} />
                 </TwoCol>
 
                 <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
                   onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.fatherName = y; fieldCoords.current.gender = y; }}>
-                  <Field label="Father's Name" value={personal.fatherName} onChange={v => setPersonal(p => ({ ...p, fatherName: v }))} error={errors.fatherName} placeholder="Father's full name" maxLength={50} locked={lockedPersonal.fatherName} />
+                  <Field label="Father's Name" value={personal.fatherName} onChange={v => setPersonal(p => ({ ...p, fatherName: v }))} error={errors.fatherName} placeholder="Father's full name" maxLength={100} locked={lockedPersonal.fatherName} />
                   <GenderSelect value={personal.gender} onChange={v => setPersonal(p => ({ ...p, gender: v }))} error={errors.gender} locked={lockedPersonal.gender} />
                 </TwoCol>
 
@@ -785,7 +799,7 @@ export default function Offlinekyc({ navigation, route }) {
 
                 <Field onLayout={e => fieldCoords.current.personalAddress = e.nativeEvent.layout.y}
                   label="Full Address" value={personal.personalAddress} onChange={v => setPersonal(p => ({ ...p, personalAddress: v }))}
-                  error={errors.personalAddress} multiline placeholder="House no., Street, Area, Landmark" hint="Minimum 10 characters" locked={lockedPersonal.personalAddress} />
+                  error={errors.personalAddress} multiline placeholder="House no., Street, Area, Landmark" hint="Minimum 10 characters" maxLength={500} locked={lockedPersonal.personalAddress} />
               </View>
             )}
 
@@ -802,7 +816,7 @@ export default function Offlinekyc({ navigation, route }) {
                   <Field label="GST Number" value={business.gstNumber} onChange={v => setBusiness(b => ({ ...b, gstNumber: v.toUpperCase() }))} placeholder="22AAAAA0000A1Z5" maxLength={15} error={errors.gstNumber} required={false} locked={lockedBusiness.gstNumber} />
                 </TwoCol>
 
-                <Field onLayout={e => fieldCoords.current.businessAddress = e.nativeEvent.layout.y} label="Shop Address" value={business.businessAddress} onChange={v => setBusiness(b => ({ ...b, businessAddress: v }))} error={errors.businessAddress} multiline placeholder="Full shop address with landmark" hint="Minimum 10 characters" locked={lockedBusiness.businessAddress} />
+                <Field onLayout={e => fieldCoords.current.businessAddress = e.nativeEvent.layout.y} label="Shop Address" value={business.businessAddress} onChange={v => setBusiness(b => ({ ...b, businessAddress: v }))} error={errors.businessAddress} multiline placeholder="Full shop address with landmark" hint="Minimum 10 characters" maxLength={200} locked={lockedBusiness.businessAddress} />
 
                 <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
                   onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.businessPincode = y; fieldCoords.current.businessState = y; }}>
@@ -928,7 +942,7 @@ export default function Offlinekyc({ navigation, route }) {
                       value={banking.ifscCode}
                       onChangeText={lockedBanking.ifscCode ? undefined : (v => setBanking(b => ({ ...b, ifscCode: v.toUpperCase().replace(/[^A-Z0-9]/g, "") })))}
                       editable={!lockedBanking.ifscCode}
-                      placeholder="SBIN0001234" placeholderTextColor={Colors.kyc_textMuted} maxLength={11} autoCapitalize="characters" />
+                      placeholder="SBIN0001234" placeholderTextColor={Colors.kyc_textMuted} maxLength={15} autoCapitalize="characters" />
                   </View>
                 </FieldWrap>
 
@@ -938,11 +952,11 @@ export default function Offlinekyc({ navigation, route }) {
                       style={[styles.input, { paddingRight: hs(44) }, lockedBanking.accountNumber && styles.inputLocked]}
                       value={banking.accountNumber} editable={!lockedBanking.accountNumber}
                       onChangeText={lockedBanking.accountNumber ? undefined : (v => {
-                        if (/^\d*$/.test(v) && v.length <= 18)
+                        if (/^\d*$/.test(v) && v.length <= 20)
                           setBanking(b => ({ ...b, accountNumber: v, confirmAccountNumber: "" }));
                       })}
                       placeholder="Enter account number" placeholderTextColor={Colors.kyc_textMuted}
-                      keyboardType="number-pad" secureTextEntry={!showAcc} maxLength={18}
+                      keyboardType="number-pad" secureTextEntry={!showAcc} maxLength={20}
                     />
                     <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowAcc(p => !p)}>
                       <Icon name={showAcc ? "eye-off-outline" : "eye-outline"} size={rs(18)} color={Colors.kyc_textMuted} />
@@ -960,11 +974,11 @@ export default function Offlinekyc({ navigation, route }) {
                       style={[styles.input, { paddingRight: hs(44) }, lockedBanking.accountNumber && styles.inputLocked]}
                       value={banking.confirmAccountNumber} editable={!lockedBanking.accountNumber}
                       onChangeText={lockedBanking.accountNumber ? undefined : (v => {
-                        if (/^\d*$/.test(v) && v.length <= 18)
+                        if (/^\d*$/.test(v) && v.length <= 20)
                           setBanking(b => ({ ...b, confirmAccountNumber: v }));
                       })}
                       placeholder="Re-enter account number" placeholderTextColor={Colors.kyc_textMuted}
-                      keyboardType="number-pad" secureTextEntry={!showConfirmAcc} maxLength={18}
+                      keyboardType="number-pad" secureTextEntry={!showConfirmAcc} maxLength={20}
                     />
                     <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowConfirmAcc(p => !p)}>
                       <Icon name={showConfirmAcc ? "eye-off-outline" : "eye-outline"} size={rs(18)} color={Colors.kyc_textMuted} />
@@ -982,7 +996,7 @@ export default function Offlinekyc({ navigation, route }) {
 
                 <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
                   onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.accountHolderName = y; fieldCoords.current.branchName = y; }}>
-                  <Field label="Account Holder Name" value={banking.accountHolderName} onChange={v => setBanking(b => ({ ...b, accountHolderName: v }))} error={errors.accountHolderName} placeholder="As per bank records" maxLength={50} locked={lockedBanking.accountHolderName} />
+                  <Field label="Account Holder Name" value={banking.accountHolderName} onChange={v => setBanking(b => ({ ...b, accountHolderName: v }))} error={errors.accountHolderName} placeholder="As per bank records" maxLength={100} locked={lockedBanking.accountHolderName} />
                   <Field label="Branch Name" value={banking.branchName} onChange={v => setBanking(b => ({ ...b, branchName: v }))} error={errors.branchName} placeholder="e.g. Main Branch" locked={lockedBanking.branchName} />
                 </TwoCol>
 

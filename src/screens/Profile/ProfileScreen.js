@@ -16,6 +16,7 @@ import { fetchUserProfile, logoutUser } from "../../api/AuthApi";
 import CustomAlert from "../../componets/Alerts/CustomAlert";
 import Colors from "../../constants/Colors";
 import Fonts from "../../constants/Fonts";
+import FullScreenLoader from "../../componets/Loader/FullScreenLoader";
 
 
 /* ─────────────────────────────────────────────
@@ -480,13 +481,7 @@ export default function ProfileScreen({ navigation }) {
         }}
       />
 
-      {/* Loader overlay */}
-      {loading && (
-        <View style={styles.loaderOverlay}>
-          <ActivityIndicator size="large" color={Colors.amber} />
-          <Text style={styles.loaderText}>Please wait…</Text>
-        </View>
-      )}
+      <FullScreenLoader visible={loading} label="Please wait..." />
     </SafeAreaView>
   );
 }
@@ -742,19 +737,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
 
-  /* ── Loader ── */
-  loaderOverlay: {
-    position: "absolute",
-    top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: Colors.blackOpacity_35,
-    justifyContent: "center",
+  badgeRow: {
+    flexDirection: "row",
     alignItems: "center",
-    zIndex: 999,
-  },
-  loaderText: {
-    marginTop: 10,
-    color: Colors.white,
-    fontSize: 14,
-    fontFamily: Fonts.Medium,
+    justifyContent: "center",
+    gap: 8,
+    marginTop: 8,
+    flexWrap: "wrap",
   },
 });

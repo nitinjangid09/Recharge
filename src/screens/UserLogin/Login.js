@@ -185,8 +185,12 @@ export default function Login({ navigation }) {
     const newErrors = { email: "", userName: "", password: "" };
     let hasError = false;
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email.trim()) {
       newErrors.email = "Please enter your email address";
+      hasError = true;
+    } else if (!emailRegex.test(email.trim())) {
+      newErrors.email = "Please enter a valid email address";
       hasError = true;
     }
     if (!userName.trim()) {
@@ -454,6 +458,7 @@ export default function Login({ navigation }) {
                 onBlur={() => handleInputBlur("userName")}
                 style={styles.input}
                 selectionColor={Colors.accent}
+                maxLength={10}
               />
             </Animated.View>
             {!!errors.userName && (
@@ -551,7 +556,7 @@ export default function Login({ navigation }) {
             {/* Sign Up link */}
             <View style={styles.signupContainer}>
               <Text style={styles.signupText}>Don't have an account? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
+              <TouchableOpacity onPress={() => navigation.navigate("Offlinekyc")}>
                 <Text style={styles.signupLink}>Sign Up</Text>
               </TouchableOpacity>
             </View>

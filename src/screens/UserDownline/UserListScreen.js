@@ -19,6 +19,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getDownlineUsers } from '../../api/AuthApi';
 import Fonts from '../../constants/Fonts';
 import Colors from '../../constants/Colors';
+import FullScreenLoader from '../../componets/Loader/FullScreenLoader';
 
 const { width } = Dimensions.get('window');
 const scale = width / 375;
@@ -169,15 +170,6 @@ const UserListScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
-  if (loading && users.length === 0) {
-    return (
-      <LinearGradient colors={Colors.background_gradient} style={styles.container}>
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-        </View>
-      </LinearGradient>
-    );
-  }
 
   return (
     <LinearGradient colors={Colors.background_gradient} style={styles.container}>
@@ -222,6 +214,7 @@ const UserListScreen = ({ navigation }) => {
             <Icon name="chevron-right" size={24} color={Colors.icon_secondary} />
           </TouchableOpacity>
         </View>
+        <FullScreenLoader visible={loading} label="Fetching users..." />
       </SafeAreaView>
     </LinearGradient>
   );

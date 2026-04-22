@@ -19,6 +19,7 @@ import Fonts from "../../constants/Fonts";
 import { verifyUserOtp, loginUser } from "../../api/AuthApi";
 import CustomAlert from "../../componets/Alerts/CustomAlert";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import FullScreenLoader from "../../componets/Loader/FullScreenLoader";
 
 const { width } = Dimensions.get("window");
 const OTP_BOX_SIZE = width / 9;
@@ -187,10 +188,7 @@ export default function OTP({ navigation, route }) {
         setCanResend(false);
         setIsEditable(true);
         setOtp(new Array(INPUT_COUNT).fill(""));
-        showAlert(
-          "OTP Resent",
-          "A new verification code has been sent to your email."
-        );
+        inputRefs.current[0]?.focus();
       } else {
         showAlert("Error", result?.message || "Failed to resend OTP");
       }
@@ -467,15 +465,7 @@ export default function OTP({ navigation, route }) {
         </ScrollView>
       </Animated.View>
 
-      {/* Loading Overlay */}
-      {loading && (
-        <View style={styles.loaderOverlay}>
-          <View style={styles.loaderBox}>
-            <ActivityIndicator size="large" color={Colors.white} />
-            <Text style={styles.loaderText}>Verifying...</Text>
-          </View>
-        </View>
-      )}
+      <FullScreenLoader visible={loading} label="Verifying OTP..." />
 
       <CustomAlert
         visible={alertVisible}
@@ -590,24 +580,6 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Bold,
     fontSize: 14,
     textDecorationLine: "underline",
-  },
-  loaderOverlay: {
-    position: "absolute",
-    top: 0, bottom: 0, left: 0, right: 0,
-    backgroundColor: Colors.blackOpacity_70,
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 1000,
-  },
-  loaderBox: {
-    padding: 24,
-    alignItems: "center",
-  },
-  loaderText: {
-    marginTop: 12,
-    color: Colors.white,
-    fontFamily: Fonts.Medium,
-    fontSize: 16,
   },
   iconCircle: {
     width: 100,

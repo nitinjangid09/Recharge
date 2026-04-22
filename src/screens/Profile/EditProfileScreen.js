@@ -20,6 +20,7 @@ import Colors from "../../constants/Colors";
 import Fonts from "../../constants/Fonts";
 import HeaderBar from "../../componets/HeaderBar/HeaderBar";
 import { SafeAreaView } from "react-native-safe-area-context";
+import FullScreenLoader from "../../componets/Loader/FullScreenLoader";
 
 const { width: W } = Dimensions.get("window");
 const S = (n) => Math.round(PixelRatio.roundToNearestPixel(n * (W / 375)));
@@ -70,6 +71,7 @@ const EditProfileScreen = ({ navigation, route }) => {
   const [aadhar, setAadhar] = useState("");
   const [pan, setPan] = useState("");
   const [profilePic, setProfilePic] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const pickImage = () => {
     launchImageLibrary({ mediaType: "photo", quality: 0.7 }, (res) => {
@@ -81,6 +83,7 @@ const EditProfileScreen = ({ navigation, route }) => {
 
   const loadUserProfile = async () => {
     try {
+      setLoading(true);
       const headerToken = await AsyncStorage.getItem("header_token");
       if (!headerToken) return;
 
@@ -98,6 +101,8 @@ const EditProfileScreen = ({ navigation, route }) => {
       }
     } catch (error) {
       console.log("Load profile error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -191,6 +196,7 @@ const EditProfileScreen = ({ navigation, route }) => {
             <Text style={styles.saveBtnText}>Save Changes</Text>
           </TouchableOpacity>
         </View>
+        <FullScreenLoader visible={loading} label="Loading Profile..." />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

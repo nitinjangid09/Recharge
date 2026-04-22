@@ -16,6 +16,7 @@ import { getRechargeReport, getDownlineUsers, getBbpsReport } from '../../api/Au
 import { SafeAreaView } from 'react-native-safe-area-context';
 import HeaderBar from '../../componets/HeaderBar/HeaderBar';
 import ReceiptModal from '../../componets/ReceiptModal/ReceiptModal';
+import FullScreenLoader from '../../componets/Loader/FullScreenLoader';
 
 const { height: SH, width: SW } = Dimensions.get('window');
 
@@ -863,12 +864,7 @@ export default function InvoiceScreen({ navigation }) {
       <SummaryStrip summary={summary} fromDate={fromDate} toDate={toDate} />
 
       {/* ── Body ───────────────────────────────────────────────────────────── */}
-      {loadingTab ? (
-        <View style={S.center}>
-          <ActivityIndicator size="large" color={Colors.finance_accent} />
-          <Text style={S.centerTxt}>Fetching transactions…</Text>
-        </View>
-      ) : errorTab ? (
+      {loadingTab ? null : errorTab ? (
         <View style={S.center}>
           <View style={S.errorIcon}>
             <Icon name="alert-circle-outline" size={28} color={Colors.red} />
@@ -993,6 +989,7 @@ export default function InvoiceScreen({ navigation }) {
             : "If amount debited and status is failed, it will be refunded shortly."
         } : null}
       />
+      <FullScreenLoader visible={loadingTab} label="Loading Transactions..." />
     </SafeAreaView>
   );
 }

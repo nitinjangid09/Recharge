@@ -20,6 +20,7 @@ import Colors from "../../constants/Colors";
 import Fonts from "../../constants/Fonts";
 import CustomAlert from "../../componets/Alerts/CustomAlert";
 import { getRoleList, createNewUser } from "../../api/AuthApi";
+import FullScreenLoader from "../../componets/Loader/FullScreenLoader";
 
 /* ---------- RESPONSIVE SCALE ---------- */
 const { width } = Dimensions.get("window");
@@ -138,7 +139,10 @@ export default function CreateUser({ navigation }) {
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!email) newErrors.email = "Email address is required";
-        else if (!emailRegex.test(email.trim())) newErrors.email = "Enter a valid email address";
+        else if (!emailRegex.test(email.trim())) newErrors.email = "Please enter a valid email address";
+
+        if (firstName.trim().length > 50) newErrors.firstName = "First name cannot exceed 50 characters";
+        if (lastName.trim().length > 50) newErrors.lastName = "Last name cannot exceed 50 characters";
 
         if (!role) newErrors.role = "Role is required";
 
@@ -222,7 +226,11 @@ export default function CreateUser({ navigation }) {
                         {...extraProps}
                     />
                 </Animated.View>
-                {!!error && <Text style={styles.errorTextWrap}>{error}</Text>}
+                {!!error && (
+                    <Text style={styles.errorText}>
+                        <MaterialCommunityIcons name="alert-circle-outline" size={12} /> {error}
+                    </Text>
+                )}
             </View>
         );
     };
@@ -260,8 +268,8 @@ export default function CreateUser({ navigation }) {
                         <Text style={styles.welcome}>Add New User</Text>
                         <Text style={styles.subTitle}>Fill details to add a new member</Text>
 
-                        {renderInput("First Name", "account", firstName, (t) => setFirstName(t.replace(/[^a-zA-Z\s]/g, "")), "firstName")}
-                        {renderInput("Last Name", "account-outline", lastName, (t) => setLastName(t.replace(/[^a-zA-Z\s]/g, "")), "lastName")}
+                        {renderInput("First Name", "account", firstName, (t) => setFirstName(t.replace(/[^a-zA-Z\s]/g, "")), "firstName", 'default', { maxLength: 50 })}
+                        {renderInput("Last Name", "account-outline", lastName, (t) => setLastName(t.replace(/[^a-zA-Z\s]/g, "")), "lastName", 'default', { maxLength: 50 })}
                         {renderInput("Mobile Number", "phone", phone, (text) => setPhone(text.replace(/[^0-9]/g, "")), "phone", "phone-pad", { maxLength: 10 })}
                         {renderInput("Email Address", "email", email, (t) => setEmail(t.replace(/\s/g, "")), "email", "email-address")}
 
@@ -289,7 +297,11 @@ export default function CreateUser({ navigation }) {
                                 </View>
                                 <MaterialCommunityIcons name="chevron-down" size={20} color={Colors.icon_secondary} />
                             </TouchableOpacity>
-                            {!!errors.role && <Text style={styles.errorTextWrap}>{errors.role}</Text>}
+                            {!!errors.role && (
+                                <Text style={styles.errorText}>
+                                    <MaterialCommunityIcons name="alert-circle-outline" size={12} /> {errors.role}
+                                </Text>
+                            )}
 
                             {roleOpen && (
                                 <View style={styles.customDropContainer}>
@@ -340,6 +352,7 @@ export default function CreateUser({ navigation }) {
                 message={alertMessage}
                 onClose={() => setAlertVisible(false)}
             />
+            <FullScreenLoader visible={loading} label="Creating User..." />
         </LinearGradient>
     );
 }
@@ -367,7 +380,13 @@ const styles = StyleSheet.create({
     subTitle: { fontSize: 13 * scale, fontFamily: Fonts.Medium, color: Colors.text_secondary, textAlign: "center", marginTop: 6 * scale, marginBottom: 20 * scale },
     inputContainer: { marginBottom: 16 * scale },
     label: { fontSize: 13 * scale, fontFamily: Fonts.Bold, color: Colors.text_primary, marginBottom: 6 * scale, marginLeft: 4 * scale },
-    errorTextWrap: { color: Colors.red, fontSize: 11 * scale, fontFamily: Fonts.Medium, marginTop: 4 * scale, marginLeft: 16 * scale },
+    errorText: {
+        fontSize: 12 * scale,
+        fontFamily: Fonts.Medium,
+        color: Colors.red,
+        marginLeft: 12 * scale,
+        marginTop: 4 * scale,
+    },
     inputBox: {
         flexDirection: "row", alignItems: "center", borderRadius: 30 * scale, height: 50 * scale,
         paddingHorizontal: 16 * scale, borderWidth: 1

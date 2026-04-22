@@ -29,6 +29,7 @@ import CustomAlert from "../componets/Alerts/CustomAlert";
 import ImageUploadAlert from "../componets/Alerts/Imageuploadalert";
 import ReceiptModal from "../componets/ReceiptModal/ReceiptModal";
 import CalendarModal from "../componets/Calendar/CalendarModal";
+import FullScreenLoader from "../componets/Loader/FullScreenLoader";
 
 // ─── Responsive scale ─────────────────────────────────────────────────────
 const { width: W } = Dimensions.get("window");
@@ -139,6 +140,7 @@ const InputBox = ({ label, value, setValue, icon, placeholder, keyboardType, err
         placeholder={placeholder}
         placeholderTextColor="#C4C4C4"
         style={st.inputText}
+        autoCapitalize="characters"
         maxLength={maxLength}
       />
       <Icon name={icon} size={S(18)} color={error ? "#EF4444" : ACCENT + "90"} />
@@ -428,6 +430,7 @@ export default function OfflineTopup({ navigation }) {
             keyboardType="default"
             maxLength={20}
             filter="alphanumeric"
+            autoCapitalize="characters"
             error={errors.utrNumber}
           />
 
@@ -512,13 +515,8 @@ export default function OfflineTopup({ navigation }) {
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             >
-              {submitting
-                ? <ActivityIndicator size="small" color="#000" />
-                : <>
-                  <Icon name="send" size={S(15)} color="#000" />
-                  <Text style={st.submitTxt}>Submit Request</Text>
-                </>
-              }
+              <Icon name="send" size={S(15)} color="#000" />
+              <Text style={st.submitTxt}>Submit Request</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -646,13 +644,7 @@ export default function OfflineTopup({ navigation }) {
         </View>
       </Modal>
 
-      {/* ─── Loader ─── */}
-      {submitting && (
-        <View style={st.loaderOverlay}>
-          {/* <ActivityIndicator size="large" color={ACCENT} /> */}
-          <Text style={st.loaderTxt}>Submitting request…</Text>
-        </View>
-      )}
+      <FullScreenLoader visible={submitting} label="Submitting Request..." />
 
       {/* ─── Alerts ─── */}
       <CustomAlert
@@ -880,16 +872,6 @@ const st = StyleSheet.create({
     borderRadius: S(12),
   },
   sheetCloseTxt: { fontFamily: Fonts.Bold, color: FG, fontSize: S(13) },
-
-  // ── Loader ────────────────────────────────────────────────────────────
-  loaderOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.55)",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 999,
-  },
-  loaderTxt: { color: "#FFF", fontFamily: Fonts.Medium, fontSize: S(13), marginTop: S(8) },
 
   historySection: { width: "92%", marginTop: S(24), marginBottom: S(10) },
   historyHeaderRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: S(15), paddingHorizontal: S(4) },

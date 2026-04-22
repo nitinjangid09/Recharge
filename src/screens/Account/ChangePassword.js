@@ -17,7 +17,7 @@ import Fonts from "../../constants/Fonts";
 import Colors from "../../constants/Colors";
 import HeaderBar from "../../componets/HeaderBar/HeaderBar";
 import { changeUserPassword, getAuthHeaders } from "../../api/AuthApi";
-import { ActivityIndicator } from "react-native";
+import FullScreenLoader from "../../componets/Loader/FullScreenLoader";
 
 
 /* ─────────────────────────────────────────────
@@ -326,11 +326,7 @@ const ChangePasswordScreen = ({ navigation }) => {
                   activeOpacity={1}
                   disabled={loading}
                 >
-                  {loading ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : (
-                    <Text style={styles.btnSolidTxt}>Update Password</Text>
-                  )}
+                  <Text style={styles.btnSolidTxt}>Update Password</Text>
                 </TouchableOpacity>
               </Animated.View>
             </View>
@@ -348,6 +344,7 @@ const ChangePasswordScreen = ({ navigation }) => {
           if (alertData.onClose) alertData.onClose();
         }}
       />
+      <FullScreenLoader visible={loading} label="Updating Password..." />
     </SafeAreaView>
   );
 };

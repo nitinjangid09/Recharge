@@ -837,7 +837,7 @@ export default function FinanceHome({ navigation }) {
                             console.log("AEPS Status Response:", statusRes);
 
                             if (statusRes.code === "LOGIN_NOT_REQUIRED") {
-                              navigation.navigate("AEPS_Services");
+                              navigation.navigate("AEPS1");
                             } else if (statusRes.code === "LOGIN_REQUIRED") {
                               navigation.navigate("DailyLogin");
                             } else {
@@ -855,7 +855,21 @@ export default function FinanceHome({ navigation }) {
                           navigation.navigate("AEPSAadhaarOTP");
                         }
                       } else if (n === "aeps2") {
-                        navigation.navigate("AEPSAadhaarOTP");
+                        const aeps2 = userProfile?.aeps2 || {};
+                        const { isActivated, isLoginRequired } = aeps2;
+
+                        if (Object.keys(aeps2).length === 0) {
+                          navigation.navigate("AEPSSecondaryRegistration");
+                        } else if (isActivated === true && isLoginRequired === true) {
+                          navigation.navigate("AEPSPortalAccess");
+                        } else if (isActivated === false && isLoginRequired === true) {
+                          navigation.navigate("AEPSServiceActivation");
+                        } else if (isActivated === true && isLoginRequired === false) {
+                          navigation.navigate("AePSDashboard");
+                        } else {
+                          // Fallback default
+                          navigation.navigate("AEPSAadhaarOTP");
+                        }
                       } else if (n === "dmt") {
                         navigation.navigate("DmtLogin");
                       }
