@@ -258,7 +258,7 @@ const TabBar = ({ groups, activeGroup, onSelect }) => {
             }}
           >
             <Text style={[tabStyles.text, activeGroup === group && tabStyles.textActive]}>
-              {group.toUpperCase()}
+              {(group || "ALL").toUpperCase()}
             </Text>
           </TouchableOpacity>
         ))}

@@ -63,7 +63,7 @@ const AEPS_Services = () => {
                 const d = profRes.data;
                 setUser({
                     name: `${d.firstName || ""} ${d.lastName || ""}`.trim() || d.userName,
-                    mid: d.merchantId || d._id?.slice(-8).toUpperCase() || "MID-XXXXX"
+                    mid: d.merchantId || d._id?.slice(-8)?.toUpperCase() || "MID-XXXXX"
                 });
             }
 

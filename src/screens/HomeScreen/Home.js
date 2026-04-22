@@ -642,7 +642,7 @@ export default function FinanceHome({ navigation }) {
                         }}
                       >
                         <View style={[S.kycDotSm, { backgroundColor: kyc }]} />
-                        <Text style={[S.kycBadgeTxt, { color: kyc }]}>KYC {kycStatus.toUpperCase()}</Text>
+                        <Text style={[S.kycBadgeTxt, { color: kyc }]}>KYC {(kycStatus || "pending").toUpperCase()}</Text>
                       </TouchableOpacity>
                     </View>
                   </LinearGradient>
@@ -713,7 +713,7 @@ export default function FinanceHome({ navigation }) {
                         }}
                       >
                         <View style={[S.kycDotSm, { backgroundColor: kyc }]} />
-                        <Text style={[S.kycBadgeTxt, { color: kyc }]}>KYC {kycStatus.toUpperCase()}</Text>
+                        <Text style={[S.kycBadgeTxt, { color: kyc }]}>KYC {(kycStatus || "pending").toUpperCase()}</Text>
                       </TouchableOpacity>
                     </View>
                   </LinearGradient>
@@ -879,7 +879,7 @@ export default function FinanceHome({ navigation }) {
                       )}
                     </View>
                     <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
-                      {item.name.toUpperCase()}
+                      {(item.name || "Service").toUpperCase()}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -1049,7 +1049,7 @@ function OverviewStats({ navigation, kycStatus, assignedServices, statusMessage 
             <View style={[S.statIconBox, { backgroundColor: `${kyc}18` }]}>
               <Icon name="shield-lock-outline" size={rs(18)} color={kyc} />
             </View>
-            <Text style={S.statValue}>{kycStatus.toUpperCase()}</Text>
+            <Text style={S.statValue}>{(kycStatus || "pending").toUpperCase()}</Text>
             <Text style={S.statLabel}>KYC Status</Text>
           </View>
           {/* Info Card */}

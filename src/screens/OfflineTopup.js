@@ -318,7 +318,7 @@ export default function OfflineTopup({ navigation }) {
           txn_ref: utrNumber,
           details: [
             { label: "Bank", value: selectedBankName },
-            { label: "Payment Mode", value: mode.toUpperCase() },
+            { label: "Payment Mode", value: mode?.toUpperCase() },
             { label: "UTR Number", value: utrNumber },
             { label: "Amount", value: `₹${amount}` },
           ],
@@ -579,7 +579,7 @@ export default function OfflineTopup({ navigation }) {
                       <Text style={st.detailLabel}>PAYMENT MODE</Text>
                       <View style={st.modeGroup}>
                         <Icon name={item.mode === "upi" ? "qrcode-scan" : "bank-outline"} size={S(10)} color={FG + "70"} />
-                        <Text style={st.detailValue}>{item.mode.toUpperCase()}</Text>
+                        <Text style={st.detailValue}>{(item.mode || "N/A").toUpperCase()}</Text>
                       </View>
                     </View>
                   </View>

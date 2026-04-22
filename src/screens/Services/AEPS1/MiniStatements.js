@@ -576,7 +576,7 @@ const MiniStatement = () => {
                 <Text style={rm.stTitle}>RECENT TRANSACTIONS</Text>
                 {receiptData?.data?.response?.data?.miniStatement?.length > 0 ? (
                   receiptData.data.response.data.miniStatement.map((item, idx) => {
-                    const isCredit = item.narration?.toUpperCase().includes(' C ');
+                    const isCredit = item.narration?.toUpperCase()?.includes(' C ');
                     return (
                       <View key={idx} style={rm.stRow}>
                         <View style={{ flex: 1 }}>
