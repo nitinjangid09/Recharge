@@ -303,14 +303,6 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
           items = mapped;
         }
       } else items = lists.states;
-    } else if (key === 'city') {
-      if (!form.stateCode) {
-        AlertService.showAlert({ type: 'error', title: 'State Required', message: 'Please select state first' });
-        return;
-      }
-      const hToken = await AsyncStorage.getItem("header_token");
-      const res = await fetchCityList({ stateCode: form.stateCode, headerToken: hToken });
-      if (res.success && res.data) items = res.data.map(c => ({ label: c.cityName, value: c.cityCode }));
     }
     setSel({ visible: true, title, items, key });
   };
@@ -373,7 +365,7 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
           address: {
             line: form.address,
             city: form.city,
-            state: form.stateCode,
+            state: form.state, // Send state name instead of ID
             pincode: form.pincode,
             district: form.district,
             area: form.area
@@ -573,11 +565,11 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
               />
             </View>
             <View style={{ flex: 1 }}>
-              <DropdownField
+              <FormField
                 label="City"
-                placeholder="Select City"
+                placeholder="Enter City"
                 value={form.city}
-                onPress={() => openSelector('Select City', 'city')}
+                onChangeText={v => updateForm('city', v)}
                 error={errors.city}
               />
             </View>

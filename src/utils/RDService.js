@@ -21,10 +21,10 @@ import { NativeModules, Platform } from 'react-native';
 
 // ─── RD Service Package IDs ─────────────────────────────────────────────────
 export const RD_PACKAGES = {
-  MANTRA: 'com.mantra.mfs110.rdservice',
-  MORPHO: 'com.acpl.MORPHO',
-  STARTEK: 'com.startek.marrdservice',
-  SECUGEN: 'com.secugen.RDService',
+  MANTRA: 'com.mantra.mfs110.rdservice', // MFS100 (Most Common)
+  MORPHO: 'com.idemia.l1rdservice',
+  STARTEK: 'com.startek.rdservice',
+  SECUGEN: 'com.secugen.rdservice',
 };
 
 // ─── Human-readable device names ────────────────────────────────────────────

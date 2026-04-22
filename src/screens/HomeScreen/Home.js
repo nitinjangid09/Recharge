@@ -804,62 +804,59 @@ export default function FinanceHome({ navigation }) {
             {/* ── SERVICES GRID ── */}
             <SectionHeader title="Services" linkLabel="View All" onLink={() => { }} />
             <View style={S.svcGrid}>
-              {assignedServices.map((item, idx) => {
-                const n = item.name?.toLowerCase();
-                const iconName = SERVICE_ICON_MAP[n] || SERVICE_ICON_MAP.default;
-                const isFirst = idx === 0;
+              {assignedServices.flatMap(s => s.pipelineCodes || []).map((code, idx) => {
+                const n = code.toLowerCase();
+                const base = n.replace(/\d+$/, "");
+                const iconName = SERVICE_ICON_MAP[base] || SERVICE_ICON_MAP.default;
+
+                // Pretty labels
+                let label = n.toUpperCase();
+                if (n === "dmt1") label = "DMT";
+                if (n === "aeps1") label = "AEPS 1";
+                if (n === "aeps2") label = "AEPS 2";
+                if (n === "bbps1") label = "BBPS";
+                if (n === "recharge1") label = "RECHARGE";
+
                 return (
                   <TouchableOpacity
-                    key={item._id}
+                    key={`${code}-${idx}`}
                     style={[S.svcGridItem]}
                     activeOpacity={0.78}
                     onPress={async () => {
-                      if (n === "recharge") {
-                        navigation.navigate("TopUpScreen");
-                      } else if (n === "bbps") {
-                        navigation.navigate("PaymentsScreen");
+                      if (n === "recharge" || n === "recharge1") {
+                        navigation.navigate("Recharge");
+                      } else if (n === "bbps" || n === "bbps1") {
+                        navigation.navigate("BBPSServices");
                       } else if (n === "aeps1" || n === "aeps") {
                         const aeps1 = userProfile?.aeps1 || {};
-
-                        // Case 1: {} -> AepsRegistration
                         if (Object.keys(aeps1).length === 0) {
                           navigation.navigate("AepsRegistration");
-                        }
-                        // Case 2: ACTION-REQUIRED -> AEPS_OnBoard
-                        else if (aeps1.action === "ACTION-REQUIRED") {
+                        } else if (aeps1.action === "ACTION-REQUIRED") {
                           navigation.navigate("AEPS_OnBoard");
-                        }
-                        // Case 3: NO-ACTION-REQUIRED -> Check API status
-                        else if (aeps1.action === "NO-ACTION-REQUIRED") {
+                        } else if (aeps1.action === "NO-ACTION-REQUIRED") {
                           setBalanceLoading(true);
                           try {
                             const statusRes = await getAepsStatus({ headerToken: token });
-                            console.log("AEPS Status Response:", statusRes);
-
                             if (statusRes.code === "LOGIN_NOT_REQUIRED") {
                               navigation.navigate("AEPS1");
                             } else if (statusRes.code === "LOGIN_REQUIRED") {
                               navigation.navigate("DailyLogin");
                             } else {
-                              // If server doesn't return expected code but is success, default to daily login
                               navigation.navigate("DailyLogin");
                             }
                           } catch (err) {
-                            console.log("AEPS Status Check Error:", err);
                             showAlert("error", "Status Check Failed", "Unable to verify AEPS session. Please try again.");
                           } finally {
                             setBalanceLoading(false);
                           }
                         } else {
-                          // Default fallback if action is unknown
                           navigation.navigate("AEPSAadhaarOTP");
                         }
                       } else if (n === "aeps2") {
                         const aeps2 = userProfile?.aeps2 || {};
                         const { isActivated, isLoginRequired } = aeps2;
-
                         if (Object.keys(aeps2).length === 0) {
-                          navigation.navigate("AEPSSecondaryRegistration");
+                          navigation.navigate("AEPSServiceActivation");
                         } else if (isActivated === true && isLoginRequired === true) {
                           navigation.navigate("AEPSPortalAccess");
                         } else if (isActivated === false && isLoginRequired === true) {
@@ -867,22 +864,21 @@ export default function FinanceHome({ navigation }) {
                         } else if (isActivated === true && isLoginRequired === false) {
                           navigation.navigate("AePSDashboard");
                         } else {
-                          // Fallback default
                           navigation.navigate("AEPSAadhaarOTP");
                         }
-                      } else if (n === "dmt") {
+                      } else if (n === "dmt" || n === "dmt1") {
                         navigation.navigate("DmtLogin");
                       }
                     }}
                   >
                     <View style={[S.svcIconCircle]}>
-                      {n === "bbps" && typeof BBPSIconSVG === "function" ? (
+                      {(base === "bbps" || n === "bbps1") && typeof BBPSIconSVG === "function" ? (
                         <BBPSIconSVG width={rs(26)} height={rs(26)} />
-                      ) : n === "recharge" && typeof RechargeIconSVG === "function" ? (
+                      ) : (base === "recharge" || n === "recharge1") && typeof RechargeIconSVG === "function" ? (
                         <RechargeIconSVG width={rs(26)} height={rs(26)} />
-                      ) : (n === "aeps" || n === "aeps1" || n === "aeps2") && typeof AEPSIconSVG === "function" ? (
+                      ) : (base === "aeps") && typeof AEPSIconSVG === "function" ? (
                         <AEPSIconSVG width={rs(26)} height={rs(26)} />
-                      ) : n === "dmt" && typeof MoneyTransferIconSVG === "function" ? (
+                      ) : (base === "dmt") && typeof MoneyTransferIconSVG === "function" ? (
                         <MoneyTransferIconSVG width={rs(26)} height={rs(26)} />
                       ) : (
                         <Icon
@@ -893,7 +889,7 @@ export default function FinanceHome({ navigation }) {
                       )}
                     </View>
                     <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
-                      {(item.name || "Service").toUpperCase()}
+                      {label}
                     </Text>
                   </TouchableOpacity>
                 );

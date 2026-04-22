@@ -124,6 +124,7 @@ export default function AEPSPortalAccessScreen({ navigation }) {
   const [scanning, setScanning] = useState(false);
   const [scanDone, setScanDone] = useState(false);
   const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
   const cardScale = useRef(new Animated.Value(0.96)).current;
   const cardOpacity = useRef(new Animated.Value(0)).current;
 
@@ -151,8 +152,15 @@ export default function AEPSPortalAccessScreen({ navigation }) {
     try {
       setScanning(true);
 
-      // 1. Capture Biometric PID
-      const pidData = await RDService.capture(device);
+      // 1. Build PidOptions XML
+      const pidOptString = '<PidOptions ver="1.0">'
+        + '<Opts fCount="1" fType="2" iCount="0" pCount="0" format="0" pidVer="2.0" timeout="20000" otp="" posh="UNKNOWN" env="P" />'
+        + '<Demo></Demo>'
+        + '<CustOpts></CustOpts>'
+        + '</PidOptions>';
+
+      // 2. Capture Biometric PID
+      const pidData = await RDService.capture(device, pidOptString);
       if (!pidData) {
         setScanning(true); // show error state
         setScanning(false);
@@ -176,10 +184,10 @@ export default function AEPSPortalAccessScreen({ navigation }) {
       const clientRefId = `AEPS2_DL_${Date.now()}`;
 
       const payload = {
-        aadhaar: clean,
+        aadhaar: String(aadhaar.replace(/\D/g, '')),
         latitude: coords.lat,
         longitude: coords.lon,
-        pidData: pidData // raw XML string
+        pidData: pidData.startsWith('<?xml') ? pidData : `<?xml version="1.0"?>${pidData}`
       };
 
       // 4. Call new API
@@ -276,7 +284,7 @@ export default function AEPSPortalAccessScreen({ navigation }) {
           </View>
 
           {/* Fingerprint section (shown once aadhaar is filled) */}
-          {ready && (
+          {aadhaar.replace(/\D/g, '').length === 12 && (
             <View style={styles.scanSection}>
               <FingerprintPulse active={scanning} />
               <Text style={styles.scanLabel}>
@@ -290,14 +298,14 @@ export default function AEPSPortalAccessScreen({ navigation }) {
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               activeOpacity={0.8}
-              style={[styles.dailyBtn, !ready && styles.btnDisabled]}
+              style={[styles.dailyBtn, aadhaar.replace(/\D/g, '').length !== 12 && styles.btnDisabled]}
               onPress={handleLogin}
               disabled={scanning}
             >
               <Text
                 numberOfLines={1}
                 adjustsFontSizeToFit
-                style={[styles.dailyBtnText, !ready && { color: Colors.black }]}
+                style={[styles.dailyBtnText, aadhaar.replace(/\D/g, '').length !== 12 && { color: Colors.black }]}
               >
                 {scanning ? 'SCANNING...' : 'AUTHENTICATE'}
               </Text>
