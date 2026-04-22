@@ -22,7 +22,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AlertService } from "../../../componets/Alerts/CustomAlert";
 import * as NavigationService from "../../../utils/NavigationService";
 import { ActivityIndicator } from "react-native";
-import RDService, { RD_ERROR_CODES } from "./RDService";
+import RDService, { RD_ERROR_CODES } from "../../utils/RDService";
 import Geolocation from '@react-native-community/geolocation';
 import { PermissionsAndroid, Alert } from "react-native";
 

@@ -17,7 +17,7 @@ import Colors from '../../../constants/Colors';
 import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
 import { fetchEBankList, fetchEStateList, fetchCityList, onboardAepsUser, fetchUserProfile, activateAepsService } from '../../../api/AuthApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import RDService from '../AEPS1/RDService';
+import RDService from '../../../utils/RDService';
 import { AlertService } from '../../../componets/Alerts/CustomAlert';
 import CalendarModal from '../../../componets/Calendar/CalendarModal';
 import Geolocation from '@react-native-community/geolocation';

@@ -176,7 +176,7 @@ export default function AEPSAadhaarOTPScreen({ navigation }) {
       const hToken = await AsyncStorage.getItem("header_token");
       const clientRefId = `VFY${Date.now()}`;
       const payload = {
-        aadhaar: "317540354657", // Using the same static Aadhaar for consistency if preferred, or could use state
+        aadhaar: aadhaar.replace(/\s/g, ''),
         otp: otp,
       };
 

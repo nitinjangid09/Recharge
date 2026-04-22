@@ -26,7 +26,7 @@ import * as NavigationService from "../../../utils/NavigationService";
 import { getAepsKycStatus, biometricKyc } from "../../../api/AuthApi";
 import { AlertService } from "../../../componets/Alerts/CustomAlert";
 
-import RD_BRIDGE from "./RDService";
+import RD_BRIDGE from "../../utils/RDService";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const { width: SW } = Dimensions.get("window");

@@ -4,13 +4,13 @@
  * JavaScript bridge for the RDServiceModule native Android module.
  *
  * Supported RD Service devices:
- *   MANTRA  → Mantra MFS100       (com.mantra.rdservice)
+ *   MANTRA  → Mantra MFS110       (com.mantra.mfs110.rdservice)
  *   MORPHO  → Morpho MSO 1300     (com.idemia.l1rdservice)
  *   STARTEK → Startek FM220       (com.startek.rdservice)
  *   SECUGEN → SecuGen Hamster     (com.secugen.rdservice)
  *
  * Usage:
- *   import RDService from './RDService';
+ *   import RDService from '@/utils/RDService';
  *
  *   const installed = await RDService.isInstalled('MANTRA');
  *   const pidXml    = await RDService.capture('MANTRA');
@@ -60,14 +60,6 @@ const getNativeModule = () => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // isInstalled(deviceKey)
-//
-// Check if an RD Service app is installed on the device.
-//
-// @param {string} deviceKey  - One of: 'MANTRA' | 'MORPHO' | 'STARTEK' | 'SECUGEN'
-// @returns {Promise<boolean>}
-//
-// Example:
-//   const ok = await RDService.isInstalled('MANTRA');
 // ─────────────────────────────────────────────────────────────────────────────
 const isInstalled = async (deviceKey) => {
   const packageId = getPackageId(deviceKey);
@@ -77,22 +69,6 @@ const isInstalled = async (deviceKey) => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // capture(deviceKey)
-//
-// Launch the RD Service app and capture a fingerprint.
-// Returns the PID XML string on success.
-//
-// @param {string} deviceKey  - One of: 'MANTRA' | 'MORPHO' | 'STARTEK' | 'SECUGEN'
-// @returns {Promise<string>} PID XML data
-//
-// Rejects with codes:
-//   NOT_INSTALLED    - RD Service app not installed
-//   CANCELLED        - User cancelled the capture
-//   NO_PID           - Capture succeeded but returned empty PID
-//   ACTIVITY_NOT_FOUND - RD Service activity could not be launched
-//   BUSY             - Another capture is already in progress
-//
-// Example:
-//   const pidXml = await RDService.capture('MANTRA');
 // ─────────────────────────────────────────────────────────────────────────────
 const capture = async (deviceKey, pidOptions = '') => {
   const packageId = getPackageId(deviceKey);
@@ -115,14 +91,6 @@ const capture = async (deviceKey, pidOptions = '') => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // openInstallPage(deviceKey)
-//
-// Open the Play Store page for the RD Service app.
-//
-// @param {string} deviceKey  - One of: 'MANTRA' | 'MORPHO' | 'STARTEK' | 'SECUGEN'
-// @returns {Promise<boolean>}
-//
-// Example:
-//   await RDService.openInstallPage('MORPHO');
 // ─────────────────────────────────────────────────────────────────────────────
 const openInstallPage = async (deviceKey) => {
   const packageId = getPackageId(deviceKey);
@@ -132,11 +100,6 @@ const openInstallPage = async (deviceKey) => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // getDeviceLabel(deviceKey)
-//
-// Convenience: return the human-readable label for a device key.
-//
-// Example:
-//   RDService.getDeviceLabel('MANTRA') // → "Mantra MFS100"
 // ─────────────────────────────────────────────────────────────────────────────
 const getDeviceLabel = (deviceKey) => RD_DEVICE_LABELS[deviceKey] ?? deviceKey;
 
@@ -154,7 +117,7 @@ const getPackageId = (deviceKey) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Error code constants — use these in catch blocks for specific handling
+// Error code constants
 // ─────────────────────────────────────────────────────────────────────────────
 export const RD_ERROR_CODES = {
   NOT_INSTALLED: 'NOT_INSTALLED',
@@ -167,16 +130,8 @@ export const RD_ERROR_CODES = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Default export
+// parsePidXml
 // ─────────────────────────────────────────────────────────────────────────────
-/**
- * parsePidXml
- * Extracts attributes from RD Service XML response into a flat object.
- * Forces qScore to "87" if not present or "0" for consistency across modules.
- *
- * @param {string} xml - The raw XML from RD Service
- * @returns {object} Flat object containing all biometric keys
- */
 const parsePidXml = (xml) => {
   if (!xml) return {};
 
@@ -191,7 +146,6 @@ const parsePidXml = (xml) => {
     nmPoints: '0',
   };
 
-  // 1. Generic attribute extraction (Resp and DeviceInfo)
   const extractAttrs = (tagPattern) => {
     const match = xml.match(tagPattern);
     if (!match) return;
@@ -205,7 +159,6 @@ const parsePidXml = (xml) => {
   extractAttrs(/<DeviceInfo[^>]*>/i);
   extractAttrs(/<Resp[^>]*>/i);
 
-  // 2. Extract Tag Content (Hmac, Skey, Data)
   const extractTag = (tag, key) => {
     const match = xml.match(new RegExp(`<${tag}[^>]*>([^<]*)<\\/${tag}>`, 'i'));
     if (match) res[key || tag.toLowerCase()] = match[1];
@@ -215,21 +168,18 @@ const parsePidXml = (xml) => {
   extractTag('Skey', 'sessionKey');
   extractTag('Data', 'pidData');
 
-  // 3. Extract ci and pidDataType specifically from their tags
   const skeyMatch = xml.match(/<Skey[^>]*ci="([^"]*)"/i);
   if (skeyMatch) res.ci = skeyMatch[1];
 
   const dataMatch = xml.match(/<Data[^>]*type="([^"]*)"/i);
   if (dataMatch) res.pidDataType = dataMatch[1];
 
-  // 4. Extract Param values (srno, sysid, ts, etc.)
   const paramRegex = /<Param[^>]*name="([^"]*)"[^>]*value="([^"]*)"/gi;
   let pm;
   while ((pm = paramRegex.exec(xml)) !== null) {
     res[pm[1]] = pm[2];
   }
 
-  // Force qScore to 87 for standardization if it's "0" or empty
   if (!res.qScore || res.qScore === '0') res.qScore = '87';
 
   return res;
@@ -247,4 +197,3 @@ const RDService = {
 };
 
 export default RDService;
-

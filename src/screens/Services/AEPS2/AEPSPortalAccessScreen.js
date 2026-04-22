@@ -15,10 +15,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Colors from '../../../constants/Colors';
 import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
-import RDService from '../AEPS1/RDService';
-import { aepsDailyLogin } from '../../../api/AuthApi';
+import RDService from '../../../utils/RDService';
+import { aeps2DailyLogin } from '../../../api/AuthApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AlertService } from '../../../componets/Alerts/CustomAlert';
+import Geolocation from '@react-native-community/geolocation';
 
 const { width: SW, height: SH } = Dimensions.get("window");
 const scale = (n) => Math.round((SW / 375) * n);
@@ -119,6 +120,7 @@ const fpStyles = StyleSheet.create({
 // ─── Screen ───────────────────────────────────────────────────────
 export default function AEPSPortalAccessScreen({ navigation }) {
   const [aadhaar, setAadhaar] = useState('');
+  const [device, setDevice] = useState('MANTRA');
   const [scanning, setScanning] = useState(false);
   const [scanDone, setScanDone] = useState(false);
   const [error, setError] = useState('');
@@ -146,18 +148,75 @@ export default function AEPSPortalAccessScreen({ navigation }) {
     }
     setError('');
 
-    setScanning(true);
-    // Simulate a brief delay to mimic the "Verification" process
-    setTimeout(() => {
-      setScanDone(true);
-      setScanning(false);
-      AlertService.showAlert({
-        type: 'success',
-        title: 'Verified',
-        message: 'Portal access granted. Redirecting to dashboard.',
-        onClose: () => navigation.replace('AePSDashboard')
+    try {
+      setScanning(true);
+
+      // 1. Capture Biometric PID
+      const pidData = await RDService.capture(device);
+      if (!pidData) {
+        setScanning(true); // show error state
+        setScanning(false);
+        AlertService.showAlert({ type: 'error', title: 'Capture Failed', message: 'No biometric data received from scanner.' });
+        return;
+      }
+
+      // 2. Get Location
+      const getPos = () => new Promise((resolve) => {
+        Geolocation.getCurrentPosition(
+          p => resolve({ lat: p.coords.latitude.toString(), lon: p.coords.longitude.toString() }),
+          () => resolve({ lat: "26.889811", lon: "75.738343" }), // Sample defaults
+          { enableHighAccuracy: true, timeout: 8000 }
+        );
       });
-    }, 800);
+      const coords = await getPos();
+
+      // 3. Prepare Payload (Keys as requested)
+      const hToken = await AsyncStorage.getItem("header_token");
+      const hKey = await AsyncStorage.getItem("header_key");
+      const clientRefId = `AEPS2_DL_${Date.now()}`;
+
+      const payload = {
+        aadhaar: clean,
+        latitude: coords.lat,
+        longitude: coords.lon,
+        pidData: pidData // raw XML string
+      };
+
+      // 4. Call new API
+      const res = await aeps2DailyLogin({
+        data: payload,
+        headerToken: hToken,
+        headerKey: hKey,
+        idempotencyKey: clientRefId
+      });
+
+      setScanning(false);
+
+      if (res.success || res.status === 'SUCCESS' || res.status === '1') {
+        setScanDone(true);
+        AlertService.showAlert({
+          type: 'success',
+          title: 'Verified',
+          message: res.message || 'Portal access granted. Redirecting to dashboard.',
+          onClose: () => navigation.replace('AePSDashboard')
+        });
+      } else {
+        const msg = typeof res.message === 'string' ? res.message : 'Daily login failed. Please try again.';
+        AlertService.showAlert({
+          type: 'error',
+          title: 'Authentication Failed',
+          message: msg
+        });
+      }
+    } catch (err) {
+      setScanning(false);
+      console.log("[AEPS2_DL] Error:", err);
+      AlertService.showAlert({
+        type: 'error',
+        title: 'Error',
+        message: err?.message || 'Biometric capture or network error.'
+      });
+    }
   };
 
   const ready = aadhaar.replace(/\D/g, '').length === 12;
@@ -198,6 +257,22 @@ export default function AEPSPortalAccessScreen({ navigation }) {
               />
             </View>
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          </View>
+
+          {/* Device Selection */}
+          <View style={{ width: '100%', marginBottom: rs(20) }}>
+            <Text style={styles.fieldLabel}>SELECT BIOMETRIC DEVICE</Text>
+            <View style={styles.deviceRow}>
+              {['MANTRA', 'MORPHO', 'STARTEK'].map((d) => (
+                <TouchableOpacity
+                  key={d}
+                  onPress={() => setDevice(d)}
+                  style={[styles.deviceChip, device === d && styles.deviceChipActive]}
+                >
+                  <Text style={[styles.deviceText, device === d && styles.deviceTextActive]}>{d}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
 
           {/* Fingerprint section (shown once aadhaar is filled) */}
@@ -357,5 +432,21 @@ const styles = StyleSheet.create({
     marginBottom: rs(15),
     fontWeight: '600',
     textAlign: 'center'
-  }
+  },
+  deviceRow: { flexDirection: 'row', gap: rs(8), justifyContent: 'center' },
+  deviceChip: {
+    flex: 1,
+    paddingVertical: rs(10),
+    borderRadius: rs(12),
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: 'rgba(212,176,106,0.2)',
+    alignItems: 'center'
+  },
+  deviceChipActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary
+  },
+  deviceText: { fontSize: rs(10), fontWeight: '700', color: Colors.text_secondary },
+  deviceTextActive: { color: Colors.white }
 });

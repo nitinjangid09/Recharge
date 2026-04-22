@@ -25,7 +25,7 @@ import { fetchAepsBanks, aepsBalanceEnquiry } from "../../../api/AuthApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AlertService } from "../../../componets/Alerts/CustomAlert";
 import * as NavigationService from "../../../utils/NavigationService";
-import RDService, { RD_ERROR_CODES } from "./RDService";
+import RDService, { RD_ERROR_CODES } from "../../utils/RDService";
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get("window");
