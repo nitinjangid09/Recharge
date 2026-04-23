@@ -22,7 +22,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '../../constants/Colors';
 import Fonts from '../../constants/Fonts';
 import HeaderBar from '../../componets/HeaderBar/HeaderBar';
-import { getDownlineUsers, getUserWalletRefillProfile, refillUserWallet, getUserWalletRefillHistory } from '../../api/AuthApi';
+import { getDownlineUsers, getUserWalletRefillProfile, refillUserWallet, getUserWalletRefillHistory, fetchUserWallet, getAuthHeaders } from '../../api/AuthApi';
 import CustomAlert from '../../componets/Alerts/CustomAlert';
 import FullScreenLoader from '../../componets/Loader/FullScreenLoader';
 import ReceiptModal from '../../componets/ReceiptModal/ReceiptModal';
@@ -109,6 +109,8 @@ function WalletScreen({ navigation }) {
     const [history, setHistory] = useState([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [senderBalance, setSenderBalance] = useState(0);
 
     const [alert, setAlert] = useState({ visible: false, type: 'info', title: '', message: '' });
     const [receiptData, setReceiptData] = useState(null);
@@ -132,7 +134,7 @@ function WalletScreen({ navigation }) {
                 const children = res.data.children || [];
                 const flat = children.flatMap(child => flattenUsers(child));
                 setUsers(flat);
-                if (flat.length > 0) setSelectedUser(flat[0]);
+                // setSelectedUser(null); // Keep null by default
             } else {
                 showAlert('error', 'Error', res?.message || 'Unable to fetch users.');
             }
@@ -162,16 +164,31 @@ function WalletScreen({ navigation }) {
         }
     };
 
+    const fetchSenderBalance = async () => {
+        try {
+            const auth = await getAuthHeaders();
+            if (!auth) return;
+            const res = await fetchUserWallet(auth);
+            if (res?.success && res?.data) {
+                setSenderBalance(Number(res.data.mainWallet || 0));
+            }
+        } catch (err) {
+            console.log('[UserWalletRefill] fetchSenderBalance error:', err);
+        }
+    };
+
     const onRefresh = useCallback(() => {
         setRefreshing(true);
         fetchUsers();
         fetchHistory();
         fetchProfile();
+        fetchSenderBalance();
     }, [selectedUser]);
 
     useEffect(() => {
         fetchUsers();
         fetchHistory();
+        fetchSenderBalance();
     }, []);
 
     // ── Fetch user profile when selectedUser changes or after refill ──────────
@@ -213,14 +230,25 @@ function WalletScreen({ navigation }) {
     };
 
     const handleRefill = async () => {
+        let newErrors = {};
         if (!selectedUser) {
-            showAlert('warning', 'No User', 'Please select a user to refill.');
-            return;
+            newErrors.selectedUser = 'Please select a user to refill.';
         }
         if (!amount || isNaN(amount) || Number(amount) <= 0) {
-            showAlert('warning', 'Invalid Amount', 'Please enter a valid amount to refill.');
+            newErrors.amount = 'Enter valid amount';
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
             return;
         }
+
+        if (Number(amount) > senderBalance) {
+            showAlert('error', 'Insufficient Balance', `You do not have enough balance (₹${senderBalance.toFixed(2)}) to perform this refill.`);
+            return;
+        }
+
+        setErrors({});
 
         try {
             const headerToken = await AsyncStorage.getItem('header_token');
@@ -256,8 +284,9 @@ function WalletScreen({ navigation }) {
                 });
                 setAmount('');
                 setSelectedQuick(null);
-                // Refresh balance immediately
+                // Refresh balances immediately
                 fetchProfile();
+                fetchSenderBalance();
             } else {
                 showAlert('error', 'Refill Failed', res?.message || 'Wallet refill failed.');
             }
@@ -298,7 +327,7 @@ function WalletScreen({ navigation }) {
 
                     <View style={styles.walletHeroHeader}>
                         <Text style={styles.walletHeroLabel}>
-                            {userProfile ? `${userProfile.name} · ${userProfile.userName}` : selectedUser ? `${selectedUser.name} · ${selectedUser.code}` : 'Select a user'}
+                            {userProfile ? `${userProfile.name} · ${userProfile.userName}` : selectedUser ? `${selectedUser.name} · ${selectedUser.code}` : ''}
                         </Text>
                     </View>
 
@@ -335,8 +364,11 @@ function WalletScreen({ navigation }) {
                         <>
                             <View style={{ zIndex: 10 }}>
                                 <TouchableOpacity
-                                    style={styles.selectField}
-                                    onPress={() => setUserPickerOpen(!userPickerOpen)}
+                                    style={[styles.selectField, errors.selectedUser && { borderColor: Colors.red }]}
+                                    onPress={() => {
+                                        setUserPickerOpen(!userPickerOpen);
+                                        setErrors(prev => ({ ...prev, selectedUser: null }));
+                                    }}
                                     activeOpacity={0.8}
                                 >
                                     <View style={{ flex: 1 }}>
@@ -353,6 +385,10 @@ function WalletScreen({ navigation }) {
                                     </View>
                                     <Text style={styles.selectChevron}>{userPickerOpen ? '▲' : '▼'}</Text>
                                 </TouchableOpacity>
+
+                                {!!errors.selectedUser && (
+                                    <Text style={styles.errorText}>{errors.selectedUser}</Text>
+                                )}
 
                                 {userPickerOpen && (
                                     <View style={styles.dropdownList}>
@@ -388,13 +424,20 @@ function WalletScreen({ navigation }) {
                     {/* Amount */}
                     <Text style={[styles.fieldLabel, { marginTop: 16 }]}>REFILL AMOUNT (₹)</Text>
                     <TextInput
-                        style={styles.inputField}
+                        style={[styles.inputField, errors.amount && { borderColor: Colors.red }]}
                         value={amount}
-                        onChangeText={(t) => { setAmount(t); setSelectedQuick(null); }}
+                        onChangeText={(t) => {
+                            setAmount(t);
+                            setSelectedQuick(null);
+                            setErrors(prev => ({ ...prev, amount: null }));
+                        }}
                         placeholder="Enter amount"
                         placeholderTextColor={Colors.text_placeholder}
                         keyboardType="numeric"
                     />
+                    {!!errors.amount && (
+                        <Text style={styles.errorText}>{errors.amount}</Text>
+                    )}
 
                     {/* Quick Amount Buttons */}
                     <View style={styles.quickAmounts}>
@@ -519,6 +562,15 @@ export default function UserWalletRefillScreen({ navigation }) {
 
 // ─── STYLES ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
+    errorText: {
+        fontSize: 10,
+        fontWeight: '700',
+        color: Colors.red,
+        marginTop: 4,
+        marginLeft: 4,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
     safeArea: {
         flex: 1,
         backgroundColor: Colors.homebg,

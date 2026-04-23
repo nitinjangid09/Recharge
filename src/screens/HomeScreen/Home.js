@@ -804,7 +804,7 @@ export default function FinanceHome({ navigation }) {
             {/* ── SERVICES GRID ── */}
             <SectionHeader title="Services" linkLabel="View All" onLink={() => { }} />
             <View style={S.svcGrid}>
-              {assignedServices.flatMap(s => s.pipelineCodes || []).map((code, idx) => {
+              {assignedServices.flatMap(s => (s.pipelineCodes || []).map(code => ({ code, service: s }))).map(({ code, service }, idx) => {
                 const n = code.toLowerCase();
                 const base = n.replace(/\d+$/, "");
                 const iconName = SERVICE_ICON_MAP[base] || SERVICE_ICON_MAP.default;
@@ -823,10 +823,10 @@ export default function FinanceHome({ navigation }) {
                     style={[S.svcGridItem]}
                     activeOpacity={0.78}
                     onPress={async () => {
-                      if (n === "recharge" || n === "recharge1") {
-                        navigation.navigate("Recharge");
-                      } else if (n === "bbps" || n === "bbps1") {
-                        navigation.navigate("BBPSServices");
+                      if (n === "recharge" || n === "recharge1" || service.name === "recharge" || service.serviceId === "699314b271936d89b7185e48") {
+                        navigation.navigate("TopUpScreen");
+                      } else if (n === "bbps" || n === "bbps1" || service.name === "bbps" || service.serviceId === "6993147e71936d89b7185e36") {
+                        navigation.navigate("PaymentsScreen");
                       } else if (n === "aeps1" || n === "aeps") {
                         const aeps1 = userProfile?.aeps1 || {};
                         if (Object.keys(aeps1).length === 0) {

@@ -135,14 +135,15 @@ export default function CreateUser({ navigation }) {
         if (!firstName.trim()) newErrors.firstName = "First name is required";
         if (!lastName.trim()) newErrors.lastName = "Last name is required";
         if (!phone) newErrors.phone = "Mobile number is required";
-        else if (phone.length !== 10) newErrors.phone = "Mobile number must be 10 digits";
+        else if (phone.length !== 10) newErrors.phone = "Mobile number must be exactly 10 digits";
+        else if (!/^[6-9]/.test(phone)) newErrors.phone = "Mobile number must start with 6, 7, 8 or 9";
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!email) newErrors.email = "Email address is required";
-        else if (!emailRegex.test(email.trim())) newErrors.email = "Please enter a valid email address";
+        else if (!emailRegex.test(email.trim().toLowerCase())) newErrors.email = "Please enter a valid email address";
 
-        if (firstName.trim().length > 50) newErrors.firstName = "First name cannot exceed 50 characters";
-        if (lastName.trim().length > 50) newErrors.lastName = "Last name cannot exceed 50 characters";
+        if (firstName.trim().length > 100) newErrors.firstName = "First name cannot exceed 100 characters";
+        if (lastName.trim().length > 100) newErrors.lastName = "Last name cannot exceed 100 characters";
 
         if (!role) newErrors.role = "Role is required";
 
@@ -268,8 +269,8 @@ export default function CreateUser({ navigation }) {
                         <Text style={styles.welcome}>Add New User</Text>
                         <Text style={styles.subTitle}>Fill details to add a new member</Text>
 
-                        {renderInput("First Name", "account", firstName, (t) => setFirstName(t.replace(/[^a-zA-Z\s]/g, "")), "firstName", 'default', { maxLength: 50 })}
-                        {renderInput("Last Name", "account-outline", lastName, (t) => setLastName(t.replace(/[^a-zA-Z\s]/g, "")), "lastName", 'default', { maxLength: 50 })}
+                        {renderInput("First Name", "account", firstName, (t) => setFirstName(t.replace(/[^a-zA-Z\s]/g, "")), "firstName", 'default', { maxLength: 100 })}
+                        {renderInput("Last Name", "account-outline", lastName, (t) => setLastName(t.replace(/[^a-zA-Z\s]/g, "")), "lastName", 'default', { maxLength: 100 })}
                         {renderInput("Mobile Number", "phone", phone, (text) => setPhone(text.replace(/[^0-9]/g, "")), "phone", "phone-pad", { maxLength: 10 })}
                         {renderInput("Email Address", "email", email, (t) => setEmail(t.replace(/\s/g, "")), "email", "email-address")}
 

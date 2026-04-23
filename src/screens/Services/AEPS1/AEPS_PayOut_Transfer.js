@@ -31,19 +31,25 @@ export default function AEPS_Transfer({ navigation, route }) {
   const [selectedBank, setSelectedBank] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [purpose, setPurpose] = useState('Fund Transfer in my account');
+  const [purpose, setPurpose] = useState('');
+  const [errors, setErrors] = useState({});
 
   const approved = banks.filter(b => b.status === 'APPROVED' || b.status === 'Active' || b.status === 'approved');
 
   const handleTransfer = async () => {
+    let newErrors = {};
     if (!selectedBank) {
-      AlertService.showAlert({ type: 'error', title: 'Error', message: 'Please select a beneficiary account' });
-      return;
+      newErrors.bank = 'Please select a beneficiary account';
     }
     if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
-      AlertService.showAlert({ type: 'error', title: 'Error', message: 'Please enter a valid amount' });
+      newErrors.amount = 'Please enter a valid amount';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
+    setErrors({});
 
     setLoading(true);
     try {
@@ -102,13 +108,20 @@ export default function AEPS_Transfer({ navigation, route }) {
 
           <View style={styles.inputWrapper}>
             <Text style={styles.inputLabel}>Select Beneficiary Account</Text>
-            <TouchableOpacity style={styles.selector} onPress={() => setIsModalVisible(true)}>
-              <Icon name="bank" size={rs(18)} color={Colors.text_secondary} />
-              <Text style={[styles.selectorText, selectedBank && { color: Colors.text_primary }]}>
+            <TouchableOpacity
+              style={[styles.selector, errors.bank && { borderColor: Colors.error }]}
+              onPress={() => {
+                setIsModalVisible(true);
+                setErrors(prev => ({ ...prev, bank: null }));
+              }}
+            >
+              <Icon name="bank" size={rs(18)} color={errors.bank ? Colors.error : Colors.text_secondary} />
+              <Text style={[styles.selectorText, selectedBank && { color: Colors.text_primary }, errors.bank && { color: Colors.error }]}>
                 {selectedBank ? `${selectedBank.bankName} (${selectedBank.accountNumber.slice(-4)})` : "Choose destination bank"}
               </Text>
-              <Icon name="chevron-down" size={rs(20)} color={Colors.text_secondary} />
+              <Icon name="chevron-down" size={rs(20)} color={errors.bank ? Colors.error : Colors.text_secondary} />
             </TouchableOpacity>
+            {!!errors.bank && <Text style={styles.errorText}>{errors.bank}</Text>}
             {approved.length === 0 && (
               <Text style={{ fontSize: rs(10), color: Colors.error, marginTop: rs(4), marginLeft: rs(4) }}>
                 No approved payout banks available.
@@ -118,17 +131,21 @@ export default function AEPS_Transfer({ navigation, route }) {
 
           <View style={styles.inputWrapper}>
             <Text style={styles.inputLabel}>Payout Amount</Text>
-            <View style={styles.amountInput}>
-              <Text style={styles.currencySymbol}>₹</Text>
+            <View style={[styles.amountInput, errors.amount && { borderColor: Colors.error }]}>
+              <Text style={[styles.currencySymbol, errors.amount && { color: Colors.error }]}>₹</Text>
               <TextInput
-                style={styles.field}
+                style={[styles.field, errors.amount && { color: Colors.error }]}
                 placeholder="0.00"
                 keyboardType="numeric"
                 value={amount}
-                onChangeText={setAmount}
+                onChangeText={(val) => {
+                  setAmount(val);
+                  setErrors(prev => ({ ...prev, amount: null }));
+                }}
                 placeholderTextColor={Colors.gray_BD}
               />
             </View>
+            {!!errors.amount && <Text style={styles.errorText}>{errors.amount}</Text>}
           </View>
 
           <View style={styles.inputWrapper}>
@@ -358,6 +375,13 @@ const styles = StyleSheet.create({
     fontSize: rs(11),
     fontFamily: Fonts.Medium,
     color: Colors.text_secondary,
+  },
+  errorText: {
+    color: Colors.error,
+    fontSize: rs(10),
+    fontFamily: Fonts.Medium,
+    marginTop: rs(4),
+    marginLeft: rs(4),
   },
   remarkBox: {
     height: rs(54),

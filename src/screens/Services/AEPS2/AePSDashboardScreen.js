@@ -28,7 +28,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '../../../constants/Colors';
 import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
-import { fetchUserProfile, getWalletBalance, fetchUserWallet, fetchAepsBanks } from '../../../api/AuthApi';
+import { fetchUserProfile, getWalletBalance, fetchUserWallet, fetchEBankList, initiateAepsTransaction } from '../../../api/AuthApi';
 import { AlertService } from '../../../componets/Alerts/CustomAlert';
 import RDService from '../../../utils/RDService';
 
@@ -219,31 +219,60 @@ const txnStyles = StyleSheet.create({
 });
 
 // ─── Item Selector Modal ──────────────────────────────────────────
-const SelectorModal = ({ visible, title, items, onSelect, onClose }) => (
-  <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-    <TouchableOpacity style={selStyles.overlay} activeOpacity={1} onPress={onClose} />
-    <View style={selStyles.sheet}>
-      <View style={selStyles.header}>
-        <Text style={selStyles.title}>{title}</Text>
-        <TouchableOpacity onPress={onClose}><Icon name="close" size={rs(20)} color="#94A3B8" /></TouchableOpacity>
+const SelectorModal = ({ visible, title, items, onSelect, onClose }) => {
+  const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    if (!visible) setSearch('');
+  }, [visible]);
+
+  const filteredItems = items.filter(item => {
+    const lbl = typeof item === 'object' ? (item.label || '') : String(item);
+    return lbl.toLowerCase().includes(search.toLowerCase());
+  });
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <TouchableOpacity style={selStyles.overlay} activeOpacity={1} onPress={onClose} />
+      <View style={selStyles.sheet}>
+        <View style={selStyles.header}>
+          <Text style={selStyles.title}>{title}</Text>
+          <TouchableOpacity onPress={onClose}><Icon name="close" size={rs(20)} color="#94A3B8" /></TouchableOpacity>
+        </View>
+        <View style={selStyles.searchWrap}>
+          <TextInput
+            style={selStyles.searchInput}
+            placeholder="Search here..."
+            placeholderTextColor="#94A3B8"
+            value={search}
+            onChangeText={setSearch}
+          />
+        </View>
+        <ScrollView style={selStyles.list} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          {filteredItems.map((item, idx) => {
+            const textLabel = typeof item === 'object' ? (item.label || JSON.stringify(item)) : String(item);
+            return (
+              <TouchableOpacity key={idx} style={selStyles.item} onPress={() => onSelect(item)}>
+                <Text style={selStyles.itemText}>{textLabel}</Text>
+              </TouchableOpacity>
+            );
+          })}
+          {filteredItems.length === 0 && (
+            <Text style={selStyles.empty}>{items.length === 0 ? 'Loading items...' : 'No results found'}</Text>
+          )}
+        </ScrollView>
       </View>
-      <ScrollView style={selStyles.list} showsVerticalScrollIndicator={false}>
-        {items.map((item, idx) => (
-          <TouchableOpacity key={idx} style={selStyles.item} onPress={() => onSelect(item)}>
-            <Text style={selStyles.itemText}>{item.label || item}</Text>
-          </TouchableOpacity>
-        ))}
-        {items.length === 0 && <Text style={selStyles.empty}>Loading items...</Text>}
-      </ScrollView>
-    </View>
-  </Modal>
-);
+    </Modal>
+  );
+};
 
 const selStyles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' },
-  sheet: { position: 'absolute', bottom: 0, width: '100%', backgroundColor: Colors.white, borderTopLeftRadius: rs(25), borderTopRightRadius: rs(25), maxHeight: '70%', paddingBottom: rs(30) },
+  sheet: { position: 'absolute', bottom: 0, width: '100%', backgroundColor: Colors.white, borderTopLeftRadius: rs(25), borderTopRightRadius: rs(25), maxHeight: '80%', paddingBottom: rs(30) },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: rs(20), borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
   title: { fontSize: rs(16), fontWeight: '800', color: Colors.black },
+  searchWrap: { paddingHorizontal: rs(20), paddingVertical: rs(10), borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
+  searchInput: { backgroundColor: '#f8fafc', borderRadius: rs(10), paddingHorizontal: rs(16), paddingVertical: rs(12), fontSize: rs(14), color: Colors.black },
   item: { padding: rs(18), borderBottomWidth: 1, borderBottomColor: '#f8fafc' },
   itemText: { fontSize: rs(14), color: '#334155', fontWeight: '500' },
   empty: { textAlign: 'center', padding: rs(40), color: '#94A3B8' }
@@ -262,6 +291,8 @@ export default function AePSDashboardScreen({ navigation }) {
   const [errors, setErrors] = useState({});
   const [banks, setBanks] = useState([]);
   const [selVisible, setSelVisible] = useState(false);
+  const [device, setDevice] = useState('MANTRA');
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -304,9 +335,13 @@ export default function AePSDashboardScreen({ navigation }) {
   const loadBanks = async () => {
     try {
       const hToken = await AsyncStorage.getItem("header_token");
-      const res = await fetchAepsBanks({ headerToken: hToken });
+      // Switching to fetchEBankList (AEPS2/ECO) to get correct bankIds for transactions
+      const res = await fetchEBankList({ headerToken: hToken });
       if (res.success || Array.isArray(res.data)) {
-        const mapped = (res.data || []).map(b => ({ label: b.name || b.bankName, value: b._id || b.bankId }));
+        const mapped = (res.data || []).map(b => ({
+          label: b.name || b.bankName,
+          value: b.bankId || b._id || b.id
+        }));
         setBanks(mapped);
       }
     } catch (e) {
@@ -332,13 +367,80 @@ export default function AePSDashboardScreen({ navigation }) {
     return Object.keys(e).length === 0;
   };
 
-  const handleProceed = () => {
-    if (validate()) {
+  const handleProceed = async () => {
+    if (!validate()) return;
+
+    setSubmitting(true);
+    try {
+      // 1. Check if RD Service is installed
+      const isInstalled = await RDService.isInstalled(device);
+      if (!isInstalled) {
+        AlertService.showAlert({
+          type: "warning",
+          title: "RD Service Missing",
+          message: `Please install the RD Service app for ${RDService.getDeviceLabel(device)}.`,
+          onConfirm: () => RDService.openInstallPage(device),
+        });
+        setSubmitting(false);
+        return;
+      }
+
+      // 2. Capture Biometric
+      const pidOptString = '<PidOptions ver="1.0">'
+        + '<Opts fCount="1" fType="2" iCount="0" pCount="0" format="0" pidVer="2.0" timeout="20000" otp="" posh="UNKNOWN" env="P" />'
+        + '<Demo></Demo>'
+        + '<CustOpts></CustOpts>'
+        + '</PidOptions>';
+
+      const pidDataXml = await RDService.capture(device, pidOptString);
+      if (!pidDataXml) {
+        throw new Error("No biometric data received from scanner.");
+      }
+
+      // 3. Prepare Payload
+      const headerToken = await AsyncStorage.getItem("header_token");
+      const idempotencyKey = `TXN_${Date.now()}`;
+
+      const payload = {
+        serviceType: txnType === 'balance' ? 'inquiry' : txnType === 'mini' ? 'statement' : 'withdrawal',
+        latitude: "26.889925350441352", // Using requested static coords or dynamic if available
+        longitude: "75.73839758240074",
+        sourceIp: "122.167.10.217", // Usually fetched from server or public API
+        aadhaar: form.aadhaar.replace(/\s/g, ''),
+        bankId: form.bank,
+        amount: txnType === 'cash' ? parseInt(form.amount) : 0,
+        pidData: pidDataXml.startsWith('<?xml') ? pidDataXml : `<?xml version="1.0"?>${pidDataXml}`
+      };
+
+      // 4. Submit Transaction
+      const res = await initiateAepsTransaction({ data: payload, headerToken, idempotencyKey });
+
+      if (res.success || res.status === "SUCCESS") {
+        AlertService.showAlert({
+          type: 'success',
+          title: 'Transaction Successful',
+          message: res.message || 'The request has been processed successfully.',
+          onClose: () => loadData() // Refresh stats
+        });
+        // Clear amount if it was cash withdrawal
+        if (txnType === 'cash') updateForm('amount', '');
+      } else {
+        AlertService.showAlert({
+          type: 'error',
+          title: 'Transaction Failed',
+          message: res.message || 'Transaction could not be completed.'
+        });
+      }
+
+    } catch (error) {
+      console.log("AEPS Transaction Error:", error);
       AlertService.showAlert({
-        type: 'success',
-        title: 'Validated',
-        message: 'Data validated. Ready for biometric scan.',
+        type: 'error',
+        title: 'Error',
+        message: error.message || 'Something went wrong during the transaction.'
       });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -408,18 +510,38 @@ export default function AePSDashboardScreen({ navigation }) {
               keyboardType="numeric"
               icon="₹"
               value={form.amount}
-              onChangeText={(v) => updateForm('amount', v)}
+              onChangeText={(v) => updateForm('amount', v.replace(/\D/g, ''))}
               error={errors.amount}
             />
           )}
 
+          <Text style={fieldStyles.label}>RD SERVICE DEVICE</Text>
+          <View style={[styles.deviceGrid, { marginBottom: rs(18) }]}>
+            {['MANTRA', 'MORPHO', 'STARTEK'].map((d) => (
+              <TouchableOpacity
+                key={d}
+                onPress={() => setDevice(d)}
+                style={[styles.chip, device === d && styles.chipActive]}
+              >
+                <Text style={[styles.chipText, device === d && styles.chipTextActive]}>{d}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
           <TouchableOpacity
             activeOpacity={0.88}
             onPress={handleProceed}
-            style={styles.scanBtn}
+            style={[styles.scanBtn, (submitting || !form.bank || !form.aadhaar || !form.mobile) && styles.disabledBtn]}
+            disabled={submitting}
           >
-            <Icon name="fingerprint" size={rs(20)} color={Colors.white} />
-            <Text style={styles.scanBtnText}>PROCEED TO SCAN</Text>
+            {submitting ? (
+              <ActivityIndicator color={Colors.white} />
+            ) : (
+              <>
+                <Icon name="fingerprint" size={rs(20)} color={Colors.white} />
+                <Text style={styles.scanBtnText}>PROCEED TO SCAN</Text>
+              </>
+            )}
           </TouchableOpacity>
         </SectionCard>
 
@@ -491,5 +613,23 @@ const styles = StyleSheet.create({
     marginBottom: rs(4),
     marginLeft: rs(2),
     fontWeight: '600'
-  }
+  },
+  deviceGrid: { flexDirection: 'row', gap: rs(8), marginTop: rs(4) },
+  chip: {
+    flex: 1,
+    height: rs(40),
+    borderRadius: rs(12),
+    backgroundColor: Colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(212,176,106,0.2)'
+  },
+  chipActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary
+  },
+  chipText: { fontSize: rs(11), fontWeight: '700', color: Colors.text_secondary },
+  chipTextActive: { color: Colors.white },
+  disabledBtn: { opacity: 0.6 }
 });

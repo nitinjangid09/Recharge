@@ -268,7 +268,14 @@ export default function OfflineTopup({ navigation }) {
           console.log("Camera Error: ", result.errorMessage || result.errorCode);
           showAlert("error", "Camera Error", result.errorMessage || "Unable to open camera.");
         } else if (result.assets?.length) {
-          setPaymentProof(result.assets[0].uri);
+          const asset = result.assets[0];
+          if (asset.fileSize > 200 * 1024) {
+            setErrors(prev => ({ ...prev, paymentProof: "Image size must be less than 200 KB" }));
+            setPaymentProof("");
+            showAlert("error", "Image Too Large", "Selected image exceeds 200 KB limit. Please upload a smaller image.");
+            return;
+          }
+          setPaymentProof(asset.uri);
           if (errors.paymentProof) setErrors(prev => ({ ...prev, paymentProof: null }));
         }
       } else {
@@ -279,15 +286,29 @@ export default function OfflineTopup({ navigation }) {
       showAlert("error", "Error", "Unexpected error opening camera.");
     }
   };
-  const handleGallery = () => launchImageLibrary({ mediaType: "photo", quality: 0.7 }, (res) => {
+  const handleGallery = () => launchImageLibrary({ mediaType: "photo", quality: 0.7, includeExtra: true }, (res) => {
     if (!res.didCancel && res.assets?.length) {
-      setPaymentProof(res.assets[0].uri);
+      const asset = res.assets[0];
+      if (asset.fileSize > 200 * 1024) {
+        setErrors(prev => ({ ...prev, paymentProof: "Image size must be less than 200 KB" }));
+        setPaymentProof("");
+        showAlert("error", "Image Too Large", "Selected image exceeds 200 KB limit. Please upload a smaller image.");
+        return;
+      }
+      setPaymentProof(asset.uri);
       if (errors.paymentProof) setErrors(prev => ({ ...prev, paymentProof: null }));
     }
   });
-  const handleFile = () => launchImageLibrary({ mediaType: "photo", quality: 0.7 }, (res) => {
+  const handleFile = () => launchImageLibrary({ mediaType: "photo", quality: 0.7, includeExtra: true }, (res) => {
     if (!res.didCancel && res.assets?.length) {
-      setPaymentProof(res.assets[0].uri);
+      const asset = res.assets[0];
+      if (asset.fileSize > 200 * 1024) {
+        setErrors(prev => ({ ...prev, paymentProof: "Image size must be less than 200 KB" }));
+        setPaymentProof("");
+        showAlert("error", "Image Too Large", "Selected image exceeds 200 KB limit. Please upload a smaller image.");
+        return;
+      }
+      setPaymentProof(asset.uri);
       if (errors.paymentProof) setErrors(prev => ({ ...prev, paymentProof: null }));
     }
   });
@@ -301,6 +322,13 @@ export default function OfflineTopup({ navigation }) {
 
     if (!receiverBank) { newErrors.receiverBank = "Please select a receiver bank"; hasError = true; }
     if (!utrNumber) { newErrors.utrNumber = "UTR / Ref number is required"; hasError = true; }
+    else {
+      const isDuplicate = requests.some(req => req.utrNumber?.toUpperCase() === utrNumber.toUpperCase());
+      if (isDuplicate) {
+        newErrors.utrNumber = "This UTR number has already been used";
+        hasError = true;
+      }
+    }
     if (!paymentDate) { newErrors.paymentDate = "Payment date is required"; hasError = true; }
     if (!paymentProof) { newErrors.paymentProof = "Payment proof screenshot is required"; hasError = true; }
 

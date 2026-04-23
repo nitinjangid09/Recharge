@@ -99,8 +99,16 @@ const WalletTransfer = ({ navigation }) => {
 
   // ── transfer ──────────────────────────────────────────────────────────────
   const handleTransfer = async () => {
-    if (!amount || isNaN(amount) || Number(amount) <= 0) {
-      showAlert('Invalid Amount', 'Please enter a valid amount to transfer.');
+    if (!amount) {
+      showAlert('Amount Required', 'Please enter the amount to transfer.');
+      return;
+    }
+    if (isNaN(amount) || Number(amount) <= 0) {
+      showAlert('Invalid Amount', 'Please enter a valid amount greater than 0.');
+      return;
+    }
+    if (Number(amount) > Number(aepsBalance)) {
+      showAlert('Insufficient Balance', 'You do not have enough balance in your AEPS wallet to complete this transfer.');
       return;
     }
     try {

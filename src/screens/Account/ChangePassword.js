@@ -38,7 +38,7 @@ function calcStrength(v) {
 /* ─────────────────────────────────────────────
    FLOATING-LABEL INPUT  (mirrors .f-field)
 ───────────────────────────────────────────── */
-const FloatInput = ({ id, label, value, onChangeText, secureTextEntry, onToggleSecure, showSecure, error, success }) => {
+const FloatInput = ({ id, label, value, onChangeText, secureTextEntry, onToggleSecure, showSecure, error, success, maxLength }) => {
   const labelAnim = useRef(new Animated.Value(value ? 1 : 0)).current;
   const borderAnim = useRef(new Animated.Value(0)).current;
   const [focused, setFocused] = useState(false);
@@ -102,7 +102,7 @@ const FloatInput = ({ id, label, value, onChangeText, secureTextEntry, onToggleS
           placeholderTextColor="transparent"
           autoCapitalize="none"
           autoCorrect={false}
-          maxLength={32}
+          maxLength={maxLength || 32}
         />
         {/* Eye toggle */}
         <TouchableOpacity
@@ -184,7 +184,7 @@ const ChangePasswordScreen = ({ navigation }) => {
     const newErrors = {};
     if (!currentPassword) newErrors.old = "Current password is required";
     if (!newPassword) newErrors.new = "New password is required";
-    else if (newPassword.length < 8) newErrors.new = "Password must be at least 8 characters";
+    else if (newPassword.length < 8 || newPassword.length > 15) newErrors.new = "Password must be between 8 and 15 characters";
 
     if (!confirmPassword) newErrors.confirm = "Confirm password is required";
     else if (newPassword !== confirmPassword) newErrors.confirm = "Passwords do not match";
@@ -272,6 +272,7 @@ const ChangePasswordScreen = ({ navigation }) => {
               showSecure={showOld}
               onToggleSecure={() => setShowOld((v) => !v)}
               error={errors.old}
+              maxLength={15}
             />
 
             {/* New password */}
@@ -283,6 +284,7 @@ const ChangePasswordScreen = ({ navigation }) => {
               showSecure={showNew}
               onToggleSecure={() => setShowNew((v) => !v)}
               error={errors.new}
+              maxLength={15}
             />
 
             {/* Strength bar */}
@@ -305,13 +307,14 @@ const ChangePasswordScreen = ({ navigation }) => {
               onToggleSecure={() => setShowConfirm((v) => !v)}
               error={errors.confirm}
               success={newPassword && confirmPassword && newPassword === confirmPassword ? "Passwords Match" : null}
+              maxLength={15}
             />
 
             {/* Tip box */}
             <View style={styles.tipBox}>
               <Icon name="shield-outline" size={14} color={Colors.ink4} style={{ marginTop: 1 }} />
               <Text style={styles.tipText}>
-                Use 8+ characters with a mix of uppercase letters, numbers, and symbols for maximum security.
+                Use 8-15 characters with a mix of uppercase letters, numbers, and symbols for maximum security.
               </Text>
             </View>
 
