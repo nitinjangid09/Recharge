@@ -233,7 +233,7 @@ export default function AEPSPortalAccessScreen({ navigation }) {
     <SafeAreaView style={styles.safe}>
       <HeaderBar
         title="Portal Authentication"
-        onBack={() => navigation.navigate('AEPSAadhaarOTP')}
+        onBack={() => navigation.navigate('AEPS2BiometricKYC')}
       />
 
       <ScrollView

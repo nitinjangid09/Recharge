@@ -64,6 +64,7 @@ import TransactionAuditScreen from '../screens/Reports/WalletAudit';
 import AEPSPayOut from '../screens/Services/AEPS1/AEPS_Payout';
 import AddPayoutBank from '../screens/Services/AEPS1/AddPayoutBank';
 import AEPSTransfer from '../screens/Services/AEPS1/AEPS_PayOut_Transfer';
+import AEPS2BiometricKYC from '../screens/Services/AEPS2/AEPS2BiometricKYCScreen';
 
 
 
@@ -214,6 +215,7 @@ const AppNavigator = () => {
       <Stack.Screen name="AEPSPayOut" component={AEPSPayOut} />
       <Stack.Screen name="AddPayoutBank" component={AddPayoutBank} />
       <Stack.Screen name="AEPSTransfer" component={AEPSTransfer} />
+      <Stack.Screen name="AEPS2BiometricKYC" component={AEPS2BiometricKYC} />
 
 
     </Stack.Navigator>
