@@ -1858,10 +1858,52 @@ export const verifyAepsEkycOtp = async ({ data, headerToken, idempotencyKey }) =
         "Content-Type": "application/json"
       },
     });
+
+    console.log("Verify EKYC OTP Response:", response.data);
     return response.data;
   } catch (error) {
     console.log("Verify EKYC OTP Error:", error?.response?.data || error);
     return error?.response?.data || { success: false, message: "Verification failed" };
+  }
+};
+
+/**
+ * aepsEkycBiometric
+ * POST /user/aeps/ekyc-biometric
+ */
+export const aepsEkycBiometric = async ({ data, headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/aeps/ekyc-biometric`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey,
+        "Content-Type": "application/json"
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("AEPS Biometric KYC Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Biometric KYC failed" };
+  }
+};
+
+/**
+ * initiateAepsTransaction
+ * POST /user/aeps/initiate-transaction
+ */
+export const initiateAepsTransaction = async ({ data, headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/aeps/initiate-transaction`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey,
+        "Content-Type": "application/json"
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("AEPS Transaction Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Transaction failed" };
   }
 };
 

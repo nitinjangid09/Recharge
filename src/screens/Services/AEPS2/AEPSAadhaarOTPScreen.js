@@ -172,8 +172,8 @@ export default function AEPSAadhaarOTPScreen({ navigation }) {
 
       if (res.success) {
         AlertService.showAlert({ type: 'success', title: 'Verified', message: res.message || 'Verification successful' });
-        // Navigate to Daily Login screen
-        navigation.navigate('AEPSPortalAccess');
+        // Navigate to Biometric KYC screen
+        navigation.navigate('AEPS2BiometricKYC', { aadhaar: aadhaar.replace(/\s/g, '') });
       } else {
         const failMsg = typeof res.message === 'object' ? JSON.stringify(res.message) : (res.message || 'OTP verification failed');
         AlertService.showAlert({ type: 'error', title: 'Verification Failed', message: failMsg });
