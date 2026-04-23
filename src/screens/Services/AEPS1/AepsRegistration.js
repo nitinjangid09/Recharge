@@ -231,20 +231,47 @@ const AepsRegistration = () => {
 
     const validate = () => {
         let e = {};
-        if (!formData.name.trim()) e.name = "Name is required";
-        else if (formData.name.length > 20) e.name = "Maximum 20 characters allowed";
+        if (!formData.name.trim()) {
+            e.name = "Name is required";
+        } else if (formData.name.length > 100) {
+            e.name = "Maximum 100 characters allowed";
+        } else if (!/^[A-Za-z\s]+$/.test(formData.name)) {
+            e.name = "Only alphabets are allowed";
+        }
 
-        if (!formData.email.trim() || !formData.email.includes("@")) e.email = "Valid email is required";
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!formData.email.trim()) {
+            e.email = "Email is required";
+        } else if (!emailRegex.test(formData.email)) {
+            e.email = "Please enter a valid email address";
+        }
         if (!/^\d{10}$/.test(formData.mobile)) e.mobile = "10-digit mobile number required";
         if (!/^\d{12}$/.test(formData.aadhaar)) e.aadhaar = "12-digit Aadhaar required";
         if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.pan.toUpperCase())) e.pan = "Valid PAN required";
-        if (!formData.dateOfBirth.trim()) e.dob = "DOB is required";
+        if (!formData.dateOfBirth.trim()) {
+            e.dob = "DOB is required";
+        } else {
+            const birthDate = new Date(formData.dateOfBirth);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            if (age < 18) {
+                e.dob = "Age must be at least 18 years";
+            }
+        }
         if (!formData.gender) e.gender = "Gender is required";
         if (!formData.bankCode) e.bank = "Please select a bank";
 
         if (!formData.address.full.trim()) e.addrFull = "Full address is required";
-        else if (formData.address.full.length > 50) e.addrFull = "Maximum 50 characters allowed";
-        if (!formData.address.city.trim()) e.city = "City is required";
+        else if (formData.address.full.length > 200) e.addrFull = "Maximum 200 characters allowed";
+        if (!formData.address.city.trim()) {
+            e.city = "City is required";
+        } else if (!/^[A-Za-z\s]+$/.test(formData.address.city)) {
+            e.city = "Only alphabets are allowed";
+        }
         if (!/^\d{6}$/.test(formData.address.pincode)) e.pincode = "6-digit Pincode required";
 
         setErrors(e);
@@ -350,11 +377,17 @@ const AepsRegistration = () => {
                     <View style={styles.card}>
                         <Text style={styles.sectionTitle}>Personal Details</Text>
 
-                        {renderInput("FULL NAME", formData.name, (t) => setFormData({ ...formData, name: t }), "Enter your full name", "account-outline", errors.name, "default", 20)}
+                        {renderInput("FULL NAME", formData.name, (t) => {
+                            const filtered = t.replace(/[^A-Za-z\s]/g, "");
+                            setFormData({ ...formData, name: filtered });
+                        }, "Enter your full name", "account-outline", errors.name, "default", 100)}
 
                         {renderInput("EMAIL ADDRESS", formData.email, (t) => setFormData({ ...formData, email: t }), "example@mail.com", "email-outline", errors.email, "email-address")}
 
-                        {renderInput("MOBILE NUMBER", formData.mobile, (t) => setFormData({ ...formData, mobile: t }), "9876543210", "phone-outline", errors.mobile, "phone-pad", 10)}
+                        {renderInput("MOBILE NUMBER", formData.mobile, (t) => {
+                            const filtered = t.replace(/[^0-9]/g, "");
+                            setFormData({ ...formData, mobile: filtered });
+                        }, "9876543210", "phone-outline", errors.mobile, "phone-pad", 10)}
 
                         <View style={styles.row}>
                             <View style={{ flex: 1 }}>
@@ -405,22 +438,34 @@ const AepsRegistration = () => {
                             {errors.bank && <Text style={styles.errorText}>{errors.bank}</Text>}
                         </View>
 
-                        {renderInput("AADHAAR NUMBER", formData.aadhaar, (t) => setFormData({ ...formData, aadhaar: t }), "1234 5678 9012", "card-account-details-outline", errors.aadhaar, "number-pad", 12)}
+                        {renderInput("AADHAAR NUMBER", formData.aadhaar, (t) => {
+                            const filtered = t.replace(/[^0-9]/g, "");
+                            setFormData({ ...formData, aadhaar: filtered });
+                        }, "1234 5678 9012", "card-account-details-outline", errors.aadhaar, "number-pad", 12)}
 
-                        {renderInput("PAN CARD NUMBER", formData.pan, (t) => setFormData({ ...formData, pan: t.toUpperCase() }), "ABCDE1234F", "card-text-outline", errors.pan, "default", 10)}
+                        {renderInput("PAN CARD NUMBER", formData.pan, (t) => {
+                            const filtered = t.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+                            setFormData({ ...formData, pan: filtered });
+                        }, "ABCDE1234F", "card-text-outline", errors.pan, "default", 10)}
                     </View>
 
                     <View style={styles.card}>
                         <Text style={styles.sectionTitle}>Address Details</Text>
 
-                        {renderInput("FULL ADDRESS", formData.address.full, (t) => updateNestedField("address", "full", t), "Shop No, Street, Area", "map-marker-outline", errors.addrFull, "default", 50)}
+                        {renderInput("FULL ADDRESS", formData.address.full, (t) => updateNestedField("address", "full", t), "Shop No, Street, Area", "map-marker-outline", errors.addrFull, "default", 200)}
 
                         <View style={styles.row}>
                             <View style={{ flex: 1 }}>
-                                {renderInput("CITY", formData.address.city, (t) => updateNestedField("address", "city", t), "Jaipur", "city-variant-outline", errors.city)}
+                                {renderInput("CITY", formData.address.city, (t) => {
+                                    const filtered = t.replace(/[^A-Za-z\s]/g, "");
+                                    updateNestedField("address", "city", filtered);
+                                }, "Jaipur", "city-variant-outline", errors.city)}
                             </View>
                             <View style={{ flex: 1, marginLeft: 16 * S }}>
-                                {renderInput("PINCODE", formData.address.pincode, (t) => updateNestedField("address", "pincode", t), "302001", "mailbox-outline", errors.pincode, "number-pad", 6)}
+                                {renderInput("PINCODE", formData.address.pincode, (t) => {
+                                    const filtered = t.replace(/[^0-9]/g, "");
+                                    updateNestedField("address", "pincode", filtered);
+                                }, "302001", "mailbox-outline", errors.pincode, "number-pad", 6)}
                             </View>
                         </View>
                     </View>
@@ -449,7 +494,11 @@ const AepsRegistration = () => {
                 title="Select Birth Date"
                 onConfirm={handleDateConfirm}
                 onCancel={() => setShowCalendar(false)}
-                maxDate={new Date()}
+                maxDate={(() => {
+                    const d = new Date();
+                    d.setFullYear(d.getFullYear() - 18);
+                    return d;
+                })()}
             />
 
             {/* GENDER PICKER */}

@@ -104,7 +104,7 @@ const DailyLogin = () => {
   const validate = () => {
     const e = {};
     if (!/^\d{12}$/.test(aadhaarNumber)) e.aadhaar = 'Valid 12-digit Aadhaar required';
-    if (!/^\d{10}$/.test(mobileNumber)) e.mobile = 'Valid 10-digit mobile number required';
+    if (!/^[6-9]\d{9}$/.test(mobileNumber)) e.mobile = 'Enter a valid 10-digit mobile number starting with 6-9';
     if (!authMethod) e.method = 'Please choose a verification method';
     if (authMethod === 'finger' && !device) e.device = 'Please select a biometric device';
     if (authMethod === 'finger' && rdStatus === STATUS.NOT_INSTALLED) {
@@ -433,7 +433,8 @@ const DailyLogin = () => {
                 maxLength={12}
                 value={aadhaarNumber}
                 onChangeText={(v) => {
-                  setAadhaarNumber(v);
+                  const filtered = v.replace(/[^0-9]/g, "");
+                  setAadhaarNumber(filtered);
                   if (errors.aadhaar) setErrors((p) => ({ ...p, aadhaar: null }));
                 }}
               />
@@ -452,7 +453,8 @@ const DailyLogin = () => {
                 maxLength={10}
                 value={mobileNumber}
                 onChangeText={(v) => {
-                  setMobileNumber(v);
+                  const filtered = v.replace(/[^0-9]/g, "");
+                  setMobileNumber(filtered);
                   if (errors.mobile) setErrors((p) => ({ ...p, mobile: null }));
                 }}
               />

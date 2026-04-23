@@ -242,9 +242,13 @@ const CashWithdraw = () => {
     if (!aadh) e.aadhaar = "Please enter Aadhaar number";
     else if (!/^\d{12}$/.test(aadh)) e.aadhaar = "Aadhaar number must be exactly 12 digits";
 
-    if (!amt || Number(amt) <= 0) e.amount = "Please enter a valid withdrawal amount";
-    else if (Number(amt) < 100) e.amount = "Minimum withdrawal amount is ₹100";
-    else if (Number(amt) > 10000) e.amount = "Maximum withdrawal amount is ₹10,000";
+    if (!amt) {
+      e.amount = "Amount is required";
+    } else if (Number(amt) <= 0) {
+      e.amount = "Amount must be greater than 0";
+    } else if (Number(amt) > 1000000) {
+      e.amount = "Max amount allowed is ₹10,00,000";
+    }
 
     if (!bank) e.bank = "Please select a bank from the list";
     if (!device) e.device = "Please select your biometric device";
@@ -473,7 +477,15 @@ const CashWithdraw = () => {
                   placeholderTextColor={Colors.gray_BD}
                   keyboardType="number-pad"
                   value={amount}
-                  onChangeText={(t) => setAmount(t.replace(/[^0-9]/g, ""))}
+                  onChangeText={(t) => {
+                    const val = t.replace(/[^0-9]/g, "");
+                    if (val !== "" && Number(val) > 1000000) {
+                      setErrors(prev => ({ ...prev, amount: "Max amount allowed is ₹10,00,000" }));
+                      return;
+                    }
+                    setAmount(val);
+                    if (errors.amount) setErrors(prev => ({ ...prev, amount: null }));
+                  }}
                 />
                 {amount.length > 0 && (
                   <TouchableOpacity onPress={() => setAmount("")} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>

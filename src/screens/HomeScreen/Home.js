@@ -911,6 +911,21 @@ export default function FinanceHome({ navigation }) {
                   OFFLINE SERVICES
                 </Text>
               </TouchableOpacity>
+              <TouchableOpacity
+                style={[S.svcGridItem]}
+                activeOpacity={0.78}
+                onPress={() => navigation.navigate("DailyLogin")}
+              >
+                <View style={[S.svcIconCircle]}>
+                  <OfflineServicesIconSVG
+                    width={rs(24)}
+                    height={rs(24)}
+                  />
+                </View>
+                <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
+                  OFFLINE SERVICES
+                </Text>
+              </TouchableOpacity>
             </View>
 
             {/* ── PROMO BANNER ── */}
