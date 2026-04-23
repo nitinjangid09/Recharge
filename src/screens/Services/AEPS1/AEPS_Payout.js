@@ -159,16 +159,18 @@ function DashboardContent({ onTransfer, onAddBank, banks, loading, onRefresh, ba
         </View>
       </View>
 
-      {/* ── Features Grid ── */}
+      {/* ── Management Row ── */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Management</Text>
       </View>
 
-      <View style={styles.grid}>
-        <FeatureCard icon="account-plus" label="Add Bank" color="#10B981" onPress={onAddBank} />
-        <FeatureCard icon="history" label="Txn History" color="#6366F1" />
-        <FeatureCard icon="shield-check" label="Verification" color="#F59E0B" />
-        <FeatureCard icon="bank-transfer" label="Bulk Payout" color="#E11D48" />
+      <View style={styles.managementCard}>
+        <View style={styles.manageGrid}>
+          <FeatureCard icon="account-plus" label="Add Bank" color="#10B981" onPress={onAddBank} />
+          <FeatureCard icon="history" label="Txn History" color="#6366F1" />
+          <FeatureCard icon="shield-check" label="Verification" color="#F59E0B" />
+          <FeatureCard icon="bank-transfer" label="Bulk Payout" color="#E11D48" />
+        </View>
       </View>
 
       {/* ── Beneficiaries ── */}
@@ -345,32 +347,45 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Medium,
   },
 
-  // ── Grid ──
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: rs(12),
+  // ── Management Card ──
+  managementCard: {
+    backgroundColor: Colors.white,
+    borderRadius: rs(20),
+    paddingVertical: rs(16),
+    paddingHorizontal: rs(10),
     marginBottom: rs(28),
+    borderWidth: 1,
+    borderColor: Colors.border,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8 },
+      android: { elevation: 3 },
+    }),
+  },
+  manageGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   fCard: {
-    width: (SW - rs(32) - rs(36)) / 4,
+    flex: 1,
     alignItems: 'center',
-    gap: rs(8),
+    gap: rs(6),
   },
   fIconBox: {
-    width: rs(54),
-    height: rs(54),
-    borderRadius: rs(18),
+    width: rs(48),
+    height: rs(48),
+    borderRadius: rs(14),
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.03)',
+    borderColor: 'rgba(0,0,0,0.02)',
   },
   fLabel: {
-    fontSize: rs(10),
+    fontSize: rs(9),
     fontFamily: Fonts.Bold,
     color: Colors.text_secondary,
     textAlign: 'center',
+    letterSpacing: 0.2,
   },
 
   // ── Beneficiary List ──

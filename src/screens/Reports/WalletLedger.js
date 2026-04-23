@@ -343,7 +343,7 @@ const FST = StyleSheet.create({
   applyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.headerBg, borderRadius: sc(14), paddingVertical: vs(15) },
   applyTxt: { color: Colors.white, fontSize: rs(14), fontFamily: Fonts.Bold },
   badge: { marginLeft: sc(8), backgroundColor: Colors.gold, minWidth: sc(20), height: sc(20), borderRadius: sc(10), alignItems: 'center', justifyContent: 'center', paddingHorizontal: sc(4) },
-  badgeTxt: { color: Colors.white, fontSize: rs(9), fontFamily: Fonts.Bold },
+  badgeTxt: { color: Colors.black, fontSize: rs(9), fontFamily: Fonts.Bold },
 });
 
 const DateFilterBtn = ({ label, date, onPress }) => {

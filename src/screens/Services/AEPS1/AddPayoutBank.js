@@ -18,6 +18,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Colors from '../../../constants/Colors';
 import Fonts from '../../../constants/Fonts';
 import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
+import FullScreenLoader from '../../../componets/Loader/FullScreenLoader';
 import { addAepsPayoutBank, getPayoutBankList } from '../../../api/AuthApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AlertService } from '../../../componets/Alerts/CustomAlert';
@@ -365,6 +366,7 @@ export default function AddPayoutBank({ navigation }) {
         onCamera={handleCamera}
         onGallery={handleGallery}
       />
+      <FullScreenLoader visible={loading} label="Submitting Request..." />
     </SafeAreaView>
   );
 }

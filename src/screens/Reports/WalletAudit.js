@@ -201,11 +201,11 @@ function BalanceFlow({ txn }) {
                 <View style={styles.bfArrowLine}>
                     <Text style={{ color: COLORS.gold, fontSize: 14 }}>→</Text>
                 </View>
-                <Text style={styles.bfDelta}>{txn.amountStr || `₹${txn.amount || '0'}`}</Text>
+                <Text style={[styles.bfDelta, { color: txn.type === 'credit' || txn.isRefunded ? COLORS.success : COLORS.error }]}>{txn.amountStr || `₹${txn.amount || '0'}`}</Text>
             </View>
             <View style={{ flex: 1, alignItems: 'flex-end' }}>
                 <Text style={styles.bfLabel}>Closing Bal</Text>
-                <Text style={styles.bfValue}>{txn.closingBalance || '₹0.00'}</Text>
+                <Text style={[styles.bfValue, { color: txn.type === 'credit' || txn.isRefunded ? COLORS.success : COLORS.error }]}>{txn.closingBalance || '₹0.00'}</Text>
                 <Text style={styles.bfSub}>After txn</Text>
             </View>
         </View>
@@ -249,8 +249,8 @@ export default function TransactionAuditScreen({ navigation, route }) {
                     </Text>
                 </View>
                 <Badge
-                    type={txn.isRefunded ? 'failed' : 'success'}
-                    label={txn.isRefunded ? 'REFUNDED' : 'SUCCESS'}
+                    type={txn.isRefunded ? 'success' : (txn.type === 'credit' ? 'success' : 'failed')}
+                    label={txn.isRefunded ? 'REFUNDED' : (txn.type === 'credit' ? 'CREDIT' : 'DEBIT')}
                 />
             </View>
 
@@ -269,8 +269,8 @@ export default function TransactionAuditScreen({ navigation, route }) {
                     </View>
                     <Text style={styles.heroLabel}>Transaction Amount</Text>
                     <View style={styles.heroAmount}>
-                        <Text style={styles.heroCurrency}>₹</Text>
-                        <Text style={styles.heroAmountNum}>{amtInt}</Text>
+                        <Text style={[styles.heroCurrency, { color: txn.type === 'credit' || txn.isRefunded ? COLORS.success : COLORS.error }]}>₹</Text>
+                        <Text style={[styles.heroAmountNum, { color: txn.type === 'credit' || txn.isRefunded ? COLORS.success : COLORS.error }]}>{amtInt}</Text>
                         <Text style={styles.heroAmountDec}>.{amtDec}</Text>
                     </View>
 
@@ -289,7 +289,7 @@ export default function TransactionAuditScreen({ navigation, route }) {
                     <View style={styles.heroMeta}>
                         <View>
                             <Text style={styles.heroStatLabel}>Status</Text>
-                            <Text style={[styles.heroStatValue, { color: txn.isRefunded ? COLORS.error : COLORS.success }]}>
+                            <Text style={[styles.heroStatValue, { color: txn.type === 'credit' || txn.isRefunded ? COLORS.success : COLORS.error }]}>
                                 {txn.isRefunded ? 'Refunded' : 'Success'}
                             </Text>
                         </View>
