@@ -502,6 +502,8 @@ export default function Offlinekyc({ navigation, route }) {
   const validatePersonal = () => {
     const e = {};
     if (!personal.gender || !["male", "female", "other"].includes(personal.gender.toLowerCase())) e.gender = "Required";
+    
+    // Name validations (Max 100 chars)
     if (!personal.firstName.trim() || personal.firstName.trim().length < 3) e.firstName = "Min 3 chars";
     else if (personal.firstName.trim().length > 100) e.firstName = "Max 100 chars";
 
@@ -511,8 +513,13 @@ export default function Offlinekyc({ navigation, route }) {
     if (!personal.fatherName.trim() || personal.fatherName.trim().length < 3) e.fatherName = "Min 3 chars";
     else if (personal.fatherName.trim().length > 100) e.fatherName = "Max 100 chars";
 
-    if (!personal.email.trim() || !personal.email.includes("@") || !RX.email.test(personal.email.trim())) e.email = "Invalid email";
+    // Email validation (Must contain @)
+    if (!personal.email.trim() || !personal.email.includes("@") || !RX.email.test(personal.email.trim())) {
+      e.email = "Invalid email (must contain @)";
+    }
+
     if (!personal.phone.trim() || personal.phone.trim().length !== 10 || !RX.phone.test(personal.phone.trim())) e.phone = "Must be 10 digits";
+    
     if (!personal.dob.trim() || !RX.dob.test(personal.dob.trim())) {
       e.dob = "DD-MM-YYYY";
     } else {
@@ -524,10 +531,15 @@ export default function Offlinekyc({ navigation, route }) {
       const age = (m < 0 || (m === 0 && today.getDate() < dobDate.getDate())) ? ageDiff - 1 : ageDiff;
       if (dobDate > today || age < 18) e.dob = "Must be at least 18 years old";
     }
+
     if (!personal.personalAddress.trim() || personal.personalAddress.trim().length < 5) e.personalAddress = "Min 5 chars";
     else if (personal.personalAddress.trim().length > 500) e.personalAddress = "Max 500 chars";
 
-    if (personal.personalPincode.trim().length !== 6 || !RX.pincode.test(personal.personalPincode.trim())) e.personalPincode = "Must be 6 digits";
+    // PIN validation (6 digits)
+    if (personal.personalPincode.trim().length !== 6 || !RX.pincode.test(personal.personalPincode.trim())) {
+      e.personalPincode = "Must be 6 digits";
+    }
+
     if (!personal.personalState.trim()) e.personalState = "Required";
     if (!personal.personalCity.trim()) e.personalCity = "Required";
     setErrors(e);
@@ -537,16 +549,37 @@ export default function Offlinekyc({ navigation, route }) {
   const validateBusiness = () => {
     const e = {};
     if (!business.shopName.trim()) e.shopName = "Required";
-    else if (business.shopName.trim().length > 100) e.shopName = "Max 100 chars";
+    else if (business.shopName.trim().length > 200) e.shopName = "Max 200 chars";
 
     if (!business.businessAddress.trim() || business.businessAddress.trim().length < 5) e.businessAddress = "Min 5 chars";
     else if (business.businessAddress.trim().length > 200) e.businessAddress = "Max 200 chars";
 
-    if (business.businessPincode.trim().length !== 6 || !RX.pincode.test(business.businessPincode.trim())) e.businessPincode = "Must be 6 digits";
+    // Business PIN validation (6 digits)
+    if (business.businessPincode.trim().length !== 6 || !RX.pincode.test(business.businessPincode.trim())) {
+      e.businessPincode = "Must be 6 digits";
+    }
+
     if (!business.businessState.trim()) e.businessState = "Required";
     if (!business.businessCity.trim()) e.businessCity = "Required";
-    if (!business.panNumber.trim() || !RX.pan.test(business.panNumber.trim())) e.panNumber = "Invalid PAN";
-    if (!business.aadharNumber.trim() || !RX.aadhaar.test(business.aadharNumber.trim())) e.aadharNumber = "Invalid Aadhaar";
+
+    // PAN validation (10 characters)
+    if (!business.panNumber.trim() || business.panNumber.trim().length !== 10 || !RX.pan.test(business.panNumber.trim())) {
+      e.panNumber = "Must be 10 digits/chars";
+    }
+
+    // Aadhaar validation (12 digits)
+    if (!business.aadharNumber.trim() || business.aadharNumber.trim().length !== 12 || !RX.aadhaar.test(business.aadharNumber.trim())) {
+      e.aadharNumber = "Must be 12 digits";
+    }
+
+    // Optional fields validation
+    if (business.businessPanNumber.trim() && (business.businessPanNumber.trim().length !== 10 || !RX.pan.test(business.businessPanNumber.trim()))) {
+      e.businessPanNumber = "Invalid PAN (10 chars)";
+    }
+    if (business.gstNumber.trim() && (business.gstNumber.trim().length !== 15 || !RX.gst.test(business.gstNumber.trim()))) {
+      e.gstNumber = "Invalid GST Number (15 chars)";
+    }
+
     if (!files.aadharFile) e.aadharFile = "Aadhaar photo required";
     if (!files.panFile) e.panFile = "PAN card photo required";
     if (!files.shopImage) e.shopImage = "Shop photo required";
@@ -560,10 +593,21 @@ export default function Offlinekyc({ navigation, route }) {
     else if (banking.accountHolderName.trim().length > 100) e.accountHolderName = "Max 100 chars";
 
     if (!banking.bankName.trim() || !RX.bankName.test(banking.bankName.trim())) e.bankName = "Required";
-    if (!RX.accNum.test(banking.accountNumber.trim())) e.accountNumber = "12–20 digits";
+
+    // Account number validation (12-20 digits)
+    const accNum = banking.accountNumber.trim();
+    if (accNum.length < 12 || accNum.length > 20 || !RX.accNum.test(accNum)) {
+      e.accountNumber = "Must be 12–20 digits";
+    }
+
     if (!banking.confirmAccountNumber.trim()) e.confirmAccountNumber = "Please confirm account number";
     else if (banking.accountNumber !== banking.confirmAccountNumber) e.confirmAccountNumber = "Account numbers don't match";
-    if (!RX.ifsc.test(banking.ifscCode.trim())) e.ifscCode = "Invalid IFSC code (4-15 chars)";
+
+    // IFSC validation (max 15 chars)
+    if (!banking.ifscCode.trim() || banking.ifscCode.trim().length > 15 || !RX.ifsc.test(banking.ifscCode.trim())) {
+      e.ifscCode = "Invalid IFSC (max 15 chars)";
+    }
+
     if (!banking.branchName.trim()) e.branchName = "Required";
     setErrors(e);
     return e;
@@ -808,7 +852,7 @@ export default function Offlinekyc({ navigation, route }) {
               <View style={[styles.card, { width: isWide ? contentWidth : "100%" }]}>
                 <SectionBanner icon="store-outline" title="Business Information" sub="Shop details & owner identification" />
 
-                <Field onLayout={e => fieldCoords.current.shopName = e.nativeEvent.layout.y} label="Shop / Business Name" value={business.shopName} onChange={v => setBusiness(b => ({ ...b, shopName: v }))} error={errors.shopName} placeholder="Your shop name" maxLength={100} locked={lockedBusiness.shopName} />
+                <Field onLayout={e => fieldCoords.current.shopName = e.nativeEvent.layout.y} label="Shop / Business Name" value={business.shopName} onChange={v => setBusiness(b => ({ ...b, shopName: v }))} error={errors.shopName} placeholder="Your shop name" maxLength={200} locked={lockedBusiness.shopName} />
 
                 <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
                   onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.businessPanNumber = y; fieldCoords.current.gstNumber = y; }}>

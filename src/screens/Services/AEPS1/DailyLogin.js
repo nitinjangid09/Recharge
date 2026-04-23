@@ -34,6 +34,7 @@ import * as NavigationService from '../../../utils/NavigationService';
 import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
 import { fadeIn, slideUp, buttonPress } from '../../../utils/ScreenAnimations';
 import Colors from '../../../constants/Colors';
+import FullScreenLoader from '../../../componets/Loader/FullScreenLoader';
 
 const { width: SW } = Dimensions.get('window');
 const S = SW / 375;
@@ -577,16 +578,10 @@ const DailyLogin = () => {
                 disabled={isSubmitDisabled}
                 activeOpacity={0.85}
               >
-                {loading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <>
-                    <MaterialCommunityIcons name="fingerprint" size={24} color="#FFF" style={{ marginRight: 10 }} />
-                    <Text style={styles.submitBtnText}>
-                      {authMethod === 'face' ? 'Start Face Authentication' : 'Capture Fingerprint'}
-                    </Text>
-                  </>
-                )}
+                <MaterialCommunityIcons name="fingerprint" size={24} color="#FFF" style={{ marginRight: 10 }} />
+                <Text style={styles.submitBtnText}>
+                  {authMethod === 'face' ? 'Start Face Authentication' : 'Capture Fingerprint'}
+                </Text>
               </TouchableOpacity>
             </Animated.View>
           </View>
@@ -597,15 +592,7 @@ const DailyLogin = () => {
           <Text style={styles.footerText}>NPCI • RBI COMPLIANT • SECURE GATEWAY</Text>
         </View>
 
-        <Modal transparent visible={loading} animationType="fade">
-          <View style={styles.loaderOverlay}>
-            <View style={styles.loaderCard}>
-              <ActivityIndicator size="large" color="#1A1A2E" />
-              <Text style={styles.loaderText}>Processing...</Text>
-              <Text style={styles.loaderSub}>Please wait while we verify your identity.</Text>
-            </View>
-          </View>
-        </Modal>
+        <FullScreenLoader visible={loading} label="Processing Identity..." />
       </ScrollView>
     </SafeAreaView>
   );
@@ -864,33 +851,6 @@ const styles = StyleSheet.create({
     color: '#AAA',
     letterSpacing: 1.2,
     fontWeight: '600',
-  },
-  loaderOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loaderCard: {
-    backgroundColor: '#FFF',
-    padding: 35,
-    borderRadius: 25,
-    alignItems: 'center',
-    width: '85%',
-    elevation: 12,
-  },
-  loaderText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111',
-    marginTop: 20,
-  },
-  loaderSub: {
-    fontSize: 15,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginTop: 10,
-    lineHeight: 22,
   },
 });
 
