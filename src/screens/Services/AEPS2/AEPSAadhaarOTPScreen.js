@@ -21,6 +21,7 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Colors from '../../../constants/Colors';
@@ -101,38 +102,17 @@ export default function AEPSAadhaarOTPScreen({ navigation }) {
     setLoading(true);
 
     try {
-      // 1. Get Location (with requested static defaults)
-      let latitude = "26.889811";
-      let longitude = "75.738343";
-
-      const getPos = () => new Promise((resolve) => {
-        Geolocation.getCurrentPosition(
-          p => resolve({
-            lat: p.coords.latitude.toString(),
-            lon: p.coords.longitude.toString()
-          }),
-          () => resolve(null), // Fallback if user denies or GPS is off
-          { enableHighAccuracy: true, timeout: 8000 }
-        );
-      });
-
-      const loc = await getPos();
-      if (loc) {
-        latitude = loc.lat;
-        longitude = loc.lon;
-      }
-
-      // 2. Prepare Payload
+      // 1. Prepare Payload (using static coordinates for generation as requested)
       const hToken = await AsyncStorage.getItem("header_token");
       const clientRefId = `EKYC${Date.now()}${Math.floor(100000 + Math.random() * 900000)}`;
 
       const payload = {
         aadhaar: clean,
-        latitude,
-        longitude
+        latitude: "26.889811",
+        longitude: "75.738343"
       };
 
-      // 3. Call API with Static Raw JSON
+      // 2. Call API
       const res = await generateAepsEkycOtp({
         data: payload,
         headerToken: hToken,
@@ -175,9 +155,11 @@ export default function AEPSAadhaarOTPScreen({ navigation }) {
     try {
       const hToken = await AsyncStorage.getItem("header_token");
       const clientRefId = `VFY${Date.now()}`;
+
       const payload = {
-        aadhaar: aadhaar.replace(/\s/g, ''),
         otp: otp,
+        latitude: "26.889811",
+        longitude: "75.738343"
       };
 
       const res = await verifyAepsEkycOtp({
@@ -264,12 +246,17 @@ export default function AEPSAadhaarOTPScreen({ navigation }) {
                   activeOpacity={0.8}
                   style={[
                     styles.sendBtn,
-                    aadhaar.replace(/\s/g, '').length < 12 && styles.sendBtnDisabled,
+                    (aadhaar.replace(/\s/g, '').length < 12 || loading) && styles.sendBtnDisabled,
                   ]}
+                  disabled={loading}
                 >
-                  <Text style={[styles.sendBtnText, aadhaar.replace(/\s/g, '').length < 12 && { color: Colors.black }]}>
-                    {loading ? 'Sending...' : 'Send OTP'}
-                  </Text>
+                  {loading ? (
+                    <ActivityIndicator color={Colors.white} />
+                  ) : (
+                    <Text style={[styles.sendBtnText, aadhaar.replace(/\s/g, '').length < 12 && { color: Colors.black }]}>
+                      Send OTP
+                    </Text>
+                  )}
                 </TouchableOpacity>
               </>
             )}
@@ -296,9 +283,14 @@ export default function AEPSAadhaarOTPScreen({ navigation }) {
                 <TouchableOpacity
                   onPress={handleVerifyOTP}
                   activeOpacity={0.8}
-                  style={[styles.sendBtn, otp.length < 6 && styles.sendBtnDisabled]}
+                  style={[styles.sendBtn, (otp.length < 6 || loading) && styles.sendBtnDisabled]}
+                  disabled={loading}
                 >
-                  <Text style={[styles.sendBtnText, otp.length < 6 && { color: Colors.black }]}>Verify OTP</Text>
+                  {loading ? (
+                    <ActivityIndicator color={Colors.white} />
+                  ) : (
+                    <Text style={[styles.sendBtnText, otp.length < 6 && { color: Colors.black }]}>Verify OTP</Text>
+                  )}
                 </TouchableOpacity>
 
                 <View style={styles.resendRow}>

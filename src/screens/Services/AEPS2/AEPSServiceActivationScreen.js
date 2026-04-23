@@ -512,7 +512,7 @@ export default function AEPSServiceActivationScreen({ navigation }) {
       // Office Address (Bracketed Keys)
       formD.append('officeAddress[line]', form.officeAddr);
       formD.append('officeAddress[city]', form.officeCity);
-      formD.append('officeAddress[state]', form.officeState); // Send name instead of ID
+      formD.append('officeAddress[state]', form.officeStateCode); // Send ID as requested
       formD.append('officeAddress[pincode]', form.officePincode);
       formD.append('officeAddress[district]', form.officeDistrict);
       formD.append('officeAddress[area]', form.officeArea);
@@ -520,7 +520,7 @@ export default function AEPSServiceActivationScreen({ navigation }) {
       // Personal/Aadhaar Address (Bracketed Keys)
       formD.append('address[line]', form.aadhaarAddr);
       formD.append('address[city]', form.aadhaarCity);
-      formD.append('address[state]', form.aadhaarState); // Send name instead of ID
+      formD.append('address[state]', form.aadhaarStateCode); // Send ID instead of Name
       formD.append('address[pincode]', form.aadhaarPincode);
       formD.append('address[district]', form.aadhaarDistrict);
       formD.append('address[area]', form.aadhaarArea);

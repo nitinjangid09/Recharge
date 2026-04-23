@@ -365,7 +365,7 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
           address: {
             line: form.address,
             city: form.city,
-            state: form.state, // Send state name instead of ID
+            state: form.state, // Send Name as requested
             pincode: form.pincode,
             district: form.district,
             area: form.area

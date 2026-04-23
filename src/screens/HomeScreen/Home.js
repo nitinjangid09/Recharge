@@ -856,7 +856,7 @@ export default function FinanceHome({ navigation }) {
                         const aeps2 = userProfile?.aeps2 || {};
                         const { isActivated, isLoginRequired } = aeps2;
                         if (Object.keys(aeps2).length === 0) {
-                          navigation.navigate("AEPSServiceActivation");
+                          navigation.navigate("AEPSSecondaryRegistration");
                         } else if (isActivated === true && isLoginRequired === true) {
                           navigation.navigate("AEPSPortalAccess");
                         } else if (isActivated === false && isLoginRequired === true) {
