@@ -932,9 +932,11 @@ export const addOfflineTopupRequest = async ({ amount, mode, receiverBank, utrNu
   }
 };
 
-export const getAllOfflineTopupRequests = async ({ headerToken, page = 1, limit = 10 }) => {
+export const getAllOfflineTopupRequests = async ({ headerToken, page = 1, limit = 10, from, to }) => {
   try {
-    const url = `${BASE_URL}/user/offlineTopup/get-all-offline-topup-requests?page=${page}&limit=${limit}`;
+    let url = `${BASE_URL}/user/offlineTopup/get-all-offline-topup-requests?page=${page}&limit=${limit}`;
+    if (from) url += `&from=${from}`;
+    if (to) url += `&to=${to}`;
     const response = await axios.get(url, {
       headers: { Authorization: `Bearer ${headerToken}` }
     });
@@ -1631,6 +1633,7 @@ export const aepsBalanceEnquiry = async ({ data, headerToken, headerKey, idempot
         headerKey,
       },
     });
+    console.log("AEPS Balance Enquiry Response:", JSON.stringify(response.data, null, 2));
     return response.data;
   } catch (error) {
     console.log("AEPS Balance Enquiry API Error:", error?.response?.data || error);
@@ -1653,6 +1656,7 @@ export const aepsMiniStatement = async ({ data, headerToken, headerKey, idempote
         headerKey,
       },
     });
+    console.log("AEPS Mini Statement Response:", JSON.stringify(response.data, null, 2));
     return response.data;
   } catch (error) {
     console.log("AEPS Mini Statement API Error:", error?.response?.data || error);
@@ -1900,6 +1904,7 @@ export const initiateAepsTransaction = async ({ data, headerToken, idempotencyKe
         "Content-Type": "application/json"
       },
     });
+    console.log("AEPS Initiate Transaction Response:", JSON.stringify(response.data, null, 2));
     return response.data;
   } catch (error) {
     console.log("AEPS Transaction Error:", error?.response?.data || error);

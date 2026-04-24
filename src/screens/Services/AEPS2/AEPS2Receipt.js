@@ -57,7 +57,7 @@ export default function AEPS2Receipt({
   
   // Balance checking: prioritize bankAccountBalance
   const rawBalance = (type === 'Balance Enquiry' || type === 'Mini Statement')
-    ? (nestedData.bankAccountBalance || nestedData.closingBalance || response?.balance)
+    ? (nestedData.bankAccountBalance || nestedData.closingBalance || nestedData.customerBalance || response?.balance)
     : (nestedData.transactionValue || details?.amount);
 
     
@@ -65,8 +65,8 @@ export default function AEPS2Receipt({
   
   // Transaction IDs from user sample mapping:
   // Bank RRN should use externalRef
-  const rrn = nestedData.externalRef || nestedRoot.externalRef || response?.externalRef || "N/A";
-  const ackno = nestedRoot.orderid || response?.orderid || nestedRoot.ipayId || "N/A";
+  const rrn = nestedData.externalRef || nestedRoot.externalRef || nestedData.referenceId || response?.externalRef || "N/A";
+  const ackno = nestedRoot.orderid || response?.orderid || nestedRoot.ipayId || nestedData.referenceId || "N/A";
   
   // Bank and User details
   const bankName = nestedData.bankName || details?.bankName || "Aadhaar Bank";
@@ -74,10 +74,10 @@ export default function AEPS2Receipt({
   const aadhaar = details?.aadhaar || details?.aadhaarNumber || "XXXX XXXX XXXX";
   const accountNo = nestedData.accountNumber || "N/A";
   const txnValue = nestedData.transactionValue || details?.amount || "0.00";
-  const statusMsg = l1.message || l2.status || response?.message || "Transaction Successful";
+  const statusMsg = l1.message || l2.status || nestedData.message || response?.message || "Transaction Successful";
   
-  // Date and Time from API timestamp "2026-04-16 18:28:52"
-  const apiTimestamp = l2.timestamp || response?.timestamp;
+  // Date and Time from API timestamp "2026-04-16 18:28:52" or "24-04-26 15:53:36"
+  const apiTimestamp = l2.timestamp || nestedData.date || response?.timestamp;
 
   let dateStr, timeStr;
   
@@ -118,7 +118,7 @@ export default function AEPS2Receipt({
         <View style={styles.amountCard}>
           <View style={styles.amountTop}>
             <Text style={styles.amountLabel}>
-              {type === 'Balance Enquiry' ? 'AVAILABLE BALANCE' : 'AMOUNT PAID'}
+              {(type === 'Balance Enquiry' || type === 'Mini Statement') ? 'AVAILABLE BALANCE' : 'AMOUNT PAID'}
             </Text>
 
             <View style={styles.successBadge}>
