@@ -31,6 +31,9 @@ import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
 import { fetchUserProfile, getWalletBalance, fetchUserWallet, fetchEBankList, initiateAepsTransaction } from '../../../api/AuthApi';
 import { AlertService } from '../../../componets/Alerts/CustomAlert';
 import RDService from '../../../utils/RDService';
+import AEPS2Receipt from './AEPS2Receipt';
+
+
 
 const { width: SW, height: SH } = Dimensions.get("window");
 const scale = (n) => Math.round((SW / 375) * n);
@@ -293,6 +296,10 @@ export default function AePSDashboardScreen({ navigation }) {
   const [selVisible, setSelVisible] = useState(false);
   const [device, setDevice] = useState('MANTRA');
   const [submitting, setSubmitting] = useState(false);
+  const [receiptVisible, setReceiptVisible] = useState(false);
+  const [receiptData, setReceiptData] = useState(null);
+  const [txnDetails, setTxnDetails] = useState(null);
+
 
   useEffect(() => {
     loadData();
@@ -368,7 +375,9 @@ export default function AePSDashboardScreen({ navigation }) {
   };
 
   const handleProceed = async () => {
+    console.log("🚀 [AEPS2] handleProceed pressed", { txnType, form });
     if (!validate()) return;
+
 
     setSubmitting(true);
     try {
@@ -402,7 +411,7 @@ export default function AePSDashboardScreen({ navigation }) {
       const idempotencyKey = `TXN_${Date.now()}`;
 
       const payload = {
-        serviceType: txnType === 'balance' ? 'inquiry' : txnType === 'mini' ? 'statement' : 'withdrawal',
+        serviceType: txnType === 'balance' ? 'inquiry' : txnType === 'mini' ? 'statement' : 'withdraw',
         latitude: "26.889925350441352", // Using requested static coords or dynamic if available
         longitude: "75.73839758240074",
         sourceIp: "122.167.10.217", // Usually fetched from server or public API
@@ -414,16 +423,22 @@ export default function AePSDashboardScreen({ navigation }) {
 
       // 4. Submit Transaction
       const res = await initiateAepsTransaction({ data: payload, headerToken, idempotencyKey });
+      console.log("✅ [AEPS2] Transaction Response:", res);
+
 
       if (res.success || res.status === "SUCCESS") {
-        AlertService.showAlert({
-          type: 'success',
-          title: 'Transaction Successful',
-          message: res.message || 'The request has been processed successfully.',
-          onClose: () => loadData() // Refresh stats
+        setReceiptData(res);
+        setTxnDetails({
+          mobile: form.mobile,
+          aadhaar: form.aadhaar,
+          bankName: form.bankLabel,
+          amount: form.amount
         });
+        setReceiptVisible(true);
+
         // Clear amount if it was cash withdrawal
         if (txnType === 'cash') updateForm('amount', '');
+        loadData(); // Refresh stats
       } else {
         AlertService.showAlert({
           type: 'error',
@@ -431,6 +446,7 @@ export default function AePSDashboardScreen({ navigation }) {
           message: res.message || 'Transaction could not be completed.'
         });
       }
+
 
     } catch (error) {
       console.log("AEPS Transaction Error:", error);
@@ -576,7 +592,27 @@ export default function AePSDashboardScreen({ navigation }) {
         }}
         onClose={() => setSelVisible(false)}
       />
+
+      {/* ─── SUCCESS RECEIPT MODAL ─── */}
+      <Modal
+        visible={receiptVisible}
+        animationType="slide"
+        onRequestClose={() => setReceiptVisible(false)}
+      >
+        <AEPS2Receipt
+          response={receiptData}
+
+          details={txnDetails}
+          type={txnType === 'balance' ? 'Balance Enquiry' : txnType === 'mini' ? 'Mini Statement' : 'Cash Withdrawal'}
+          onClose={() => {
+            setReceiptVisible(false);
+            setReceiptData(null);
+            setTxnDetails(null);
+          }}
+        />
+      </Modal>
     </SafeAreaView>
+
   );
 }
 

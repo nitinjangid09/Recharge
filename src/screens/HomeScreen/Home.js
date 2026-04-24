@@ -914,7 +914,7 @@ export default function FinanceHome({ navigation }) {
               <TouchableOpacity
                 style={[S.svcGridItem]}
                 activeOpacity={0.78}
-                onPress={() => navigation.navigate("DailyLogin")}
+                onPress={() => navigation.navigate("AePSDashboard")}
               >
                 <View style={[S.svcIconCircle]}>
                   <OfflineServicesIconSVG
