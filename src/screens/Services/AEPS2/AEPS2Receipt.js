@@ -20,17 +20,17 @@ const ReceiptRow = ({ label, value }) => {
   );
 };
 
-export default function PaymentReceipt({
-  route,
-  navigation,
+export default function AEPS2Receipt({ 
+  route, 
+  navigation, 
   // Allow passing directly as props for Modal use
-  response: propsResponse,
-  details: propsDetails,
+  response: propsResponse, 
+  details: propsDetails, 
   type: propsType,
-  onClose
+  onClose 
 }) {
   const [downloadFormat, setDownloadFormat] = React.useState("pdf");
-
+  
   // Destructure from route or props
   const response = propsResponse || route?.params?.response;
   const details = propsDetails || route?.params?.details;
@@ -51,22 +51,23 @@ export default function PaymentReceipt({
 
   const nestedData = l3;
   const nestedRoot = l2;
-
+  
   // Statement data
   const statements = nestedData.miniStatement || response?.miniStatement || [];
-
+  
   // Balance checking: prioritize bankAccountBalance
   const rawBalance = (type === 'Balance Enquiry' || type === 'Mini Statement')
     ? (nestedData.bankAccountBalance || nestedData.closingBalance || response?.balance)
     : (nestedData.transactionValue || details?.amount);
 
+    
   const balance = (rawBalance !== undefined && rawBalance !== null && rawBalance !== "") ? rawBalance : "0.00";
-
+  
   // Transaction IDs from user sample mapping:
   // Bank RRN should use externalRef
   const rrn = nestedData.externalRef || nestedRoot.externalRef || response?.externalRef || "N/A";
   const ackno = nestedRoot.orderid || response?.orderid || nestedRoot.ipayId || "N/A";
-
+  
   // Bank and User details
   const bankName = nestedData.bankName || details?.bankName || "Aadhaar Bank";
   const mobile = details?.mobile || details?.mobileNumber || "N/A";
@@ -74,11 +75,12 @@ export default function PaymentReceipt({
   const accountNo = nestedData.accountNumber || "N/A";
   const txnValue = nestedData.transactionValue || details?.amount || "0.00";
   const statusMsg = l1.message || l2.status || response?.message || "Transaction Successful";
-
+  
   // Date and Time from API timestamp "2026-04-16 18:28:52"
   const apiTimestamp = l2.timestamp || response?.timestamp;
-  let dateStr, timeStr;
 
+  let dateStr, timeStr;
+  
   if (apiTimestamp && typeof apiTimestamp === 'string') {
     try {
       const [d, t] = apiTimestamp.split(' ');
@@ -101,7 +103,7 @@ export default function PaymentReceipt({
 
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Transaction Receipt</Text>
+          <Text style={styles.title}>AEPS 2.0 Receipt</Text>
         </View>
 
         {/* Success Banner */}
@@ -157,8 +159,8 @@ export default function PaymentReceipt({
             {statements.map((item, idx) => (
               <View key={idx} style={styles.statementRow}>
                 <View style={{ flex: 1.5 }}>
-                  <Text style={styles.stDate}>{item.date || 'N/A'}</Text>
-                  <Text style={styles.stNarration} numberOfLines={1}>{item.narration || ''}</Text>
+                   <Text style={styles.stDate}>{item.date || 'N/A'}</Text>
+                   <Text style={styles.stNarration} numberOfLines={1}>{item.narration || ''}</Text>
                 </View>
                 <Text style={[styles.stType, (item.txnType === 'CR' || item.txnType === 'C') ? styles.cr : styles.dr]}>
                   {item.txnType || 'N/A'}
@@ -175,7 +177,7 @@ export default function PaymentReceipt({
             <Text style={styles.shareText}>Share</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
+          <TouchableOpacity 
             style={styles.doneBtn}
             onPress={handleDone}
           >

@@ -2078,6 +2078,26 @@ export const generateDmtTotp = async ({ data, headerToken, idempotencyKey }) => 
   }
 };
 
+/**
+ * transferDmtFund
+ * POST /user/dmt/transfer-fund
+ */
+export const transferDmtFund = async ({ data, headerToken, idempotencyKey }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/dmt/transfer-fund`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "idempotency-key": idempotencyKey,
+        "Content-Type": "application/json"
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Transfer DMT Fund Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Fund transfer failed" };
+  }
+};
+
 export const getAepsStatus = async ({ headerToken }) => {
   try {
     const response = await axios.get(`${BASE_URL}/user/aepsInstant/aeps-status`, {

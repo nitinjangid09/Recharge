@@ -123,8 +123,8 @@ const SelectPicker = ({
                   placeholderTextColor={Colors.gray_BD}
                   value={search}
                   onChangeText={setSearch}
-                  autoFocus
                 />
+
                 {search.length > 0 && (
                   <TouchableOpacity onPress={() => setSearch("")}>
                     <Text style={sp.searchClear}>✕</Text>

@@ -385,7 +385,8 @@ const FaqSupportScreen = () => {
   /* ── Render ───────────────────────────────── */
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor={'#F3EBDD'} />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+
 
       <ScrollView
         showsVerticalScrollIndicator={false}

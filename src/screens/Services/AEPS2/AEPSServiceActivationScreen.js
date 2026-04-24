@@ -216,8 +216,9 @@ const AddressSection = ({ prefix, form, updateForm, openSelector, errors }) => (
       label="Shop/Home Address"
       placeholder="Building, Street, Area"
       value={form[`${prefix}Addr`]}
-      onChangeText={(v) => updateForm(`${prefix}Addr`, v)}
+      onChangeText={(v) => updateForm(`${prefix}Addr`, v.slice(0, 200))}
       error={errors[`${prefix}Addr`]}
+      maxLength={200}
     />
     <View style={screenStyles.row}>
       <View style={screenStyles.half}>
@@ -234,7 +235,7 @@ const AddressSection = ({ prefix, form, updateForm, openSelector, errors }) => (
           label="City"
           placeholder="Enter City"
           value={form[`${prefix}City`]}
-          onChangeText={(v) => updateForm(`${prefix}City`, v)}
+          onChangeText={(v) => updateForm(`${prefix}City`, v.replace(/[^a-zA-Z\s]/g, ''))}
           error={errors[`${prefix}City`]}
         />
       </View>
@@ -245,7 +246,7 @@ const AddressSection = ({ prefix, form, updateForm, openSelector, errors }) => (
           label="District"
           placeholder="Enter District"
           value={form[`${prefix}District`]}
-          onChangeText={(v) => updateForm(`${prefix}District`, v)}
+          onChangeText={(v) => updateForm(`${prefix}District`, v.replace(/[^a-zA-Z\s]/g, ''))}
           error={errors[`${prefix}District`]}
         />
       </View>
@@ -254,7 +255,7 @@ const AddressSection = ({ prefix, form, updateForm, openSelector, errors }) => (
           label="Area/Tehsil"
           placeholder="Enter Area"
           value={form[`${prefix}Area`]}
-          onChangeText={(v) => updateForm(`${prefix}Area`, v)}
+          onChangeText={(v) => updateForm(`${prefix}Area`, v.replace(/[^a-zA-Z\s]/g, ''))}
           error={errors[`${prefix}Area`]}
         />
       </View>
@@ -433,7 +434,18 @@ export default function AEPSServiceActivationScreen({ navigation }) {
     try {
       const options = { width: 800, height: 600, cropping: true, compressImageQuality: 0.7 };
       const image = method === 'camera' ? await ImagePicker.openCamera(options) : await ImagePicker.openPicker(options);
-      if (image) updateForm(activeDoc, image.path);
+      if (image) {
+        // Size check (200 KB = 204,800 bytes)
+        if (image.size > 204800) {
+          AlertService.showAlert({
+            type: 'error',
+            title: 'File Too Large',
+            message: 'Image size must be less than 200 KB.'
+          });
+          return;
+        }
+        updateForm(activeDoc, image.path);
+      }
     } catch (e) { console.log("Picker Error:", e); }
   };
 
@@ -441,7 +453,21 @@ export default function AEPSServiceActivationScreen({ navigation }) {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const d = String(date.getDate()).padStart(2, '0');
-    updateForm('dob', `${y}-${m}-${d}`);
+    const dob = `${y}-${m}-${d}`;
+    updateForm('dob', dob);
+
+    // Immediate age validation
+    const today = new Date();
+    let age = today.getFullYear() - date.getFullYear();
+    const monthDiff = today.getMonth() - date.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < date.getDate())) {
+      age--;
+    }
+    if (age < 18) {
+      setErrors(prev => ({ ...prev, dob: 'Minimum age must be 18 years' }));
+    } else {
+      setErrors(prev => ({ ...prev, dob: null }));
+    }
     setCalVisible(false);
   };
 
@@ -451,9 +477,21 @@ export default function AEPSServiceActivationScreen({ navigation }) {
     if (!form.firstName) e.firstName = 'First name required';
     if (!form.lastName) e.lastName = 'Last name required';
     if (!form.email) e.email = 'Email required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Enter valid email address';
     if (!form.panNumber) e.panNumber = 'PAN required';
     if (!form.dob) e.dob = 'DOB required';
+    else {
+      const birthDate = new Date(form.dob);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      if (age < 18) e.dob = 'Minimum age must be 18 years';
+    }
     if (!form.shopName) e.shopName = 'Shop name required';
+    else if (String(form.shopName || '').length > 200) e.shopName = 'Shop name cannot exceed 200 characters';
 
     // Section 1: Device & Bank
     if (!form.model) e.model = 'Select device model';
@@ -462,10 +500,13 @@ export default function AEPSServiceActivationScreen({ navigation }) {
     else if (form.aadhaar.length !== 12) e.aadhaar = 'Aadhaar must be 12 digits';
     if (!form.bank) e.bank = 'Select bank name';
     if (!form.accNo) e.accNo = 'Enter account number';
+    else if (String(form.accNo || '').length < 9) e.accNo = 'Account number must be 9-18 digits';
     if (!form.ifsc) e.ifsc = 'Enter IFSC code';
+    else if (String(form.ifsc || '').length !== 11) e.ifsc = 'IFSC must be exactly 11 characters';
 
     // Section 2: Office
     if (!form.officeAddr) e.officeAddr = 'Enter office address';
+    else if (String(form.officeAddr || '').length > 200) e.officeAddr = 'Address too long (max 200)';
     if (!form.officeState) e.officeState = 'Select state';
     if (!form.officeCity) e.officeCity = 'Select city';
     if (!form.officeDistrict) e.officeDistrict = 'Enter district';
@@ -475,6 +516,7 @@ export default function AEPSServiceActivationScreen({ navigation }) {
 
     // Section 3: Aadhaar Addr
     if (!form.aadhaarAddr) e.aadhaarAddr = 'Enter Aadhaar address';
+    else if (String(form.aadhaarAddr || '').length > 200) e.aadhaarAddr = 'Address too long (max 200)';
     if (!form.aadhaarState) e.aadhaarState = 'Select state';
     if (!form.aadhaarCity) e.aadhaarCity = 'Select city';
     if (!form.aadhaarPincode) e.aadhaarPincode = 'Enter pincode';
@@ -598,8 +640,9 @@ export default function AEPSServiceActivationScreen({ navigation }) {
                 label="First Name"
                 placeholder="Abhishek"
                 value={form.firstName}
-                onChangeText={(v) => updateForm('firstName', v)}
+                onChangeText={(v) => updateForm('firstName', v.replace(/[^a-zA-Z]/g, '').slice(0, 100))}
                 error={errors.firstName}
+                maxLength={100}
               />
             </View>
             <View style={screenStyles.half}>
@@ -607,8 +650,9 @@ export default function AEPSServiceActivationScreen({ navigation }) {
                 label="Last Name"
                 placeholder="Sharma"
                 value={form.lastName}
-                onChangeText={(v) => updateForm('lastName', v)}
+                onChangeText={(v) => updateForm('lastName', v.replace(/[^a-zA-Z]/g, '').slice(0, 100))}
                 error={errors.lastName}
+                maxLength={100}
               />
             </View>
           </View>
@@ -647,8 +691,9 @@ export default function AEPSServiceActivationScreen({ navigation }) {
             label="Shop Name"
             placeholder="Tech Dost"
             value={form.shopName}
-            onChangeText={(v) => updateForm('shopName', v)}
+            onChangeText={(v) => updateForm('shopName', v.slice(0, 200))}
             error={errors.shopName}
+            maxLength={200}
           />
         </SectionCard>
 
@@ -704,16 +749,19 @@ export default function AEPSServiceActivationScreen({ navigation }) {
             icon="💳"
             keyboardType="numeric"
             value={form.accNo}
-            onChangeText={(v) => updateForm('accNo', v)}
+            onChangeText={(v) => updateForm('accNo', v.replace(/\D/g, '').slice(0, 18))}
             error={errors.accNo}
+            maxLength={18}
           />
           <FormField
             label="Bank IFSC Code"
             placeholder="SBIN000XXXX"
             icon="🔒"
             value={form.ifsc}
-            onChangeText={(v) => updateForm('ifsc', v)}
+            onChangeText={(v) => updateForm('ifsc', v.toUpperCase().slice(0, 11))}
             error={errors.ifsc}
+            maxLength={11}
+            autoCapitalize="characters"
           />
         </SectionCard>
 
