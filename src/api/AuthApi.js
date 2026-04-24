@@ -1073,6 +1073,37 @@ export const getRechargeReport = async ({ from, to, headerToken }) => {
   }
 };
 
+export const getAepsPayoutReport = async ({ from, to, headerToken, page = 1, limit = 10 }) => {
+  try {
+    const url = `${BASE_URL}/user/aepsPayoutReport/list-all?from=${from}&to=${to}&page=${page}&limit=${limit}`;
+    console.log("[getAepsPayoutReport] →", url);
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${headerToken}`,
+      },
+    });
+
+    const text = await response.text();
+
+    // Guard against HTML error pages
+    if (text.trimStart().startsWith("<")) {
+      console.log("[getAepsPayoutReport] HTML response — server error");
+      return { success: false, message: "Server error. Please try again.", data: [] };
+    }
+
+    const json = JSON.parse(text);
+    return json; // { success, message, data: [...], pagination: {...} }
+  } catch (error) {
+    console.log("[getAepsPayoutReport] error:", error?.message || error);
+    return { success: false, message: error.message || "Network error", data: [] };
+  }
+};
+
+
+
 /**
  * fetchStateList
  * Fetches all available states for KYC / Address.

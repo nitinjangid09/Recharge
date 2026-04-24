@@ -68,6 +68,9 @@ import AEPSTransfer from '../screens/Services/AEPS1/AEPS_PayOut_Transfer';
 import XpressTransfer from '../screens/Services/XpressPayout/Xpress_PayOut_Transfer';
 import AddXpressPayoutBank from '../screens/Services/AEPS1/AddXpressPayoutBank';
 import AEPS2BiometricKYC from '../screens/Services/AEPS2/AEPS2BiometricKYCScreen';
+import AEPS_Payout_Report from '../screens/Reports/AEPS_Payout_Report';
+import AEPS_Payout_Receipt from '../screens/Reports/AEPS_Payout_Receipt';
+
 
 
 
@@ -222,6 +225,9 @@ const AppNavigator = () => {
       <Stack.Screen name="XpressTransfer" component={XpressTransfer} />
       <Stack.Screen name="AddXpressPayoutBank" component={AddXpressPayoutBank} />
       <Stack.Screen name="AEPS2BiometricKYC" component={AEPS2BiometricKYC} />
+      <Stack.Screen name="AEPS_Payout_Report" component={AEPS_Payout_Report} />
+      <Stack.Screen name="AEPS_Payout_Receipt" component={AEPS_Payout_Receipt} />
+
 
 
     </Stack.Navigator>

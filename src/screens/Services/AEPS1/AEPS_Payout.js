@@ -103,6 +103,7 @@ export default function AEPS_Payout({ navigation }) {
           balance={walletBalance}
           onRefresh={loadAllData}
           onDeleteBank={handleDeleteBank}
+          navigation={navigation}
         />
       </View>
     </SafeAreaView>
@@ -110,7 +111,7 @@ export default function AEPS_Payout({ navigation }) {
 }
 
 // ─── Dashboard Fragment ─────────────────────────────────────────────────────────
-function DashboardContent({ onTransfer, onAddBank, banks, loading, onRefresh, balance, onDeleteBank }) {
+function DashboardContent({ onTransfer, onAddBank, banks, loading, onRefresh, balance, onDeleteBank, navigation }) {
   const displayBanks = banks;
 
   const [main, decimal] = (balance?.toString() || '0.00').split('.');
@@ -164,7 +165,8 @@ function DashboardContent({ onTransfer, onAddBank, banks, loading, onRefresh, ba
       <View style={styles.managementCard}>
         <View style={styles.manageGrid}>
           <FeatureCard icon="account-plus" label="Add Bank" color="#10B981" onPress={onAddBank} />
-          <FeatureCard icon="history" label="Txn History" color="#6366F1" />
+          <FeatureCard icon="history" label="Txn History" color="#6366F1" onPress={() => navigation.navigate("AEPS_Payout_Report")} />
+
           <FeatureCard icon="shield-check" label="Verification" color="#F59E0B" />
           <FeatureCard icon="bank-transfer" label="Bulk Payout" color="#E11D48" />
         </View>
