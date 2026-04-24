@@ -103,7 +103,8 @@ const AEPS_Services = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor="#EBE3CC" />
+            <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+
 
             {/* ── Header ── */}
             <View style={styles.header}>

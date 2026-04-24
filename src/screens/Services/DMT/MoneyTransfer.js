@@ -19,6 +19,12 @@ import Fonts from "../../../constants/Fonts";
 import CustomAlert from "../../../componets/Alerts/CustomAlert";
 import ReceiptModal from "../../../componets/ReceiptModal/ReceiptModal";
 import { fadeIn, slideUp, buttonPress } from "../../../utils/ScreenAnimations";
+import { transferDmtFund, generateDmtTotp } from "../../../api/AuthApi";
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AlertService } from "../../../componets/Alerts/CustomAlert";
+import { ActivityIndicator } from "react-native";
+
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -45,6 +51,8 @@ const MoneyTransferScreen = ({ route, navigation }) => {
   const [otpModal, setOtpModal] = useState(false);
   const [error, setError] = useState("");
   const [otpError, setOtpError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
 
   // Alert
   const [alertVisible, setAlertVisible] = useState(false);
@@ -125,45 +133,124 @@ const MoneyTransferScreen = ({ route, navigation }) => {
     }
   };
 
-  const handleSendOtp = () => {
-    setConfirmModal(false);
-    setTimeout(() => {
-      setOtp("");
-      setOtpError("");
-      setOtpModal(true);
-    }, 300);
-  };
+  const handleSendOtp = async () => {
+    try {
+      setSubmitting(true);
+      const headerToken = await AsyncStorage.getItem("header_token");
+      const idempotencyKey = `OTP_${Date.now()}`;
 
-  const handleTransfer = () => {
-    if (validateOtp()) {
-      setOtpModal(false);
-      const finalAmount = amount;
-      setAmount("");
-      setOtp("");
-      setReceiptData({
-        status: "success",
-        title: "Transfer Successful",
-        amount: finalAmount,
-        date: new Date().toLocaleDateString("en-IN", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        }),
-        txn_ref: "DMT" + Date.now(),
-        details: [
-          { label: "Recipient", value: account.name },
-          { label: "Bank", value: account.bank },
-          { label: "Account No.", value: account.accountNumber },
-          { label: "IFSC", value: account.ifsc },
-          { label: "Service", value: "DMT Money Transfer" },
-        ],
-        note: `₹${finalAmount} transferred to ${account.name} successfully!`,
+      const res = await generateDmtTotp({
+        data: {
+          mobileNumber: account.mobile || "7877239670",
+          beneficiaryId: account.id || account._id || account.beneficiaryId,
+          amount: amount
+        },
+        headerToken,
+        idempotencyKey
       });
+
+      if (res.success || res.status === "SUCCESS") {
+        setConfirmModal(false);
+        setTimeout(() => {
+          setOtp("");
+          setOtpError("");
+          setOtpModal(true);
+        }, 300);
+      } else {
+        AlertService.showAlert({
+          type: "error",
+          title: "OTP Failed",
+          message: res.message || "Unable to send OTP. Please try again."
+        });
+      }
+    } catch (err) {
+      console.log("OTP Error:", err);
+      AlertService.showAlert({
+        type: "error",
+        title: "Error",
+        message: "Something went wrong while sending OTP."
+      });
+    } finally {
+      setSubmitting(false);
     }
   };
+
+
+  const handleTransfer = async () => {
+    if (!validateOtp()) return;
+
+    try {
+      setSubmitting(true);
+      const headerToken = await AsyncStorage.getItem("header_token");
+      const idempotencyKey = `DMT_${Date.now()}`;
+
+      // In a real app, these would come from state/geolocation
+      const payload = {
+        mobileNumber: account.mobile || "7877239670", // Fallback to user's sample if missing
+        latitude: "26.8881633",
+        longitude: "75.7362708",
+        publicIp: "122.161.207.99",
+        otp: otp,
+        amount: amount,
+        beneficiaryId: account.id || account._id || account.beneficiaryId,
+        accountNumber: account.accountNumber,
+        ifsc: account.ifsc,
+        name: account.name
+      };
+
+      const res = await transferDmtFund({
+        data: payload,
+        headerToken,
+        idempotencyKey
+      });
+
+      if (res.success || res.status === "SUCCESS") {
+        setOtpModal(false);
+        const finalAmount = amount;
+        setAmount("");
+        setOtp("");
+        
+        setReceiptData({
+          status: "success",
+          title: "Transfer Successful",
+          amount: finalAmount,
+          date: new Date().toLocaleDateString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          }),
+          txn_ref: res.data?.txnId || res.txnId || "DMT" + Date.now(),
+          details: [
+            { label: "Recipient", value: account.name },
+            { label: "Bank", value: account.bank },
+            { label: "Account No.", value: account.accountNumber },
+            { label: "IFSC", value: account.ifsc },
+            { label: "Service", value: "DMT Money Transfer" },
+          ],
+          note: res.message || `₹${finalAmount} transferred to ${account.name} successfully!`,
+        });
+      } else {
+        AlertService.showAlert({
+          type: "error",
+          title: "Transfer Failed",
+          message: res.message || "Unable to process fund transfer."
+        });
+      }
+    } catch (err) {
+      console.log("Transfer Error:", err);
+      AlertService.showAlert({
+        type: "error",
+        title: "Error",
+        message: "Something went wrong. Please try again."
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -342,12 +429,18 @@ const MoneyTransferScreen = ({ route, navigation }) => {
                 <Text style={styles.modalCancelTxt}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.modalConfirmBtn}
+                style={[styles.modalConfirmBtn, submitting && { opacity: 0.7 }]}
                 onPress={handleSendOtp}
                 activeOpacity={0.88}
+                disabled={submitting}
               >
-                <Text style={styles.modalConfirmTxt}>Send OTP</Text>
+                {submitting ? (
+                  <ActivityIndicator color={Colors.white} size="small" />
+                ) : (
+                  <Text style={styles.modalConfirmTxt}>Send OTP</Text>
+                )}
               </TouchableOpacity>
+
             </View>
           </Animated.View>
         </View>
@@ -390,12 +483,18 @@ const MoneyTransferScreen = ({ route, navigation }) => {
             </View>
 
             <TouchableOpacity
-              style={[styles.button, { marginTop: vs(16) }]}
+              style={[styles.button, { marginTop: vs(16) }, submitting && { opacity: 0.7 }]}
               onPress={handleTransfer}
               activeOpacity={0.88}
+              disabled={submitting}
             >
-              <Text style={styles.buttonText}>Verify &amp; Transfer</Text>
+              {submitting ? (
+                <ActivityIndicator color={Colors.white} />
+              ) : (
+                <Text style={styles.buttonText}>Verify &amp; Transfer</Text>
+              )}
             </TouchableOpacity>
+
 
             <View style={styles.otpFooter}>
               <TouchableOpacity>

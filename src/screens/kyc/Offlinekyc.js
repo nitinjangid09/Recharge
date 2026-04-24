@@ -709,7 +709,8 @@ export default function Offlinekyc({ navigation, route }) {
   // ─────────────────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: Colors.kyc_bg }]} edges={["bottom"]}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.kyc_bg} />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + vs(10), paddingHorizontal: hs(16) }]}>

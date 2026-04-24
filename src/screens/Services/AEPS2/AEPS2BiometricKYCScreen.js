@@ -263,7 +263,8 @@ const AEPS2BiometricKYCScreen = ({ navigation, route }) => {
 
     return (
         <SafeAreaView style={styles.safe} edges={['top']}>
-            <StatusBar barStyle="dark-content" backgroundColor={BG_START} />
+            <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+
             <LinearGradient colors={[BG_START, BG_END]} style={StyleSheet.absoluteFill} />
 
             <Animated.View style={{ flex: 1, opacity: fadeAnim }}>

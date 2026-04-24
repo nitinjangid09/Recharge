@@ -233,7 +233,8 @@ export default function TransactionAuditScreen({ navigation, route }) {
 
     return (
         <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-            <StatusBar barStyle="dark-content" backgroundColor={COLORS.cream} />
+            <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+
 
             {/* ── TOPBAR ── */}
             <View style={styles.topbar}>

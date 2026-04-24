@@ -321,8 +321,8 @@ const Dropdown = ({
                   placeholderTextColor="#B0B8CC"
                   value={search}
                   onChangeText={setSearch}
-                  autoFocus
                 />
+
                 {!!search && (
                   <TouchableOpacity onPress={() => setSearch("")} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                     <Text style={ddStyles.clearBtn}>✕</Text>

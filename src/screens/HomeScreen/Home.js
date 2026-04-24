@@ -466,7 +466,8 @@ export default function FinanceHome({ navigation }) {
   if (!ready) {
     return (
       <SafeAreaView style={[S.safe, { backgroundColor: Colors.bg }]} edges={["top", "bottom"]}>
-        <StatusBar barStyle="light-content" backgroundColor={Colors.bg} />
+        <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+
         <FullScreenLoader visible={true} label="Initializing dashboard..." />
       </SafeAreaView>
     );
@@ -477,7 +478,8 @@ export default function FinanceHome({ navigation }) {
   // ─────────────────────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={[S.safe, { backgroundColor: Colors.bg }]} edges={["bottom"]}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.ink_dark} translucent />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.primary} translucent />
+
       <FullScreenLoader visible={refreshing} label="Refreshing data..." />
 
       <View style={[S.root, { backgroundColor: Colors.bg }]}>
@@ -914,7 +916,7 @@ export default function FinanceHome({ navigation }) {
               <TouchableOpacity
                 style={[S.svcGridItem]}
                 activeOpacity={0.78}
-                onPress={() => navigation.navigate("AePSDashboard")}
+                onPress={() => navigation.navigate("AEPS1")}
               >
                 <View style={[S.svcIconCircle]}>
                   <OfflineServicesIconSVG

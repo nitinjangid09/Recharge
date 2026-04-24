@@ -22,7 +22,9 @@ import {
   Dimensions,
   ActivityIndicator,
   Modal,
+  FlatList,
 } from 'react-native';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -251,19 +253,28 @@ const SelectorModal = ({ visible, title, items, onSelect, onClose }) => {
             onChangeText={setSearch}
           />
         </View>
-        <ScrollView style={selStyles.list} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-          {filteredItems.map((item, idx) => {
+        <FlatList
+          style={selStyles.list}
+          data={filteredItems}
+          keyExtractor={(_, idx) => String(idx)}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          initialNumToRender={20}
+          maxToRenderPerBatch={20}
+          windowSize={10}
+          renderItem={({ item }) => {
             const textLabel = typeof item === 'object' ? (item.label || JSON.stringify(item)) : String(item);
             return (
-              <TouchableOpacity key={idx} style={selStyles.item} onPress={() => onSelect(item)}>
+              <TouchableOpacity style={selStyles.item} onPress={() => onSelect(item)}>
                 <Text style={selStyles.itemText}>{textLabel}</Text>
               </TouchableOpacity>
             );
-          })}
-          {filteredItems.length === 0 && (
+          }}
+          ListEmptyComponent={
             <Text style={selStyles.empty}>{items.length === 0 ? 'Loading items...' : 'No results found'}</Text>
-          )}
-        </ScrollView>
+          }
+        />
+
       </View>
     </Modal>
   );

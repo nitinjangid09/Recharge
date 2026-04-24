@@ -637,7 +637,8 @@ export default function ActivateAccountScreen({ navigation }) {
 
     return (
         <SafeAreaView style={styles.safe} edges={['top', 'bottom', 'left', 'right']}>
-            <StatusBar barStyle="dark-content" backgroundColor={Colors.bg} />
+            <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+
             <ScrollView
                 style={styles.scroll}
                 contentContainerStyle={styles.scrollContent}
