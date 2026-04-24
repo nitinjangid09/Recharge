@@ -21,7 +21,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '../../../constants/Colors';
 import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
-import { fetchUserProfile, fetchEStateList, fetchCityList, onboardAepsUser } from '../../../api/AuthApi';
+import { fetchUserProfile, fetchEStateList, fetchCityList, onboardAepsUser, fetchEBankList } from '../../../api/AuthApi';
 import { AlertService } from '../../../componets/Alerts/CustomAlert';
 import { Modal, ActivityIndicator } from 'react-native';
 import CalendarModal from '../../../componets/Calendar/CalendarModal';
@@ -219,8 +219,8 @@ const SelectorModal = ({ visible, title, items, onSelect, onClose }) => {
     if (!visible) setSearch('');
   }, [visible]);
 
-  const filteredItems = items.filter(item => {
-    const lbl = typeof item === 'object' ? (item.label || '') : String(item);
+  const filteredItems = (items || []).filter(item => {
+    const lbl = typeof item === 'object' ? (item?.label || '') : String(item || '');
     return lbl.toLowerCase().includes(search.toLowerCase());
   });
 
@@ -251,7 +251,7 @@ const SelectorModal = ({ visible, title, items, onSelect, onClose }) => {
             );
           })}
           {filteredItems.length === 0 && (
-            <Text style={selStyles.empty}>{items.length === 0 ? 'Loading items...' : 'No results found'}</Text>
+            <Text style={selStyles.empty}>{(items || []).length === 0 ? 'Loading items...' : 'No results found'}</Text>
           )}
         </ScrollView>
       </View>
@@ -279,11 +279,12 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
     pan: '', aadhaar: '', shopName: '',
     address: '', state: '', stateCode: '', city: '', pincode: '',
     dateOfBirth: '', district: '', area: '',
+    bank: '', bankLabel: '',
   });
   const [loading, setLoading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [errors, setErrors] = useState({});
-  const [lists, setLists] = useState({ states: [], cities: [] });
+  const [lists, setLists] = useState({ states: [], cities: [], banks: [] });
   const [sel, setSel] = useState({ visible: false, title: '', items: [], key: '' });
 
   const updateForm = (key, val) => {
@@ -291,18 +292,14 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
     if (errors[key]) setErrors(prev => ({ ...prev, [key]: null }));
   };
 
-  const openSelector = async (title, key) => {
+  const openSelector = (title, key) => {
     let items = [];
     if (key === 'state') {
-      if (lists.states.length === 0) {
-        const hToken = await AsyncStorage.getItem("header_token");
-        const res = await fetchEStateList({ headerToken: hToken });
-        if (res.success && res.data) {
-          const mapped = res.data.map(s => ({ label: s.label || s.stateName || s.name || s.title || "Unknown", id: s._id }));
-          setLists(prev => ({ ...prev, states: mapped }));
-          items = mapped;
-        }
-      } else items = lists.states;
+      items = lists.states || [];
+    } else if (key === 'bank') {
+      items = lists.banks || [];
+    } else if (key === 'city') {
+      items = lists.cities || [];
     }
     setSel({ visible: true, title, items, key });
   };
@@ -311,27 +308,40 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
     const e = {};
     if (!form.firstName) e.firstName = 'Please enter first name';
     if (!form.lastName) e.lastName = 'Please enter last name';
-    if (!form.phone) e.phone = 'Mobile number is required';
-    else if (form.phone.length !== 10) e.phone = 'Should be 10 digits';
+    if (!form.phone) e.phone = 'Bank linked mobile is required';
+    else if (String(form.phone || '').length !== 10) e.phone = 'Must be exactly 10 digits';
+
+    if (!form.bank) e.bank = 'Please select linked bank';
 
     if (!form.email) e.email = 'Email address is required';
-    else if (!form.email.includes('@')) e.email = 'Enter valid email';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email || '')) e.email = 'Please enter a valid email address';
 
     if (!form.pan) e.pan = 'PAN number required';
-    else if (form.pan.length !== 10) e.pan = 'Enter valid 10-digit PAN';
+    else if (String(form.pan || '').length !== 10) e.pan = 'Enter valid 10-digit PAN';
 
     if (!form.aadhaar) e.aadhaar = 'Aadhaar is required';
-    else if (form.aadhaar.length !== 12) e.aadhaar = 'Must be 12 digits';
+    else if (String(form.aadhaar || '').length !== 12) e.aadhaar = 'Must be 12 digits';
 
     if (!form.shopName) e.shopName = 'Please enter shop name';
+    else if (String(form.shopName || '').length > 200) e.shopName = 'Shop name cannot exceed 200 characters';
     if (!form.address) e.address = 'Business address is required';
     if (!form.state) e.state = 'Please select state';
     if (!form.city) e.city = 'Please select city';
 
     if (!form.pincode) e.pincode = 'Pincode is required';
-    else if (form.pincode.length !== 6) e.pincode = 'Enter 6-digit pin';
+    else if (String(form.pincode || '').length !== 6) e.pincode = 'Enter 6-digit pin';
 
     if (!form.dateOfBirth) e.dateOfBirth = 'Date of birth is required';
+    else {
+      const birthDate = new Date(form.dateOfBirth);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      if (age < 18) e.dateOfBirth = 'Minimum age must be 18 years';
+    }
     if (!form.district) e.district = 'District is required';
     if (!form.area) e.area = 'Area is required';
 
@@ -369,7 +379,8 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
             pincode: form.pincode,
             district: form.district,
             area: form.area
-          }
+          },
+          bank: form.bank
         };
 
         const res = await onboardAepsUser({
@@ -407,14 +418,43 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
 
   useEffect(() => {
     loadUserProfile();
+    prefetchLists();
   }, []);
+
+  const prefetchLists = async () => {
+    try {
+      const hToken = await AsyncStorage.getItem("header_token");
+      if (!hToken) return;
+
+      // Fetch States
+      fetchEStateList({ headerToken: hToken }).then(res => {
+        const stateData = Array.isArray(res) ? res : (res?.data || []);
+        if (stateData.length > 0 || res?.success) {
+          const mapped = stateData.map(s => ({ label: s.label || s.stateName || s.name || s.title || "Unknown", id: s._id }));
+          setLists(prev => ({ ...prev, states: mapped }));
+        }
+      });
+
+      // Fetch Banks
+      fetchEBankList({ headerToken: hToken }).then(res => {
+        const bankData = Array.isArray(res) ? res : (res?.data || []);
+        if (bankData.length > 0 || res?.success) {
+          const mapped = bankData.map(b => ({ label: b.name || b.bankName, value: b._id || b.bankId }));
+          setLists(prev => ({ ...prev, banks: mapped }));
+        }
+      });
+    } catch (e) {
+      console.log("Prefetch error:", e);
+    }
+  };
 
   const loadUserProfile = async () => {
     try {
       const headerToken = await AsyncStorage.getItem("header_token");
       const res = await fetchUserProfile({ headerToken });
       if (res?.success) {
-        setForm({
+        setForm(prev => ({
+          ...prev,
           firstName: res.data.firstName || '',
           lastName: res.data.lastName || '',
           email: res.data.email || '',
@@ -429,7 +469,7 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
           dateOfBirth: res.data.dob || '',
           district: res.data.personalDistrict || '',
           area: res.data.personalArea || ''
-        });
+        }));
       }
     } catch (e) {
       console.log("Error loading profile:", e);
@@ -453,8 +493,9 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
                 label="First Name"
                 placeholder="First Name"
                 value={form.firstName}
-                onChangeText={v => updateForm('firstName', v)}
+                onChangeText={v => updateForm('firstName', v.replace(/[^a-zA-Z]/g, '').slice(0, 100))}
                 error={errors.firstName}
+                maxLength={100}
               />
             </View>
             <View style={{ flex: 1 }}>
@@ -462,8 +503,9 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
                 label="Last Name"
                 placeholder="Last Name"
                 value={form.lastName}
-                onChangeText={v => updateForm('lastName', v)}
+                onChangeText={v => updateForm('lastName', v.replace(/[^a-zA-Z]/g, '').slice(0, 100))}
                 error={errors.lastName}
+                maxLength={100}
               />
             </View>
           </View>
@@ -478,8 +520,8 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
           <View style={{ flexDirection: 'row', gap: rs(10) }}>
             <View style={{ flex: 1 }}>
               <FormField
-                label="Phone Number"
-                placeholder="10 digits"
+                label="Bank Linked Mobile"
+                placeholder="10 digit mobile"
                 icon="📞"
                 keyboardType="numeric"
                 value={form.phone}
@@ -507,6 +549,13 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
               </TouchableOpacity>
             </View>
           </View>
+          <DropdownField
+            label="Linked Bank"
+            placeholder="Select Bank"
+            value={form.bankLabel}
+            onPress={() => openSelector('Select Bank', 'bank')}
+            error={errors.bank}
+          />
         </SectionCard>
 
         <SectionCard>
@@ -516,8 +565,9 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
             placeholder="Official Business Name"
             icon="🏠"
             value={form.shopName}
-            onChangeText={v => updateForm('shopName', v)}
+            onChangeText={v => updateForm('shopName', v.slice(0, 200))}
             error={errors.shopName}
+            maxLength={200}
           />
           <View style={{ flexDirection: 'row', gap: rs(10) }}>
             <View style={{ flex: 1 }}>
@@ -569,7 +619,7 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
                 label="City"
                 placeholder="Enter City"
                 value={form.city}
-                onChangeText={v => updateForm('city', v)}
+                onChangeText={v => updateForm('city', v.replace(/[^a-zA-Z\s]/g, ''))}
                 error={errors.city}
               />
             </View>
@@ -626,6 +676,9 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
             updateForm('state', item.label);
             updateForm('stateCode', item.id);
             updateForm('city', '');
+          } else if (sel.key === 'bank') {
+            updateForm('bank', item.value);
+            updateForm('bankLabel', item.label);
           } else updateForm('city', item.label);
           setSel(s => ({ ...s, visible: false }));
         }}
@@ -642,7 +695,21 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
             const yyyy = date.getFullYear();
             const mm = String(date.getMonth() + 1).padStart(2, '0');
             const dd = String(date.getDate()).padStart(2, '0');
-            updateForm('dateOfBirth', `${yyyy}-${mm}-${dd}`);
+            const dob = `${yyyy}-${mm}-${dd}`;
+            updateForm('dateOfBirth', dob);
+
+            // Immediate age validation
+            const today = new Date();
+            let age = today.getFullYear() - date.getFullYear();
+            const m = today.getMonth() - date.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < date.getDate())) {
+              age--;
+            }
+            if (age < 18) {
+              setErrors(prev => ({ ...prev, dateOfBirth: 'Minimum age must be 18 years' }));
+            } else {
+              setErrors(prev => ({ ...prev, dateOfBirth: null }));
+            }
           }
           setShowDatePicker(false);
         }}
