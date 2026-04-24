@@ -11,6 +11,7 @@ import {
   Platform,
   Modal,
   FlatList,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -21,6 +22,8 @@ import FullScreenLoader from '../../../componets/Loader/FullScreenLoader';
 import { addXpressPayoutBank, getPayoutBankList } from '../../../api/AuthApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AlertService } from '../../../componets/Alerts/CustomAlert';
+import ImageUploadAlert from '../../../componets/Alerts/Imageuploadalert';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 
 const { width: SW } = Dimensions.get("window");
 const scale = (n) => (SW / 375) * n;
@@ -41,6 +44,8 @@ export default function AddXpressPayoutBank({ navigation }) {
     accountNumber: '',
     ifscCode: '',
   });
+  const [passbookImage, setPassbookImage] = useState(null);
+  const [isImageModalVisible, setIsImageModalVisible] = useState(false);
   const [errors, setErrors] = useState({});
 
   React.useEffect(() => {
@@ -82,18 +87,59 @@ export default function AddXpressPayoutBank({ navigation }) {
     setFilteredBanks(bankList);
   };
 
+  const handleCamera = () => {
+    launchCamera({ mediaType: 'photo', quality: 0.5 }, (res) => {
+      if (res.assets && res.assets[0]) {
+        const file = res.assets[0];
+        if (file.fileSize > 200 * 1024) {
+          AlertService.showAlert({ type: 'error', title: 'File Too Large', message: 'Image size must be below 200 KB' });
+          return;
+        }
+        setPassbookImage(file);
+      }
+    });
+  };
+
+  const handleGallery = () => {
+    launchImageLibrary({ mediaType: 'photo', quality: 0.5 }, (res) => {
+      if (res.assets && res.assets[0]) {
+        const file = res.assets[0];
+        if (file.fileSize > 200 * 1024) {
+          AlertService.showAlert({ type: 'error', title: 'File Too Large', message: 'Image size must be below 200 KB' });
+          return;
+        }
+        setPassbookImage(file);
+      }
+    });
+  };
+
   const handleSubmit = async () => {
     const { bankId, accountHolderName, accountNumber, ifscCode } = form;
     let newErrors = {};
 
     if (!bankId) newErrors.bankId = 'Please select a Bank';
-    if (!accountHolderName) newErrors.accountHolderName = 'Please enter Account Holder Name';
-    if (!accountNumber) newErrors.accountNumber = 'Please enter Account Number';
+    if (!accountHolderName) {
+      newErrors.accountHolderName = 'Please enter Account Holder Name';
+    } else if (!/^[a-zA-Z\s]+$/.test(accountHolderName)) {
+      newErrors.accountHolderName = 'Only alphabets and spaces allowed';
+    } else if (accountHolderName.length > 100) {
+      newErrors.accountHolderName = 'Name cannot exceed 100 characters';
+    }
+    if (!accountNumber) {
+      newErrors.accountNumber = 'Please enter Account Number';
+    } else if (!/^\d+$/.test(accountNumber)) {
+      newErrors.accountNumber = 'Only digits are allowed';
+    } else if (accountNumber.length < 9 || accountNumber.length > 20) {
+      newErrors.accountNumber = 'Account number must be between 9-20 digits';
+    }
     if (!ifscCode) {
       newErrors.ifscCode = 'Please enter IFSC Code';
+    } else if (!/^[A-Z0-9]+$/.test(ifscCode)) {
+      newErrors.ifscCode = 'Only alphabets and digits allowed';
     } else if (ifscCode.length > 15) {
       newErrors.ifscCode = 'IFSC Code cannot exceed 15 characters';
     }
+    if (!passbookImage) newErrors.passbookImage = 'Please upload cheque or passbook image';
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -101,18 +147,28 @@ export default function AddXpressPayoutBank({ navigation }) {
     }
     setErrors({});
 
+    if (passbookImage.fileSize > 200 * 1024) {
+      AlertService.showAlert({ type: 'error', title: 'File Too Large', message: 'Uploaded image exceeds 200 KB' });
+      return;
+    }
+
     setLoading(true);
     try {
       const headerToken = await AsyncStorage.getItem('header_token');
 
-      const payload = {
-        bankId,
-        accountHolderName,
-        accountNumber,
-        ifscCode,
-      };
+      const formData = new FormData();
+      formData.append('bankId', bankId);
+      formData.append('accountHolderName', accountHolderName);
+      formData.append('accountNumber', accountNumber);
+      formData.append('ifscCode', ifscCode);
 
-      const res = await addXpressPayoutBank({ data: payload, headerToken });
+      formData.append('cheque', {
+        uri: passbookImage.uri,
+        type: passbookImage.type || 'image/jpeg',
+        name: passbookImage.fileName || `cheque_${Date.now()}.jpg`,
+      });
+
+      const res = await addXpressPayoutBank({ data: formData, headerToken });
       if (res?.success) {
         AlertService.showAlert({
           type: 'success',
@@ -176,7 +232,8 @@ export default function AddXpressPayoutBank({ navigation }) {
             placeholder="As per bank records"
             value={form.accountHolderName}
             onChangeText={(t) => {
-              setForm({ ...form, accountHolderName: t });
+              const filtered = t.replace(/[^a-zA-Z\s]/g, '');
+              setForm({ ...form, accountHolderName: filtered });
               setErrors({ ...errors, accountHolderName: null });
             }}
             maxLength={100}
@@ -189,7 +246,8 @@ export default function AddXpressPayoutBank({ navigation }) {
             placeholder="00000000000"
             value={form.accountNumber}
             onChangeText={(t) => {
-              setForm({ ...form, accountNumber: t });
+              const filtered = t.replace(/\D/g, '');
+              setForm({ ...form, accountNumber: filtered });
               setErrors({ ...errors, accountNumber: null });
             }}
             keyboardType="numeric"
@@ -203,12 +261,52 @@ export default function AddXpressPayoutBank({ navigation }) {
             placeholder="SBIN0001234"
             value={form.ifscCode}
             onChangeText={(t) => {
-              setForm({ ...form, ifscCode: t.toUpperCase() });
+              const filtered = t.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+              setForm({ ...form, ifscCode: filtered });
               setErrors({ ...errors, ifscCode: null });
             }}
             maxLength={15}
             error={errors.ifscCode}
           />
+
+          <View style={styles.inputWrapper}>
+            <Text style={styles.inputLabel}>Bank Proof (Passbook / Cheque)</Text>
+            <Text style={styles.imageHint}>JPG, JPEG, PNG (Max 200KB)</Text>
+            {passbookImage ? (
+              <View style={styles.imagePreviewContainer}>
+                <Image source={{ uri: passbookImage.uri }} style={styles.previewImg} />
+                <View style={styles.imageActions}>
+                  <TouchableOpacity
+                    style={styles.imageActionBtn}
+                    onPress={() => setIsImageModalVisible(true)}
+                  >
+                    <Icon name="pencil" size={rs(16)} color={Colors.primary} />
+                    <Text style={styles.imageActionTxt}>Change</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.imageActionBtn, { borderColor: Colors.error }]}
+                    onPress={() => setPassbookImage(null)}
+                  >
+                    <Icon name="trash-can-outline" size={rs(16)} color={Colors.error} />
+                    <Text style={[styles.imageActionTxt, { color: Colors.error }]}>Remove</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={[styles.uploadArea, errors.passbookImage && { borderColor: Colors.error }]}
+                onPress={() => {
+                  setIsImageModalVisible(true);
+                  setErrors({ ...errors, passbookImage: null });
+                }}
+              >
+                <Icon name="cloud-upload-outline" size={rs(32)} color={errors.passbookImage ? Colors.error : Colors.primary} />
+                <Text style={[styles.uploadTxt, errors.passbookImage && { color: Colors.error }]}>
+                  {errors.passbookImage || "Click to upload image"}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
 
           <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={loading}>
             {loading ? (
@@ -280,6 +378,13 @@ export default function AddXpressPayoutBank({ navigation }) {
       </Modal>
 
       <FullScreenLoader visible={loading} label="Adding Xpress Bank..." />
+
+      <ImageUploadAlert
+        visible={isImageModalVisible}
+        onClose={() => setIsImageModalVisible(false)}
+        onCamera={handleCamera}
+        onGallery={handleGallery}
+      />
     </SafeAreaView>
   );
 }
@@ -312,9 +417,17 @@ const styles = StyleSheet.create({
   formSub: { fontSize: rs(13), fontFamily: Fonts.Medium, color: Colors.text_secondary, marginTop: rs(4), marginBottom: rs(28) },
   inputWrapper: { marginBottom: rs(20) },
   inputLabel: { fontSize: rs(12), fontFamily: Fonts.Bold, color: Colors.text_primary, marginBottom: rs(6), marginLeft: rs(4) },
+  imageHint: { fontSize: rs(10), fontFamily: Fonts.Medium, color: Colors.gray_BD, marginTop: rs(-4), marginBottom: rs(10), marginLeft: rs(4) },
   errorText: { color: Colors.error, fontSize: rs(10), fontFamily: Fonts.Medium, marginTop: rs(4), marginLeft: rs(4) },
   inputBox: { height: rs(58), backgroundColor: Colors.white, borderRadius: rs(18), borderWidth: 1, borderColor: Colors.border, flexDirection: 'row', alignItems: 'center', paddingHorizontal: rs(16), gap: rs(12) },
   field: { flex: 1, fontSize: rs(14), fontFamily: Fonts.Medium, color: Colors.text_primary, padding: 0 },
+  uploadArea: { height: rs(80), backgroundColor: Colors.white, borderRadius: rs(18), borderWidth: 1.5, borderColor: Colors.border, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', gap: rs(5) },
+  uploadTxt: { fontSize: rs(12), fontFamily: Fonts.Medium, color: Colors.text_secondary },
+  imagePreviewContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: rs(18), padding: rs(12), borderWidth: 1, borderColor: Colors.border, gap: rs(15) },
+  previewImg: { width: rs(60), height: rs(60), borderRadius: rs(12), backgroundColor: '#F8F9FA' },
+  imageActions: { flex: 1, gap: rs(8) },
+  imageActionBtn: { flexDirection: 'row', alignItems: 'center', gap: rs(6), paddingVertical: rs(4), paddingHorizontal: rs(8), borderRadius: rs(8), borderWidth: 1, borderColor: Colors.border, alignSelf: 'flex-start' },
+  imageActionTxt: { fontSize: rs(11), fontFamily: Fonts.Bold, color: Colors.primary },
   submitBtn: { backgroundColor: Colors.primary, height: rs(60), borderRadius: rs(20), flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: rs(10), marginTop: rs(12), ...Platform.select({ ios: { shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 10 }, android: { elevation: 6 } }) },
   submitBtnText: { fontSize: rs(16), fontFamily: Fonts.Bold, color: Colors.white },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'flex-end' },

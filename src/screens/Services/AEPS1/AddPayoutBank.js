@@ -118,10 +118,24 @@ export default function AddPayoutBank({ navigation }) {
     let newErrors = {};
 
     if (!bankId) newErrors.bankId = 'Please select a Bank';
-    if (!accountHolderName) newErrors.accountHolderName = 'Please enter Account Holder Name';
-    if (!accountNumber) newErrors.accountNumber = 'Please enter Account Number';
+    if (!accountHolderName) {
+      newErrors.accountHolderName = 'Please enter Account Holder Name';
+    } else if (!/^[a-zA-Z\s]+$/.test(accountHolderName)) {
+      newErrors.accountHolderName = 'Only alphabets and spaces allowed';
+    } else if (accountHolderName.length > 100) {
+      newErrors.accountHolderName = 'Name cannot exceed 100 characters';
+    }
+    if (!accountNumber) {
+      newErrors.accountNumber = 'Please enter Account Number';
+    } else if (!/^\d+$/.test(accountNumber)) {
+      newErrors.accountNumber = 'Only digits are allowed';
+    } else if (accountNumber.length < 9 || accountNumber.length > 20) {
+      newErrors.accountNumber = 'Account number must be between 9-20 digits';
+    }
     if (!ifscCode) {
       newErrors.ifscCode = 'Please enter IFSC Code';
+    } else if (!/^[A-Z0-9]+$/.test(ifscCode)) {
+      newErrors.ifscCode = 'Only alphabets and digits allowed';
     } else if (ifscCode.length > 15) {
       newErrors.ifscCode = 'IFSC Code cannot exceed 15 characters';
     }
@@ -218,7 +232,8 @@ export default function AddPayoutBank({ navigation }) {
             placeholder="As per bank records"
             value={form.accountHolderName}
             onChangeText={(t) => {
-              setForm({ ...form, accountHolderName: t });
+              const filtered = t.replace(/[^a-zA-Z\s]/g, '');
+              setForm({ ...form, accountHolderName: filtered });
               setErrors({ ...errors, accountHolderName: null });
             }}
             maxLength={100}
@@ -231,7 +246,8 @@ export default function AddPayoutBank({ navigation }) {
             placeholder="00000000000"
             value={form.accountNumber}
             onChangeText={(t) => {
-              setForm({ ...form, accountNumber: t });
+              const filtered = t.replace(/\D/g, '');
+              setForm({ ...form, accountNumber: filtered });
               setErrors({ ...errors, accountNumber: null });
             }}
             keyboardType="numeric"
@@ -245,7 +261,8 @@ export default function AddPayoutBank({ navigation }) {
             placeholder="SBIN0001234"
             value={form.ifscCode}
             onChangeText={(t) => {
-              setForm({ ...form, ifscCode: t.toUpperCase() });
+              const filtered = t.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+              setForm({ ...form, ifscCode: filtered });
               setErrors({ ...errors, ifscCode: null });
             }}
             maxLength={15}
@@ -254,6 +271,7 @@ export default function AddPayoutBank({ navigation }) {
 
           <View style={styles.inputWrapper}>
             <Text style={styles.inputLabel}>Bank Proof (Passbook / Cheque)</Text>
+            <Text style={styles.imageHint}>JPG, JPEG, PNG (Max 200KB)</Text>
             {passbookImage ? (
               <View style={styles.imagePreviewContainer}>
                 <Image source={{ uri: passbookImage.uri }} style={styles.previewImg} />
@@ -431,6 +449,14 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Bold,
     color: Colors.text_primary,
     marginBottom: rs(6),
+    marginLeft: rs(4),
+  },
+  imageHint: {
+    fontSize: rs(10),
+    fontFamily: Fonts.Medium,
+    color: Colors.gray_BD,
+    marginTop: rs(-4),
+    marginBottom: rs(10),
     marginLeft: rs(4),
   },
   uploadArea: {

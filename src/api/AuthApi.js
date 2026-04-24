@@ -2229,7 +2229,7 @@ export const addXpressPayoutBank = async ({ data, headerToken }) => {
     const response = await axios.post(`${BASE_URL}/user/xpressPayoutBank/add-payout-bank`, data, {
       headers: {
         Authorization: `Bearer ${headerToken}`,
-        "Content-Type": "application/json",
+        "Content-Type": "multipart/form-data",
       },
     });
     return response.data;
