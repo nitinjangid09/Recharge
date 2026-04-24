@@ -62,10 +62,10 @@ import AEPSServiceActivation from '../screens/Services/AEPS2/AEPSServiceActivati
 import AePSDashboard from '../screens/Services/AEPS2/AePSDashboardScreen';
 import TransactionAuditScreen from '../screens/Reports/WalletAudit';
 import AEPSPayOut from '../screens/Services/AEPS1/AEPS_Payout';
-import XpressPayout from '../screens/Services/AEPS1/Xpress_Payout';
+import XpressPayout from '../screens/Services/XpressPayout/Xpress_Payout';
 import AddPayoutBank from '../screens/Services/AEPS1/AddPayoutBank';
 import AEPSTransfer from '../screens/Services/AEPS1/AEPS_PayOut_Transfer';
-import XpressTransfer from '../screens/Services/AEPS1/Xpress_PayOut_Transfer';
+import XpressTransfer from '../screens/Services/XpressPayout/Xpress_PayOut_Transfer';
 import AddXpressPayoutBank from '../screens/Services/AEPS1/AddXpressPayoutBank';
 import AEPS2BiometricKYC from '../screens/Services/AEPS2/AEPS2BiometricKYCScreen';
 
