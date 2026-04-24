@@ -818,7 +818,7 @@ export default function OfflineTopup({ navigation }) {
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: S(10) }}>
               <TouchableOpacity onPress={() => setFilterVisible(true)} style={[st.filterBtn, filters.date !== 'this_month' && st.filterBtnActive]}>
-                <Icon name="filter-variant" size={S(16)} color={filters.date !== 'this_month' ? SURFACE : FG} />
+                <Icon name="filter-variant" size={S(16)} color={filters.date !== 'this_month' ? SURFACE : ACCENT} />
               </TouchableOpacity>
               <View style={st.historyCountBadge}>
                 <Text style={st.historyCountTxt}>{requests.length}</Text>
@@ -1200,8 +1200,8 @@ const st = StyleSheet.create({
   modeGroup: { flexDirection: "row", alignItems: "center", gap: S(5) },
 
   emptyStateBox: { alignItems: "center", justifyContent: "center", paddingVertical: S(50) },
-  filterBtn: { width: S(32), height: S(32), borderRadius: S(8), backgroundColor: '#F0F0F0', alignItems: 'center', justifyContent: 'center' },
-  filterBtnActive: { backgroundColor: FG },
+  filterBtn: { width: S(32), height: S(32), borderRadius: S(8), backgroundColor: ACCENT + '15', alignItems: 'center', justifyContent: 'center' },
+  filterBtnActive: { backgroundColor: ACCENT },
   datePill: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F9FA', borderRadius: S(12), paddingHorizontal: S(12), paddingVertical: S(8), borderWidth: 1, borderColor: '#EEE' },
   datePillLabel: { fontSize: S(8), fontFamily: Fonts.Bold, color: '#999', textTransform: 'uppercase' },
   datePillValue: { fontSize: S(11), fontFamily: Fonts.Bold, color: FG, marginTop: S(1) },
