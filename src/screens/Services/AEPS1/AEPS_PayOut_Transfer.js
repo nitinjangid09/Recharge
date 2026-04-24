@@ -19,6 +19,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from '@react-native-community/geolocation';
 import { AlertService } from '../../../componets/Alerts/CustomAlert';
 import { Modal, FlatList, ActivityIndicator } from 'react-native';
+import ReceiptModal from '../../../componets/ReceiptModal/ReceiptModal';
 
 const { width: SW } = Dimensions.get("window");
 const scale = (n) => (SW / 375) * n;
@@ -33,6 +34,8 @@ export default function AEPS_Transfer({ navigation, route }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [purpose, setPurpose] = useState('');
   const [errors, setErrors] = useState({});
+  const [receiptVisible, setReceiptVisible] = useState(false);
+  const [receiptData, setReceiptData] = useState(null);
 
   const approved = banks.filter(b => b.status === 'APPROVED' || b.status === 'Active' || b.status === 'approved');
 
@@ -69,14 +72,35 @@ export default function AEPS_Transfer({ navigation, route }) {
           const res = await initiateAepsPayoutTransfer({ data: payload, headerToken });
 
           if (res?.success) {
-            AlertService.showAlert({
-              type: 'success',
-              title: 'Transfer Successful',
-              message: res.message || 'Funds initiated successfully',
-              onClose: () => navigation.goBack()
+            setReceiptData({
+              status: res.message?.toLowerCase().includes("process") ? "pending" : "success",
+              title: "Payout Transfer",
+              amount: amount,
+              date: new Date().toLocaleString("en-IN"),
+              subTitle: res.message || "Transaction initiated",
+              details: [
+                { label: "Bank Name", value: selectedBank?.bankName || "N/A" },
+                { label: "Account No", value: selectedBank?.accountNumber || "N/A" },
+                { label: "Transaction ID", value: res.data?.transactionId || "N/A", small: true },
+                { label: "Status", value: res.message || "Under Process", isStatusPill: true, color: res.message?.toLowerCase().includes("process") ? Colors.amber : Colors.success },
+              ],
+              txn_ref: res.data?.transactionId,
             });
+            setReceiptVisible(true);
           } else {
-            AlertService.showAlert({ type: 'error', title: 'Transfer Failed', message: res.message || 'Unable to process transfer' });
+            setReceiptData({
+              status: "failed",
+              title: "Payout Transfer Failed",
+              amount: amount,
+              date: new Date().toLocaleString("en-IN"),
+              subTitle: res.message || "Unable to process transfer",
+              details: [
+                { label: "Bank Name", value: selectedBank?.bankName || "N/A" },
+                { label: "Account No", value: selectedBank?.accountNumber || "N/A" },
+                { label: "Error", value: res.message || "Transaction Failed", valueColor: Colors.error },
+              ],
+            });
+            setReceiptVisible(true);
           }
           setLoading(false);
         },
@@ -233,6 +257,16 @@ export default function AEPS_Transfer({ navigation, route }) {
           </View>
         </View>
       </Modal>
+
+      <ReceiptModal
+        visible={receiptVisible}
+        onClose={() => {
+          setReceiptVisible(false);
+          navigation.goBack();
+        }}
+        data={receiptData}
+        navigation={navigation}
+      />
     </SafeAreaView>
   );
 }
