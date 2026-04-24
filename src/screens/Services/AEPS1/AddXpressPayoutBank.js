@@ -11,7 +11,6 @@ import {
   Platform,
   Modal,
   FlatList,
-  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -19,11 +18,9 @@ import Colors from '../../../constants/Colors';
 import Fonts from '../../../constants/Fonts';
 import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
 import FullScreenLoader from '../../../componets/Loader/FullScreenLoader';
-import { addAepsPayoutBank, getPayoutBankList } from '../../../api/AuthApi';
+import { addXpressPayoutBank, getPayoutBankList } from '../../../api/AuthApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AlertService } from '../../../componets/Alerts/CustomAlert';
-import ImageUploadAlert from '../../../componets/Alerts/Imageuploadalert';
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 
 const { width: SW } = Dimensions.get("window");
 const scale = (n) => (SW / 375) * n;
@@ -44,8 +41,6 @@ export default function AddXpressPayoutBank({ navigation }) {
     accountNumber: '',
     ifscCode: '',
   });
-  const [passbookImage, setPassbookImage] = useState(null);
-  const [isImageModalVisible, setIsImageModalVisible] = useState(false);
   const [errors, setErrors] = useState({});
 
   React.useEffect(() => {
@@ -87,32 +82,6 @@ export default function AddXpressPayoutBank({ navigation }) {
     setFilteredBanks(bankList);
   };
 
-  const handleCamera = () => {
-    launchCamera({ mediaType: 'photo', quality: 0.5 }, (res) => {
-      if (res.assets && res.assets[0]) {
-        const file = res.assets[0];
-        if (file.fileSize > 200 * 1024) {
-          AlertService.showAlert({ type: 'error', title: 'File Too Large', message: 'Image size must be below 200 KB' });
-          return;
-        }
-        setPassbookImage(file);
-      }
-    });
-  };
-
-  const handleGallery = () => {
-    launchImageLibrary({ mediaType: 'photo', quality: 0.5 }, (res) => {
-      if (res.assets && res.assets[0]) {
-        const file = res.assets[0];
-        if (file.fileSize > 200 * 1024) {
-          AlertService.showAlert({ type: 'error', title: 'File Too Large', message: 'Image size must be below 200 KB' });
-          return;
-        }
-        setPassbookImage(file);
-      }
-    });
-  };
-
   const handleSubmit = async () => {
     const { bankId, accountHolderName, accountNumber, ifscCode } = form;
     let newErrors = {};
@@ -125,7 +94,6 @@ export default function AddXpressPayoutBank({ navigation }) {
     } else if (ifscCode.length > 15) {
       newErrors.ifscCode = 'IFSC Code cannot exceed 15 characters';
     }
-    if (!passbookImage) newErrors.passbookImage = 'Please upload cheque or passbook image';
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -137,24 +105,19 @@ export default function AddXpressPayoutBank({ navigation }) {
     try {
       const headerToken = await AsyncStorage.getItem('header_token');
 
-      const formData = new FormData();
-      formData.append('bankId', bankId);
-      formData.append('accountHolderName', accountHolderName);
-      formData.append('accountNumber', accountNumber);
-      formData.append('ifscCode', ifscCode);
+      const payload = {
+        bankId,
+        accountHolderName,
+        accountNumber,
+        ifscCode,
+      };
 
-      formData.append('cheque', {
-        uri: passbookImage.uri,
-        type: passbookImage.type || 'image/jpeg',
-        name: passbookImage.fileName || `cheque_${Date.now()}.jpg`,
-      });
-
-      const res = await addAepsPayoutBank({ data: formData, headerToken });
+      const res = await addXpressPayoutBank({ data: payload, headerToken });
       if (res?.success) {
         AlertService.showAlert({
           type: 'success',
           title: 'Success',
-          message: res.message || 'Xpress Payout bank request submitted successfully',
+          message: res.message || 'Xpress Payout bank added successfully',
           onClose: () => navigation.goBack()
         });
       } else {
@@ -247,50 +210,12 @@ export default function AddXpressPayoutBank({ navigation }) {
             error={errors.ifscCode}
           />
 
-          <View style={styles.inputWrapper}>
-            <Text style={styles.inputLabel}>Bank Proof (Passbook / Cheque)</Text>
-            {passbookImage ? (
-              <View style={styles.imagePreviewContainer}>
-                <Image source={{ uri: passbookImage.uri }} style={styles.previewImg} />
-                <View style={styles.imageActions}>
-                  <TouchableOpacity
-                    style={styles.imageActionBtn}
-                    onPress={() => setIsImageModalVisible(true)}
-                  >
-                    <Icon name="pencil" size={rs(16)} color={Colors.primary} />
-                    <Text style={styles.imageActionTxt}>Change</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.imageActionBtn, { borderColor: Colors.error }]}
-                    onPress={() => setPassbookImage(null)}
-                  >
-                    <Icon name="trash-can-outline" size={rs(16)} color={Colors.error} />
-                    <Text style={[styles.imageActionTxt, { color: Colors.error }]}>Remove</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ) : (
-              <TouchableOpacity
-                style={[styles.uploadArea, errors.passbookImage && { borderColor: Colors.error }]}
-                onPress={() => {
-                  setIsImageModalVisible(true);
-                  setErrors({ ...errors, passbookImage: null });
-                }}
-              >
-                <Icon name="cloud-upload-outline" size={rs(32)} color={errors.passbookImage ? Colors.error : Colors.primary} />
-                <Text style={[styles.uploadTxt, errors.passbookImage && { color: Colors.error }]}>
-                  {errors.passbookImage || "Click to upload image"}
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
           <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={loading}>
             {loading ? (
               <ActivityIndicator color={Colors.white} />
             ) : (
               <>
-                <Text style={styles.submitBtnText}>Submit Xpress Request</Text>
+                <Text style={styles.submitBtnText}>Submit Xpress Bank</Text>
                 <Icon name="check-circle" size={rs(18)} color={Colors.white} />
               </>
             )}
@@ -354,13 +279,7 @@ export default function AddXpressPayoutBank({ navigation }) {
         </View>
       </Modal>
 
-      <ImageUploadAlert
-        visible={isImageModalVisible}
-        onClose={() => setIsImageModalVisible(false)}
-        onCamera={handleCamera}
-        onGallery={handleGallery}
-      />
-      <FullScreenLoader visible={loading} label="Submitting Xpress Request..." />
+      <FullScreenLoader visible={loading} label="Adding Xpress Bank..." />
     </SafeAreaView>
   );
 }
@@ -393,13 +312,6 @@ const styles = StyleSheet.create({
   formSub: { fontSize: rs(13), fontFamily: Fonts.Medium, color: Colors.text_secondary, marginTop: rs(4), marginBottom: rs(28) },
   inputWrapper: { marginBottom: rs(20) },
   inputLabel: { fontSize: rs(12), fontFamily: Fonts.Bold, color: Colors.text_primary, marginBottom: rs(6), marginLeft: rs(4) },
-  uploadArea: { height: rs(70), backgroundColor: Colors.white, borderRadius: rs(20), borderWidth: 1, borderColor: Colors.border, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', gap: rs(8) },
-  uploadTxt: { fontSize: rs(13), fontFamily: Fonts.Medium, color: Colors.text_secondary },
-  previewImg: { width: '100%', height: rs(120), borderRadius: rs(14), resizeMode: 'cover' },
-  imagePreviewContainer: { backgroundColor: Colors.white, borderRadius: rs(20), borderWidth: 1, borderColor: Colors.border, padding: rs(10) },
-  imageActions: { flexDirection: 'row', justifyContent: 'center', gap: rs(12), marginTop: rs(10) },
-  imageActionBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: rs(12), paddingVertical: rs(6), borderRadius: rs(8), borderWidth: 1, borderColor: Colors.primary, gap: rs(6) },
-  imageActionTxt: { fontSize: rs(12), fontFamily: Fonts.Bold, color: Colors.primary },
   errorText: { color: Colors.error, fontSize: rs(10), fontFamily: Fonts.Medium, marginTop: rs(4), marginLeft: rs(4) },
   inputBox: { height: rs(58), backgroundColor: Colors.white, borderRadius: rs(18), borderWidth: 1, borderColor: Colors.border, flexDirection: 'row', alignItems: 'center', paddingHorizontal: rs(16), gap: rs(12) },
   field: { flex: 1, fontSize: rs(14), fontFamily: Fonts.Medium, color: Colors.text_primary, padding: 0 },

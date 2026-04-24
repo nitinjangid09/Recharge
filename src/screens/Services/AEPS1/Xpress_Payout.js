@@ -15,7 +15,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Colors from '../../../constants/Colors';
 import Fonts from '../../../constants/Fonts';
 import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
-import { requestAepsPayoutBank, getAepsPayoutBanks, getWalletBalance, deleteAepsPayoutBank } from '../../../api/AuthApi';
+import { requestAepsPayoutBank, getXpressPayoutBanks, getWalletBalance, deleteXpressPayoutBank } from '../../../api/AuthApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AlertService } from '../../../componets/Alerts/CustomAlert';
 import { ActivityIndicator, RefreshControl } from 'react-native';
@@ -39,7 +39,7 @@ export default function Xpress_Payout({ navigation }) {
       const headerToken = await AsyncStorage.getItem('header_token');
 
       const [bankRes, balanceRes] = await Promise.all([
-        getAepsPayoutBanks({ headerToken }),
+        getXpressPayoutBanks({ headerToken }),
         getWalletBalance({ headerToken })
       ]);
 
@@ -58,7 +58,7 @@ export default function Xpress_Payout({ navigation }) {
     setIsLoading(true);
     try {
       const headerToken = await AsyncStorage.getItem('header_token');
-      const res = await deleteAepsPayoutBank({ bankId, headerToken });
+      const res = await deleteXpressPayoutBank({ bankId, headerToken });
 
       if (res?.success) {
         AlertService.showAlert({

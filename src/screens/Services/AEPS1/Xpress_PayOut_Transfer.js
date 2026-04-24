@@ -14,7 +14,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Colors from '../../../constants/Colors';
 import Fonts from '../../../constants/Fonts';
 import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
-import { initiateAepsPayoutTransfer } from '../../../api/AuthApi';
+import { initiateXpressPayoutTransfer } from '../../../api/AuthApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from '@react-native-community/geolocation';
 import { AlertService } from '../../../componets/Alerts/CustomAlert';
@@ -66,7 +66,7 @@ export default function Xpress_PayOut_Transfer({ navigation, route }) {
             purpose: purpose
           };
 
-          const res = await initiateAepsPayoutTransfer({ data: payload, headerToken });
+          const res = await initiateXpressPayoutTransfer({ data: payload, headerToken });
 
           if (res?.success) {
             AlertService.showAlert({

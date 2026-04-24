@@ -2215,3 +2215,94 @@ export const deleteAepsPayoutBank = async ({ bankId, headerToken }) => {
   }
 };
 
+/**
+ * addXpressPayoutBank
+ * POST /user/xpressPayoutBank/add-payout-bank
+ */
+export const addXpressPayoutBank = async ({ data, headerToken }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/user/xpressPayoutBank/add-payout-bank`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Add Xpress Payout Bank Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Failed to add xpress payout bank" };
+  }
+};
+
+/**
+ * getXpressPayoutBanks
+ * GET /user/xpressPayoutBank/bank-list
+ */
+export const getXpressPayoutBanks = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/xpressPayoutBank/bank-list`, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get Xpress Payout Banks Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Failed to fetch xpress payout banks" };
+  }
+};
+
+/**
+ * deleteXpressPayoutBank
+ * DELETE /user/xpressPayoutBank/delete-payout-bank/:bankId
+ */
+export const deleteXpressPayoutBank = async ({ bankId, headerToken }) => {
+  try {
+    const response = await axios.delete(`${BASE_URL}/user/xpressPayoutBank/delete-payout-bank/${bankId}`, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Delete Xpress Payout Bank Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Failed to delete xpress payout bank" };
+  }
+};
+
+/**
+ * initiateXpressPayoutTransfer
+ * POST /user/xpressPayout/initiate-payout-transfer
+ */
+export const initiateXpressPayoutTransfer = async ({ data, headerToken }) => {
+  const generateIdempotencyKey = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = 'XPTR_';
+    for (let i = 0; i < 8; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
+  try {
+    const idempotencyKey = generateIdempotencyKey();
+    const response = await axios.post(`${BASE_URL}/user/xpressPayout/initiate-payout-transfer`, data, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "Content-Type": "application/json",
+        "idempotency-key": idempotencyKey
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Initiate Xpress Payout Transfer Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Failed to initiate transfer" };
+  }
+};
+
+
+
+
+
