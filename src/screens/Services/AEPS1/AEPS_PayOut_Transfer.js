@@ -43,6 +43,8 @@ export default function AEPS_Transfer({ navigation, route }) {
     }
     if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
       newErrors.amount = 'Please enter a valid amount';
+    } else if (parseFloat(amount) > 1000000) {
+      newErrors.amount = 'Amount cannot exceed ₹1,000,000';
     }
 
     if (Object.keys(newErrors).length > 0) {
