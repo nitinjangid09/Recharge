@@ -932,9 +932,11 @@ export const addOfflineTopupRequest = async ({ amount, mode, receiverBank, utrNu
   }
 };
 
-export const getAllOfflineTopupRequests = async ({ headerToken, page = 1, limit = 10 }) => {
+export const getAllOfflineTopupRequests = async ({ headerToken, page = 1, limit = 10, from, to }) => {
   try {
-    const url = `${BASE_URL}/user/offlineTopup/get-all-offline-topup-requests?page=${page}&limit=${limit}`;
+    let url = `${BASE_URL}/user/offlineTopup/get-all-offline-topup-requests?page=${page}&limit=${limit}`;
+    if (from) url += `&from=${from}`;
+    if (to) url += `&to=${to}`;
     const response = await axios.get(url, {
       headers: { Authorization: `Bearer ${headerToken}` }
     });

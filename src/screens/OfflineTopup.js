@@ -15,6 +15,7 @@ import {
   PermissionsAndroid,
   Alert,
   RefreshControl,
+  PanResponder,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -30,9 +31,47 @@ import ImageUploadAlert from "../componets/Alerts/Imageuploadalert";
 import ReceiptModal from "../componets/ReceiptModal/ReceiptModal";
 import CalendarModal from "../componets/Calendar/CalendarModal";
 import FullScreenLoader from "../componets/Loader/FullScreenLoader";
+import { buttonPress } from "../utils/ScreenAnimations";
+
+// ─── Filter config ────────────────────────────────────────────────────────────
+const DATE_OPTIONS = [
+  { key: 'this_month', label: 'This Month', icon: 'calendar-today' },
+  { key: 'last_month', label: 'Last Month', icon: 'calendar-month' },
+  { key: 'last_3', label: 'Last 3 Months', icon: 'calendar-range' },
+  { key: 'last_6', label: 'Last 6 Months', icon: 'calendar-clock' },
+  { key: 'custom', label: 'Custom Range', icon: 'calendar-edit' },
+];
+
+const FILTER_SECTIONS = [
+  { key: 'date', label: 'DATE RANGE', icon: 'calendar-month-outline', options: DATE_OPTIONS, stateKey: 'date', defaultKey: 'this_month' },
+];
+
+const DEFAULT_FILTERS = { date: 'this_month' };
+
+const resolvePeriod = (period, customFrom, customTo) => {
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth(), d = now.getDate();
+  switch (period) {
+    case 'this_month': return { from: new Date(y, m, 1), to: new Date(y, m, d) };
+    case 'last_month': {
+      const lm = m === 0 ? 11 : m - 1, ly = m === 0 ? y - 1 : y;
+      return { from: new Date(ly, lm, 1), to: new Date(ly, lm, getDaysInMonth(ly, lm)) };
+    }
+    case 'last_3': return { from: new Date(y, m - 3, d), to: new Date(y, m, d) };
+    case 'last_6': return { from: new Date(y, m - 6, d), to: new Date(y, m, d) };
+    case 'custom': return { from: customFrom || new Date(y, m, 1), to: customTo || new Date(y, m, d) };
+    default: return { from: new Date(y, m, 1), to: new Date(y, m, d) };
+  }
+};
+
+const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const pad = (n) => String(n).padStart(2, '0');
+const getDaysInMonth = (y, m) => new Date(y, m + 1, 0).getDate();
+const formatDisplay = (d) => `${pad(d.getDate())} ${MONTHS_SHORT[d.getMonth()]} ${d.getFullYear()}`;
+const toQueryDate = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
 // ─── Responsive scale ─────────────────────────────────────────────────────
-const { width: W } = Dimensions.get("window");
+const { width: W, height: SH } = Dimensions.get("window");
 const S = (n) => Math.round(PixelRatio.roundToNearestPixel(n * (W / 375)));
 
 const ACCENT = Colors.finance_accent || "#D4A843";
@@ -120,6 +159,175 @@ const FieldLabel = ({ text }) => (
   <Text style={st.fieldLabel}>{text}</Text>
 );
 
+// ─── Filter Sheet Component ───────────────────────────────────────────────────
+const FilterSheet = ({ visible, onClose, onApply, activeFilters, startDate, endDate, onOpenCal }) => {
+  const slideA = useRef(new Animated.Value(SH)).current;
+  const backdropA = useRef(new Animated.Value(0)).current;
+  const [local, setLocal] = useState(activeFilters);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, { dy }) => dy > 10,
+      onPanResponderMove: (_, { dy }) => { if (dy > 0) slideA.setValue(dy); },
+      onPanResponderRelease: (_, { dy }) => {
+        if (dy > 120) onClose();
+        else Animated.spring(slideA, { toValue: 0, bounciness: 5, useNativeDriver: true }).start();
+      },
+    })
+  ).current;
+
+  useEffect(() => {
+    if (visible) {
+      setLocal(activeFilters);
+      Animated.parallel([
+        Animated.spring(slideA, { toValue: 0, bounciness: 2, speed: 18, useNativeDriver: true }),
+        Animated.timing(backdropA, { toValue: 1, duration: 220, useNativeDriver: true }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(slideA, { toValue: SH, duration: 260, useNativeDriver: true }),
+        Animated.timing(backdropA, { toValue: 0, duration: 200, useNativeDriver: true }),
+      ]).start();
+    }
+  }, [visible]);
+
+  const activeCount = local.date !== DEFAULT_FILTERS.date ? 1 : 0;
+  const isCustomDate = local.date === 'custom';
+
+  return (
+    <Modal transparent visible={visible} animationType="none" onRequestClose={onClose}>
+      <Animated.View style={[FST.backdrop, { opacity: backdropA }]}>
+        <TouchableOpacity style={StyleSheet.absoluteFill} onPress={onClose} activeOpacity={1} />
+      </Animated.View>
+      <Animated.View style={[FST.sheet, { transform: [{ translateY: slideA }] }]} {...panResponder.panHandlers}>
+        <View style={FST.handle} />
+        <View style={FST.header}>
+          <Text style={FST.title}>Filters</Text>
+          <TouchableOpacity onPress={() => setLocal(DEFAULT_FILTERS)} style={FST.resetBtn}>
+            <Icon name="refresh" size={S(12)} color={ACCENT} style={{ marginRight: S(4) }} />
+            <Text style={FST.resetTxt}>Reset all</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={FST.body}>
+          <View style={FST.navCol}>
+            <View style={[FST.navItem, FST.navItemActive]}>
+              <View style={[FST.navIconBox, { backgroundColor: ACCENT + '15' }]}>
+                <Icon name="calendar-month-outline" size={S(15)} color={ACCENT} />
+              </View>
+              <Text style={[FST.navTxt, FST.navTxtActive]}>DATE</Text>
+            </View>
+          </View>
+          <ScrollView style={FST.optCol} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingVertical: S(16) }}>
+            <Text style={FST.optSectionLabel}>DATE RANGE</Text>
+            {isCustomDate && (
+              <View style={FST.customDateRow}>
+                <DateFilterBtn label="From" date={startDate} onPress={() => onOpenCal('start')} />
+                <View style={{ width: S(8) }} />
+                <DateFilterBtn label="To" date={endDate} onPress={() => onOpenCal('end')} />
+              </View>
+            )}
+            {DATE_OPTIONS.map((opt) => {
+              const isSel = local.date === opt.key;
+              return (
+                <TouchableOpacity key={opt.key} style={[FST.optRow, isSel && FST.optRowActive]} onPress={() => setLocal({ date: opt.key })} activeOpacity={0.7}>
+                  <View style={[FST.optIconBox, isSel && { backgroundColor: ACCENT + '15' }]}>
+                    <Icon name={opt.icon} size={S(14)} color={isSel ? ACCENT : "#999"} />
+                  </View>
+                  <Text style={[FST.optTxt, isSel && FST.optTxtActive]}>{opt.label}</Text>
+                  <View style={isSel ? FST.radioOn : FST.radioOff}>{isSel && <View style={FST.radioInner} />}</View>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+        <View style={FST.footer}>
+          <TouchableOpacity style={FST.applyBtn} onPress={() => onApply(local)} activeOpacity={0.88}>
+            <Text style={FST.applyTxt}>Apply Filters</Text>
+            {activeCount > 0 && <View style={FST.badge}><Text style={FST.badgeTxt}>{activeCount}</Text></View>}
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
+    </Modal>
+  );
+};
+
+const DateFilterBtn = ({ label, date, onPress }) => {
+  const sa = useRef(new Animated.Value(1)).current;
+  return (
+    <Animated.View style={{ flex: 1, transform: [{ scale: sa }] }}>
+      <TouchableOpacity style={st.datePill} activeOpacity={0.9} onPress={() => { buttonPress(sa).start(); onPress(); }}>
+        <Icon name="calendar-month" size={S(18)} color={ACCENT} style={{ marginRight: S(8) }} />
+        <View style={{ flex: 1 }}>
+          <Text style={st.datePillLabel}>{label}</Text>
+          <Text style={st.datePillValue}>{formatDisplay(date)}</Text>
+        </View>
+        <Icon name="chevron-down" size={S(13)} color="#C4C4C4" />
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
+
+const FilterPills = ({ filters, onRemove }) => {
+  const pills = [];
+  const dateOpt = DATE_OPTIONS.find(o => o.key === filters.date);
+  if (filters.date !== 'this_month' && dateOpt) pills.push({ key: 'date', label: dateOpt.label, icon: 'calendar-range', color: ACCENT });
+  if (!pills.length) return null;
+  return (
+    <View style={PIL.row}>
+      {pills.map(p => (
+        <View key={p.key} style={[PIL.pill, { backgroundColor: p.color + '12', borderColor: p.color + '28' }]}>
+          <Icon name={p.icon} size={S(10)} color={p.color} style={{ marginRight: S(4) }} />
+          <Text style={[PIL.txt, { color: p.color }]}>{p.label}</Text>
+          <TouchableOpacity onPress={() => onRemove(p.key)} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }} style={{ marginLeft: S(5) }}>
+            <Icon name="close-circle" size={S(12)} color={p.color} />
+          </TouchableOpacity>
+        </View>
+      ))}
+    </View>
+  );
+};
+
+const FST = StyleSheet.create({
+  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.55)' },
+  sheet: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: SURFACE, borderTopLeftRadius: S(24), borderTopRightRadius: S(24), maxHeight: SH * 0.78, elevation: 24 },
+  handle: { width: S(32), height: S(4), backgroundColor: 'rgba(0,0,0,0.12)', borderRadius: 2, alignSelf: 'center', marginTop: S(10), marginBottom: S(2) },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S(20), paddingVertical: S(14), borderBottomWidth: 1, borderBottomColor: '#EEE' },
+  title: { fontSize: S(17), fontFamily: Fonts.Bold, color: FG },
+  resetBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: S(12), paddingVertical: S(6), borderRadius: S(8), backgroundColor: ACCENT + '15' },
+  resetTxt: { fontSize: S(12), fontFamily: Fonts.Bold, color: ACCENT },
+  body: { flexDirection: 'row', flex: 1, maxHeight: SH * 0.52 },
+  navCol: { width: S(82), borderRightWidth: 1, borderRightColor: '#EEE', paddingTop: S(10) },
+  navItem: { paddingVertical: S(18), alignItems: 'center', paddingHorizontal: S(6) },
+  navItemActive: { backgroundColor: '#F8F9FA' },
+  navIconBox: { width: S(34), height: S(34), borderRadius: S(10), alignItems: 'center', justifyContent: 'center', marginBottom: S(5) },
+  navTxt: { fontSize: S(9), fontFamily: Fonts.Medium, color: '#999', textAlign: 'center', letterSpacing: 0.3 },
+  navTxtActive: { color: ACCENT, fontFamily: Fonts.Bold },
+  optCol: { flex: 1, paddingHorizontal: S(14) },
+  optSectionLabel: { fontSize: S(9), fontFamily: Fonts.Bold, color: '#999', letterSpacing: 1.2, marginBottom: S(10), textTransform: 'uppercase' },
+  optRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: S(12), gap: S(10), borderRadius: S(10), paddingHorizontal: S(4) },
+  optRowActive: { backgroundColor: ACCENT + '10', marginHorizontal: -S(4), paddingHorizontal: S(8) },
+  optIconBox: { width: S(32), height: S(32), borderRadius: S(9), backgroundColor: '#F0F0F0', alignItems: 'center', justifyContent: 'center' },
+  optTxt: { flex: 1, fontSize: S(13), fontFamily: Fonts.Medium, color: FG },
+  optTxtActive: { color: ACCENT, fontFamily: Fonts.Bold },
+  radioOff: { width: S(18), height: S(18), borderRadius: S(9), borderWidth: 1.5, borderColor: '#EEE' },
+  radioOn: { width: S(18), height: S(18), borderRadius: S(9), borderWidth: 2, borderColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
+  radioInner: { width: S(8), height: S(8), borderRadius: S(4), backgroundColor: ACCENT },
+  customDateRow: { flexDirection: 'row', alignItems: 'center', marginBottom: S(16), paddingHorizontal: S(4) },
+  footer: { paddingHorizontal: S(20), paddingTop: S(12), paddingBottom: S(20), borderTopWidth: 1, borderTopColor: '#EEE' },
+  applyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: FG, borderRadius: S(14), paddingVertical: S(15) },
+  applyTxt: { color: SURFACE, fontSize: S(14), fontFamily: Fonts.Bold },
+  badge: { marginLeft: S(8), backgroundColor: ACCENT, minWidth: S(20), height: S(20), borderRadius: S(10), alignItems: 'center', justifyContent: 'center', paddingHorizontal: S(4) },
+  badgeTxt: { color: '#000', fontSize: S(9), fontFamily: Fonts.Bold },
+});
+
+const PIL = StyleSheet.create({
+  row: { flexDirection: 'row', flexWrap: 'wrap', gap: S(6), paddingHorizontal: S(16), marginBottom: S(8), marginTop: S(4), alignSelf: 'flex-start', width: '100%' },
+  pill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: S(10), paddingVertical: S(5), borderRadius: S(20), borderWidth: 1 },
+  txt: { fontSize: S(11), fontFamily: Fonts.Bold },
+});
+
+
+
 // ─── Reusable text input row ──────────────────────────────────────────────
 const InputBox = ({ label, value, setValue, icon, placeholder, keyboardType, error, maxLength, filter }) => (
   <View style={st.fieldWrap}>
@@ -162,8 +370,6 @@ export default function OfflineTopup({ navigation }) {
   const [banksLoading, setBanksLoading] = useState(false);
   const [bankModalVisible, setBankModalVisible] = useState(false);
   const [paymentProof, setPaymentProof] = useState("");
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [date, setDate] = useState(new Date());
   const [submitting, setSubmitting] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertType, setAlertType] = useState("info");
@@ -175,6 +381,21 @@ export default function OfflineTopup({ navigation }) {
   const [requestsLoading, setRequestsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
+
+  // ── Filter State ──
+  const today = new Date();
+  const defaultFrom = new Date(today.getFullYear(), today.getMonth(), 1);
+  const defaultTo = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+  const [startDate, setStartDate] = useState(defaultFrom);
+  const [endDate, setEndDate] = useState(defaultTo);
+  const [calVisible, setCalVisible] = useState(false);
+  const [calTarget, setCalTarget] = useState('start');
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
+  const [filterVisible, setFilterVisible] = useState(false);
+
+  const startDateRef = useRef(defaultFrom);
+  const endDateRef = useRef(defaultTo);
 
   const activeModeHint = PAYMENT_MODES.find(m => m.key === mode)?.hint || "";
 
@@ -208,11 +429,17 @@ export default function OfflineTopup({ navigation }) {
     }
   };
 
-  const fetchRequests = async () => {
+  const fetchRequests = async (from, to) => {
     setRequestsLoading(true);
     try {
       const headerToken = await AsyncStorage.getItem("header_token");
-      const result = await getAllOfflineTopupRequests({ headerToken, page: 1, limit: 10 });
+      const result = await getAllOfflineTopupRequests({
+        headerToken,
+        page: 1,
+        limit: 10,
+        from: from ? toQueryDate(from) : undefined,
+        to: to ? toQueryDate(to) : undefined
+      });
       if (result?.success) setRequests(result.data || []);
     } catch (e) {
       console.log("Fetch requests error:", e);
@@ -231,14 +458,46 @@ export default function OfflineTopup({ navigation }) {
     setPaymentDate("");
     setPaymentProof("");
     setErrors({});
-    await Promise.all([fetchBanks(), fetchRequests()]);
+    await Promise.all([fetchBanks(), fetchRequests(startDateRef.current, endDateRef.current)]);
     setRefreshing(false);
   }, []);
 
   useEffect(() => {
     fetchBanks();
-    fetchRequests();
+    const period = resolvePeriod(filters.date, startDateRef.current, endDateRef.current);
+    startDateRef.current = period.from;
+    endDateRef.current = period.to;
+    setStartDate(period.from);
+    setEndDate(period.to);
+    fetchRequests(period.from, period.to);
   }, []);
+
+  const openCal = (target) => { setCalTarget(target); setCalVisible(true); };
+  const onCalConfirm = (selectedDate) => {
+    if (calTarget === 'start') { startDateRef.current = selectedDate; setStartDate(selectedDate); }
+    else if (calTarget === 'end') { endDateRef.current = selectedDate; setEndDate(selectedDate); }
+    else if (calTarget === 'payment') {
+      const y = selectedDate.getFullYear();
+      const m = String(selectedDate.getMonth() + 1).padStart(2, "0");
+      const d = String(selectedDate.getDate()).padStart(2, "0");
+      setPaymentDate(`${y}-${m}-${d}`);
+      if (errors.paymentDate) setErrors(prev => ({ ...prev, paymentDate: null }));
+    }
+    setCalVisible(false);
+  };
+  const onApplyFilters = (newFilters) => {
+    setFilters(newFilters);
+    setFilterVisible(false);
+    const period = resolvePeriod(newFilters.date, startDateRef.current, endDateRef.current);
+    startDateRef.current = period.from;
+    endDateRef.current = period.to;
+    setStartDate(period.from);
+    setEndDate(period.to);
+    fetchRequests(period.from, period.to);
+  };
+  const removeFilter = (key) => {
+    onApplyFilters({ ...filters, [key]: DEFAULT_FILTERS[key] });
+  };
 
   const handleCamera = async () => {
     try {
@@ -467,9 +726,9 @@ export default function OfflineTopup({ navigation }) {
             <FieldLabel text="Payment Date" />
             <TouchableOpacity
               style={[st.inputRow, errors.paymentDate ? st.inputRowError : null]}
-              onPress={() => {
+               onPress={() => {
                 if (errors.paymentDate) setErrors(prev => ({ ...prev, paymentDate: null }));
-                setShowDatePicker(true);
+                openCal('payment');
               }}
               activeOpacity={0.7}
             >
@@ -481,12 +740,13 @@ export default function OfflineTopup({ navigation }) {
             {!!errors.paymentDate && <Text style={st.errorTxt}>{errors.paymentDate}</Text>}
           </View>
           <CalendarModal
-            visible={showDatePicker}
-            title="Select Payment Date"
-            initialDate={date}
+            visible={calVisible}
+            title={calTarget === 'start' ? 'Select Start Date' : 'Select End Date'}
+            initialDate={calTarget === 'start' ? startDate : endDate}
+            minDate={calTarget === 'end' ? startDate : null}
             maxDate={new Date()}
-            onCancel={() => setShowDatePicker(false)}
-            onConfirm={onDateConfirm}
+            onConfirm={onCalConfirm}
+            onCancel={() => setCalVisible(false)}
           />
 
           {/* ── Payment Proof ── */}
@@ -556,10 +816,16 @@ export default function OfflineTopup({ navigation }) {
               <Icon name="clock-outline" size={S(16)} color={FG} />
               <Text style={st.historyHeaderTitle}>Recent Requests</Text>
             </View>
-            <View style={st.historyCountBadge}>
-              <Text style={st.historyCountTxt}>{requests.length}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: S(10) }}>
+              <TouchableOpacity onPress={() => setFilterVisible(true)} style={[st.filterBtn, filters.date !== 'this_month' && st.filterBtnActive]}>
+                <Icon name="filter-variant" size={S(16)} color={filters.date !== 'this_month' ? SURFACE : FG} />
+              </TouchableOpacity>
+              <View style={st.historyCountBadge}>
+                <Text style={st.historyCountTxt}>{requests.length}</Text>
+              </View>
             </View>
           </View>
+          <FilterPills filters={filters} onRemove={removeFilter} />
 
           {requestsLoading ? (
             <ActivityIndicator size="small" color={ACCENT} style={{ marginVertical: S(30) }} />
@@ -698,6 +964,16 @@ export default function OfflineTopup({ navigation }) {
         onClose={() => setReceiptData(null)}
         navigation={navigation}
         data={receiptData}
+      />
+
+      <FilterSheet
+        visible={filterVisible}
+        onClose={() => setFilterVisible(false)}
+        onApply={onApplyFilters}
+        activeFilters={filters}
+        startDate={startDate}
+        endDate={endDate}
+        onOpenCal={openCal}
       />
     </SafeAreaView>
   );
@@ -923,8 +1199,13 @@ const st = StyleSheet.create({
   detailValue: { fontSize: S(12), fontFamily: Fonts.Bold, color: FG, letterSpacing: 0.2 },
   modeGroup: { flexDirection: "row", alignItems: "center", gap: S(5) },
 
-  emptyStateBox: { alignItems: "center", paddingVertical: S(40), backgroundColor: "rgba(212,176,106,0.04)", borderRadius: S(18), borderStyle: "dashed", borderWidth: 1, borderColor: "rgba(0,0,0,0.1)" },
-  emptyIconCircle: { width: S(64), height: S(64), borderRadius: S(32), backgroundColor: SURFACE, alignItems: "center", justifyContent: "center", marginBottom: S(14), elevation: 1 },
+  emptyStateBox: { alignItems: "center", justifyContent: "center", paddingVertical: S(50) },
+  filterBtn: { width: S(32), height: S(32), borderRadius: S(8), backgroundColor: '#F0F0F0', alignItems: 'center', justifyContent: 'center' },
+  filterBtnActive: { backgroundColor: FG },
+  datePill: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F9FA', borderRadius: S(12), paddingHorizontal: S(12), paddingVertical: S(8), borderWidth: 1, borderColor: '#EEE' },
+  datePillLabel: { fontSize: S(8), fontFamily: Fonts.Bold, color: '#999', textTransform: 'uppercase' },
+  datePillValue: { fontSize: S(11), fontFamily: Fonts.Bold, color: FG, marginTop: S(1) },
+  emptyIconCircle: { width: S(64), height: S(64), borderRadius: S(32), backgroundColor: "#F3F4F6", alignItems: "center", justifyContent: "center", marginBottom: S(16) },
   emptyTitle: { fontSize: S(15), fontFamily: Fonts.Bold, color: FG, marginBottom: S(4) },
   emptySubtitle: { fontSize: S(12), fontFamily: Fonts.Medium, color: "#9CA3AF", textAlign: "center" },
 });
