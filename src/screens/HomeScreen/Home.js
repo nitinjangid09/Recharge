@@ -70,6 +70,7 @@ const ALL_ITEMS = [
   { id: "14", label: "KYC Verification", icon: "shield-check", screen: "Offlinekyc" },
   { id: "15", label: "Offline Services", icon: "clipboard-list-outline", screen: "OfflineServices" },
   { id: "16", label: "AEPS 2", icon: "bank-plus", screen: "AEPSPortalAccess" },
+  { id: "17", label: "Xpress Payout", icon: "bank-transfer", screen: "XpressPayout" },
 ];
 
 // Service icon mapping for assigned services

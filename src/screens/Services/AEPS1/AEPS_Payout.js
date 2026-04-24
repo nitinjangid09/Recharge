@@ -111,12 +111,9 @@ export default function AEPS_Payout({ navigation }) {
 
 // ─── Dashboard Fragment ─────────────────────────────────────────────────────────
 function DashboardContent({ onTransfer, onAddBank, banks, loading, onRefresh, balance, onDeleteBank }) {
-  // Use real banks from API or fallback to mock if list is empty for demo/visuals
-  const displayBanks = banks.length > 0 ? banks : [
-    { _id: '1', accountHolderName: 'Demo User', bankName: 'Fetching...', accountNumber: '0000****0000', status: 'PENDING', color: Colors.goldMid },
-  ];
+  const displayBanks = banks;
 
-  const [main, decimal] = (balance || '0.00').split('.');
+  const [main, decimal] = (balance?.toString() || '0.00').split('.');
 
   return (
     <ScrollView
@@ -179,7 +176,12 @@ function DashboardContent({ onTransfer, onAddBank, banks, loading, onRefresh, ba
         <TouchableOpacity><Text style={styles.viewMore}>View All</Text></TouchableOpacity>
       </View>
 
-      {displayBanks.slice(0, 5).map(bene => (
+      {displayBanks.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Icon name="bank-off-outline" size={rs(40)} color={Colors.border} />
+          <Text style={styles.emptyText}>No beneficiaries found</Text>
+        </View>
+      ) : displayBanks.slice(0, 5).map(bene => (
         <TouchableOpacity key={bene._id} style={styles.beneCard} activeOpacity={0.7}>
           <View style={[styles.beneIcon, { backgroundColor: (bene.color || Colors.accent) + '15' }]}>
             <Text style={{ color: bene.color || Colors.accent, fontWeight: '800', fontSize: rs(14) }}>
@@ -610,5 +612,22 @@ const styles = StyleSheet.create({
   },
   tabLabelActive: {
     color: Colors.white,
-  }
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: rs(40),
+    backgroundColor: Colors.white,
+    borderRadius: rs(20),
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderStyle: 'dashed',
+    marginBottom: rs(20),
+  },
+  emptyText: {
+    fontSize: rs(14),
+    fontFamily: Fonts.Medium,
+    color: Colors.text_secondary,
+    marginTop: rs(10),
+  },
 });

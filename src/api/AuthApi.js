@@ -2181,12 +2181,12 @@ export const initiateAepsPayoutTransfer = async ({ data, headerToken }) => {
 
 export const deleteAepsPayoutBank = async ({ bankId, headerToken }) => {
   try {
-    const response = await axios.delete(`${BASE_URL}/user/aepsPayoutBank/delete-aeps-payout-bank`, {
+    const response = await axios.delete(`${BASE_URL}/user/aepsPayoutBank/delete-aeps-payout-bank/${bankId}`, {
       headers: {
         Authorization: `Bearer ${headerToken}`,
         "Content-Type": "application/json",
       },
-      data: { bankId },
+      data: { _id: bankId },
     });
     return response.data;
   } catch (error) {

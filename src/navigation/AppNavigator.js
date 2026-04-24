@@ -62,8 +62,11 @@ import AEPSServiceActivation from '../screens/Services/AEPS2/AEPSServiceActivati
 import AePSDashboard from '../screens/Services/AEPS2/AePSDashboardScreen';
 import TransactionAuditScreen from '../screens/Reports/WalletAudit';
 import AEPSPayOut from '../screens/Services/AEPS1/AEPS_Payout';
+import XpressPayout from '../screens/Services/AEPS1/Xpress_Payout';
 import AddPayoutBank from '../screens/Services/AEPS1/AddPayoutBank';
 import AEPSTransfer from '../screens/Services/AEPS1/AEPS_PayOut_Transfer';
+import XpressTransfer from '../screens/Services/AEPS1/Xpress_PayOut_Transfer';
+import AddXpressPayoutBank from '../screens/Services/AEPS1/AddXpressPayoutBank';
 import AEPS2BiometricKYC from '../screens/Services/AEPS2/AEPS2BiometricKYCScreen';
 
 
@@ -213,8 +216,11 @@ const AppNavigator = () => {
       <Stack.Screen name="AePSDashboard" component={AePSDashboard} />
       <Stack.Screen name="WalletAudit" component={TransactionAuditScreen} />
       <Stack.Screen name="AEPSPayOut" component={AEPSPayOut} />
+      <Stack.Screen name="XpressPayout" component={XpressPayout} />
       <Stack.Screen name="AddPayoutBank" component={AddPayoutBank} />
       <Stack.Screen name="AEPSTransfer" component={AEPSTransfer} />
+      <Stack.Screen name="XpressTransfer" component={XpressTransfer} />
+      <Stack.Screen name="AddXpressPayoutBank" component={AddXpressPayoutBank} />
       <Stack.Screen name="AEPS2BiometricKYC" component={AEPS2BiometricKYC} />
 
 

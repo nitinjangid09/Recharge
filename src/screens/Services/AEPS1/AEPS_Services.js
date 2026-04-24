@@ -194,6 +194,15 @@ const AEPS_Services = () => {
                             onPress={() => NavigationService.navigate("AEPSPayOut")}
                         />
                     </View>
+                    <View style={styles.gridRow}>
+                        <ServiceCard
+                            title="Xpress Payout"
+                            sub="Instant Settlement"
+                            Svg={aepsIcon}
+                            onPress={() => NavigationService.navigate("XpressPayout")}
+                        />
+                        <View style={{ flex: 1 }} />
+                    </View>
                 </View>
 
                 {/* ── Recent Activity ── */}
