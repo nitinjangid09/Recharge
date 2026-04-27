@@ -820,28 +820,40 @@ export default function FinanceHome({ navigation }) {
             {/* ── SERVICES GRID ── */}
             <SectionHeader title="Services" linkLabel="View All" onLink={() => { }} />
             <View style={S.svcGrid}>
-              {assignedServices.flatMap(s => (s.pipelineCodes || []).map(code => ({ code, service: s }))).map(({ code, service }, idx) => {
-                const n = code.toLowerCase();
-                const base = n.replace(/\d+$/, "");
-                const iconName = SERVICE_ICON_MAP[base] || SERVICE_ICON_MAP.default;
+              {[
+                ...assignedServices.flatMap(s => (s.pipelineCodes || []).map(code => ({ code, service: s, isStatic: false }))),
+                { code: "offline", label: "OFFLINE SERVICES", n: "offline", base: "offline", isStatic: true, screen: "OfflineServices", Svg: OfflineServicesIconSVG },
+                { code: "online", label: "ONLINE SERVICES", n: "online", base: "online", isStatic: true, screen: "OnlineServices", Svg: OnlineServicesIconSVG }
+              ]
+                .map(item => {
+                  if (item.isStatic) return item;
+                  const n = item.code.toLowerCase();
+                  const base = n.replace(/\d+$/, "");
+                  let label = n.toUpperCase();
+                  if (n === "dmt1") label = "DMT";
+                  if (n === "aeps1") label = "AEPS 1";
+                  if (n === "aeps2") label = "AEPS 2";
+                  if (n === "bbps1") label = "BBPS";
+                  if (n === "recharge1") label = "RECHARGE";
+                  if (base === "xpresspayout" || base === "xpress-payout") label = "Xpress Payout";
+                  if (base === "upi-payout") label = "UPI Payout";
+                  return { ...item, label, n, base };
+                })
+                .sort((a, b) => a.label.localeCompare(b.label))
+                .map((item, idx) => {
+                  const { code, service, label, n, base, isStatic, screen, Svg } = item;
+                  const iconName = SERVICE_ICON_MAP[base] || SERVICE_ICON_MAP.default;
 
-                // Pretty labels
-                let label = n.toUpperCase();
-                if (n === "dmt1") label = "DMT";
-                if (n === "aeps1") label = "AEPS 1";
-                if (n === "aeps2") label = "AEPS 2";
-                if (n === "bbps1") label = "BBPS";
-                if (n === "recharge1") label = "RECHARGE";
-                if (base === "xpresspayout" || base === "xpress-payout") label = "Xpress Payout";
-                if (base === "upi-payout") label = "UPI Payout";
-
-
-                return (
+                  return (
                   <TouchableOpacity
                     key={`${code}-${idx}`}
                     style={[S.svcGridItem]}
                     activeOpacity={0.78}
                     onPress={async () => {
+                      if (isStatic) {
+                        navigation.navigate(screen);
+                        return;
+                      }
                       if (n === "recharge" || n === "recharge1" || service.name === "recharge" || service.serviceId === "699314b271936d89b7185e48") {
                         navigation.navigate("TopUpScreen");
                       } else if (n === "bbps" || n === "bbps1" || service.name === "bbps" || service.serviceId === "6993147e71936d89b7185e36") {
@@ -892,66 +904,35 @@ export default function FinanceHome({ navigation }) {
                       }
                     }}
                   >
-                    <View style={[S.svcIconCircle]}>
-                      {(base === "bbps" || n === "bbps1") && typeof BBPSIconSVG === "function" ? (
-                        <BBPSIconSVG width={rs(26)} height={rs(26)} />
-                      ) : (base === "recharge" || n === "recharge1") && typeof RechargeIconSVG === "function" ? (
-                        <RechargeIconSVG width={rs(26)} height={rs(26)} />
-                      ) : (base === "aeps") && typeof AEPSIconSVG === "function" ? (
-                        <AEPSIconSVG width={rs(26)} height={rs(26)} />
-                      ) : (base === "dmt") && typeof MoneyTransferIconSVG === "function" ? (
-                        <MoneyTransferIconSVG width={rs(26)} height={rs(26)} />
-                      ) : (base === "xpresspayout" || base === "xpress-payout") && typeof XpressIconSVG === "function" ? (
-                        <XpressIconSVG width={rs(26)} height={rs(26)} />
-                      ) : (base === "upi" || base === "upi-payout") && typeof UpiIconSVG === "function" ? (
-                        <UpiIconSVG width={rs(26)} height={rs(26)} />
-                      ) : (
-                        <Icon
-                          name={iconName}
-                          size={rs(22)}
-                          color={Colors.finance_accent}
-                        />
-                      )}
-                    </View>
+                      <View style={[S.svcIconCircle]}>
+                        {isStatic && Svg ? (
+                          <Svg width={rs(24)} height={rs(24)} />
+                        ) : (base === "bbps" || n === "bbps1") && typeof BBPSIconSVG === "function" ? (
+                          <BBPSIconSVG width={rs(26)} height={rs(26)} />
+                        ) : (base === "recharge" || n === "recharge1") && typeof RechargeIconSVG === "function" ? (
+                          <RechargeIconSVG width={rs(26)} height={rs(26)} />
+                        ) : (base === "aeps") && typeof AEPSIconSVG === "function" ? (
+                          <AEPSIconSVG width={rs(26)} height={rs(26)} />
+                        ) : (base === "dmt") && typeof MoneyTransferIconSVG === "function" ? (
+                          <MoneyTransferIconSVG width={rs(26)} height={rs(26)} />
+                        ) : (base === "xpresspayout" || base === "xpress-payout") && typeof XpressIconSVG === "function" ? (
+                          <XpressIconSVG width={rs(26)} height={rs(26)} />
+                        ) : (base === "upi" || base === "upi-payout") && typeof UpiIconSVG === "function" ? (
+                          <UpiIconSVG width={rs(26)} height={rs(26)} />
+                        ) : (
+                          <Icon
+                            name={iconName}
+                            size={rs(22)}
+                            color={Colors.finance_accent}
+                          />
+                        )}
+                      </View>
                     <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
                       {label}
                     </Text>
                   </TouchableOpacity>
                 );
               })}
-
-              {/* Static Offline Services Item */}
-              <TouchableOpacity
-                style={[S.svcGridItem]}
-                activeOpacity={0.78}
-                onPress={() => navigation.navigate("OfflineServices")}
-              >
-                <View style={[S.svcIconCircle]}>
-                  <OfflineServicesIconSVG
-                    width={rs(24)}
-                    height={rs(24)}
-                  />
-                </View>
-                <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
-                  OFFLINE SERVICES
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[S.svcGridItem]}
-                activeOpacity={0.78}
-                onPress={() => navigation.navigate("OnlineServices")}
-              >
-                <View style={[S.svcIconCircle]}>
-                  <OnlineServicesIconSVG
-                    width={rs(24)}
-                    height={rs(24)}
-                  />
-                </View>
-                <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
-                  ONLINE SERVICES
-                </Text>
-              </TouchableOpacity>
             </View>
 
             {/* ── PROMO BANNER ── */}

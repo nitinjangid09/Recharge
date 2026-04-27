@@ -260,6 +260,11 @@ const Colors = {
   redDim: "rgba(220, 38, 38, 0.13)",
   amberDim: "rgba(217, 119, 6, 0.13)",
   amberSoft: "#FFFBEB",
+  amber_dark: "#D97706",
+  success: "#22C55E",
+  error: "#EF4444",
+  warning: "#F59E0B",
+  surface: "#FFFFFF",
 };
 
 export default Colors;
