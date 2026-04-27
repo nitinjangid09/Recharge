@@ -11,6 +11,7 @@ import {
     TextInput,
     ActivityIndicator,
     Image,
+    RefreshControl,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -18,6 +19,7 @@ import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
 import Colors from '../../../constants/Colors';
 import Fonts from '../../../constants/Fonts';
 import { getAllOfflineServices, BASE_URL } from '../../../api/AuthApi';
+import FullScreenLoader from '../../../componets/Loader/FullScreenLoader';
 
 const { width } = Dimensions.get('window');
 
@@ -120,14 +122,16 @@ export default function OfflineServices({ navigation }) {
     const scrollY = useRef(new Animated.Value(0)).current;
     const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [services, setServices] = useState([]);
 
     useEffect(() => {
-        fetchServices();
+        fetchServices(true);
     }, []);
 
-    const fetchServices = async () => {
-        setLoading(true);
+    const fetchServices = async (isInitial = false) => {
+        if (isInitial) setLoading(true);
+        else setRefreshing(true);
         try {
             const headerToken = await AsyncStorage.getItem('header_token');
             const res = await getAllOfflineServices({ headerToken });
@@ -138,7 +142,12 @@ export default function OfflineServices({ navigation }) {
             console.log("[OfflineServices] Fetch API Error:", err);
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
+    };
+
+    const onRefresh = () => {
+        fetchServices(false);
     };
 
     const headerOpacity = scrollY.interpolate({
@@ -169,6 +178,14 @@ export default function OfflineServices({ navigation }) {
                     { useNativeDriver: true },
                 )}
                 scrollEventThrottle={16}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        colors={[Colors.finance_accent]}
+                        tintColor={Colors.finance_accent}
+                    />
+                }
             >
                 {/* Hero Section */}
                 <Animated.View style={[styles.heroSection, { opacity: headerOpacity }]}>
@@ -195,9 +212,7 @@ export default function OfflineServices({ navigation }) {
                 {/* Available Services Section */}
                 <SectionDivider label="AVAILABLE SERVICES" />
 
-                {loading ? (
-                    <ActivityIndicator size="large" color={Colors.finance_accent} style={{ marginVertical: 30 }} />
-                ) : services.length === 0 ? (
+                {services.length === 0 && !loading ? (
                     <View style={styles.emptyState}>
                         <Text style={styles.emptyText}>No services available</Text>
                     </View>
@@ -279,6 +294,8 @@ export default function OfflineServices({ navigation }) {
 
                 <View style={{ height: 60 }} />
             </Animated.ScrollView>
+
+            <FullScreenLoader visible={loading} label="Fetching Offline Services..." />
         </SafeAreaView>
     );
 }

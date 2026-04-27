@@ -20,6 +20,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { Alert } from "react-native";
 import { AlertService } from "../../../componets/Alerts/CustomAlert";
+import FullScreenLoader from "../../../componets/Loader/FullScreenLoader";
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -165,7 +166,7 @@ const DmtHome = () => {
 
   useFocusEffect(
     React.useCallback(() => {
-      fetchBeneficiaries();
+      fetchBeneficiaries(true);
       fetchLimit();
     }, [])
   );
@@ -190,7 +191,9 @@ const DmtHome = () => {
     }
   };
 
-  const fetchBeneficiaries = async () => {
+  const fetchBeneficiaries = async (isInitial = false) => {
+    if (isInitial) setLoading(true);
+    else setRefreshing(true);
     try {
       const token = await AsyncStorage.getItem("header_token");
       const savedMobile = await AsyncStorage.getItem("sender_mobile");
@@ -244,8 +247,7 @@ const DmtHome = () => {
   };
 
   const onRefresh = () => {
-    setRefreshing(true);
-    fetchBeneficiaries();
+    fetchBeneficiaries(false);
   };
 
   const handleTransfer = (account) => {
@@ -388,12 +390,6 @@ const DmtHome = () => {
 
       {/* ══ BODY ══ */}
       <View style={styles.body}>
-        {loading && !refreshing ? (
-          <View style={styles.center}>
-            <ActivityIndicator size="large" color={Colors.primary} />
-            <Text style={styles.loadingTxt}>Fetching beneficiaries...</Text>
-          </View>
-        ) : (
           <FlatList
             data={accounts}
             keyExtractor={(item) => item.id}
@@ -412,14 +408,16 @@ const DmtHome = () => {
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
             }
             ListEmptyComponent={
-              <View style={styles.emptyWrap}>
-                <Text style={styles.emptyTxt}>No beneficiaries found.</Text>
-                <Text style={styles.emptySub}>Add your first beneficiary to get started.</Text>
-              </View>
+              !loading && (
+                <View style={styles.emptyWrap}>
+                  <Text style={styles.emptyTxt}>No beneficiaries found.</Text>
+                  <Text style={styles.emptySub}>Add your first beneficiary to get started.</Text>
+                </View>
+              )
             }
           />
-        )}
       </View>
+      <FullScreenLoader visible={loading} label="Fetching Beneficiaries..." />
     </SafeAreaView>
   );
 };

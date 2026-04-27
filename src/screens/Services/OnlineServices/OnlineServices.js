@@ -13,6 +13,7 @@ import {
     Image,
     Linking,
     Alert,
+    RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -20,6 +21,8 @@ import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
 import Colors from '../../../constants/Colors';
 import Fonts from '../../../constants/Fonts';
 import { getAllOnlineServices, BASE_URL } from '../../../api/AuthApi';
+import FullScreenLoader from '../../../componets/Loader/FullScreenLoader';
+import OnlineServicesIconSVG from "../../../assets/ServicesIcons/online service.svg";
 
 const { width } = Dimensions.get('window');
 
@@ -99,14 +102,16 @@ export default function OnlineServices({ navigation }) {
     const scrollY = useRef(new Animated.Value(0)).current;
     const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [services, setServices] = useState([]);
 
     useEffect(() => {
-        fetchServices();
+        fetchServices(true);
     }, []);
 
-    const fetchServices = async () => {
-        setLoading(true);
+    const fetchServices = async (isInitial = false) => {
+        if (isInitial) setLoading(true);
+        else setRefreshing(true);
         try {
             const headerToken = await AsyncStorage.getItem('header_token');
             const res = await getAllOnlineServices({ headerToken });
@@ -117,7 +122,12 @@ export default function OnlineServices({ navigation }) {
             console.log("[OnlineServices] Fetch API Error:", err);
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
+    };
+
+    const onRefresh = () => {
+        fetchServices(false);
     };
 
     const headerOpacity = scrollY.interpolate({
@@ -148,9 +158,20 @@ export default function OnlineServices({ navigation }) {
                     { useNativeDriver: true },
                 )}
                 scrollEventThrottle={16}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        colors={[Colors.finance_accent]}
+                        tintColor={Colors.finance_accent}
+                    />
+                }
             >
                 {/* Hero Section */}
                 <Animated.View style={[styles.heroSection, { opacity: headerOpacity }]}>
+                    <View style={styles.heroIconBox}>
+                        <OnlineServicesIconSVG width={50} height={50} />
+                    </View>
                     <Text style={styles.heroTitle}>Online Service Hub</Text>
                     <Text style={styles.heroSubtitle}>
                         Instant access to premium digital services and expert support
@@ -174,9 +195,7 @@ export default function OnlineServices({ navigation }) {
                 {/* Available Services Section */}
                 <SectionDivider label="AVAILABLE SERVICES" />
 
-                {loading ? (
-                    <ActivityIndicator size="large" color={Colors.finance_accent} style={{ marginVertical: 30 }} />
-                ) : services.length === 0 ? (
+                {services.length === 0 && !loading ? (
                     <View style={styles.emptyState}>
                         <Text style={styles.emptyText}>No services available</Text>
                     </View>
@@ -192,7 +211,7 @@ export default function OnlineServices({ navigation }) {
                                     />
                                 ) : (
                                     <View style={styles.itrIconWrap}>
-                                        <Text style={styles.itrIconEmoji}>🌐</Text>
+                                        <OnlineServicesIconSVG width={24} height={24} />
                                     </View>
                                 )}
                                 <View style={styles.itrInfo}>
@@ -245,6 +264,8 @@ export default function OnlineServices({ navigation }) {
 
                 <View style={{ height: 60 }} />
             </Animated.ScrollView>
+
+            <FullScreenLoader visible={loading} label="Fetching Online Services..." />
         </SafeAreaView>
     );
 }
@@ -258,9 +279,19 @@ const styles = StyleSheet.create({
     scrollView: { flex: 1 },
 
     heroSection: {
-        paddingHorizontal: 20,
-        paddingTop: 20,
-        paddingBottom: 4,
+        paddingHorizontal: 24,
+        paddingTop: 28,
+        paddingBottom: 24,
+        alignItems: 'center',
+    },
+    heroIconBox: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: 'rgba(212,176,106,0.1)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 16,
     },
     heroTitle: {
         fontSize: 26,

@@ -8,6 +8,7 @@ import {
     Dimensions,
     StatusBar,
     ActivityIndicator,
+    RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -16,6 +17,7 @@ import Fonts from "../../../constants/Fonts";
 import * as NavigationService from "../../../utils/NavigationService";
 import { getWalletBalance, fetchUserProfile, getWalletReport } from "../../../api/AuthApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import FullScreenLoader from "../../../componets/Loader/FullScreenLoader";
 
 import CashWithdrawIcon from "../../../assets/AEPSIcon/Cash Withdraw.svg";
 import BalanceEnquiryIcon from "../../../assets/AEPSIcon/Balance Enquiry.svg";
@@ -31,13 +33,19 @@ const AEPS_Services = () => {
     const [user, setUser] = React.useState({ name: "Loading...", mid: "---" });
     const [recentTxns, setRecentTxns] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
+    const [refreshing, setRefreshing] = React.useState(false);
 
     React.useEffect(() => {
-        loadDashboard();
+        loadDashboard(true);
     }, []);
 
-    const loadDashboard = async () => {
-        setLoading(true);
+    const onRefresh = () => {
+        loadDashboard(false);
+    };
+
+    const loadDashboard = async (isInitial = false) => {
+        if (isInitial) setLoading(true);
+        else setRefreshing(true);
         try {
             const headerToken = await AsyncStorage.getItem("header_token");
 
@@ -81,6 +89,7 @@ const AEPS_Services = () => {
             console.log("Dashboard fetch error:", error);
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
     };
 
@@ -118,7 +127,18 @@ const AEPS_Services = () => {
                 </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.scroll}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        colors={[Colors.primary]}
+                        tintColor={Colors.primary}
+                    />
+                }
+            >
 
                 {/* ── Compact Wallet Card ── */}
                 <View style={styles.mainCard}>
@@ -230,6 +250,7 @@ const AEPS_Services = () => {
 
                 <View style={{ height: 30 }} />
             </ScrollView>
+            <FullScreenLoader visible={loading} label="Updating Dashboard..." />
         </SafeAreaView>
     );
 };

@@ -32,6 +32,7 @@ import ReceiptModal from "../componets/ReceiptModal/ReceiptModal";
 import CalendarModal from "../componets/Calendar/CalendarModal";
 import FullScreenLoader from "../componets/Loader/FullScreenLoader";
 import { buttonPress } from "../utils/ScreenAnimations";
+import UpiIconSVG from "../assets/ServicesIcons/Upi.svg";
 
 // ─── Filter config ────────────────────────────────────────────────────────────
 const DATE_OPTIONS = [
@@ -870,7 +871,11 @@ export default function OfflineTopup({ navigation }) {
                     <View style={[st.detailItem, { alignItems: "flex-end" }]}>
                       <Text style={st.detailLabel}>PAYMENT MODE</Text>
                       <View style={st.modeGroup}>
-                        <Icon name={item.mode === "upi" ? "qrcode-scan" : "bank-outline"} size={S(10)} color={FG + "70"} />
+                        {item.mode === "upi" ? (
+                          <UpiIconSVG width={S(12)} height={S(12)} />
+                        ) : (
+                          <Icon name="bank-outline" size={S(10)} color={FG + "70"} />
+                        )}
                         <Text style={st.detailValue}>{(item.mode || "N/A").toUpperCase()}</Text>
                       </View>
                     </View>

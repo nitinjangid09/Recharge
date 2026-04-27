@@ -32,6 +32,8 @@ import AEPSIconSVG from "../../assets/ServicesIcons/AEPS.svg";
 import OfflineServicesIconSVG from "../../assets/ServicesIcons/ofline service.svg";
 import MoneyTransferIconSVG from "../../assets/ServicesIcons/Money Transfer.svg";
 import XpressIconSVG from "../../assets/ServicesIcons/xpress.svg";
+import UpiIconSVG from "../../assets/ServicesIcons/Upi.svg";
+import OnlineServicesIconSVG from "../../assets/ServicesIcons/online service.svg";
 
 
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -84,6 +86,7 @@ const SERVICE_ICON_MAP = {
   insurance: "shield-check-outline",
   offline: "clipboard-list-outline",
   xpresspayout: "bank-transfer",
+  upi: "qrcode-scan",
   default: "apps",
 };
 
@@ -830,6 +833,7 @@ export default function FinanceHome({ navigation }) {
                 if (n === "bbps1") label = "BBPS";
                 if (n === "recharge1") label = "RECHARGE";
                 if (base === "xpresspayout" || base === "xpress-payout") label = "Xpress Payout";
+                if (base === "upi-payout") label = "UPI Payout";
 
 
                 return (
@@ -883,7 +887,7 @@ export default function FinanceHome({ navigation }) {
                         }
                       } else if (n === "dmt" || n === "dmt1") {
                         navigation.navigate("DmtLogin");
-                      } else if (base === "xpresspayout" || base === "xpress-payout") {
+                      } else if (base === "xpresspayout" || base === "xpress-payout" || base === "upi-payout") {
                         navigation.navigate("XpressPayout");
                       }
                     }}
@@ -899,6 +903,8 @@ export default function FinanceHome({ navigation }) {
                         <MoneyTransferIconSVG width={rs(26)} height={rs(26)} />
                       ) : (base === "xpresspayout" || base === "xpress-payout") && typeof XpressIconSVG === "function" ? (
                         <XpressIconSVG width={rs(26)} height={rs(26)} />
+                      ) : (base === "upi" || base === "upi-payout") && typeof UpiIconSVG === "function" ? (
+                        <UpiIconSVG width={rs(26)} height={rs(26)} />
                       ) : (
                         <Icon
                           name={iconName}
@@ -937,7 +943,10 @@ export default function FinanceHome({ navigation }) {
                 onPress={() => navigation.navigate("OnlineServices")}
               >
                 <View style={[S.svcIconCircle]}>
-                  <Icon name="web" size={rs(24)} color={Colors.finance_accent} />
+                  <OnlineServicesIconSVG
+                    width={rs(24)}
+                    height={rs(24)}
+                  />
                 </View>
                 <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
                   ONLINE SERVICES

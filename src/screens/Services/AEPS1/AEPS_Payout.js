@@ -19,6 +19,7 @@ import { requestAepsPayoutBank, getAepsPayoutBanks, getWalletBalance, deleteAeps
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AlertService } from '../../../componets/Alerts/CustomAlert';
 import { ActivityIndicator, RefreshControl } from 'react-native';
+import FullScreenLoader from '../../../componets/Loader/FullScreenLoader';
 
 const { width: SW, height: SH } = Dimensions.get("window");
 const scale = (n) => (SW / 375) * n;
@@ -32,14 +33,16 @@ const TRANSFER = 'transfer';
 export default function AEPS_Payout({ navigation }) {
   const [approvedBanks, setApprovedBanks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [walletBalance, setWalletBalance] = useState('0.00');
 
   useEffect(() => {
-    loadAllData();
+    loadAllData(true);
   }, []);
 
-  const loadAllData = async () => {
-    setIsLoading(true);
+  const loadAllData = async (isInitial = false) => {
+    if (isInitial) setIsLoading(true);
+    else setIsRefreshing(true);
     try {
       const headerToken = await AsyncStorage.getItem('header_token');
 
@@ -56,6 +59,7 @@ export default function AEPS_Payout({ navigation }) {
       console.log('Error loading payout data:', e);
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -99,13 +103,14 @@ export default function AEPS_Payout({ navigation }) {
           onTransfer={() => navigation.navigate("AEPSTransfer", { banks: approvedBanks })}
           onAddBank={() => navigation.navigate("AddPayoutBank")}
           banks={approvedBanks}
-          loading={isLoading}
+          loading={isRefreshing}
           balance={walletBalance}
-          onRefresh={loadAllData}
+          onRefresh={() => loadAllData(false)}
           onDeleteBank={handleDeleteBank}
           navigation={navigation}
         />
       </View>
+      <FullScreenLoader visible={isLoading} label="Loading Settlement Hub..." />
     </SafeAreaView>
   );
 }

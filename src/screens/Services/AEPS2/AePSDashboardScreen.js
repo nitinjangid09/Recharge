@@ -23,6 +23,7 @@ import {
   ActivityIndicator,
   Modal,
   FlatList,
+  RefreshControl,
 } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -34,6 +35,7 @@ import { fetchUserProfile, getWalletBalance, fetchUserWallet, fetchEBankList, in
 import { AlertService } from '../../../componets/Alerts/CustomAlert';
 import RDService from '../../../utils/RDService';
 import AEPS2Receipt from './AEPS2Receipt';
+import FullScreenLoader from '../../../componets/Loader/FullScreenLoader';
 
 
 
@@ -299,6 +301,7 @@ export default function AePSDashboardScreen({ navigation }) {
   const [stats, setStats] = useState({ volume: "0.00", count: "0", successRate: "0%", avgAmt: "0" });
   const [recentTxns, setRecentTxns] = useState([]);
   const [user, setUser] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Form State
   const [form, setForm] = useState({ mobile: '', aadhaar: '', bank: '', bankLabel: '', amount: '' });
@@ -313,17 +316,23 @@ export default function AePSDashboardScreen({ navigation }) {
 
 
   useEffect(() => {
-    loadData();
+    loadData(true);
     loadBanks();
   }, []);
+
+  const onRefresh = () => {
+    loadData(false);
+    loadBanks();
+  };
 
   const updateForm = (key, val) => {
     setForm(f => ({ ...f, [key]: val }));
     if (errors[key]) setErrors(prev => ({ ...prev, [key]: null }));
   };
 
-  const loadData = async () => {
-    setLoading(true);
+  const loadData = async (isInitial = false) => {
+    if (isInitial) setLoading(true);
+    else setRefreshing(true);
     try {
       const headerToken = await AsyncStorage.getItem("header_token");
       const headerKey = await AsyncStorage.getItem("header_key");
@@ -347,6 +356,7 @@ export default function AePSDashboardScreen({ navigation }) {
       console.log("Load AEPS Data Error:", error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -482,6 +492,14 @@ export default function AePSDashboardScreen({ navigation }) {
         style={styles.scroll}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
+          />
+        }
       >
         {/* ── Terminal Card ── */}
         <SectionCard>
@@ -591,6 +609,8 @@ export default function AePSDashboardScreen({ navigation }) {
 
         <View style={{ height: rs(30) }} />
       </ScrollView>
+
+      <FullScreenLoader visible={loading} label="Loading AEPS Services..." />
 
       <SelectorModal
         visible={selVisible}

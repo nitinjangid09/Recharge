@@ -44,6 +44,7 @@ import RecurringDepositIcon from "../../../assets/BBPSIcon/Recurring Deposit.svg
 import RentalIcon from "../../../assets/BBPSIcon/Rental.svg";
 import SubscriptionIcon from "../../../assets/BBPSIcon/Subscription.svg";
 import WaterIcon from "../../../assets/BBPSIcon/Water.svg";
+import UpiIconSVG from "../../../assets/ServicesIcons/Upi.svg";
 
 const SVG_MAP = {
   "Broadband Postpaid": BroadbandPostpaidIcon,
@@ -404,7 +405,7 @@ export default function PaymentsScreen({ navigation }) {
               <Text style={styles.subTitle}>UPI, bills, recharges & utilities</Text>
             </View>
             <View style={styles.qrCircle}>
-              <Icon name="qrcode-scan" size={18} color={ACCENT} />
+              <UpiIconSVG width={22} height={22} />
             </View>
           </View>
         </LinearGradient>
