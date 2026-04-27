@@ -1497,6 +1497,23 @@ export const getMySupportRequests = async ({ headerToken, page = 1, limit = 5 })
 };
 
 /**
+ * getAllOnlineServices
+ * GET /user/onlineService/all-online-service
+ */
+export const getAllOnlineServices = async ({ headerToken }) => {
+  try {
+    const url = `${BASE_URL}/user/onlineService/all-online-service`;
+    const response = await axios.get(url, {
+      headers: { Authorization: `Bearer ${headerToken}`, "Content-Type": "application/json" }
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get All Online Services Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch online services" };
+  }
+};
+
+/**
  * getAllOfflineServices
  * Returns a list of available services (e.g. ITR file).
  */

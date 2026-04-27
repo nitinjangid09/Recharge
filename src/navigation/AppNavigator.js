@@ -72,6 +72,7 @@ import AEPS_Payout_Report from '../screens/Reports/AEPS_Payout_Report';
 import AEPS_Payout_Receipt from '../screens/Reports/AEPS_Payout_Receipt';
 import XpressPayoutReport from '../screens/Reports/XpressPayoutReport';
 import XpressPayoutReceipt from '../screens/Reports/XpressPayoutReceipt';
+import OnlineServices from '../screens/Services/OnlineServices/OnlineServices';
 
 
 
@@ -210,6 +211,7 @@ const AppNavigator = () => {
       <Stack.Screen name="UserWalletRefill" component={UserWalletRefill} />
       <Stack.Screen name="OfflineServices" component={OfflineServices} />
       <Stack.Screen name="OfflineServiceForm" component={OfflineServiceForm} />
+      <Stack.Screen name="OnlineServices" component={OnlineServices} />
       <Stack.Screen name="PaymentVerification" component={PaymentVerification} />
       <Stack.Screen name="Notification" component={Notification} />
       <Stack.Screen name="AEPS_OnBoard" component={AEPS_OnBoard} />

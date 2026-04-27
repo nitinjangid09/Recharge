@@ -70,8 +70,9 @@ const ALL_ITEMS = [
   { id: "12", label: "Transaction History", icon: "history", screen: "InvoiceScreen" },
   { id: "14", label: "KYC Verification", icon: "shield-check", screen: "Offlinekyc" },
   { id: "15", label: "Offline Services", icon: "clipboard-list-outline", screen: "OfflineServices" },
-  { id: "16", label: "AEPS 2", icon: "bank-plus", screen: "AEPSPortalAccess" },
-  { id: "17", label: "Xpress Payout", icon: "bank-transfer", screen: "XpressPayout" },
+  { id: "16", label: "Online Services", icon: "web", screen: "OnlineServices" },
+  { id: "17", label: "AEPS 2", icon: "bank-plus", screen: "AEPSPortalAccess" },
+  { id: "18", label: "Xpress Payout", icon: "bank-transfer", screen: "XpressPayout" },
 ];
 
 // Service icon mapping for assigned services
@@ -927,6 +928,19 @@ export default function FinanceHome({ navigation }) {
                 </View>
                 <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
                   OFFLINE SERVICES
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[S.svcGridItem]}
+                activeOpacity={0.78}
+                onPress={() => navigation.navigate("OnlineServices")}
+              >
+                <View style={[S.svcIconCircle]}>
+                  <Icon name="web" size={rs(24)} color={Colors.finance_accent} />
+                </View>
+                <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
+                  ONLINE SERVICES
                 </Text>
               </TouchableOpacity>
             </View>
