@@ -203,6 +203,8 @@ export default function FinanceHome({ navigation }) {
 
   const [recentTransactions, setRecentTransactions] = useState([]);
   const [recentLoading, setRecentLoading] = useState(false);
+  const [txnCount, setTxnCount] = useState(0);
+  const [txnVolume, setTxnVolume] = useState(0);
 
   const [alert, setAlert] = useState({ visible: false, type: "info", title: "", message: "", onConfirm: null, confirmText: "OK" });
 
@@ -349,6 +351,9 @@ export default function FinanceHome({ navigation }) {
           };
         });
         setRecentTransactions(last5);
+        setTxnCount(res.data.length);
+        const volume = res.data.reduce((acc, curr) => acc + parseFloat(curr.txnAmount || 0), 0);
+        setTxnVolume(volume);
       }
     } catch (e) {
       console.log("Error loading transactions:", e);
@@ -803,6 +808,8 @@ export default function FinanceHome({ navigation }) {
               kycStatus={kycStatus}
               assignedServices={assignedServices}
               statusMessage={statusMessage}
+              txnCount={txnCount}
+              txnVolume={txnVolume}
             />
 
             {/* ── SERVICES GRID ── */}
@@ -1054,7 +1061,7 @@ export default function FinanceHome({ navigation }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // OVERVIEW STATS
 // ─────────────────────────────────────────────────────────────────────────────
-function OverviewStats({ navigation, kycStatus, assignedServices, statusMessage }) {
+function OverviewStats({ navigation, kycStatus, assignedServices, statusMessage, txnCount, txnVolume }) {
   const kyc = KYC_COLOR[kycStatus] || KYC_COLOR.pending;
 
   if (kycStatus !== "approved") {
@@ -1089,29 +1096,21 @@ function OverviewStats({ navigation, kycStatus, assignedServices, statusMessage 
     <View style={{ marginBottom: rs(8) }}>
       <SectionHeader title="Overview" />
       <View style={S.statsRow}>
-        <TouchableOpacity
-          style={S.statCard}
-          activeOpacity={0.8}
-          onPress={() => navigation.navigate("InvoiceScreen")}
-        >
+        <View style={S.statCard}>
           <View style={S.statIconBox}>
             <Icon name="trending-up" size={rs(18)} color={Colors.finance_accent} />
           </View>
-          <Text style={S.statValue}>₹4.2K</Text>
-          <Text style={S.statLabel}>This Month</Text>
-        </TouchableOpacity>
+          <Text style={S.statValue}>₹{(txnVolume / 1000).toFixed(1)}K</Text>
+          <Text style={S.statLabel}>This Week</Text>
+        </View>
 
-        <TouchableOpacity
-          style={S.statCard}
-          activeOpacity={0.8}
-          onPress={() => navigation.navigate("InvoiceScreen")}
-        >
+        <View style={S.statCard}>
           <View style={S.statIconBox}>
             <Icon name="pulse" size={rs(18)} color={Colors.finance_accent} />
           </View>
-          <Text style={S.statValue}>18</Text>
+          <Text style={S.statValue}>{txnCount}</Text>
           <Text style={S.statLabel}>Transactions</Text>
-        </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
