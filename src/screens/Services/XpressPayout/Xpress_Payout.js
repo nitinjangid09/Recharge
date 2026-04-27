@@ -183,21 +183,10 @@ function DashboardContent({ onTransfer, onAddBank, onHistory, banks, loading, on
             </Text>
           </View>
           <View style={styles.beneInfo}>
-            <Text style={styles.beneName}>{bene.accountHolderName}</Text>
-            <Text style={styles.beneDetail}>{bene.bankName} • {bene.accountNumber}</Text>
+            <Text style={styles.beneName}>{bene?.accountHolderName}</Text>
+            <Text style={styles.beneDetail}>{bene?.bankName} • {bene?.accountNumber}</Text>
           </View>
           <View style={styles.beneRightRow}>
-            <View style={[
-              styles.statusBadge,
-              { backgroundColor: (bene.status?.toLowerCase() === 'approved' || bene.status?.toLowerCase() === 'active') ? Colors.successOpacity_10 : Colors.warningOpacity_10 }
-            ]}>
-              <Text style={[
-                styles.statusText,
-                { color: (bene.status?.toLowerCase() === 'approved' || bene.status?.toLowerCase() === 'active') ? Colors.success : Colors.amber }
-              ]}>
-                {bene.status || 'PENDING'}
-              </Text>
-            </View>
 
             <TouchableOpacity
               style={styles.deleteBtn}

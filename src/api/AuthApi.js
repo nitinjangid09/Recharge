@@ -1031,8 +1031,17 @@ export const getWalletReport = async ({ from, to, headerToken }) => {
         Authorization: `Bearer ${headerToken}`,
       },
     });
-    const json = await response.json();
-    return json; // { success, message, data: [...] }
+    const text = await response.text();
+    if (text.trim().startsWith("<")) {
+      return { success: false, message: "Server error. Please try again.", data: [] };
+    }
+
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      console.log("getWalletReport parse error:", e, "Raw text:", text);
+      return { success: false, message: "Invalid server response", data: [] };
+    }
   } catch (error) {
     console.log("getWalletReport error:", error);
     return { success: false, message: error.message || "Network error", data: [] };
@@ -2155,7 +2164,6 @@ export const addAepsPayoutBank = async ({ data, headerToken }) => {
         Authorization: `Bearer ${headerToken}`,
         "Content-Type": "multipart/form-data",
       },
-
     });
     return response.data;
   } catch (error) {
@@ -2260,7 +2268,7 @@ export const addXpressPayoutBank = async ({ data, headerToken }) => {
     const response = await axios.post(`${BASE_URL}/user/xpressPayoutBank/add-payout-bank`, data, {
       headers: {
         Authorization: `Bearer ${headerToken}`,
-        "Content-Type": "multipart/form-data",
+        "Content-Type": "application/json",
       },
     });
     return response.data;

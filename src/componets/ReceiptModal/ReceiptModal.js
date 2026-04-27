@@ -77,7 +77,6 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
   }, [visible]);
 
   const handleClose = () => {
-    [onClose,]
     Animated.parallel([
       Animated.timing(translateY, { toValue: SCREEN_HEIGHT, duration: 250, useNativeDriver: true }),
       Animated.timing(backdropOpacity, { toValue: 0, duration: 200, useNativeDriver: true }),
@@ -96,7 +95,7 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
     hour: "2-digit", minute: "2-digit", hour12: false,
   });
 
-  const opInitial = (data?.operator || data?.title || "?")[0].toUpperCase();
+  const opInitial = (data?.operator || data?.title || "?")[0]?.toUpperCase() || "?";
 
   const handleShare = async () => {
     if (!data) return;

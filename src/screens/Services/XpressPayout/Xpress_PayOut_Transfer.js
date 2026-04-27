@@ -14,7 +14,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Colors from '../../../constants/Colors';
 import Fonts from '../../../constants/Fonts';
 import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
-import { initiateXpressPayoutTransfer } from '../../../api/AuthApi';
+import { initiateXpressPayoutTransfer, getXpressPayoutBanks } from '../../../api/AuthApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from '@react-native-community/geolocation';
 import { AlertService } from '../../../componets/Alerts/CustomAlert';
@@ -36,8 +36,31 @@ export default function Xpress_PayOut_Transfer({ navigation, route }) {
   const [errors, setErrors] = useState({});
   const [receiptVisible, setReceiptVisible] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
+  const [bankList, setBankList] = useState(banks);
+  const [banksLoading, setBanksLoading] = useState(false);
 
-  const approved = banks.filter(b => b.status === 'APPROVED' || b.status === 'Active' || b.status === 'approved');
+  React.useEffect(() => {
+    if (bankList.length === 0) {
+      fetchBanks();
+    }
+  }, []);
+
+  const fetchBanks = async () => {
+    setBanksLoading(true);
+    try {
+      const headerToken = await AsyncStorage.getItem('header_token');
+      const res = await getXpressPayoutBanks({ headerToken });
+      if (res?.success) {
+        setBankList(res.data || []);
+      }
+    } catch (error) {
+      console.log('Error fetching xpress banks:', error);
+    } finally {
+      setBanksLoading(false);
+    }
+  };
+
+  const approved = (bankList || []);
 
   const handleTransfer = async () => {
     let newErrors = {};
@@ -143,14 +166,14 @@ export default function Xpress_PayOut_Transfer({ navigation, route }) {
             >
               <Icon name="bank" size={rs(18)} color={errors.bank ? Colors.error : Colors.text_secondary} />
               <Text style={[styles.selectorText, selectedBank && { color: Colors.text_primary }, errors.bank && { color: Colors.error }]}>
-                {selectedBank ? `${selectedBank.bankName} (${selectedBank.accountNumber.slice(-4)})` : "Choose destination bank"}
+                {selectedBank ? `${selectedBank?.bankName} (${selectedBank?.accountNumber?.slice(-4) || '....'})` : "Choose destination bank"}
               </Text>
               <Icon name="chevron-down" size={rs(20)} color={errors.bank ? Colors.error : Colors.text_secondary} />
             </TouchableOpacity>
             {!!errors.bank && <Text style={styles.errorText}>{errors.bank}</Text>}
             {approved.length === 0 && (
               <Text style={{ fontSize: rs(10), color: Colors.error, marginTop: rs(4), marginLeft: rs(4) }}>
-                No approved payout banks available.
+                No payout banks available.
               </Text>
             )}
           </View>
@@ -225,36 +248,40 @@ export default function Xpress_PayOut_Transfer({ navigation, route }) {
               </TouchableOpacity>
             </View>
 
-            <FlatList
-              data={approved}
-              keyExtractor={(item) => item._id}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.bankItem}
-                  onPress={() => {
-                    setSelectedBank(item);
-                    setIsModalVisible(false);
-                  }}
-                >
-                  <View style={styles.bankIconWrap}>
-                    <Icon name="bank" size={rs(18)} color={Colors.primary} />
+            {banksLoading ? (
+              <ActivityIndicator color={Colors.primary} size="large" style={{ marginTop: 50 }} />
+            ) : (
+              <FlatList
+                data={approved}
+                keyExtractor={(item) => item._id}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.bankItem}
+                    onPress={() => {
+                      setSelectedBank(item);
+                      setIsModalVisible(false);
+                    }}
+                  >
+                    <View style={styles.bankIconWrap}>
+                      <Icon name="bank" size={rs(18)} color={Colors.primary} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.bankItemName}>{item?.bankName}</Text>
+                      <Text style={styles.bankItemSub}>{item?.accountHolderName} • {item?.accountNumber}</Text>
+                    </View>
+                    <Icon name="chevron-right" size={rs(18)} color={Colors.border} />
+                  </TouchableOpacity>
+                )}
+                ListEmptyComponent={
+                  <View style={styles.emptyWrap}>
+                    <Icon name="bank-off-outline" size={rs(48)} color={Colors.border} />
+                    <Text style={styles.emptyTxt}>No payout banks found</Text>
                   </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.bankItemName}>{item.bankName}</Text>
-                    <Text style={styles.bankItemSub}>{item.accountHolderName} • {item.accountNumber}</Text>
-                  </View>
-                  <Icon name="chevron-right" size={rs(18)} color={Colors.border} />
-                </TouchableOpacity>
-              )}
-              ListEmptyComponent={
-                <View style={styles.emptyWrap}>
-                  <Icon name="bank-off-outline" size={rs(48)} color={Colors.border} />
-                  <Text style={styles.emptyTxt}>No approved banks found</Text>
-                </View>
-              }
-            />
+                }
+              />
+            )}
           </View>
         </View>
       </Modal>

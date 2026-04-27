@@ -57,9 +57,10 @@ export default function AddPayoutBank({ navigation }) {
     try {
       const headerToken = await AsyncStorage.getItem('header_token');
       const res = await getPayoutBankList({ headerToken });
-      if (res?.success) {
-        setBankList(res.data || []);
-        setFilteredBanks(res.data || []);
+      if (res) {
+        const banks = Array.isArray(res) ? res : (res.data || []);
+        setBankList(banks);
+        setFilteredBanks(banks);
       }
     } catch (error) {
       console.log('Error fetching bank list:', error);
