@@ -31,6 +31,7 @@ import RechargeIconSVG from "../../assets/ServicesIcons/Recharge.svg";
 import AEPSIconSVG from "../../assets/ServicesIcons/AEPS.svg";
 import OfflineServicesIconSVG from "../../assets/ServicesIcons/ofline service.svg";
 import MoneyTransferIconSVG from "../../assets/ServicesIcons/Money Transfer.svg";
+import XpressIconSVG from "../../assets/ServicesIcons/xpress.svg";
 
 
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -893,8 +894,10 @@ export default function FinanceHome({ navigation }) {
                         <RechargeIconSVG width={rs(26)} height={rs(26)} />
                       ) : (base === "aeps") && typeof AEPSIconSVG === "function" ? (
                         <AEPSIconSVG width={rs(26)} height={rs(26)} />
-                      ) : (base === "dmt" || base === "xpresspayout" || base === "xpress-payout") && typeof MoneyTransferIconSVG === "function" ? (
+                      ) : (base === "dmt") && typeof MoneyTransferIconSVG === "function" ? (
                         <MoneyTransferIconSVG width={rs(26)} height={rs(26)} />
+                      ) : (base === "xpresspayout" || base === "xpress-payout") && typeof XpressIconSVG === "function" ? (
+                        <XpressIconSVG width={rs(26)} height={rs(26)} />
                       ) : (
                         <Icon
                           name={iconName}
@@ -966,9 +969,7 @@ export default function FinanceHome({ navigation }) {
                   </View>
                 </View>
               </View>
-            ) : (
-              <PromoBanner onPress={() => navigation.navigate("TopUpScreen")} />
-            )}
+            ) : null}
 
             {/* ── RECENT TRANSACTIONS ── */}
             <SectionHeader
@@ -1116,64 +1117,8 @@ function OverviewStats({ navigation, kycStatus, assignedServices, statusMessage,
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PROMO BANNER (static fallback)
-// ─────────────────────────────────────────────────────────────────────────────
-function PromoBanner({ onPress }) {
-  return (
-    <View style={{ marginTop: rs(20) }}>
-      <TouchableOpacity style={S.promoBanner} onPress={onPress} activeOpacity={0.9}>
-        <LinearGradient
-          colors={["#0B0F1A", "#1A2035", "#0F1525"]}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={S.promoBannerInner}
-        >
-          {/* Grid texture overlay */}
-          <View style={S.promoGrid} />
 
-          <View style={S.promoContent}>
-            <View style={S.promoTag}>
-              <View style={S.promoTagDot} />
-              <Text style={S.promoTagTxt}>Banner</Text>
-            </View>
-            <Text style={S.promoTitle}>
-              Get <Text style={S.promoHighlight}>₹10–₹100</Text>{"\n"}Cashback on{"\n"}Mobile Recharge
-            </Text>
-            <View style={S.promoCta}>
-              <Text style={S.promoCtaTxt}>Recharge Now</Text>
-              <Icon name="arrow-right" size={rs(12)} color="#000" />
-            </View>
-          </View>
 
-          <View style={S.promoOperators}>
-            <View style={S.opRow}>
-              <View style={[S.opPill, { borderColor: "rgba(255,0,0,0.2)" }]}>
-                <Text style={[S.opPillTxt, { color: "#FF0000" }]}>Airtel</Text>
-              </View>
-              <View style={[S.opPill, { borderColor: "rgba(255,45,85,0.2)" }]}>
-                <Text style={[S.opPillTxt, { color: "#FF2D55" }]}>Vi</Text>
-              </View>
-            </View>
-            <View style={S.opRow}>
-              <View style={[S.opPill, { borderColor: "rgba(0,112,192,0.2)" }]}>
-                <Text style={[S.opPillTxt, { color: "#0070C0" }]}>Jio</Text>
-              </View>
-              <View style={[S.opPill, { borderColor: "rgba(0,166,81,0.2)" }]}>
-                <Text style={[S.opPillTxt, { color: "#00A651" }]}>BSNL</Text>
-              </View>
-            </View>
-          </View>
-        </LinearGradient>
-      </TouchableOpacity>
-      {/* Carousel dots */}
-      <View style={S.carouselDots}>
-        <View style={S.dotActive} />
-        <View style={S.dotInactive} />
-        <View style={S.dotInactive} />
-      </View>
-    </View>
-  );
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SECTION HEADER
@@ -1418,54 +1363,6 @@ const S = StyleSheet.create({
   },
   kycNeedTxt: { color: "#F97316", fontSize: rs(7), textAlign: "center", marginTop: rs(2), fontFamily: Fonts.Medium },
 
-  // ── PROMO BANNER ──
-  promoBanner: {
-    borderRadius: rs(22), overflow: "hidden",
-    shadowColor: "#000", shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18, shadowRadius: 16, elevation: 6,
-  },
-  promoBannerInner: {
-    paddingHorizontal: rs(20), paddingVertical: rs(20),
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    minHeight: rs(120),
-    position: "relative",
-  },
-  promoGrid: {
-    position: "absolute", inset: 0,
-    opacity: 0.4,
-  },
-  promoContent: { flex: 1, zIndex: 1 },
-  promoTag: {
-    flexDirection: "row", alignItems: "center", gap: rs(4),
-    backgroundColor: "rgba(232,160,32,0.15)",
-    borderWidth: 1, borderColor: "rgba(232,160,32,0.25)",
-    borderRadius: rs(99), paddingHorizontal: rs(10), paddingVertical: rs(3),
-    alignSelf: "flex-start", marginBottom: rs(8),
-  },
-  promoTagDot: { width: rs(5), height: rs(5), borderRadius: rs(3), backgroundColor: Colors.finance_accent },
-  promoTagTxt: { fontSize: rs(9), fontFamily: Fonts.Bold, color: Colors.finance_accent, letterSpacing: 0.8, textTransform: "uppercase" },
-  promoTitle: { fontFamily: Fonts.Bold, fontSize: rs(17), color: "#FFF", letterSpacing: -0.4, lineHeight: rs(22), marginBottom: rs(12) },
-  promoHighlight: { color: Colors.finance_accent },
-  promoCta: {
-    flexDirection: "row", alignItems: "center", gap: rs(6),
-    backgroundColor: Colors.finance_accent,
-    borderRadius: rs(99), paddingHorizontal: rs(14), paddingVertical: rs(8),
-    alignSelf: "flex-start",
-    shadowColor: Colors.finance_accent, shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35, shadowRadius: 8, elevation: 4,
-  },
-  promoCtaTxt: { color: "#000", fontSize: rs(11), fontFamily: Fonts.Bold, letterSpacing: 0.2 },
-  promoOperators: { flexDirection: "column", gap: rs(8), alignItems: "center", zIndex: 1 },
-  opRow: { flexDirection: "row", gap: rs(6) },
-  opPill: {
-    backgroundColor: "rgba(255,255,255,0.07)",
-    borderWidth: 1,
-    borderRadius: rs(99), paddingHorizontal: rs(9), paddingVertical: rs(5),
-  },
-  opPillTxt: { fontSize: rs(10), fontFamily: Fonts.Bold, letterSpacing: 0.2 },
-  carouselDots: { flexDirection: "row", justifyContent: "center", gap: rs(4), marginTop: rs(10) },
-  dotActive: { width: rs(20), height: rs(4), borderRadius: rs(2), backgroundColor: Colors.finance_accent },
-  dotInactive: { width: rs(4), height: rs(4), borderRadius: rs(2), backgroundColor: "rgba(11,15,26,0.15)" },
 
   // ── BANNERS (dynamic) ──
   bannerWrap: { height: vscale(128), borderRadius: rs(12), overflow: "hidden", justifyContent: "center", alignItems: "center" },
