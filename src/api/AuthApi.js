@@ -2338,6 +2338,38 @@ export const initiateXpressPayoutTransfer = async ({ data, headerToken }) => {
   }
 };
 
+/**
+ * getXpressPayoutReport
+ * GET /user/xpressPayoutReport/list-all
+ */
+export const getXpressPayoutReport = async ({ from, to, headerToken, page = 1, limit = 10 }) => {
+  try {
+    const url = `${BASE_URL}/user/xpressPayoutReport/list-all?from=${from}&to=${to}&page=${page}&limit=${limit}`;
+    console.log("[getXpressPayoutReport] →", url);
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${headerToken}`,
+      },
+    });
+
+    const text = await response.text();
+
+    if (text.trimStart().startsWith("<")) {
+      console.log("[getXpressPayoutReport] HTML response — server error");
+      return { success: false, message: "Server error. Please try again.", data: [] };
+    }
+
+    const json = JSON.parse(text);
+    return json;
+  } catch (error) {
+    console.log("[getXpressPayoutReport] error:", error?.message || error);
+    return { success: false, message: error.message || "Network error", data: [] };
+  }
+};
+
 
 
 

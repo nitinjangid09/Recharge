@@ -81,6 +81,7 @@ const SERVICE_ICON_MAP = {
   dmt: "bank-transfer",
   insurance: "shield-check-outline",
   offline: "clipboard-list-outline",
+  xpresspayout: "bank-transfer",
   default: "apps",
 };
 
@@ -819,6 +820,8 @@ export default function FinanceHome({ navigation }) {
                 if (n === "aeps2") label = "AEPS 2";
                 if (n === "bbps1") label = "BBPS";
                 if (n === "recharge1") label = "RECHARGE";
+                if (base === "xpresspayout" || base === "xpress-payout") label = "Xpress Payout";
+
 
                 return (
                   <TouchableOpacity
@@ -871,6 +874,8 @@ export default function FinanceHome({ navigation }) {
                         }
                       } else if (n === "dmt" || n === "dmt1") {
                         navigation.navigate("DmtLogin");
+                      } else if (base === "xpresspayout" || base === "xpress-payout") {
+                        navigation.navigate("XpressPayout");
                       }
                     }}
                   >
@@ -881,7 +886,7 @@ export default function FinanceHome({ navigation }) {
                         <RechargeIconSVG width={rs(26)} height={rs(26)} />
                       ) : (base === "aeps") && typeof AEPSIconSVG === "function" ? (
                         <AEPSIconSVG width={rs(26)} height={rs(26)} />
-                      ) : (base === "dmt") && typeof MoneyTransferIconSVG === "function" ? (
+                      ) : (base === "dmt" || base === "xpresspayout" || base === "xpress-payout") && typeof MoneyTransferIconSVG === "function" ? (
                         <MoneyTransferIconSVG width={rs(26)} height={rs(26)} />
                       ) : (
                         <Icon
