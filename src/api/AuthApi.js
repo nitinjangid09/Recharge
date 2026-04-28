@@ -442,6 +442,30 @@ export const getWalletStats = async ({ headerToken }) => {
   }
 };
 
+export const getProductList = async ({ headerToken, page = 1, limit = 10 }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/shopping/product-list?page=${page}&limit=${limit}`, {
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get Product List API Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch products" };
+  }
+};
+
+export const getProductDetails = async ({ headerToken, productId }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/shopping/product/${productId}`, {
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get Product Details API Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch product details" };
+  }
+};
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SERVICES

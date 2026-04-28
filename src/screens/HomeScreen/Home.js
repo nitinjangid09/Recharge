@@ -1091,7 +1091,7 @@ export default function FinanceHome({ navigation }) {
               </View>
             </TouchableOpacity>
             {[
-              { icon: "file-document-outline", label: "Wallet Ledger", screen: "WalletTransactionScreen" },
+              { icon: "shopping-outline", label: "Shopping", screen: "ShoppingScreen" },
               { icon: "history", label: "Reports", screen: "InvoiceScreen" },
               { icon: "account-outline", label: "Profile", screen: "ProfileScreen" },
             ].map((tab, i) => (
