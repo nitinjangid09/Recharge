@@ -18,7 +18,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Colors from '../../constants/Colors';
 import Fonts from '../../constants/Fonts';
 import CustomAlert, { AlertService } from '../../componets/Alerts/CustomAlert';
-import { getWalletReport, getWalletBalance, getDownlineUsers } from '../../api/AuthApi';
+import { getWalletReport, getWalletBalance, getDownlineUsers, getWalletStats } from '../../api/AuthApi';
 import { fadeIn, slideUp, buttonPress, FadeSlideUp } from '../../utils/ScreenAnimations';
 import HeaderBar from '../../componets/HeaderBar/HeaderBar';
 import ReceiptModal from '../../componets/ReceiptModal/ReceiptModal';
@@ -398,61 +398,64 @@ const PIL = StyleSheet.create({
 });
 
 // ─── Summary Strip Component ──────────────────────────────────────────────────
-const SummaryStrip = ({ data, fromDate, toDate }) => {
-  const totalDebit = data.filter(t => t.type === 'debit').reduce((s, t) => s + (t.amount || 0), 0);
-  const totalCredit = data.filter(t => t.type === 'credit').reduce((s, t) => s + (t.amount || 0), 0);
+const SummaryStrip = ({ data, fromDate, toDate, walletStats }) => {
+  // Fallback to local calculation if API stats not available
+  const totalDebit = walletStats?.totalDebit ?? data.filter(t => t.type === 'debit').reduce((s, t) => s + (t.amount || 0), 0);
+  const totalCredit = walletStats?.totalCredit ?? data.filter(t => t.type === 'credit').reduce((s, t) => s + (t.amount || 0), 0);
+  const totalComm = walletStats?.totalCommission ?? 0;
+  
+  const successAmt = walletStats?.success?.amount ?? 0;
+  const successCount = walletStats?.success?.count ?? 0;
+  
+  const failedAmt = walletStats?.failed?.amount ?? 0;
+  const failedCount = walletStats?.failed?.count ?? 0;
+
+  const refundAmt = walletStats?.refund?.amount ?? 0;
+  const refundCount = walletStats?.refund?.count ?? 0;
+
+  const cards = [
+    { id: 'credit', title: 'TOTAL CREDIT', icon: 'arrow-down', iconColor: Colors.finance_success, bg: 'rgba(16,185,129,0.12)', val: totalCredit, sub: `Commissions: ₹${totalComm.toFixed(2)}` },
+    { id: 'debit', title: 'TOTAL DEBIT', icon: 'arrow-up', iconColor: Colors.blue, bg: 'rgba(59,130,246,0.12)', val: totalDebit, sub: `Charges: ₹${(walletStats?.totalCharges ?? 0).toFixed(2)}` },
+    { id: 'success', title: 'SUCCESS', icon: 'check-circle', iconColor: Colors.finance_success, bg: 'rgba(16,185,129,0.12)', val: successAmt, sub: `${successCount} Transactions` },
+    { id: 'failed', title: 'FAILED', icon: 'close-circle', iconColor: Colors.hex_D97706, bg: 'rgba(217,119,6,0.12)', val: failedAmt, sub: `${failedCount} Transactions` },
+    { id: 'refund', title: 'REFUNDED', icon: 'keyboard-return', iconColor: Colors.kyc_accent, bg: 'rgba(139,92,246,0.12)', val: refundAmt, sub: `${refundCount} Transactions` }
+  ];
 
   return (
     <View style={SS.wrap}>
-      {/* Range tag */}
       <View style={SS.rangeRow}>
         <Icon name="calendar" size={rs(14)} color={Colors.finance_accent} style={{ marginRight: sc(7) }} />
         <Text style={SS.rangeTxt}>{formatDisplay(fromDate)}  →  {formatDisplay(toDate)}</Text>
       </View>
-
-      {/* Stats */}
-      <View style={SS.statsRow}>
-        <View style={SS.statItem}>
-          <View style={[SS.statIcon, { backgroundColor: 'rgba(59,130,246,0.12)' }]}>
-            <Icon name="arrow-up" size={rs(14)} color={Colors.blue} />
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={SS.scrollContainer}>
+        {cards.map((c, i) => (
+          <View key={c.id} style={SS.card}>
+            <View style={SS.cardHeader}>
+              <View style={[SS.cardIconBg, { backgroundColor: c.bg }]}>
+                <Icon name={c.icon} size={rs(14)} color={c.iconColor} />
+              </View>
+              <Text style={SS.cardTitle}>{c.title}</Text>
+            </View>
+            <Text style={SS.cardValue}>₹{c.val.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+            <Text style={SS.cardSub}>{c.sub}</Text>
           </View>
-          <Text style={[SS.statVal, { color: Colors.hex_C79A3F }]}>₹{totalDebit.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
-          <Text style={SS.statLbl}>TOTAL DEBIT</Text>
-        </View>
-
-        <View style={SS.divider} />
-
-        <View style={SS.statItem}>
-          <View style={[SS.statIcon, { backgroundColor: 'rgba(16,185,129,0.12)' }]}>
-            <Icon name="arrow-down" size={rs(14)} color={Colors.finance_success} />
-          </View>
-          <Text style={[SS.statVal, { color: Colors.green }]}>₹{totalCredit.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
-          <Text style={SS.statLbl}>TOTAL CREDIT</Text>
-        </View>
-
-        <View style={SS.divider} />
-
-        <View style={SS.statItem}>
-          <View style={[SS.statIcon, { backgroundColor: 'rgba(0,0,0,0.05)' }]}>
-            <Icon name="swap-horizontal" size={rs(14)} color={Colors.text_secondary} />
-          </View>
-          <Text style={[SS.statVal, { color: Colors.text_primary }]}>{data.length}</Text>
-          <Text style={SS.statLbl}>TRANSACTIONS</Text>
-        </View>
-      </View>
+        ))}
+      </ScrollView>
     </View>
   );
 };
+
 const SS = StyleSheet.create({
   wrap: { marginHorizontal: sc(14), marginBottom: vs(10), backgroundColor: Colors.white, borderRadius: sc(16), overflow: 'hidden', elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4 },
   rangeRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: sc(16), paddingVertical: vs(10), borderBottomWidth: 1, borderBottomColor: Colors.border },
   rangeTxt: { fontSize: rs(13), fontFamily: Fonts.Bold, color: Colors.text_primary },
-  statsRow: { flexDirection: 'row', paddingVertical: vs(14) },
-  statItem: { flex: 1, alignItems: 'center', gap: vs(4) },
-  statIcon: { width: sc(30), height: sc(30), borderRadius: sc(9), alignItems: 'center', justifyContent: 'center' },
-  statVal: { fontSize: rs(14), fontFamily: Fonts.Bold },
-  statLbl: { fontSize: rs(8), fontFamily: Fonts.Bold, color: Colors.text_placeholder, letterSpacing: 0.5, textTransform: 'uppercase' },
-  divider: { width: 1, backgroundColor: Colors.border },
+  scrollContainer: { paddingHorizontal: sc(16), paddingVertical: vs(14), gap: sc(12) },
+  card: { width: sc(130), backgroundColor: Colors.white, borderRadius: sc(12), padding: sc(12), borderWidth: 1, borderColor: Colors.border, shadowColor: Colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.02, shadowRadius: 3, elevation: 1 },
+  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: vs(10) },
+  cardIconBg: { width: sc(28), height: sc(28), borderRadius: sc(8), alignItems: 'center', justifyContent: 'center', marginRight: sc(8) },
+  cardTitle: { fontSize: rs(9), fontFamily: Fonts.Bold, color: Colors.text_placeholder, letterSpacing: 0.5 },
+  cardValue: { fontSize: rs(15), fontFamily: Fonts.Black, color: Colors.text_primary, marginBottom: vs(4) },
+  cardSub: { fontSize: rs(9), fontFamily: Fonts.Medium, color: Colors.text_secondary }
 });
 
 
@@ -598,6 +601,7 @@ const WalletTransactionScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const [transactions, setTransactions] = useState([]);
+  const [walletStats, setWalletStats] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searched, setSearched] = useState(false);
@@ -641,6 +645,13 @@ const WalletTransactionScreen = ({ navigation }) => {
     try {
       const headerToken = await AsyncStorage.getItem('header_token');
       if (!headerToken) { setError('Session expired. Please login again.'); return; }
+      const statsResult = await getWalletStats({ headerToken });
+      if (statsResult?.success) {
+        setWalletStats(statsResult.data);
+      } else {
+        setWalletStats(null);
+      }
+
       const result = await getWalletReport({ from: fromStr, to: toStr, headerToken });
       if (result?.success) {
         const mappedData = (result.data || []).map(item => {
@@ -768,6 +779,7 @@ const WalletTransactionScreen = ({ navigation }) => {
             endDate={endDate}
             searched={searched}
             loading={loading}
+            walletStats={walletStats}
           />
         }
         ListEmptyComponent={
@@ -819,7 +831,8 @@ const ListHeader = ({
   startDate,
   endDate,
   searched,
-  loading
+  loading,
+  walletStats
 }) => (
   <View>
     <View style={S.sfRow}>
@@ -846,7 +859,7 @@ const ListHeader = ({
     </View>
     <FilterPills filters={filters} onRemove={removeFilter} />
     {filteredTransactions.length > 0 && (
-      <SummaryStrip data={filteredTransactions} fromDate={startDate} toDate={endDate} />
+      <SummaryStrip data={filteredTransactions} fromDate={startDate} toDate={endDate} walletStats={walletStats} />
     )}
     {searched && !loading && filteredTransactions.length > 0 && (
       <View style={S.sectionRow}>

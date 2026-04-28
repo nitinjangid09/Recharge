@@ -243,11 +243,6 @@ function WalletScreen({ navigation }) {
             return;
         }
 
-        if (Number(amount) > senderBalance) {
-            showAlert('error', 'Insufficient Balance', `You do not have enough balance (₹${senderBalance.toFixed(2)}) to perform this refill.`);
-            return;
-        }
-
         setErrors({});
 
         try {
@@ -261,7 +256,7 @@ function WalletScreen({ navigation }) {
             const idempotencyKey = `REFILL_${Date.now()}_${Math.random().toString(36).substring(7).toUpperCase()}`;
 
             const res = await refillUserWallet({
-                userId: selectedUser.id,
+                userId: userProfile?.userId || selectedUser.id,
                 amount: Number(amount),
                 idempotencyKey,
                 headerToken

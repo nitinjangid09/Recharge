@@ -22,7 +22,7 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Fonts from "../../constants/Fonts";
 import Colors from "../../constants/Colors";
-import { getWalletBalance, fetchUserProfile, getAllBanners, getWalletReport, getAepsStatus, BASE_URL } from "../../api/AuthApi";
+import { getWalletBalance, fetchUserProfile, getAllBanners, getWalletReport, getAepsStatus, BASE_URL, getAllNotifications } from "../../api/AuthApi";
 import FullScreenLoader from "../../componets/Loader/FullScreenLoader";
 import CustomAlert from "../../componets/Alerts/CustomAlert";
 
@@ -114,6 +114,48 @@ const apiGet = async (ep, tok) => {
 // ─────────────────────────────────────────────────────────────────────────────
 // COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
+const NewsMarquee = ({ notifications }) => {
+  const scrollAnim = useRef(new Animated.Value(SW)).current;
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  if (!notifications || notifications.length === 0) return null;
+
+  const textToDisplay = notifications[currentIndex]?.name;
+
+  return (
+    <View style={S.newsMarqueeContainer}>
+      <Icon name="bullhorn-outline" size={rs(16)} color={Colors.finance_accent} style={{ marginRight: rs(8), zIndex: 1 }} />
+      <ScrollView horizontal={true} pointerEvents="none" showsHorizontalScrollIndicator={false} style={{ flex: 1, overflow: 'hidden' }}>
+        <Animated.View
+          key={currentIndex}
+          style={{ flexDirection: 'row', transform: [{ translateX: scrollAnim }], width: 5000 }}
+        >
+          <Text
+            onLayout={(e) => {
+              const width = e.nativeEvent.layout.width;
+              scrollAnim.setValue(SW);
+              Animated.timing(scrollAnim, {
+                toValue: -width,
+                duration: (SW + width) * 15, // Speed adjustment
+                easing: Easing.linear,
+                useNativeDriver: true,
+              }).start(({ finished }) => {
+                if (finished) {
+                  setCurrentIndex((prev) => (prev + 1) % notifications.length);
+                }
+              });
+            }}
+            style={S.newsMarqueeText}
+            numberOfLines={1}
+          >
+            {textToDisplay}
+          </Text>
+        </Animated.View>
+      </ScrollView>
+    </View>
+  );
+};
+
 export default function FinanceHome({ navigation }) {
   const insets = useSafeAreaInsets();
 
@@ -204,6 +246,7 @@ export default function FinanceHome({ navigation }) {
   const [isMainWallet, setIsMainWallet] = useState(true);
   const [showBalance, setShowBalance] = useState(true);
   const [banners, setBanners] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [statusMessage, setStatusMessage] = useState("");
 
   const [recentTransactions, setRecentTransactions] = useState([]);
@@ -226,6 +269,15 @@ export default function FinanceHome({ navigation }) {
       if (res?.success) setBanners(res.data || []);
     } catch (e) {
       setBanners([]);
+    }
+  }, []);
+
+  const loadNotifications = useCallback(async (tok) => {
+    try {
+      const res = await getAllNotifications({ headerToken: tok });
+      if (res?.success) setNotifications(res.data || []);
+    } catch (e) {
+      setNotifications([]);
     }
   }, []);
 
@@ -403,6 +455,7 @@ export default function FinanceHome({ navigation }) {
 
       loadBalances(s.header_token);
       loadBanners(s.header_token);
+      loadNotifications(s.header_token);
       loadRecentTransactions(s.header_token);
     } catch (e) {
       setUserName("User");
@@ -817,6 +870,9 @@ export default function FinanceHome({ navigation }) {
               txnVolume={txnVolume}
             />
 
+            {/* ── NEWS MARQUEE ── */}
+            <NewsMarquee notifications={notifications} />
+
             {/* ── SERVICES GRID ── */}
             <SectionHeader title="Services" linkLabel="View All" onLink={() => { }} />
             <View style={S.svcGrid}>
@@ -845,65 +901,65 @@ export default function FinanceHome({ navigation }) {
                   const iconName = SERVICE_ICON_MAP[base] || SERVICE_ICON_MAP.default;
 
                   return (
-                  <TouchableOpacity
-                    key={`${code}-${idx}`}
-                    style={[S.svcGridItem]}
-                    activeOpacity={0.78}
-                    onPress={async () => {
-                      if (isStatic) {
-                        navigation.navigate(screen);
-                        return;
-                      }
-                      if (n === "recharge" || n === "recharge1" || service.name === "recharge" || service.serviceId === "699314b271936d89b7185e48") {
-                        navigation.navigate("TopUpScreen");
-                      } else if (n === "bbps" || n === "bbps1" || service.name === "bbps" || service.serviceId === "6993147e71936d89b7185e36") {
-                        navigation.navigate("PaymentsScreen");
-                      } else if (n === "aeps1" || n === "aeps") {
-                        const aeps1 = userProfile?.aeps1 || {};
-                        if (Object.keys(aeps1).length === 0) {
-                          navigation.navigate("AepsRegistration");
-                        } else if (aeps1.action === "ACTION-REQUIRED") {
-                          navigation.navigate("AEPS_OnBoard");
-                        } else if (aeps1.action === "NO-ACTION-REQUIRED") {
-                          setBalanceLoading(true);
-                          try {
-                            const statusRes = await getAepsStatus({ headerToken: token });
-                            if (statusRes.code === "LOGIN_NOT_REQUIRED") {
-                              navigation.navigate("AEPS1");
-                            } else if (statusRes.code === "LOGIN_REQUIRED") {
-                              navigation.navigate("DailyLogin");
-                            } else {
-                              navigation.navigate("DailyLogin");
+                    <TouchableOpacity
+                      key={`${code}-${idx}`}
+                      style={[S.svcGridItem]}
+                      activeOpacity={0.78}
+                      onPress={async () => {
+                        if (isStatic) {
+                          navigation.navigate(screen);
+                          return;
+                        }
+                        if (n === "recharge" || n === "recharge1" || service.name === "recharge" || service.serviceId === "699314b271936d89b7185e48") {
+                          navigation.navigate("TopUpScreen");
+                        } else if (n === "bbps" || n === "bbps1" || service.name === "bbps" || service.serviceId === "6993147e71936d89b7185e36") {
+                          navigation.navigate("PaymentsScreen");
+                        } else if (n === "aeps1" || n === "aeps") {
+                          const aeps1 = userProfile?.aeps1 || {};
+                          if (Object.keys(aeps1).length === 0) {
+                            navigation.navigate("AepsRegistration");
+                          } else if (aeps1.action === "ACTION-REQUIRED") {
+                            navigation.navigate("AEPS_OnBoard");
+                          } else if (aeps1.action === "NO-ACTION-REQUIRED") {
+                            setBalanceLoading(true);
+                            try {
+                              const statusRes = await getAepsStatus({ headerToken: token });
+                              if (statusRes.code === "LOGIN_NOT_REQUIRED") {
+                                navigation.navigate("AEPS1");
+                              } else if (statusRes.code === "LOGIN_REQUIRED") {
+                                navigation.navigate("DailyLogin");
+                              } else {
+                                navigation.navigate("DailyLogin");
+                              }
+                            } catch (err) {
+                              showAlert("error", "Status Check Failed", "Unable to verify AEPS session. Please try again.");
+                            } finally {
+                              setBalanceLoading(false);
                             }
-                          } catch (err) {
-                            showAlert("error", "Status Check Failed", "Unable to verify AEPS session. Please try again.");
-                          } finally {
-                            setBalanceLoading(false);
+                          } else {
+                            navigation.navigate("AEPSAadhaarOTP");
                           }
-                        } else {
-                          navigation.navigate("AEPSAadhaarOTP");
+                        } else if (n === "aeps2") {
+                          const aeps2 = userProfile?.aeps2 || {};
+                          const { isActivated, isLoginRequired } = aeps2;
+                          if (Object.keys(aeps2).length === 0) {
+                            navigation.navigate("AEPSSecondaryRegistration");
+                          } else if (isActivated === true && isLoginRequired === true) {
+                            navigation.navigate("AEPSPortalAccess");
+                          } else if (isActivated === false && isLoginRequired === true) {
+                            navigation.navigate("AEPSServiceActivation");
+                          } else if (isActivated === true && isLoginRequired === false) {
+                            navigation.navigate("AePSDashboard");
+                          } else {
+                            navigation.navigate("AEPSAadhaarOTP");
+                          }
+                        } else if (n === "dmt" || n === "dmt1") {
+                          navigation.navigate("DmtLogin");
+                        } else if (base === "xpresspayout" || base === "xpress-payout" || base === "upi-payout") {
+                          navigation.navigate("XpressPayout");
                         }
-                      } else if (n === "aeps2") {
-                        const aeps2 = userProfile?.aeps2 || {};
-                        const { isActivated, isLoginRequired } = aeps2;
-                        if (Object.keys(aeps2).length === 0) {
-                          navigation.navigate("AEPSSecondaryRegistration");
-                        } else if (isActivated === true && isLoginRequired === true) {
-                          navigation.navigate("AEPSPortalAccess");
-                        } else if (isActivated === false && isLoginRequired === true) {
-                          navigation.navigate("AEPSServiceActivation");
-                        } else if (isActivated === true && isLoginRequired === false) {
-                          navigation.navigate("AePSDashboard");
-                        } else {
-                          navigation.navigate("AEPSAadhaarOTP");
-                        }
-                      } else if (n === "dmt" || n === "dmt1") {
-                        navigation.navigate("DmtLogin");
-                      } else if (base === "xpresspayout" || base === "xpress-payout" || base === "upi-payout") {
-                        navigation.navigate("XpressPayout");
-                      }
-                    }}
-                  >
+                      }}
+                    >
                       <View style={[S.svcIconCircle]}>
                         {isStatic && Svg ? (
                           <Svg width={rs(24)} height={rs(24)} />
@@ -927,12 +983,12 @@ export default function FinanceHome({ navigation }) {
                           />
                         )}
                       </View>
-                    <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
-                      {label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
+                      <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
+                        {label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
             </View>
 
             {/* ── PROMO BANNER ── */}
@@ -1367,6 +1423,25 @@ const S = StyleSheet.create({
   },
   kycNeedTxt: { color: "#F97316", fontSize: rs(7), textAlign: "center", marginTop: rs(2), fontFamily: Fonts.Medium },
 
+
+  // ── NEWS MARQUEE ──
+  newsMarqueeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(212,176,106,0.1)",
+    paddingVertical: rs(8),
+    paddingHorizontal: rs(14),
+    borderRadius: rs(8),
+    borderWidth: 1,
+    borderColor: "rgba(212,176,106,0.3)",
+    overflow: "hidden",
+  },
+  newsMarqueeText: {
+    color: Colors.finance_accent,
+    fontSize: rs(12),
+    fontFamily: Fonts.Medium,
+    flexShrink: 0,
+  },
 
   // ── BANNERS (dynamic) ──
   bannerWrap: { height: vscale(128), borderRadius: rs(12), overflow: "hidden", justifyContent: "center", alignItems: "center" },

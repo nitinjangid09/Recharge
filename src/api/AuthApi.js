@@ -368,7 +368,8 @@ export const refillUserWallet = async ({ userId, amount, idempotencyKey, headerT
     }, {
       headers: {
         Authorization: `Bearer ${headerToken}`,
-        'idempotency-key': idempotencyKey
+        'idempotency-key': idempotencyKey,
+        'Content-Type': 'application/json'
       },
     });
     return response.data;
@@ -414,6 +415,33 @@ export const getAllBanners = async ({ headerToken }) => {
     return error?.response?.data || { success: false, message: "Unable to fetch banners" };
   }
 };
+
+export const getAllNotifications = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/notification/all-notifications`, {
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get All Notifications API Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch notifications" };
+  }
+};
+
+export const getWalletStats = async ({ headerToken }) => {
+  try {
+    const url = `${BASE_URL}/user/walletLedger/wallet-stats`;
+    
+    const response = await axios.get(url, {
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get Wallet Stats API Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch wallet stats" };
+  }
+};
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SERVICES

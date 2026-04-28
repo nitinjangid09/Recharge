@@ -89,14 +89,21 @@ const SegControl = ({ tabs, activeKey, onChange }) => (
     </ScrollView>
 );
 
-const SectionHeader = ({ title, tag, color, }) => (
+const SectionHeader = ({ title, tag, color, pipeline }) => (
     <View style={s.sh}>
         <View style={s.shLeft}>
             <View style={[s.shPip, { backgroundColor: Colors.finance_accent }]} />
             <Text style={s.shTitle}>{title}</Text>
         </View>
-        <View style={[s.shTag, { backgroundColor: color?.tagBg, borderColor: color?.tagBorder }]}>
-            <Text style={[s.shTagTxt, { color: color?.tagText }]}>{tag}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            {!!pipeline && (
+                <View style={[s.shTag, { backgroundColor: 'rgba(212,176,106,0.1)', borderColor: 'rgba(212,176,106,0.5)' }]}>
+                    <Text style={[s.shTagTxt, { color: Colors.finance_accent }]}>Pipeline: {pipeline}</Text>
+                </View>
+            )}
+            <View style={[s.shTag, { backgroundColor: color?.tagBg, borderColor: color?.tagBorder }]}>
+                <Text style={[s.shTagTxt, { color: color?.tagText }]}>{tag}</Text>
+            </View>
         </View>
     </View>
 );
@@ -164,8 +171,15 @@ export default function CommissionPlanScreen({ navigation }) {
         return service?.rows || [];
     };
 
+    const getServicePipeline = (serviceName) => {
+        const service = planData.find(s => s.serviceName === serviceName);
+        return service?.pipeline || '';
+    };
+
     const rechargeRows = getServiceRows('recharge');
+    const rechargePipeline = getServicePipeline('recharge');
     const bbpsRows = getServiceRows('bbps');
+    const bbpsPipeline = getServicePipeline('bbps');
 
     const mapRows = (rows) => rows.map(r => ({
         name: r.name,
@@ -280,6 +294,7 @@ export default function CommissionPlanScreen({ navigation }) {
                         title="RECHARGE"
                         tag="Mobile"
                         pipColor={Colors.primary}
+                        pipeline={rechargePipeline}
                         color={{
                             tagBg: Colors.finance_chip,
                             tagBorder: Colors.finance_accent,
@@ -307,6 +322,7 @@ export default function CommissionPlanScreen({ navigation }) {
                         title="BBPS"
                         tag="Bills · Utilities"
                         pipColor={Colors.black}
+                        pipeline={bbpsPipeline}
                         color={{
                             tagBg: Colors.finance_chip,
                             tagBorder: Colors.finance_accent,
