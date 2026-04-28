@@ -926,8 +926,8 @@ export default function FinanceHome({ navigation }) {
                   return (
                     <TouchableOpacity
                       key={`${code}-${idx}`}
-                      style={[S.svcGridItem, isLocked && { opacity: 0.6 }]}
-                      activeOpacity={isLocked ? 1 : 0.78}
+                      style={[S.svcGridItem]}
+                      activeOpacity={0.78}
                       onPress={async () => {
                         if (isLocked) {
                           const msg = "To use this service, please request admin to allow this service for you.";
@@ -1008,16 +1008,12 @@ export default function FinanceHome({ navigation }) {
                           <Icon
                             name={iconName}
                             size={rs(22)}
-                            color={isLocked ? Colors.kyc_textMuted : Colors.finance_accent}
+                            color={Colors.finance_accent}
                           />
                         )}
-                        {isLocked && (
-                          <View style={S.lockBadge}>
-                            <Icon name="lock" size={rs(10)} color="#FFF" />
-                          </View>
-                        )}
+                        {!isLocked && <View style={S.liveDot} />}
                       </View>
-                      <Text style={[S.svcGridLabel, isLocked && { color: Colors.kyc_textMuted }]} numberOfLines={1} adjustsFontSizeToFit>
+                      <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
                         {label}
                       </Text>
                     </TouchableOpacity>
@@ -1454,6 +1450,13 @@ const S = StyleSheet.create({
     position: "absolute", bottom: -2, right: -5,
     width: rs(11), height: rs(11), borderRadius: rs(6),
     backgroundColor: "#F97316", alignItems: "center", justifyContent: "center",
+  },
+  liveDot: {
+    position: "absolute", top: rs(-1), right: rs(-1),
+    width: rs(10), height: rs(10), borderRadius: rs(5),
+    backgroundColor: "#22C55E", 
+    borderWidth: 1.5, borderColor: "#FFF", 
+    elevation: 2,
   },
   kycNeedTxt: { color: "#F97316", fontSize: rs(7), textAlign: "center", marginTop: rs(2), fontFamily: Fonts.Medium },
 
