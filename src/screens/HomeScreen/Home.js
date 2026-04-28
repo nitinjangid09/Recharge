@@ -15,6 +15,9 @@ import {
   FlatList,
   Keyboard,
   RefreshControl,
+  ToastAndroid,
+  Platform,
+  Alert,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import LinearGradient from "react-native-linear-gradient";
@@ -22,7 +25,7 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Fonts from "../../constants/Fonts";
 import Colors from "../../constants/Colors";
-import { getWalletBalance, fetchUserProfile, getAllBanners, getWalletReport, getAepsStatus, BASE_URL, getAllNotifications } from "../../api/AuthApi";
+import { getWalletBalance, fetchUserProfile, getAllBanners, getWalletReport, getAepsStatus, BASE_URL, getAllNotifications, getAllServices } from "../../api/AuthApi";
 import FullScreenLoader from "../../componets/Loader/FullScreenLoader";
 import CustomAlert from "../../componets/Alerts/CustomAlert";
 
@@ -85,7 +88,12 @@ const SERVICE_ICON_MAP = {
   dmt: "bank-transfer",
   insurance: "shield-check-outline",
   offline: "clipboard-list-outline",
+  "offline-service": "clipboard-list-outline",
+  "online-service": "web",
   xpresspayout: "bank-transfer",
+  "xpress-payout": "bank-transfer",
+  "aeps-payout": "bank-transfer",
+  "upi-payout": "qrcode-scan",
   upi: "qrcode-scan",
   default: "apps",
 };
@@ -240,7 +248,8 @@ export default function FinanceHome({ navigation }) {
   const [aepsBalance, setAepsBalance] = useState("...");
   const [mainBalance, setMainBalance] = useState("...");
   const [balanceLoading, setBalanceLoading] = useState(false);
-  const [assignedServices, setAssignedServices] = useState([]);
+  const [allServices, setAllServices] = useState([]);
+  const [profileAssignedServices, setProfileAssignedServices] = useState([]);
   const [userProfile, setUserProfile] = useState(null);
   const [servicesLoading, setServicesLoading] = useState(false);
   const [isMainWallet, setIsMainWallet] = useState(true);
@@ -260,8 +269,11 @@ export default function FinanceHome({ navigation }) {
     setAlert({ visible: true, type, title, message, onConfirm, confirmText });
   };
 
-  const hasService = (n) =>
-    assignedServices.some((s) => s.name?.toLowerCase() === n.toLowerCase());
+  const hasService = (pipelineCode) => {
+    return profileAssignedServices.some((s) => 
+      s.pipelineCodes && s.pipelineCodes.some(code => code.toLowerCase() === pipelineCode.toLowerCase())
+    );
+  };
 
   const loadBanners = useCallback(async (tok) => {
     try {
@@ -278,6 +290,17 @@ export default function FinanceHome({ navigation }) {
       if (res?.success) setNotifications(res.data || []);
     } catch (e) {
       setNotifications([]);
+    }
+  }, []);
+
+  const loadAllServices = useCallback(async (tok) => {
+    try {
+      const res = await getAllServices({ headerToken: tok });
+      if (res?.success && Array.isArray(res.data)) {
+        setAllServices(res.data);
+      }
+    } catch (e) {
+      console.log("Error loading services:", e);
     }
   }, []);
 
@@ -438,17 +461,15 @@ export default function FinanceHome({ navigation }) {
           if (res?.success && res?.data) {
             const p = res.data;
             setUserName(`${p.firstName ?? ""} ${p.lastName ?? ""}`.trim() || s.user_name?.trim() || "User");
-            setAssignedServices(Array.isArray(p.assignedServices) ? p.assignedServices : []);
+            setProfileAssignedServices(Array.isArray(p.assignedServices) ? p.assignedServices : []);
             setUserProfile(p);
             setStatusMessage(res?.message || "");
           } else {
             setUserName(s.user_name?.trim() || "User");
-            setAssignedServices([]);
             setStatusMessage(res?.message || "Unable to fetch status");
           }
         } catch {
           setUserName(s.user_name?.trim() || "User");
-          setAssignedServices([]);
           setStatusMessage("Connection error");
         } finally { setServicesLoading(false); }
       })();
@@ -456,6 +477,7 @@ export default function FinanceHome({ navigation }) {
       loadBalances(s.header_token);
       loadBanners(s.header_token);
       loadNotifications(s.header_token);
+      loadAllServices(s.header_token);
       loadRecentTransactions(s.header_token);
     } catch (e) {
       setUserName("User");
@@ -864,7 +886,7 @@ export default function FinanceHome({ navigation }) {
             <OverviewStats
               navigation={navigation}
               kycStatus={kycStatus}
-              assignedServices={assignedServices}
+              assignedServices={profileAssignedServices}
               statusMessage={statusMessage}
               txnCount={txnCount}
               txnVolume={txnVolume}
@@ -877,12 +899,13 @@ export default function FinanceHome({ navigation }) {
             <SectionHeader title="Services" linkLabel="View All" onLink={() => { }} />
             <View style={S.svcGrid}>
               {[
-                ...assignedServices.flatMap(s => (s.pipelineCodes || []).map(code => ({ code, service: s, isStatic: false }))),
-                { code: "offline", label: "OFFLINE SERVICES", n: "offline", base: "offline", isStatic: true, screen: "OfflineServices", Svg: OfflineServicesIconSVG },
-                { code: "online", label: "ONLINE SERVICES", n: "online", base: "online", isStatic: true, screen: "OnlineServices", Svg: OnlineServicesIconSVG }
+                ...allServices.flatMap(s => (s.pipeline || []).map(p => ({ code: p.code, service: s, isStatic: false }))),
+                { code: "offline", label: "OFFLINE SERVICES", n: "offline", base: "offline", isStatic: true, screen: "OfflineServices", Svg: OfflineServicesIconSVG, isLocked: false },
+                { code: "online", label: "ONLINE SERVICES", n: "online", base: "online", isStatic: true, screen: "OnlineServices", Svg: OnlineServicesIconSVG, isLocked: false }
               ]
                 .map(item => {
                   if (item.isStatic) return item;
+                  const isLocked = !hasService(item.code);
                   const n = item.code.toLowerCase();
                   const base = n.replace(/\d+$/, "");
                   let label = n.toUpperCase();
@@ -893,19 +916,25 @@ export default function FinanceHome({ navigation }) {
                   if (n === "recharge1") label = "RECHARGE";
                   if (base === "xpresspayout" || base === "xpress-payout") label = "Xpress Payout";
                   if (base === "upi-payout") label = "UPI Payout";
-                  return { ...item, label, n, base };
+                  return { ...item, label, n, base, isLocked };
                 })
                 .sort((a, b) => a.label.localeCompare(b.label))
                 .map((item, idx) => {
-                  const { code, service, label, n, base, isStatic, screen, Svg } = item;
+                  const { code, service, label, n, base, isStatic, screen, Svg, isLocked } = item;
                   const iconName = SERVICE_ICON_MAP[base] || SERVICE_ICON_MAP.default;
 
                   return (
                     <TouchableOpacity
                       key={`${code}-${idx}`}
-                      style={[S.svcGridItem]}
-                      activeOpacity={0.78}
+                      style={[S.svcGridItem, isLocked && { opacity: 0.6 }]}
+                      activeOpacity={isLocked ? 1 : 0.78}
                       onPress={async () => {
+                        if (isLocked) {
+                          const msg = "To use this service, please request admin to allow this service for you.";
+                          if (Platform.OS === "android") ToastAndroid.show(msg, ToastAndroid.SHORT);
+                          else Alert.alert("Service Locked", msg);
+                          return;
+                        }
                         if (isStatic) {
                           navigation.navigate(screen);
                           return;
@@ -979,11 +1008,16 @@ export default function FinanceHome({ navigation }) {
                           <Icon
                             name={iconName}
                             size={rs(22)}
-                            color={Colors.finance_accent}
+                            color={isLocked ? Colors.kyc_textMuted : Colors.finance_accent}
                           />
                         )}
+                        {isLocked && (
+                          <View style={S.lockBadge}>
+                            <Icon name="lock" size={rs(10)} color="#FFF" />
+                          </View>
+                        )}
                       </View>
-                      <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
+                      <Text style={[S.svcGridLabel, isLocked && { color: Colors.kyc_textMuted }]} numberOfLines={1} adjustsFontSizeToFit>
                         {label}
                       </Text>
                     </TouchableOpacity>

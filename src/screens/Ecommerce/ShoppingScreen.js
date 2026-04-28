@@ -100,7 +100,6 @@ export default function ShoppingScreen({ navigation }) {
             <Text style={s.bannerBtnTxt}>Shop Now</Text>
           </TouchableOpacity>
         </View>
-        <Icon name="hardware-chip" size={100} color="rgba(212,176,106,0.15)" style={s.bannerIcon} />
       </LinearGradient>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.brandScroll} contentContainerStyle={s.brandContent}>
@@ -129,8 +128,8 @@ export default function ShoppingScreen({ navigation }) {
     const isDiscounted = item.priceAfterDiscount && item.priceAfterDiscount < item.price;
 
     return (
-      <TouchableOpacity 
-        style={s.card} 
+      <TouchableOpacity
+        style={s.card}
         activeOpacity={0.9}
         onPress={() => navigation.navigate('ProductDetailsScreen', { productId: item._id })}
       >
@@ -149,7 +148,7 @@ export default function ShoppingScreen({ navigation }) {
           <View style={s.cardContent}>
             <Text style={s.cardName} numberOfLines={1}>{item.name}</Text>
             <Text style={s.cardCategory}>{item.category || 'Hardware'}</Text>
-            
+
             <View style={s.cardBottom}>
               <View style={s.cardPriceBox}>
                 <Text style={s.cardPrice}>₹{item.priceAfterDiscount ?? item.price}</Text>

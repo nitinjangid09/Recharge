@@ -247,16 +247,16 @@ export default function Offlinekyc({ navigation, route }) {
     panNumber: false, aadharNumber: false,
   });
 
-  const [files, setFiles] = useState({ aadharFile: null, panFile: null, shopImage: null });
-  const [lockedFiles, setLockedFiles] = useState({ aadharFile: false, panFile: false, shopImage: false });
+  const [files, setFiles] = useState({ aadharFile: null, panFile: null, shopImage: null, blankCheque: null });
+  const [lockedFiles, setLockedFiles] = useState({ aadharFile: false, panFile: false, shopImage: false, blankCheque: false });
 
   const [banking, setBanking] = useState({
     accountHolderName: "", bankName: "", accountNumber: "",
-    confirmAccountNumber: "", ifscCode: "", branchName: "",
+    confirmAccountNumber: "", ifscCode: "",
   });
   const [lockedBanking, setLockedBanking] = useState({
     accountHolderName: false, bankName: false, accountNumber: false,
-    ifscCode: false, branchName: false,
+    ifscCode: false,
   });
 
   // ── Account match ──────────────────────────────────────────────────────
@@ -400,6 +400,10 @@ export default function Offlinekyc({ navigation, route }) {
           setFiles(f => ({ ...f, panFile: buildFile(d.panFileUrl, "panFile.jpg") }));
           setLockedFiles(lf => ({ ...lf, panFile: identityApproved }));
         }
+        if (d.blankChequeUrl) {
+          setFiles(f => ({ ...f, blankCheque: buildFile(d.blankChequeUrl, "blankCheque.jpg") }));
+          setLockedFiles(lf => ({ ...lf, blankCheque: bankApproved }));
+        }
 
         // 4. Banking Details
         setBanking(bk => ({
@@ -409,14 +413,12 @@ export default function Offlinekyc({ navigation, route }) {
           accountNumber: d.accountNumber || bk.accountNumber,
           confirmAccountNumber: d.accountNumber || bk.confirmAccountNumber,
           ifscCode: d.ifscCode || bk.ifscCode,
-          branchName: d.branchName || bk.branchName,
         }));
         setLockedBanking({
           accountHolderName: bankApproved && !!d.accountHolderName,
           bankName: bankApproved && !!d.bankName,
           accountNumber: bankApproved && !!d.accountNumber,
           ifscCode: bankApproved && !!d.ifscCode,
-          branchName: bankApproved && !!d.branchName,
         });
 
         if (d.rejectionReason) {
@@ -603,12 +605,11 @@ export default function Offlinekyc({ navigation, route }) {
     if (!banking.confirmAccountNumber.trim()) e.confirmAccountNumber = "Please confirm account number";
     else if (banking.accountNumber !== banking.confirmAccountNumber) e.confirmAccountNumber = "Account numbers don't match";
 
-    // IFSC validation (max 15 chars)
     if (!banking.ifscCode.trim() || banking.ifscCode.trim().length > 15 || !RX.ifsc.test(banking.ifscCode.trim())) {
       e.ifscCode = "Invalid IFSC (max 15 chars)";
     }
 
-    if (!banking.branchName.trim()) e.branchName = "Required";
+    if (!files.blankCheque) e.blankCheque = "Passbook/Cheque photo required";
     setErrors(e);
     return e;
   };
@@ -1040,10 +1041,65 @@ export default function Offlinekyc({ navigation, route }) {
                 </FieldWrap>
 
                 <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
-                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.accountHolderName = y; fieldCoords.current.branchName = y; }}>
+                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.accountHolderName = y; }}>
                   <Field label="Account Holder Name" value={banking.accountHolderName} onChange={v => setBanking(b => ({ ...b, accountHolderName: v }))} error={errors.accountHolderName} placeholder="As per bank records" maxLength={100} locked={lockedBanking.accountHolderName} />
-                  <Field label="Branch Name" value={banking.branchName} onChange={v => setBanking(b => ({ ...b, branchName: v }))} error={errors.branchName} placeholder="e.g. Main Branch" locked={lockedBanking.branchName} />
                 </TwoCol>
+
+                <Divider label="DOCUMENTS" />
+                <View style={{ marginBottom: vs(10) }}>
+                  {[
+                    { key: "blankCheque", label: "Bank Passbook / Cancelled Cheque", sub: "Must show your name and account number", icon: "bank-transfer", color: Colors.kyc_accent },
+                  ].map((slot) => {
+                    const img = files[slot.key];
+                    const hasErr = !!errors[slot.key];
+                    return (
+                      <View key={slot.key} style={styles.docSlotWrap} onLayout={e => fieldCoords.current[slot.key] = e.nativeEvent.layout.y}>
+                        <TouchableOpacity
+                          style={[styles.docBox, hasErr && { borderColor: Colors.kyc_error, backgroundColor: Colors.kyc_error + "08" }, lockedFiles[slot.key] && { opacity: 0.8, borderStyle: "solid", backgroundColor: Colors.kyc_lockedBg }]}
+                          activeOpacity={lockedFiles[slot.key] ? 1 : 0.75}
+                          onPress={() => { if (!lockedFiles[slot.key]) pickImage(slot.key); }}
+                        >
+                          {img ? (
+                            <>
+                              <Image source={{ uri: img.uri }} style={styles.docThumb} />
+                              <LinearGradient colors={["transparent", "rgba(0,0,0,0.85)"]} style={styles.docOverlay}>
+                                <Icon name="check-decagram" size={rs(13)} color={Colors.kyc_success} />
+                                <Text style={[styles.docDoneLabel, { fontSize: rs(9) }]}>UPLOADED</Text>
+                                <Text style={styles.docFileName} numberOfLines={1}>{img.name}</Text>
+                              </LinearGradient>
+                              {!lockedFiles[slot.key] && (
+                                <TouchableOpacity style={[styles.docCornerBtn, { backgroundColor: Colors.kyc_accent, right: vs(30) }]} onPress={() => pickImage(slot.key)}>
+                                  <Icon name="pencil" size={rs(10)} color={Colors.white} />
+                                </TouchableOpacity>
+                              )}
+                              {!lockedFiles[slot.key] && (
+                                <TouchableOpacity style={[styles.docCornerBtn, { backgroundColor: Colors.kyc_error, right: vs(6) }]} onPress={() => removeFile(slot.key)}>
+                                  <Icon name="close" size={rs(10)} color={Colors.white} />
+                                </TouchableOpacity>
+                              )}
+                            </>
+                          ) : (
+                            <View style={styles.docEmptyContent}>
+                              <View style={[styles.docIconCircle, { backgroundColor: slot.color + "1C" }]}>
+                                <Icon name={slot.icon} size={rs(22)} color={slot.color} />
+                              </View>
+                              <View style={{ flex: 1 }}>
+                                <Text style={[styles.docSlotLabel, { fontFamily: Fonts.Bold, fontSize: rs(12) }]}>{slot.label}</Text>
+                                <Text style={[styles.docSlotSub, { fontSize: rs(10) }]}>{slot.sub}</Text>
+                                <Text style={[styles.docSizeLabel, { fontSize: rs(9) }]}>{SIZE_LABEL}</Text>
+                              </View>
+                              <View style={[styles.docUploadTag, { backgroundColor: Colors.kyc_accent + "18", borderColor: Colors.kyc_accent + "40" }]}>
+                                <Icon name="camera-plus-outline" size={rs(11)} color={Colors.kyc_accent} />
+                                <Text style={[styles.docUploadTagText, { color: Colors.kyc_accent, fontFamily: Fonts.Bold, fontSize: rs(9) }]}>Upload</Text>
+                              </View>
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                        {hasErr && <ErrLabel msg={errors[slot.key]} />}
+                      </View>
+                    );
+                  })}
+                </View>
 
                 <LinearGradient colors={[Colors.kyc_accent + "1A", Colors.kyc_accent + "08"]} style={styles.securityBanner}>
                   <View style={[styles.securityIcon, { backgroundColor: Colors.kyc_accent + "25" }]}>

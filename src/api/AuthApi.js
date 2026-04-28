@@ -2447,6 +2447,20 @@ export const getXpressPayoutReport = async ({ from, to, headerToken, page = 1, l
   }
 };
 
+export const getAllServices = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/service/list`, {
+      headers: { "Authorization": `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get All Services API Error:", error?.response?.data || error);
+    if (error?.response?.data) return error.response.data;
+    return { success: false, message: "Network error. Please check your connection." };
+  }
+};
+
+
 
 
 
