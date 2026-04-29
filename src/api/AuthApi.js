@@ -431,7 +431,7 @@ export const getAllNotifications = async ({ headerToken }) => {
 export const getWalletStats = async ({ headerToken }) => {
   try {
     const url = `${BASE_URL}/user/walletLedger/wallet-stats`;
-    
+
     const response = await axios.get(url, {
       headers: { Authorization: `Bearer ${headerToken}` },
     });
@@ -722,10 +722,10 @@ export const submitOfflineKyc = async ({ personal, business, files, banking }) =
       console.log(`[KYC] ⚠ ${key} is null`);
     }
   };
-
   appendFile("aadharFile", files.aadharFile, "aadharFile.jpg");
   appendFile("panFile", files.panFile, "panFile.jpg");
   appendFile("shopImage", files.shopImage, "shopImage.jpg");
+  appendFile("blankCheque", files.blankCheque, "blankCheque.jpg");
 
   console.log("[KYC] Form fields successfully attached.");
 

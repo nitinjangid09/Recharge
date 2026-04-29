@@ -121,7 +121,7 @@ function CouponPanel({ onSuccess }) {
             <View style={styles.couponWrap}>
                 <TextInput
                     style={[styles.couponInput, err ? styles.inputErr : null]}
-                    placeholder="e.g. FREE24, VIPPRO"
+                    placeholder="e.g. FREE24"
                     placeholderTextColor={Colors.hub_lightText}
                     value={code}
                     onChangeText={t => {
@@ -231,7 +231,7 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
     const [receiptImage, setReceiptImage] = useState(null);
     const [showMethodPicker, setShowMethodPicker] = useState(false);
 
-    const methods = ['UPI Transfer', 'IMPS', 'NEFT / RTGS'];
+    const methods = ['UPI', 'IMPS', 'bank', 'NEFT'];
 
     // Auto-select first bank if none selected
     useEffect(() => {
@@ -729,6 +729,16 @@ export default function ActivateAccountScreen({ navigation }) {
                         ))}
                     </View>
                 </View>
+                
+                {/* ── Login Link ── */}
+                <TouchableOpacity 
+                    style={styles.loginLinkWrap} 
+                    onPress={() => navigation.navigate('Login')}
+                >
+                    <Text style={styles.loginLinkText}>
+                        Already have an account? <Text style={styles.loginLinkBold}>Login</Text>
+                    </Text>
+                </TouchableOpacity>
             </ScrollView>
 
             {/* ── Toast ── */}
@@ -852,7 +862,7 @@ const styles = StyleSheet.create({
 
     // Coupon input
     couponWrap: { width: '100%', position: 'relative' },
-    couponInput: { width: '100%', height: 54, borderRadius: 18, borderWidth: 2, borderColor: Colors.hub_border, backgroundColor: Colors.hub_muted, paddingHorizontal: 48, fontFamily: Fonts.Bold, fontSize: 18, letterSpacing: 2, textAlign: 'center', color: Colors.success_dark },
+    couponInput: { width: '100%', height: 54, borderRadius: 18, borderWidth: 2, borderColor: Colors.hub_border, backgroundColor: Colors.hub_muted, paddingLeft: 20, paddingRight: 48, fontFamily: Fonts.Bold, fontSize: 18, letterSpacing: 2, textAlign: 'left', color: Colors.success_dark },
     couponClear: { position: 'absolute', right: 14, top: '50%', marginTop: -14, width: 28, height: 28, borderRadius: 10, backgroundColor: Colors.slate_200, alignItems: 'center', justifyContent: 'center' },
     inputErr: { borderColor: Colors.hub_red, backgroundColor: Colors.error_light },
     errText: { fontSize: 10, fontFamily: Fonts.Bold, color: Colors.hub_red, textTransform: 'uppercase', letterSpacing: 0.8, alignSelf: 'flex-start', paddingHorizontal: 2 },
@@ -898,4 +908,21 @@ const styles = StyleSheet.create({
     },
     trustPillIcon: { fontSize: 12, marginRight: 6 },
     trustItem: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.hub_slate, textTransform: 'uppercase', letterSpacing: 0.5 },
+
+    // Login Link
+    loginLinkWrap: {
+        marginTop: 32,
+        marginBottom: 20,
+        alignItems: 'center',
+    },
+    loginLinkText: {
+        fontSize: 14,
+        color: Colors.hub_slate,
+        fontFamily: Fonts.Medium,
+    },
+    loginLinkBold: {
+        color: Colors.hub_hubIndigo,
+        fontFamily: Fonts.Bold,
+        textDecorationLine: 'underline',
+    },
 });

@@ -596,10 +596,10 @@ export default function Offlinekyc({ navigation, route }) {
 
     if (!banking.bankName.trim() || !RX.bankName.test(banking.bankName.trim())) e.bankName = "Required";
 
-    // Account number validation (12-20 digits)
+    // Account number validation (10-20 digits)
     const accNum = banking.accountNumber.trim();
-    if (accNum.length < 12 || accNum.length > 20 || !RX.accNum.test(accNum)) {
-      e.accountNumber = "Must be 12–20 digits";
+    if (accNum.length < 10 || accNum.length > 20 || !RX.accNum.test(accNum)) {
+      e.accountNumber = "Must be 10–20 digits";
     }
 
     if (!banking.confirmAccountNumber.trim()) e.confirmAccountNumber = "Please confirm account number";

@@ -58,6 +58,7 @@ export default function OTP({ navigation, route }) {
   const [alertTitle, setAlertTitle] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
   const [alertAction, setAlertAction] = useState(null);
+  const [alertType, setAlertType] = useState("info");
 
   /* ── Animations ─────────────────────────────────────────────────────────── */
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -114,10 +115,11 @@ export default function OTP({ navigation, route }) {
     ]).start();
   };
 
-  const showAlert = (title, message, action = null) => {
+  const showAlert = (title, message, action = null, type = "info") => {
     setAlertTitle(title);
     setAlertMessage(message);
     setAlertAction(() => action);
+    setAlertType(type);
     setAlertVisible(true);
   };
 
@@ -190,12 +192,12 @@ export default function OTP({ navigation, route }) {
         setOtp(new Array(INPUT_COUNT).fill(""));
         inputRefs.current[0]?.focus();
       } else {
-        showAlert("Error", result?.message || "Failed to resend OTP");
+        showAlert("Error", result?.message || "Failed to resend OTP", null, "error");
       }
     } catch (err) {
       setLoading(false);
       console.error("Resend OTP error:", err);
-      showAlert("Error", "Something went wrong. Please try again.");
+      showAlert("Error", "Something went wrong. Please try again.", null, "error");
     }
   };
 
@@ -229,7 +231,7 @@ export default function OTP({ navigation, route }) {
     if (!email) {
       showAlert("Session Expired", "Please login again", () => {
         navigation.replace("Login");
-      });
+      }, "error");
       return;
     }
 
@@ -278,7 +280,7 @@ export default function OTP({ navigation, route }) {
       } else {
         triggerShake();
         showAlert(
-          result?.message, "The OTP you entered is incorrect. Please try again."
+          result?.message || "Error", "The OTP you entered is incorrect. Please try again.", null, "error"
         );
       }
     } catch (err) {
@@ -287,7 +289,9 @@ export default function OTP({ navigation, route }) {
       triggerShake();
       showAlert(
         "Network Error",
-        "Could not connect to server. Please check your internet connection."
+        "Could not connect to server. Please check your internet connection.",
+        null,
+        "error"
       );
     }
   };
@@ -469,6 +473,7 @@ export default function OTP({ navigation, route }) {
 
       <CustomAlert
         visible={alertVisible}
+        type={alertType}
         title={alertTitle}
         message={alertMessage}
         onClose={() => {

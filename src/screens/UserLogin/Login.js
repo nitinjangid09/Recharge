@@ -55,6 +55,7 @@ export default function Login({ navigation }) {
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertTitle, setAlertTitle] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("info");
 
   /* ---------- ANIMATIONS ---------- */
   const pageAnim = useRef(new Animated.Value(0)).current;
@@ -170,9 +171,10 @@ export default function Login({ navigation }) {
   };
 
   /* ---------- ALERT ---------- */
-  const showAlert = (title, message) => {
+  const showAlert = (title, message, type = "info") => {
     setAlertTitle(title);
     setAlertMessage(message);
+    setAlertType(type);
     setAlertVisible(true);
   };
 
@@ -196,9 +198,16 @@ export default function Login({ navigation }) {
     if (!userName.trim()) {
       newErrors.userName = "Please enter your user name";
       hasError = true;
+    } else if (userName.trim().length > 10) {
+      newErrors.userName = "Username must be at most 10 characters";
+      hasError = true;
     }
+
     if (!password.trim()) {
       newErrors.password = "Please enter your password";
+      hasError = true;
+    } else if (password.trim().length > 20) {
+      newErrors.password = "Password must be at most 20 characters";
       hasError = true;
     }
 
@@ -321,11 +330,11 @@ export default function Login({ navigation }) {
         });
       } else {
         triggerShake();
-        showAlert("Login Failed", result?.message || "Invalid Credentials");
+        showAlert("Login Failed", result?.message || "Invalid Credentials", "error");
       }
     } catch {
       triggerShake();
-      showAlert("Error", "Network request failed");
+      showAlert("Error", "Network request failed", "error");
     } finally {
       setLoading(false);
     }
@@ -497,6 +506,7 @@ export default function Login({ navigation }) {
                 onBlur={() => handleInputBlur("password")}
                 style={styles.input}
                 selectionColor={Colors.accent}
+                maxLength={20}
               />
               <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
@@ -587,6 +597,7 @@ export default function Login({ navigation }) {
       {/* Alert */}
       <CustomAlert
         visible={alertVisible}
+        type={alertType}
         title={alertTitle}
         message={alertMessage}
         onClose={() => setAlertVisible(false)}
