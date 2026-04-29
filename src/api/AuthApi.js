@@ -2461,7 +2461,20 @@ export const getAllServices = async ({ headerToken }) => {
 };
 
 
-
-
-
+export const requestService = async ({ serviceId, pipeline, headerToken }) => {
+  try {
+    const payload = { serviceId, pipeline };
+    const response = await axios.post(`${BASE_URL}/user/serviceRequest/add-service-request`, payload, {
+      headers: {
+        Authorization: `Bearer ${headerToken}`,
+        "Content-Type": "application/json"
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Add Service Request Error:", error?.response?.data || error);
+    if (error?.response?.data) return error.response.data;
+    return { success: false, message: "Network Error. Please try again" };
+  }
+};
 

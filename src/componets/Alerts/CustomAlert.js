@@ -8,6 +8,7 @@ import {
   Animated,
   Dimensions,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Colors from "../../constants/Colors";
@@ -43,6 +44,7 @@ const getColor = (type) => {
     case "success": return "#22C55E";
     case "error": return "#EF4444";
     case "warning": return "#F59E0B";
+    case "theme": return Colors.finance_accent || "#d4b06a";
     default: return Colors.primary || "#6366F1";
   }
 };
@@ -53,6 +55,7 @@ const getIcon = (type) => {
     case "success": return "check-circle-outline";
     case "error": return "close-circle-outline";
     case "warning": return "alert-circle-outline";
+    case "theme": return "lock-open-outline";
     default: return "information-outline";
   }
 };
@@ -66,6 +69,7 @@ const CustomAlert = ({
   onConfirm,
   confirmText = "OK",
   cancelText = "Cancel",
+  isLoading = false,
 }) => {
   const accentColor = getColor(type);
 
@@ -105,31 +109,35 @@ const CustomAlert = ({
           <Text style={[styles.alertTitle, { color: accentColor }]}>{title}</Text>
           <Text style={styles.alertMessage}>{message}</Text>
 
-          <View style={styles.btnRow}>
-            {onConfirm && (
-              <TouchableOpacity
-                style={[styles.alertBtn, styles.cancelBtn, { borderColor: accentColor + "34" }]}
-                onPress={onClose}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.alertBtnTxt, { color: "#64748B" }]}>{cancelText}</Text>
-              </TouchableOpacity>
-            )}
+          {isLoading ? (
+            <ActivityIndicator size="large" color={accentColor} style={{ marginBottom: 24 * S }} />
+          ) : (
+            <View style={styles.btnRow}>
+              {onConfirm && (
+                <TouchableOpacity
+                  style={[styles.alertBtn, styles.cancelBtn, { borderColor: accentColor + "34" }]}
+                  onPress={onClose}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.alertBtnTxt, { color: "#64748B" }]}>{cancelText}</Text>
+                </TouchableOpacity>
+              )}
 
-            <TouchableOpacity
-              style={[styles.alertBtn, onConfirm ? { flex: 1.2 } : { width: "80%" }, { backgroundColor: accentColor }]}
-              onPress={() => {
-                if (onConfirm) {
-                  onConfirm();
-                } else {
-                  onClose();
-                }
-              }}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.alertBtnTxt}>{onConfirm ? confirmText : "OK"}</Text>
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity
+                style={[styles.alertBtn, onConfirm ? { flex: 1.2 } : { width: "80%" }, { backgroundColor: accentColor }]}
+                onPress={() => {
+                  if (onConfirm) {
+                    onConfirm();
+                  } else {
+                    onClose();
+                  }
+                }}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.alertBtnTxt}>{onConfirm ? confirmText : "OK"}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </Animated.View>
       </View>
     </Modal>

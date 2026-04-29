@@ -25,7 +25,7 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Fonts from "../../constants/Fonts";
 import Colors from "../../constants/Colors";
-import { getWalletBalance, fetchUserProfile, getAllBanners, getWalletReport, getAepsStatus, BASE_URL, getAllNotifications, getAllServices } from "../../api/AuthApi";
+import { getWalletBalance, fetchUserProfile, getAllBanners, getWalletReport, getAepsStatus, BASE_URL, getAllNotifications, getAllServices, requestService } from "../../api/AuthApi";
 import FullScreenLoader from "../../componets/Loader/FullScreenLoader";
 import CustomAlert from "../../componets/Alerts/CustomAlert";
 
@@ -263,14 +263,14 @@ export default function FinanceHome({ navigation }) {
   const [txnCount, setTxnCount] = useState(0);
   const [txnVolume, setTxnVolume] = useState(0);
 
-  const [alert, setAlert] = useState({ visible: false, type: "info", title: "", message: "", onConfirm: null, confirmText: "OK" });
+  const [alert, setAlert] = useState({ visible: false, type: "info", title: "", message: "", onConfirm: null, confirmText: "OK", isLoading: false });
 
-  const showAlert = (type, title, message, onConfirm = null, confirmText = "OK") => {
-    setAlert({ visible: true, type, title, message, onConfirm, confirmText });
+  const showAlert = (type, title, message, onConfirm = null, confirmText = "OK", isLoading = false) => {
+    setAlert({ visible: true, type, title, message, onConfirm, confirmText, isLoading });
   };
 
   const hasService = (pipelineCode) => {
-    return profileAssignedServices.some((s) => 
+    return profileAssignedServices.some((s) =>
       s.pipelineCodes && s.pipelineCodes.some(code => code.toLowerCase() === pipelineCode.toLowerCase())
     );
   };
@@ -930,9 +930,74 @@ export default function FinanceHome({ navigation }) {
                       activeOpacity={0.78}
                       onPress={async () => {
                         if (isLocked) {
-                          const msg = "To use this service, please request admin to allow this service for you.";
-                          if (Platform.OS === "android") ToastAndroid.show(msg, ToastAndroid.SHORT);
-                          else Alert.alert("Service Locked", msg);
+                          const isAlreadyRequested = userProfile?.requestedService?.some(req => req.serviceName === n && req.status === "pending");
+
+                          if (isAlreadyRequested) {
+                            showAlert(
+                              "warning",
+                              "Notice",
+                              "Request already exist for this User waiting for further reviews"
+                            );
+                            return;
+                          }
+
+                          const rejectedService = userProfile?.requestedService?.find(req => req.serviceName === n && req.status === "rejected");
+
+                          if (rejectedService) {
+                            showAlert(
+                              "error",
+                              "Request Rejected",
+                              `Reason: ${rejectedService.reason}`
+                            );
+                            return;
+                          }
+
+                          showAlert(
+                            "theme",
+                            "Service Locked",
+                            "Do you want to request this service from the admin?",
+                            async () => {
+                              try {
+                                setAlert(p => ({ ...p, isLoading: true }));
+                                const res = await requestService({
+                                  serviceId: service._id || service.serviceId,
+                                  pipeline: n,
+                                  headerToken: token
+                                });
+
+                                if (res?.success) {
+                                  try {
+                                    const profileRes = await fetchUserProfile({ headerToken: token });
+                                    if (profileRes?.success && profileRes?.data) {
+                                      setUserProfile(profileRes.data);
+                                      setProfileAssignedServices(Array.isArray(profileRes.data.assignedServices) ? profileRes.data.assignedServices : []);
+                                    }
+                                  } catch (e) {
+                                    console.log("Failed to refresh profile:", e);
+                                  }
+                                }
+
+                                setAlert(p => ({
+                                  ...p,
+                                  type: res.success ? "success" : "warning",
+                                  title: res.success ? "Request Sent" : "Notice",
+                                  message: res.message || "Your request has been sent.",
+                                  isLoading: false,
+                                  onConfirm: null,
+                                }));
+                              } catch (error) {
+                                setAlert(p => ({
+                                  ...p,
+                                  type: "error",
+                                  title: "Error",
+                                  message: "Failed to request service. Please try again.",
+                                  isLoading: false,
+                                  onConfirm: null,
+                                }));
+                              }
+                            },
+                            "Yes, Request"
+                          );
                           return;
                         }
                         if (isStatic) {
@@ -1011,7 +1076,6 @@ export default function FinanceHome({ navigation }) {
                             color={Colors.finance_accent}
                           />
                         )}
-                        {!isLocked && <View style={S.liveDot} />}
                       </View>
                       <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
                         {label}
@@ -1144,6 +1208,8 @@ export default function FinanceHome({ navigation }) {
         message={alert.message}
         onClose={() => setAlert(p => ({ ...p, visible: false }))}
         onConfirm={alert.onConfirm}
+        confirmText={alert.confirmText}
+        isLoading={alert.isLoading}
       />
     </SafeAreaView>
   );
@@ -1454,8 +1520,8 @@ const S = StyleSheet.create({
   liveDot: {
     position: "absolute", top: rs(-1), right: rs(-1),
     width: rs(10), height: rs(10), borderRadius: rs(5),
-    backgroundColor: "#22C55E", 
-    borderWidth: 1.5, borderColor: "#FFF", 
+    backgroundColor: "#22C55E",
+    borderWidth: 1.5, borderColor: "#FFF",
     elevation: 2,
   },
   kycNeedTxt: { color: "#F97316", fontSize: rs(7), textAlign: "center", marginTop: rs(2), fontFamily: Fonts.Medium },
