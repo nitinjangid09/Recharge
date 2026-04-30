@@ -73,6 +73,10 @@ export default function Xpress_PayOut_Transfer({ navigation, route }) {
       newErrors.amount = 'Amount cannot exceed ₹1,000,000';
     }
 
+    if (!purpose || !purpose.trim()) {
+      newErrors.purpose = 'Please enter remark / purpose';
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -199,15 +203,19 @@ export default function Xpress_PayOut_Transfer({ navigation, route }) {
 
           <View style={styles.inputWrapper}>
             <Text style={styles.inputLabel}>Remarks / Purpose</Text>
-            <View style={styles.remarkBox}>
+            <View style={[styles.remarkBox, errors.purpose && { borderColor: Colors.error }]}>
               <TextInput
-                style={styles.remarkField}
+                style={[styles.remarkField, errors.purpose && { color: Colors.error }]}
                 placeholder="e.g. Xpress Payout"
                 value={purpose}
-                onChangeText={setPurpose}
+                onChangeText={(val) => {
+                  setPurpose(val);
+                  setErrors(prev => ({ ...prev, purpose: null }));
+                }}
                 placeholderTextColor={Colors.gray_BD}
               />
             </View>
+            {!!errors.purpose && <Text style={styles.errorText}>{errors.purpose}</Text>}
           </View>
 
           <TouchableOpacity

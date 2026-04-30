@@ -48,7 +48,7 @@ export default function Xpress_Payout({ navigation }) {
 
       if (bankRes?.success) setApprovedBanks(bankRes.data || []);
       if (balanceRes?.success && balanceRes?.data) {
-        setWalletBalance(balanceRes.data.aepsWallet || '0.00');
+        setWalletBalance(balanceRes.data.mainWallet || '0.00');
       }
     } catch (e) {
       console.log('Error loading payout data:', e);
@@ -126,7 +126,7 @@ function DashboardContent({ onTransfer, onAddBank, onHistory, banks, loading, on
       <View style={styles.balanceCard}>
         <View style={styles.bcTop}>
           <View>
-            <Text style={styles.bcLabel}>XPRESS BALANCE</Text>
+            <Text style={styles.bcLabel}>MAIN BALANCE</Text>
             <Text style={styles.bcAmount}>₹{Number(main).toLocaleString('en-IN')}<Text style={styles.bcDecimal}>.{decimal || '00'}</Text></Text>
           </View>
           <TouchableOpacity style={styles.refreshBtn} onPress={onRefresh} disabled={loading}>

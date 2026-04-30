@@ -369,7 +369,8 @@ const st = StyleSheet.create({
     backgroundColor: Colors.slate_900,
     borderBottomLeftRadius: S(28),
     borderBottomRightRadius: S(28),
-    // Shadow so it floats slightly above the light body  },
+    // Shadow so it floats slightly above the light body
+  },
 
   // ── Light body ────────────────────────────────────────────────────────
   // Sits flush BELOW the curveConnector — no negative margin, no overlap
@@ -387,7 +388,8 @@ const st = StyleSheet.create({
     borderRadius: S(16),
     paddingHorizontal: S(16),
     paddingVertical: S(4),
-    marginBottom: S(24),  },
+    marginBottom: S(24),
+  },
   contactRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -428,7 +430,8 @@ const st = StyleSheet.create({
     backgroundColor: Colors.homebg,
     borderRadius: S(14),
     padding: S(14),
-    borderTopWidth: 3,  },
+    borderTopWidth: 3,
+  },
   quickIconBox: {
     width: S(38), height: S(38), borderRadius: S(11),
     justifyContent: "center", alignItems: "center",
@@ -451,7 +454,8 @@ const st = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: S(9),  },
+    gap: S(9),
+  },
   callTxt: {
     color: Colors.slate_900, fontSize: S(15),
     fontFamily: Fonts.Bold, letterSpacing: 0.3,

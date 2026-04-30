@@ -25,6 +25,7 @@ import {
   createSupportRequest,
   getMySupportRequests,
   getFAQs,
+  getTicketStats,
 } from "../../api/AuthApi";
 import CustomAlert from "../../componets/Alerts/CustomAlert";
 
@@ -269,6 +270,7 @@ const FaqSupportScreen = () => {
   // Populated from fetchUserProfile → data.assignedServices
   const [assignedServices, setAssignedServices] = useState([]);
   const [tickets, setTickets] = useState([]);
+  const [ticketStats, setTicketStats] = useState({ pending: 0, resolved: 0, closed: 0, total: 0 });
   const [faqs, setFaqs] = useState([]);
 
   const [faqLoading, setFaqLoading] = useState(false);
@@ -293,7 +295,7 @@ const FaqSupportScreen = () => {
     try {
       const headerToken = await getToken();
 
-      const [ticketsResult, profileResult, faqResult] = await Promise.allSettled([
+      const [ticketsResult, profileResult, faqResult, statsResult] = await Promise.allSettled([
         headerToken
           ? getMySupportRequests({ headerToken, page: pageNum, limit: 5 })
           : Promise.resolve(null),
@@ -302,6 +304,9 @@ const FaqSupportScreen = () => {
           : Promise.resolve(null),
         headerToken
           ? getFAQs({ headerToken })
+          : Promise.resolve(null),
+        headerToken
+          ? getTicketStats({ headerToken })
           : Promise.resolve(null),
       ]);
 
@@ -323,6 +328,14 @@ const FaqSupportScreen = () => {
         faqResult.value?.success
       ) {
         setFaqs(Array.isArray(faqResult.value.data) ? faqResult.value.data : []);
+      }
+
+      /* Stats */
+      if (
+        statsResult.status === "fulfilled" &&
+        statsResult.value?.success
+      ) {
+        setTicketStats(statsResult.value.data || { pending: 0, resolved: 0, closed: 0, total: 0 });
       }
 
       /* Profile → assignedServices */
@@ -469,6 +482,30 @@ const FaqSupportScreen = () => {
               <Text style={styles.submitText}>SUBMIT TICKET</Text>
             )}
           </TouchableOpacity>
+        </View>
+
+        {/* Ticket Stats Grid */}
+        <View style={statsGridStyles.container}>
+          <View style={statsGridStyles.row}>
+            <View style={[statsGridStyles.card, { borderLeftColor: Colors.warning_dark }]}>
+              <Text style={statsGridStyles.val}>{ticketStats.pending}</Text>
+              <Text style={statsGridStyles.lbl}>PENDING</Text>
+            </View>
+            <View style={[statsGridStyles.card, { borderLeftColor: Colors.success_dark }]}>
+              <Text style={statsGridStyles.val}>{ticketStats.resolved}</Text>
+              <Text style={statsGridStyles.lbl}>RESOLVED</Text>
+            </View>
+          </View>
+          <View style={statsGridStyles.row}>
+            <View style={[statsGridStyles.card, { borderLeftColor: Colors.hex_6B7280 }]}>
+              <Text style={statsGridStyles.val}>{ticketStats.closed}</Text>
+              <Text style={statsGridStyles.lbl}>CLOSED</Text>
+            </View>
+            <View style={[statsGridStyles.card, { borderLeftColor: Colors.primary }]}>
+              <Text style={statsGridStyles.val}>{ticketStats.total}</Text>
+              <Text style={statsGridStyles.lbl}>TOTAL</Text>
+            </View>
+          </View>
         </View>
 
         {/* Support History Directly on Screen */}
@@ -766,6 +803,42 @@ const paginationStyles = StyleSheet.create({
     fontSize: 14,
     fontFamily: Fonts.Bold,
     color: Colors.hex_374151,
+  },
+});
+
+const statsGridStyles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 20,
+    marginVertical: 10,
+    gap: 8,
+  },
+  row: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  card: {
+    flex: 1,
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    padding: 10,
+    borderLeftWidth: 3,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  val: {
+    fontSize: 16,
+    fontFamily: Fonts.Bold,
+    color: Colors.hex_111827,
+  },
+  lbl: {
+    fontSize: 8,
+    fontFamily: Fonts.Bold,
+    color: Colors.hex_6B7280,
+    letterSpacing: 0.8,
+    marginTop: 1,
   },
 });
 

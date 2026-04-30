@@ -24,7 +24,7 @@ import Colors from "../constants/Colors";
 import Fonts from "../constants/Fonts";
 import HeaderBar from "../componets/HeaderBar/HeaderBar";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { getAllTopupBanks, addOfflineTopupRequest, getAllOfflineTopupRequests } from "../api/AuthApi";
+import { getAllTopupBanks, addOfflineTopupRequest, getAllOfflineTopupRequests, getOfflineTopupStats } from "../api/AuthApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import CustomAlert from "../componets/Alerts/CustomAlert";
 import ImageUploadAlert from "../componets/Alerts/Imageuploadalert";
@@ -78,8 +78,8 @@ const S = (n) => Math.round(PixelRatio.roundToNearestPixel(n * (W / 375)));
 const ACCENT = Colors.finance_accent || "#D4A843";
 const FG = Colors.finance_text || "#1A1A2E";
 const SURFACE = Colors.white || "#FFFFFF";
-const BG = Colors.homeSecondry || "#F4F5F7";
-const CARD_BG = Colors.bg || "#FFFFFF";
+const BG = Colors.bg || "#F4F5F7";
+const CARD_BG = Colors.homebg || "#FFFFFF";
 
 // ─── Payment mode config ──────────────────────────────────────────────────
 const PAYMENT_MODES = [
@@ -382,6 +382,7 @@ export default function OfflineTopup({ navigation }) {
   const [requestsLoading, setRequestsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
+  const [topupStats, setTopupStats] = useState(null);
 
   // ── Filter State ──
   const today = new Date();
@@ -434,16 +435,21 @@ export default function OfflineTopup({ navigation }) {
     setRequestsLoading(true);
     try {
       const headerToken = await AsyncStorage.getItem("header_token");
-      const result = await getAllOfflineTopupRequests({
-        headerToken,
-        page: 1,
-        limit: 10,
-        from: from ? toQueryDate(from) : undefined,
-        to: to ? toQueryDate(to) : undefined
-      });
+      const [result, statsRes] = await Promise.all([
+        getAllOfflineTopupRequests({
+          headerToken,
+          page: 1,
+          limit: 10,
+          from: from ? toQueryDate(from) : undefined,
+          to: to ? toQueryDate(to) : undefined
+        }),
+        getOfflineTopupStats({ headerToken })
+      ]);
+
       if (result?.success) setRequests(result.data || []);
+      if (statsRes?.success) setTopupStats(statsRes.data);
     } catch (e) {
-      console.log("Fetch requests error:", e);
+      console.log("Fetch requests/stats error:", e);
     } finally {
       setRequestsLoading(false);
       setRefreshing(false); // Reset both loaders
@@ -818,6 +824,36 @@ export default function OfflineTopup({ navigation }) {
           </TouchableOpacity>
         </View>
 
+        {/* ── Topup Stats ── */}
+        {topupStats && (
+          <View style={statsGridStyles.container}>
+            <View style={statsGridStyles.row}>
+              <View style={[statsGridStyles.card, { borderLeftColor: "#D97706" }]}>
+                <Text style={statsGridStyles.val}>{topupStats.pending?.count || 0}</Text>
+                <Text style={statsGridStyles.amt}>₹{topupStats.pending?.amount || 0}</Text>
+                <Text style={statsGridStyles.lbl}>PENDING</Text>
+              </View>
+              <View style={[statsGridStyles.card, { borderLeftColor: "#16A34A" }]}>
+                <Text style={statsGridStyles.val}>{topupStats.approved?.count || 0}</Text>
+                <Text style={statsGridStyles.amt}>₹{topupStats.approved?.amount || 0}</Text>
+                <Text style={statsGridStyles.lbl}>APPROVED</Text>
+              </View>
+            </View>
+            <View style={statsGridStyles.row}>
+              <View style={[statsGridStyles.card, { borderLeftColor: "#DC2626" }]}>
+                <Text style={statsGridStyles.val}>{topupStats.rejected?.count || 0}</Text>
+                <Text style={statsGridStyles.amt}>₹{topupStats.rejected?.amount || 0}</Text>
+                <Text style={statsGridStyles.lbl}>REJECTED</Text>
+              </View>
+              <View style={[statsGridStyles.card, { borderLeftColor: ACCENT }]}>
+                <Text style={statsGridStyles.val}>{topupStats.total?.count || 0}</Text>
+                <Text style={statsGridStyles.amt}>₹{topupStats.total?.amount || 0}</Text>
+                <Text style={statsGridStyles.lbl}>TOTAL</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
         {/* ── Requests History ── */}
         <View style={st.historySection}>
           <View style={st.historyHeaderRow}>
@@ -1019,7 +1055,8 @@ const st = StyleSheet.create({
     backgroundColor: CARD_BG,
     borderRadius: S(18),
     padding: S(18),
-    marginTop: S(16),  },
+    marginTop: S(16),
+  },
   cardTitle: {
     fontSize: S(15),
     fontFamily: Fonts.Bold,
@@ -1133,7 +1170,8 @@ const st = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: S(7),  },
+    gap: S(7),
+  },
   submitTxt: {
     color: "#000",
     fontFamily: Fonts.Bold,
@@ -1149,7 +1187,8 @@ const st = StyleSheet.create({
     borderTopRightRadius: S(22),
     padding: S(18),
     paddingTop: S(10),
-    alignItems: "center",  },
+    alignItems: "center",
+  },
   sheetHandle: {
     width: S(36), height: S(4),
     borderRadius: S(2),
@@ -1192,7 +1231,7 @@ const st = StyleSheet.create({
   },
   sheetCloseTxt: { fontFamily: Fonts.Bold, color: FG, fontSize: S(13) },
 
-  historySection: { width: "92%", marginTop: S(24), marginBottom: S(10) },
+  historySection: { width: "92%", marginBottom: S(10) },
   historyHeaderRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: S(15), paddingHorizontal: S(4) },
   historyHeaderLeft: { flexDirection: "row", alignItems: "center", gap: S(8) },
   historyHeaderTitle: { fontSize: S(14), fontFamily: Fonts.Bold, color: FG, letterSpacing: 0.3 },
@@ -1226,4 +1265,46 @@ const st = StyleSheet.create({
   emptyIconCircle: { width: S(64), height: S(64), borderRadius: S(32), backgroundColor: "#F3F4F6", alignItems: "center", justifyContent: "center", marginBottom: S(16) },
   emptyTitle: { fontSize: S(15), fontFamily: Fonts.Bold, color: FG, marginBottom: S(4) },
   emptySubtitle: { fontSize: S(12), fontFamily: Fonts.Medium, color: "#9CA3AF", textAlign: "center" },
+});
+
+const statsGridStyles = StyleSheet.create({
+  container: {
+    width: "92%",
+    marginVertical: S(10),
+    gap: S(8),
+  },
+  row: {
+    flexDirection: "row",
+    gap: S(8),
+  },
+  card: {
+    flex: 1,
+    backgroundColor: SURFACE,
+    borderRadius: S(12),
+    padding: S(10),
+    borderLeftWidth: 3,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  val: {
+    fontSize: S(14),
+    fontFamily: Fonts.Bold,
+    color: FG,
+  },
+  amt: {
+    fontSize: S(10),
+    fontFamily: Fonts.Bold,
+    color: ACCENT,
+    marginTop: S(1),
+  },
+  lbl: {
+    fontSize: S(8),
+    fontFamily: Fonts.Bold,
+    color: "#9CA3AF",
+    letterSpacing: 0.8,
+    marginTop: S(1),
+  },
 });

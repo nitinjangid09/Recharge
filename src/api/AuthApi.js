@@ -2685,3 +2685,35 @@ export const requestService = async ({ serviceId, pipeline, headerToken }) => {
   }
 };
 
+/**
+ * getTicketStats
+ * GET /user/support/get-ticket-stats
+ */
+export const getTicketStats = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/support/get-ticket-stats`, {
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get Ticket Stats API Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Network error" };
+  }
+};
+
+/**
+ * getOfflineTopupStats
+ * GET /user/offlineTopup/offline-topup-requests-stats
+ */
+export const getOfflineTopupStats = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/offlineTopup/offline-topup-requests-stats`, {
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get Offline Topup Stats Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Network error" };
+  }
+};
+
