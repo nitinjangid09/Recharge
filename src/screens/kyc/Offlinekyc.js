@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import { submitOfflineKyc, fetchStateList, fetchCityList, fetchGlobalBankList, fetchSubmittedKyc, BASE_URL } from "../../api/AuthApi";
+import { submitOfflineKyc, reuploadOfflineKyc, fetchStateList, fetchCityList, fetchGlobalBankList, fetchSubmittedKyc, BASE_URL } from "../../api/AuthApi";
 import Fonts from "../../constants/Fonts";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "../../constants/Colors";
@@ -197,6 +197,7 @@ export default function Offlinekyc({ navigation, route }) {
   const [alert, setAlert] = useState({ visible: false, type: "info", title: "", message: "" });
   const [pickerSourceField, setPickerSourceField] = useState(null); // The field we are picking for
   const [showSourcePicker, setShowSourcePicker] = useState(false);
+  const [pinLoading, setPinLoading] = useState(false);
 
   const showAlert = (type, title, message) => {
     setAlert({ visible: true, type, title, message });
@@ -494,6 +495,52 @@ export default function Offlinekyc({ navigation, route }) {
     if (bankList.length === 0) handleFetchBanks();
   };
 
+  const fetchStateFromPincode = async (pin, type) => {
+    if (pin.length !== 6) return;
+    setPinLoading(true);
+    try {
+      const response = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+      const data = await response.json();
+      if (data && data[0]) {
+        if (data[0].Status === "Success" && data[0].PostOffice && data[0].PostOffice.length > 0) {
+          const pinState = data[0].PostOffice[0].State;
+          const pinDistrict = data[0].PostOffice[0].District;
+
+          if (stateList.length === 0) {
+            await handleFetchStates();
+          }
+
+          const matchedState = stateList.find(s => s.stateName?.toLowerCase() === pinState?.toLowerCase());
+          if (matchedState) {
+            // Fetch cities for this state to match district
+            let matchedCityName = "";
+            try {
+              const headerToken = await AsyncStorage.getItem("header_token");
+              const cityRes = await fetchCityList({ stateCode: matchedState.stateCode, headerToken });
+              if (cityRes?.success && cityRes.data) {
+                setCityList(cityRes.data); // Update cityList state for the modal
+                const matchedCity = cityRes.data.find(c => c.cityName?.toLowerCase() === pinDistrict?.toLowerCase());
+                if (matchedCity) matchedCityName = matchedCity.cityName;
+              }
+            } catch (e) { console.log("[KYC] City fetch error in pincode logic", e); }
+
+            if (type === "personal") {
+              setPersonal(p => ({ ...p, personalState: matchedState.stateName, personalCity: matchedCityName }));
+            } else {
+              setBusiness(b => ({ ...b, businessState: matchedState.stateName, businessCity: matchedCityName }));
+            }
+          }
+        } else if (data[0].Status === "Error" || (data[0].Status === "Success" && !data[0].PostOffice)) {
+          showAlert("error", "Invalid Pincode", "No such pincode found. Please enter a correct pincode.");
+        }
+      }
+    } catch (error) {
+      console.log("[KYC] Pincode API error:", error);
+    } finally {
+      setPinLoading(false);
+    }
+  };
+
   const scrollToError = (errs) => {
     const firstKey = Object.keys(errs)[0];
     if (firstKey && fieldCoords.current[firstKey] !== undefined)
@@ -668,7 +715,10 @@ export default function Offlinekyc({ navigation, route }) {
     const errs = validateBanking();
     if (Object.keys(errs).length > 0) { scrollToError(errs); return; }
     setLoading(true);
-    const result = await submitOfflineKyc({ personal, business, files, banking });
+    const kycStatus = route?.params?.user?.kycStatus || (await AsyncStorage.getItem("kyc_status"));
+    const result = kycStatus === "rekyc"
+      ? await reuploadOfflineKyc({ personal, business, files, banking })
+      : await submitOfflineKyc({ personal, business, files, banking });
     setLoading(false);
 
     if (!result) { setFailMsg("No response. Please try again."); setShowFailModal(true); return; }
@@ -724,7 +774,7 @@ export default function Offlinekyc({ navigation, route }) {
           </LinearGradient>
           <View>
             <Text style={[styles.headerTitle, { fontFamily: Fonts.Bold, fontSize: rs(16) }]}>KYC Verification</Text>
-            <Text style={[styles.headerSub, { fontSize: rs(10) }]}>{STEPS[step].label} Details — Step {step + 1} of 3</Text>
+            <Text style={[styles.headerSub, { fontSize: rs(10) }]}>{(STEPS[step] || {}).label} Details — Step {step + 1} of 3</Text>
           </View>
         </View>
         <View style={[styles.stepBadge, { backgroundColor: Colors.kyc_accent + "1A" }]}>
@@ -754,7 +804,7 @@ export default function Offlinekyc({ navigation, route }) {
                 </LinearGradient>
                 <Text style={[styles.stepDotLabel, { fontSize: rs(9), fontFamily: active ? Fonts.Bold : Fonts.Medium },
                 done && { color: Colors.kyc_success }, active && { color: Colors.kyc_accent }]}>
-                  {s.label}
+                  {s?.label}
                 </Text>
               </View>
             );
@@ -796,7 +846,7 @@ export default function Offlinekyc({ navigation, route }) {
                 </TwoCol>
 
                 <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
-                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.dob = y; fieldCoords.current.personalState = y; }}>
+                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.dob = y; fieldCoords.current.personalPincode = y; }}>
                   <View>
                     <TouchableOpacity onPress={() => { if (!lockedPersonal.dob) setShowDatePicker(true); }} activeOpacity={lockedPersonal.dob ? 1 : 0.8}>
                       <View pointerEvents="none">
@@ -822,6 +872,16 @@ export default function Offlinekyc({ navigation, route }) {
                       }}
                     />
                   </View>
+                  <Field label="Pincode" value={personal.personalPincode} onChange={v => {
+                    if (/^\d*$/.test(v) && v.length <= 6) {
+                      setPersonal(p => ({ ...p, personalPincode: v }));
+                      if (v.length === 6) fetchStateFromPincode(v, "personal");
+                    }
+                  }} error={errors.personalPincode} placeholder="6-digit pincode" keyboardType="number-pad" maxLength={6} locked={lockedPersonal.personalPincode} loading={pinLoading && personal.personalPincode.length === 6} />
+                </TwoCol>
+
+                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
+                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.personalState = y; fieldCoords.current.personalCity = y; }}>
                   <View>
                     <TouchableOpacity onPress={() => { if (!lockedPersonal.personalState) handleOpenState("personal"); }} activeOpacity={lockedPersonal.personalState ? 1 : 0.8}>
                       <View pointerEvents="none">
@@ -829,11 +889,6 @@ export default function Offlinekyc({ navigation, route }) {
                       </View>
                     </TouchableOpacity>
                   </View>
-                </TwoCol>
-
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
-                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.personalPincode = y; fieldCoords.current.personalCity = y; }}>
-                  <Field label="Pincode" value={personal.personalPincode} onChange={v => { if (/^\d*$/.test(v) && v.length <= 6) setPersonal(p => ({ ...p, personalPincode: v })); }} error={errors.personalPincode} placeholder="6-digit pincode" keyboardType="number-pad" maxLength={6} locked={lockedPersonal.personalPincode} />
                   <View>
                     <TouchableOpacity onPress={() => { if (!lockedPersonal.personalCity) handleOpenCity("personal"); }} activeOpacity={lockedPersonal.personalCity ? 1 : 0.8}>
                       <View pointerEvents="none">
@@ -866,7 +921,12 @@ export default function Offlinekyc({ navigation, route }) {
 
                 <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
                   onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.businessPincode = y; fieldCoords.current.businessState = y; }}>
-                  <Field label="Pincode" value={business.businessPincode} onChange={v => { if (/^\d*$/.test(v) && v.length <= 6) setBusiness(b => ({ ...b, businessPincode: v })); }} error={errors.businessPincode} placeholder="6-digit pincode" keyboardType="number-pad" maxLength={6} locked={lockedBusiness.businessPincode} />
+                  <Field label="Pincode" value={business.businessPincode} onChange={v => {
+                    if (/^\d*$/.test(v) && v.length <= 6) {
+                      setBusiness(b => ({ ...b, businessPincode: v }));
+                      if (v.length === 6) fetchStateFromPincode(v, "business");
+                    }
+                  }} error={errors.businessPincode} placeholder="6-digit pincode" keyboardType="number-pad" maxLength={6} locked={lockedBusiness.businessPincode} loading={pinLoading && business.businessPincode.length === 6} />
                   <View>
                     <TouchableOpacity onPress={() => { if (!lockedBusiness.businessState) handleOpenState("business"); }} activeOpacity={lockedBusiness.businessState ? 1 : 0.8}>
                       <View pointerEvents="none">
@@ -1301,7 +1361,7 @@ function FieldWrap({ label, required = true, error, hint, children, onLayout }) 
   );
 }
 
-function Field({ label, value, onChange, placeholder, error, keyboardType, multiline, required = true, maxLength, hint, secureTextEntry, onLayout, locked = false }) {
+function Field({ label, value, onChange, placeholder, error, keyboardType, multiline, required = true, maxLength, hint, secureTextEntry, onLayout, locked = false, loading = false }) {
   return (
     <FieldWrap label={label} required={required} error={error} hint={locked ? undefined : hint} onLayout={onLayout}>
       <View style={[
@@ -1317,6 +1377,7 @@ function Field({ label, value, onChange, placeholder, error, keyboardType, multi
           keyboardType={keyboardType ?? "default"} multiline={multiline} maxLength={maxLength}
           secureTextEntry={secureTextEntry} autoCapitalize="none" pointerEvents={locked ? "none" : "auto"}
         />
+        {loading && <ActivityIndicator size="small" color={Colors.kyc_accent} style={{ marginRight: hs(8) }} />}
         {locked && (
           <View style={styles.lockedBadge}>
             <Icon name="lock-outline" size={rs(10)} color={Colors.kyc_accent} />

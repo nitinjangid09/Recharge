@@ -3,12 +3,15 @@ import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Animated, Easing 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Colors from '../../constants/Colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fetchUserProfile } from '../../api/AuthApi';
+import { ActivityIndicator } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
 export default function PaymentVerification({ navigation }) {
     const fadeAnim = React.useRef(new Animated.Value(0)).current;
     const slideAnim = React.useRef(new Animated.Value(30)).current;
+    const [refreshing, setRefreshing] = React.useState(false);
 
     React.useEffect(() => {
         Animated.parallel([
@@ -23,6 +26,39 @@ export default function PaymentVerification({ navigation }) {
             index: 0,
             routes: [{ name: 'Login' }],
         });
+    };
+
+    const handleRefresh = async () => {
+        setRefreshing(true);
+        try {
+            const headerToken = await AsyncStorage.getItem("header_token");
+            if (!headerToken) {
+                logout();
+                return;
+            }
+
+            const res = await fetchUserProfile({ headerToken });
+            if (res && res.success && res.data) {
+                const u = res.data;
+                // Update local storage with fresh user data
+                await AsyncStorage.setItem("user_profile", JSON.stringify(u));
+                if (u.kycStatus) await AsyncStorage.setItem("kyc_status", u.kycStatus);
+                
+                // If account is now active or payment is confirmed, navigate away
+                // Note: The logic for redirection depends on the backend's status field names.
+                // Here we assume 'approved' or 'active' means they can go to Home.
+                if (u.id_payment_status === 'success' || u.id_payment_status === 'approved' || u.kycStatus === 'approved') {
+                     navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'Home' }],
+                    });
+                }
+            }
+        } catch (error) {
+            console.log("Refresh error:", error);
+        } finally {
+            setRefreshing(false);
+        }
     };
 
     return (
@@ -50,6 +86,18 @@ export default function PaymentVerification({ navigation }) {
                 </View>
 
                 {/* Footer Action */}
+                <TouchableOpacity 
+                    style={[styles.refreshBtn, refreshing && { opacity: 0.7 }]} 
+                    onPress={handleRefresh}
+                    disabled={refreshing}
+                >
+                    {refreshing ? (
+                        <ActivityIndicator color={Colors.white} size="small" />
+                    ) : (
+                        <Text style={styles.refreshText}>Check Status Now ↻</Text>
+                    )}
+                </TouchableOpacity>
+
                 <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
                     <Text style={styles.logoutText}>Logout from Session</Text>
                 </TouchableOpacity>
@@ -100,4 +148,19 @@ const styles = StyleSheet.create({
     estTime: { fontSize: 11, fontWeight: '700', color: Colors.slate_400 },
     logoutBtn: { paddingVertical: 10 },
     logoutText: { fontSize: 14, fontWeight: '700', color: Colors.slate_400 },
+    refreshBtn: { 
+        width: '100%', 
+        height: 54, 
+        backgroundColor: Colors.hub_hubIndigo, 
+        borderRadius: 18, 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        marginBottom: 16,
+        shadowColor: Colors.hub_hubIndigo,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 4
+    },
+    refreshText: { fontSize: 15, fontWeight: '800', color: Colors.white },
 });

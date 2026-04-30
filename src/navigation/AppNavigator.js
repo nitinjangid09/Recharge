@@ -3,8 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ActivityIndicator, View, Dimensions } from 'react-native';
+import { ActivityIndicator, View, Dimensions, Alert } from 'react-native';
 import { fetchUserProfile } from '../api/AuthApi';
+import { AlertService } from '../componets/Alerts/CustomAlert';
 
 // Screens
 import ProfileScreen from '../screens/Profile/ProfileScreen';
@@ -115,7 +116,12 @@ const AppNavigator = () => {
                 if (isPaymentDone === false) {
                   if (idPaymentStatus === "complete") {
                     setInitialRoute('PaymentVerification');
-                  } else if (idPaymentStatus === "reject") {
+                  } else if (idPaymentStatus === "reject" || idPaymentStatus === "rejected") {
+                    AlertService.showAlert({
+                      type: "error",
+                      title: "Payment Rejected",
+                      message: "Your payment request was rejected. Please check details and submit again."
+                    });
                     setInitialRoute('ActivateAccountScreen');
                   } else {
                     setInitialRoute('ActivateAccountScreen');

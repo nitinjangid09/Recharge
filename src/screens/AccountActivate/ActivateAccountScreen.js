@@ -21,6 +21,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '../../constants/Colors';
 import Fonts from '../../constants/Fonts';
 import { Image } from 'react-native';
+import RNFS from 'react-native-fs';
+
+const MIN_SIZE_BYTES = 10 * 1024;   // 10 KB
+const MAX_SIZE_BYTES = 200 * 1024;  // 200 KB
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -233,36 +237,49 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
 
     const methods = ['UPI', 'IMPS', 'bank', 'NEFT'];
 
-    // Auto-select first bank if none selected
-    useEffect(() => {
-        if (banks.length > 0 && !selectedId) {
-            setSelectedId(banks[0]._id);
-        }
-    }, [banks]);
+    // Remove auto-select to allow "Choose Bank" placeholder
+    const bank = banks.find(b => b._id === selectedId);
 
-    const bank = banks.find(b => b._id === selectedId) || banks[0];
 
-    if (!bank) {
-        return (
-            <View style={[styles.hubContainer, { padding: 40, alignItems: 'center' }]}>
-                <Text style={{ color: Colors.hub_slate }}>Loading bank details...</Text>
-            </View>
-        );
-    }
 
     const copy = (val, label) => {
         Clipboard.setString(val);
         onSuccess(`${label} copied!`);
     };
 
+    const getFileSizeBytes = async (image) => {
+        if (image.size && image.size > 0) return image.size;
+        try {
+            const cleanPath = (image.path ?? "").replace(/^file:\/\//, "");
+            const stat = await RNFS.stat(cleanPath);
+            return stat.size;
+        } catch (_) { return null; }
+    };
+
+    const validateImageSize = async (image) => {
+        const sizeBytes = await getFileSizeBytes(image);
+        if (sizeBytes === null) return true;
+        if (sizeBytes < MIN_SIZE_BYTES) {
+            onError(`Image too small (${(sizeBytes / 1024).toFixed(1)} KB). Min: 10 KB`);
+            return false;
+        }
+        if (sizeBytes > MAX_SIZE_BYTES) {
+            onError(`Image too large (${(sizeBytes / 1024).toFixed(1)} KB). Max: 200 KB`);
+            return false;
+        }
+        return true;
+    };
+
     const pickImage = () => {
         ImagePicker.openPicker({
-            width: 800,
-            height: 800,
+            width: 1000,
+            height: 1000,
             cropping: true,
             mediaType: 'photo',
-        }).then(image => {
-            setReceiptImage(image.path);
+            compressImageQuality: 0.8,
+        }).then(async image => {
+            const isValid = await validateImageSize(image);
+            if (isValid) setReceiptImage(image.path);
         }).catch(err => {
             console.log("Image picker err:", err);
         });
@@ -274,6 +291,10 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
     };
 
     const submit = async () => {
+        if (!bank) {
+            onError('Please select a bank account first');
+            return;
+        }
         if (!payMode) {
             onError('Please select a payment method');
             return;
@@ -340,9 +361,14 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
                         <Text style={styles.hubStepLabel}>SELECT BANK ACCOUNT</Text>
                         <TouchableOpacity
                             style={styles.hubDropdown}
-                            onPress={() => setShowSelectors(!showSelectors)}
+                            onPress={() => {
+                                setShowSelectors(!showSelectors);
+                                setShowMethodPicker(false);
+                            }}
                         >
-                            <Text style={styles.hubDropdownText}>{bank.bankName}</Text>
+                            <Text style={[styles.hubDropdownText, !bank && { color: Colors.hub_slateLight }]}>
+                                {bank ? bank.bankName : 'CHOOSE BANK'}
+                            </Text>
                             <Text style={styles.hubDropdownArrow}>▼</Text>
                         </TouchableOpacity>
                     </View>
@@ -350,6 +376,9 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
 
                 {showSelectors && (
                     <View style={styles.bankPickerList}>
+                        <View style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)', backgroundColor: Colors.hub_hubIndigo, borderTopLeftRadius: 12, borderTopRightRadius: 12 }}>
+                            <Text style={{ fontSize: 10, fontFamily: Fonts.Bold, color: Colors.hub_white, letterSpacing: 1 }}>CHOOSE BANK</Text>
+                        </View>
                         {banks.map(b => (
                             <TouchableOpacity
                                 key={b._id}
@@ -383,52 +412,57 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
 
             {/* QR Section */}
             <View style={styles.hubContent}>
-                <View style={styles.qrStage}>
-                    <View style={styles.qrCardMain}>
-                        <View style={styles.qrBorder}>
-                            <View style={styles.qrHeader}>
-                                <Text style={styles.qrBrand}>paytm | UPI</Text>
-                            </View>
-                            <View style={styles.qrCodePlaceholder}>
-                                {bank.qrCode ? (
-                                    <Image
-                                        source={{ uri: `${BASE_URL}${bank.qrCode}` }}
-                                        style={{ width: '100%', height: '100%', borderRadius: 8 }}
-                                        resizeMode="contain"
-                                    />
-                                ) : (
-                                    <Text style={{ fontSize: 14, color: Colors.hub_slate }}>No QR Code</Text>
-                                )}
-                                <View style={styles.qrScanLine} />
-                            </View>
-                            <View style={styles.qrFooter}>
-                                <Text style={styles.qrVpa}>{bank.upiId || 'No UPI ID'}</Text>
+                {bank && (
+                    <View style={styles.qrStage}>
+                        <View style={styles.qrCardMain}>
+                            <View style={styles.qrBorder}>
+                                <View style={styles.qrHeader}>
+                                    <Text style={styles.qrBrand}>paytm | UPI</Text>
+                                </View>
+                                <View style={styles.qrCodePlaceholder}>
+                                    {bank.qrCode ? (
+                                        <Image
+                                            source={{ uri: `${BASE_URL}${bank.qrCode}` }}
+                                            style={{ width: '100%', height: '100%', borderRadius: 8 }}
+                                            resizeMode="contain"
+                                        />
+                                    ) : (
+                                        <Text style={{ fontSize: 12, color: Colors.hub_slate, textAlign: 'center', padding: 10 }}>
+                                            No QR Code
+                                        </Text>
+                                    )}
+                                    <View style={styles.qrScanLine} />
+                                </View>
+                                <View style={styles.qrFooter}>
+                                    <Text style={styles.qrVpa}>{bank.upiId || 'No UPI ID'}</Text>
+                                </View>
                             </View>
                         </View>
+                        <View style={styles.qrStatusBadge}>
+                            <Text style={styles.qrStatusText}>✓ VERIFIED QR</Text>
+                        </View>
                     </View>
-                    <View style={styles.qrStatusBadge}>
-                        <Text style={styles.qrStatusText}>✓ VERIFIED QR</Text>
-                    </View>
-                </View>
+                )}
 
-                {/* Account Details */}
-                <View style={styles.bankDetailGroup}>
-                    {[
-                        { label: 'A/C Number', value: bank.accountNumber },
-                        { label: 'IFSC Code', value: bank.ifscCode },
-                        { label: 'Payee Name', value: bank.accountHolderName },
-                    ].map(item => (
-                        <View key={item.label} style={styles.bankDetailItem}>
-                            <Text style={styles.bankDetailLabel}>{item.label}</Text>
-                            <View style={styles.bankDetailRow}>
-                                <Text style={styles.bankDetailValue}>{item.value}</Text>
-                                <TouchableOpacity onPress={() => copy(item.value, item.label)}>
-                                    <Text style={styles.copyIconText}>⧉</Text>
-                                </TouchableOpacity>
+                {bank && (
+                    <View style={styles.bankDetailGroup}>
+                        {[
+                            { label: 'A/C Number', value: bank.accountNumber },
+                            { label: 'IFSC Code', value: bank.ifscCode },
+                            { label: 'Payee Name', value: bank.accountHolderName },
+                        ].map(item => (
+                            <View key={item.label} style={styles.bankDetailItem}>
+                                <Text style={styles.bankDetailLabel}>{item.label}</Text>
+                                <View style={styles.bankDetailRow}>
+                                    <Text style={styles.bankDetailValue}>{item.value}</Text>
+                                    <TouchableOpacity onPress={() => copy(item.value, item.label)}>
+                                        <Text style={styles.copyIconText}>⧉</Text>
+                                    </TouchableOpacity>
+                                </View>
                             </View>
-                        </View>
-                    ))}
-                </View>
+                        ))}
+                    </View>
+                )}
 
                 {/* Payment Form */}
                 <View style={styles.confirmPaymentHeading}>
@@ -477,50 +511,55 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
                         </View>
                     </View>
 
-                    <View style={styles.hubFormRow}>
-                        <View style={styles.hubFormField}>
-                            <Text style={styles.hubFieldLabel}>Payment Method</Text>
-                            <TouchableOpacity
-                                style={styles.hubFieldInputWrap}
-                                onPress={() => setShowMethodPicker(!showMethodPicker)}
-                            >
-                                <Text style={styles.hubFieldPlaceholder}>
-                                    {payMode || 'Select Method'}
-                                </Text>
-                                <Text style={styles.hubFieldIcon}>▼</Text>
-                            </TouchableOpacity>
+                    <View style={styles.hubFormField}>
+                        <Text style={styles.hubFieldLabel}>Payment Method</Text>
+                        <TouchableOpacity
+                            style={styles.hubFieldInputWrap}
+                            onPress={() => {
+                                setShowMethodPicker(!showMethodPicker);
+                                setShowSelectors(false);
+                            }}
+                        >
+                            <Text style={styles.hubFieldPlaceholder}>
+                                {payMode || 'Select Method'}
+                            </Text>
+                            <Text style={styles.hubFieldIcon}>▼</Text>
+                        </TouchableOpacity>
 
-                            {showMethodPicker && (
-                                <View style={styles.methodPickerList}>
-                                    {methods.map(m => (
-                                        <TouchableOpacity
-                                            key={m}
-                                            style={styles.methodPickerItem}
-                                            onPress={() => {
-                                                setPayMode(m);
-                                                setShowMethodPicker(false);
-                                            }}
-                                        >
-                                            <Text style={styles.methodPickerText}>{m}</Text>
-                                        </TouchableOpacity>
-                                    ))}
+                        {showMethodPicker && (
+                            <View style={styles.methodPickerList}>
+                                <View style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)', backgroundColor: Colors.hub_hubIndigo, borderTopLeftRadius: 12, borderTopRightRadius: 12 }}>
+                                    <Text style={{ fontSize: 10, fontFamily: Fonts.Bold, color: Colors.hub_white, letterSpacing: 1 }}>CHOOSE METHOD</Text>
                                 </View>
-                            )}
-                        </View>
-
-                        <View style={styles.hubFormField}>
-                            <Text style={styles.hubFieldLabel}>UTR / REFERENCE NO</Text>
-                            <View style={styles.hubFieldInputWrap}>
-                                <Text style={styles.hubFieldIcon}>ℹ️</Text>
-                                <TextInput
-                                    style={styles.hubFieldInput}
-                                    placeholder="Enter UTR No"
-                                    placeholderTextColor={Colors.hub_slateLight}
-                                    value={utr}
-                                    onChangeText={t => setUtr(t.toUpperCase())}
-                                    autoCapitalize="characters"
-                                />
+                                {methods.map(m => (
+                                    <TouchableOpacity
+                                        key={m}
+                                        style={styles.methodPickerItem}
+                                        onPress={() => {
+                                            setPayMode(m);
+                                            setShowMethodPicker(false);
+                                        }}
+                                    >
+                                        <Text style={styles.methodPickerText}>{m}</Text>
+                                    </TouchableOpacity>
+                                ))}
                             </View>
+                        )}
+                    </View>
+
+                    <View style={styles.hubFormField}>
+                        <Text style={styles.hubFieldLabel}>UTR / REFERENCE NO</Text>
+                        <View style={styles.hubFieldInputWrap}>
+                            <Text style={styles.hubFieldIcon}>ℹ️</Text>
+                            <TextInput
+                                style={styles.hubFieldInput}
+                                placeholder="Enter UTR No"
+                                placeholderTextColor={Colors.hub_slateLight}
+                                value={utr}
+                                onChangeText={t => setUtr(t.toUpperCase())}
+                                autoCapitalize="characters"
+                                maxLength={20}
+                            />
                         </View>
                     </View>
 
@@ -616,7 +655,7 @@ export default function ActivateAccountScreen({ navigation }) {
     const TABS = [
         { key: 'coupon', label: 'Coupon', icon: '🎟️' },
         { key: 'online', label: 'Online', icon: '💳' },
-        { key: 'bank', label: 'Bank', icon: '🏦' },
+        { key: 'bank', label: 'Bank', icon: '🏛️' },
     ];
 
     const switchTab = key => {

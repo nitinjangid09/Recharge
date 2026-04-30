@@ -839,6 +839,126 @@ export const submitOfflineKyc = async ({ personal, business, files, banking }) =
   }
 };
 
+export const reuploadOfflineKyc = async ({ personal, business, files, banking }) => {
+  // ── STEP 1: Read login credentials ─
+  const tokenStr = await AsyncStorage.getItem("token");
+  let finalToken = await AsyncStorage.getItem("header_token");
+  let userId = "";
+  let headerKey = await AsyncStorage.getItem("header_key");
+
+  if (tokenStr) {
+    try {
+      const parsed = JSON.parse(tokenStr);
+      if (parsed.token) finalToken = parsed.token;
+      if (parsed.user && parsed.user._id) userId = parsed.user._id;
+    } catch (e) { }
+  }
+
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log("[KYC] Starting reuploadOfflineKyc");
+  console.log("[KYC] Endpoint:", `${BASE_URL}/user/kyc/reupload-kyc`);
+
+  if (!finalToken) {
+    return { success: false, message: "Session expired. Please login again." };
+  }
+
+  // ── STEP 2: Build FormData ─────────────────────────────────────────────────
+  const safeTrim = (str) => (str || "").toString().trim();
+  const form = new FormData();
+
+  if (userId) form.append("userId", userId);
+  form.append("firstName", safeTrim(personal.firstName));
+  form.append("lastName", safeTrim(personal.lastName));
+  form.append("fatherName", safeTrim(personal.fatherName));
+  form.append("gender", safeTrim(personal.gender));
+  form.append("email", safeTrim(personal.email));
+  form.append("phone", safeTrim(personal.phone));
+
+  let formattedDob = safeTrim(personal.dob);
+  if (/^\d{2}-\d{2}-\d{4}$/.test(formattedDob)) {
+    const [dd, mm, yyyy] = formattedDob.split("-");
+    formattedDob = `${yyyy}-${mm}-${dd}`;
+  }
+  form.append("dob", formattedDob);
+  form.append("personalAddress", safeTrim(personal.personalAddress));
+  form.append("personalCity", safeTrim(personal.personalCity));
+  form.append("personalState", safeTrim(personal.personalState));
+  form.append("personalPincode", safeTrim(personal.personalPincode));
+
+  form.append("shopName", safeTrim(business.shopName));
+  form.append("businessAddress", safeTrim(business.businessAddress));
+  form.append("businessCity", safeTrim(business.businessCity));
+  form.append("businessState", safeTrim(business.businessState));
+  form.append("businessPincode", safeTrim(business.businessPincode));
+  form.append("panNumber", safeTrim(business.panNumber));
+  form.append("aadharNumber", safeTrim(business.aadharNumber));
+
+  if (safeTrim(business.businessPanNumber)) form.append("businessPanNumber", safeTrim(business.businessPanNumber));
+  if (safeTrim(business.gstNumber)) form.append("gstNumber", safeTrim(business.gstNumber));
+
+  form.append("accountHolderName", safeTrim(banking.accountHolderName));
+  form.append("bankName", safeTrim(banking.bankName));
+  form.append("accountNumber", safeTrim(banking.accountNumber));
+  form.append("branchName", safeTrim(banking.branchName));
+  form.append("ifscCode", safeTrim(banking.ifscCode));
+
+  const appendFile = (key, file, fallbackName) => {
+    if (file) {
+      form.append(key, {
+        uri: file.uri,
+        name: file.name || fallbackName,
+        type: file.type || "image/jpeg",
+      });
+    }
+  };
+  appendFile("aadharFile", files.aadharFile, "aadharFile.jpg");
+  appendFile("panFile", files.panFile, "panFile.jpg");
+  appendFile("shopImage", files.shopImage, "shopImage.jpg");
+  appendFile("blankCheque", files.blankCheque, "blankCheque.jpg");
+
+  // ── STEP 3: POST ───────────────────────────────────────────────────────────
+  try {
+    const fetchResponse = await fetch(`${BASE_URL}/user/kyc/reupload-kyc`, {
+      method: "POST",
+      headers: {
+        headerToken: finalToken,
+        headerKey: headerKey || "",
+        Authorization: `Bearer ${finalToken}`,
+      },
+      body: form,
+    });
+
+    if (fetchResponse.status === 401) {
+      performAutoLogout("Session expired during KYC re-upload.");
+      return { success: false, message: "Session expired. Please login again." };
+    }
+
+    const rawText = await fetchResponse.text();
+    let data;
+    if (rawText.trimStart().startsWith("<")) {
+      data = { success: false, message: `Server error (${fetchResponse.status})` };
+    } else {
+      try { data = JSON.parse(rawText); } catch (_) { data = { success: false, message: "Unexpected server response" }; }
+    }
+
+    const isSuccess = fetchResponse.status === 200 || fetchResponse.status === 201 || data?.success === true;
+
+    if (isSuccess) {
+      try {
+        await AsyncStorage.multiSet([
+          ["kyc_status", "pending"],
+          ["is_kyc_online", "false"],
+          ["kyc_submitted_at", new Date().toISOString()],
+        ]);
+      } catch (e) { }
+      return { success: true, message: data?.message || "KYC re-uploaded successfully." };
+    }
+    return { success: false, message: data?.message || "Re-upload failed." };
+  } catch (err) {
+    return { success: false, message: err.message || "Network error" };
+  }
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 // KYC — STATUS + LOCAL CACHE
 // ─────────────────────────────────────────────────────────────────────────────
