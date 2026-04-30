@@ -600,6 +600,14 @@ export default function OfflineTopup({ navigation }) {
       const headerToken = await AsyncStorage.getItem("header_token");
       const result = await addOfflineTopupRequest({ amount, mode, receiverBank, utrNumber, paymentDate, paymentProof, headerToken });
       if (result?.success) {
+        setAmount("");
+        setMode("upi");
+        setReceiverBank("");
+        setUtrNumber("");
+        setPaymentDate("");
+        setPaymentProof("");
+        setErrors({});
+
         setReceiptData({
           status: "success",
           title: "Request Submitted",
@@ -727,7 +735,7 @@ export default function OfflineTopup({ navigation }) {
             <FieldLabel text="Payment Date" />
             <TouchableOpacity
               style={[st.inputRow, errors.paymentDate ? st.inputRowError : null]}
-               onPress={() => {
+              onPress={() => {
                 if (errors.paymentDate) setErrors(prev => ({ ...prev, paymentDate: null }));
                 openCal('payment');
               }}
@@ -887,6 +895,22 @@ export default function OfflineTopup({ navigation }) {
                       <Text style={st.detailValue}>{item.utrNumber}</Text>
                     </View>
                   </View>
+
+                  {isRejected && !!item.rejectionReason && (
+                    <View style={st.rejectionBox}>
+                      <Icon name="information-outline" size={S(14)} color="#DC2626" style={{ marginTop: S(2) }} />
+                      <View style={{ flex: 1 }}>
+                        <Text style={st.rejectionTxt}>{item.rejectionReason}</Text>
+                        {!!item.rejectedAt && (
+                          <Text style={st.rejectionTimeTxt}>
+                            Rejected on: {new Date(item.rejectedAt).toLocaleDateString("en-IN", {
+                              day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"
+                            })}
+                          </Text>
+                        )}
+                      </View>
+                    </View>
+                  )}
                 </View>
               );
             })
@@ -1203,6 +1227,9 @@ const st = StyleSheet.create({
   detailLabel: { fontSize: S(9), fontFamily: Fonts.Bold, color: "#9CA3AF", letterSpacing: 0.8, marginBottom: S(4) },
   detailValue: { fontSize: S(12), fontFamily: Fonts.Bold, color: FG, letterSpacing: 0.2 },
   modeGroup: { flexDirection: "row", alignItems: "center", gap: S(5) },
+  rejectionBox: { flexDirection: "row", alignItems: "flex-start", backgroundColor: "#FEF2F2", padding: S(10), borderRadius: S(8), marginTop: S(12), gap: S(8), borderWidth: 1, borderColor: "rgba(220,38,38,0.15)" },
+  rejectionTxt: { fontSize: S(11), fontFamily: Fonts.Medium, color: "#991B1B", lineHeight: S(16) },
+  rejectionTimeTxt: { fontSize: S(9), fontFamily: Fonts.Medium, color: "#DC2626", marginTop: S(4) },
 
   emptyStateBox: { alignItems: "center", justifyContent: "center", paddingVertical: S(50) },
   filterBtn: { width: S(32), height: S(32), borderRadius: S(8), backgroundColor: ACCENT + '15', alignItems: 'center', justifyContent: 'center' },

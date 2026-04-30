@@ -560,6 +560,198 @@ export default function FinanceHome({ navigation }) {
     );
   }
 
+  const allServiceItems = [
+    ...allServices.flatMap(s => (s.pipeline || []).map(p => ({ code: p.code, service: s, isStatic: false })))
+  ]
+    .map(item => {
+      if (item.isStatic) return item;
+      const isLocked = !hasService(item.code);
+      const n = item.code.toLowerCase();
+      const base = n.replace(/\d+$/, "");
+      let label = n.toUpperCase();
+      if (n === "dmt1") label = "DMT";
+      if (n === "aeps1") label = "AEPS 1";
+      if (n === "aeps2") label = "AEPS 2";
+      if (n === "bbps1") label = "BBPS";
+      if (n === "recharge1") label = "RECHARGE";
+      if (base === "xpresspayout" || base === "xpress-payout") label = "Xpress Payout";
+      if (base === "aepspayout" || base === "aeps-payout" || n === "aepspayout") label = "AEPS Payout";
+      if (base === "upi-payout") label = "UPI Payout";
+      if (n.includes("offline")) label = "OFFLINE SERVICES";
+      if (n.includes("online")) label = "ONLINE SERVICES";
+      return { ...item, label, n, base, isLocked };
+    })
+    .sort((a, b) => a.label.localeCompare(b.label));
+
+  const aepsServices = allServiceItems.filter(i => i.base === "aeps" || i.n.includes("aeps"));
+  const rechargeServices = allServiceItems.filter(i => i.base === "recharge" || i.base === "bbps" || i.n.includes("recharge") || i.n.includes("bbps"));
+  const transferServices = allServiceItems.filter(i => i.base === "dmt" || i.n.includes("dmt") || i.n.includes("xpress") || i.n.includes("upi") || i.n === "dmt1");
+  const onlineOfflineServices = allServiceItems.filter(i => i.n.includes("online") || i.n.includes("offline"));
+
+  const renderServiceGrid = (items) => {
+    if (!items || items.length === 0) return null;
+    return (
+      <View style={S.svcGrid}>
+        {items.map((item, idx) => {
+          const { code, service, label, n, base, isStatic, screen, Svg, isLocked } = item;
+          const iconName = SERVICE_ICON_MAP[base] || SERVICE_ICON_MAP.default;
+
+          return (
+            <TouchableOpacity
+              key={`${code}-${idx}`}
+              style={[S.svcGridItem]}
+              activeOpacity={0.78}
+              onPress={async () => {
+                if (isLocked) {
+                  const isAlreadyRequested = userProfile?.requestedService?.some(req => req.serviceName === n && req.status === "pending");
+
+                  if (isAlreadyRequested) {
+                    showAlert("warning", "Notice", "Request already exist for this User waiting for further reviews");
+                    return;
+                  }
+
+                  const rejectedService = userProfile?.requestedService?.find(req => req.serviceName === n && req.status === "rejected");
+
+                  if (rejectedService) {
+                    showAlert("error", "Request Rejected", `Reason: ${rejectedService.reason}`);
+                    return;
+                  }
+
+                  showAlert(
+                    "theme",
+                    "Service Locked",
+                    "Do you want to request this service from the admin?",
+                    async () => {
+                      try {
+                        setAlert(p => ({ ...p, isLoading: true }));
+                        const res = await requestService({
+                          serviceId: service._id || service.serviceId,
+                          pipeline: n,
+                          headerToken: token
+                        });
+
+                        if (res?.success) {
+                          try {
+                            const profileRes = await fetchUserProfile({ headerToken: token });
+                            if (profileRes?.success && profileRes?.data) {
+                              setUserProfile(profileRes.data);
+                              setProfileAssignedServices(Array.isArray(profileRes.data.assignedServices) ? profileRes.data.assignedServices : []);
+                            }
+                          } catch (e) {
+                            console.log("Failed to refresh profile:", e);
+                          }
+                        }
+
+                        setAlert(p => ({
+                          ...p,
+                          type: res.success ? "success" : "warning",
+                          title: res.success ? "Request Sent" : "Notice",
+                          message: res.message || "Your request has been sent.",
+                          isLoading: false,
+                          onConfirm: null,
+                        }));
+                      } catch (error) {
+                        setAlert(p => ({
+                          ...p,
+                          type: "error",
+                          title: "Error",
+                          message: "Failed to request service. Please try again.",
+                          isLoading: false,
+                          onConfirm: null,
+                        }));
+                      }
+                    },
+                    "Yes, Request"
+                  );
+                  return;
+                }
+                if (isStatic) {
+                  navigation.navigate(screen);
+                  return;
+                }
+                if (n === "recharge" || n === "recharge1" || service.name === "recharge" || service.serviceId === "699314b271936d89b7185e48") {
+                  navigation.navigate("TopUpScreen");
+                } else if (n === "bbps" || n === "bbps1" || service.name === "bbps" || service.serviceId === "6993147e71936d89b7185e36") {
+                  navigation.navigate("PaymentsScreen");
+                } else if (n === "aeps1" || n === "aeps") {
+                  const aeps1 = userProfile?.aeps1 || {};
+                  if (Object.keys(aeps1).length === 0) {
+                    navigation.navigate("AepsRegistration");
+                  } else if (aeps1.action === "ACTION-REQUIRED") {
+                    navigation.navigate("AEPS_OnBoard");
+                  } else if (aeps1.action === "NO-ACTION-REQUIRED") {
+                    setBalanceLoading(true);
+                    try {
+                      const statusRes = await getAepsStatus({ headerToken: token });
+                      if (statusRes.code === "LOGIN_NOT_REQUIRED") {
+                        navigation.navigate("AEPS1");
+                      } else if (statusRes.code === "LOGIN_REQUIRED") {
+                        navigation.navigate("DailyLogin");
+                      } else {
+                        navigation.navigate("DailyLogin");
+                      }
+                    } catch (err) {
+                      showAlert("error", "Status Check Failed", "Unable to verify AEPS session. Please try again.");
+                    } finally {
+                      setBalanceLoading(false);
+                    }
+                  } else {
+                    navigation.navigate("AEPSAadhaarOTP");
+                  }
+                } else if (n === "aeps2") {
+                  const aeps2 = userProfile?.aeps2 || {};
+                  const { isActivated, isLoginRequired } = aeps2;
+                  if (Object.keys(aeps2).length === 0) {
+                    navigation.navigate("AEPSSecondaryRegistration");
+                  } else if (isActivated === true && isLoginRequired === true) {
+                    navigation.navigate("AEPSPortalAccess");
+                  } else if (isActivated === false && isLoginRequired === true) {
+                    navigation.navigate("AEPSServiceActivation");
+                  } else if (isActivated === true && isLoginRequired === false) {
+                    navigation.navigate("AePSDashboard");
+                  } else {
+                    navigation.navigate("AEPSAadhaarOTP");
+                  }
+                } else if (n === "dmt" || n === "dmt1") {
+                  navigation.navigate("DmtLogin");
+                } else if (base === "xpresspayout" || base === "xpress-payout" || base === "upi-payout" || base === "aepspayout" || base === "aeps-payout" || n === "aepspayout") {
+                  navigation.navigate("XpressPayout");
+                }
+              }}
+            >
+              <View style={[S.svcIconCircle]}>
+                {isStatic && Svg ? (
+                  <Svg width={rs(24)} height={rs(24)} />
+                ) : (base === "bbps" || n === "bbps1") && typeof BBPSIconSVG === "function" ? (
+                  <BBPSIconSVG width={rs(26)} height={rs(26)} />
+                ) : (base === "recharge" || n === "recharge1") && typeof RechargeIconSVG === "function" ? (
+                  <RechargeIconSVG width={rs(26)} height={rs(26)} />
+                ) : (base === "aeps" || n.includes("aeps")) && typeof AEPSIconSVG === "function" ? (
+                  <AEPSIconSVG width={rs(26)} height={rs(26)} />
+                ) : (base === "dmt" || n.includes("dmt")) && typeof MoneyTransferIconSVG === "function" ? (
+                  <MoneyTransferIconSVG width={rs(26)} height={rs(26)} />
+                ) : (base === "xpresspayout" || base === "xpress-payout") && typeof XpressIconSVG === "function" ? (
+                  <XpressIconSVG width={rs(26)} height={rs(26)} />
+                ) : (base === "upi" || base === "upi-payout") && typeof UpiIconSVG === "function" ? (
+                  <UpiIconSVG width={rs(26)} height={rs(26)} />
+                ) : (n.includes("offline")) && typeof OfflineServicesIconSVG === "function" ? (
+                  <OfflineServicesIconSVG width={rs(26)} height={rs(26)} />
+                ) : (n.includes("online")) && typeof OnlineServicesIconSVG === "function" ? (
+                  <OnlineServicesIconSVG width={rs(26)} height={rs(26)} />
+                ) : (
+                  <Icon name={iconName} size={rs(22)} color={Colors.finance_accent} />
+                )}
+              </View>
+              <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
+                {label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    );
+  };
+
   // ─────────────────────────────────────────────────────────────────────────
   // RENDER
   // ─────────────────────────────────────────────────────────────────────────
@@ -895,6 +1087,7 @@ export default function FinanceHome({ navigation }) {
               txnVolume={txnVolume}
             />
 
+<<<<<<< HEAD
             {/* ── SERVICES GRID ── */}
             <SectionHeader title="Services" linkLabel="View All" onLink={() => { }} />
             <View style={S.svcGrid}>
@@ -1033,6 +1226,39 @@ export default function FinanceHome({ navigation }) {
                 ));
               })()}
             </View>
+=======
+            {/* ── AEPS ── */}
+            {aepsServices.length > 0 && (
+              <>
+                <SectionHeader title="AEPS Services" />
+                {renderServiceGrid(aepsServices)}
+              </>
+            )}
+
+            {/* ── RECHARGE AND BILL PAYMENT ── */}
+            {rechargeServices.length > 0 && (
+              <>
+                <SectionHeader title="Recharge and Bill Payment" />
+                {renderServiceGrid(rechargeServices)}
+              </>
+            )}
+
+            {/* ── TRANSFER SERVICE ── */}
+            {transferServices.length > 0 && (
+              <>
+                <SectionHeader title="Transfer Service" />
+                {renderServiceGrid(transferServices)}
+              </>
+            )}
+
+            {/* ── ONLINE AND OFFLINE SERVICES ── */}
+            {onlineOfflineServices.length > 0 && (
+              <>
+                <SectionHeader title="Online and Offline Services" />
+                {renderServiceGrid(onlineOfflineServices)}
+              </>
+            )}
+>>>>>>> cb1e1c8c04373787eebef35dea1b754ae5d56ce9
 
             {/* ── PROMO BANNER ── */}
             {banners.length > 0 ? (

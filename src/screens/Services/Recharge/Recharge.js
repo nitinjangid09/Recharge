@@ -31,6 +31,7 @@ import {
   verifyRechargeMobile,
   processRecharge,
   getMyRechargeHistory,
+  fetchPlans,
 } from "../../../api/AuthApi";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -191,8 +192,11 @@ export default function TopUpScreen({ navigation, route }) {
   const [showCircleModal, setShowCircleModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const [amount, setAmount] = useState("199");
+  const [amount, setAmount] = useState("");
   const [operatorCode, setOperatorCode] = useState("");
+  const [planDesc, setPlanDesc] = useState("");
+  const [planValidity, setPlanValidity] = useState("");
+  const [availablePlans, setAvailablePlans] = useState([]);
   const [receiptData, setReceiptData] = useState(null);
   const [completed, setCompleted] = useState(false);
   const [rechargeHistory, setRechargeHistory] = useState([]);
@@ -213,6 +217,9 @@ export default function TopUpScreen({ navigation, route }) {
     if (route.params?.operator) setOperator(route.params.operator);
     if (route.params?.circle) setCircle(route.params.circle);
     if (route.params?.operatorCode) setOperatorCode(route.params.operatorCode);
+    if (route.params?.planDesc) setPlanDesc(route.params.planDesc);
+    if (route.params?.validity) setPlanValidity(route.params.validity);
+    if (route.params?.allPlans) setAvailablePlans(route.params.allPlans);
   }, [route.params]);
 
   const showAlert = (type, title, message) => {
@@ -381,6 +388,7 @@ export default function TopUpScreen({ navigation, route }) {
           const cirName = matchedCir?.circleName || matchedCir?.circlename || fetchedData.state || "";
           const opCode = matchedOp?.rechargeValue || fetchedData.operatorCode || "";
           setOperatorCode(opCode); setOperator(opName); setCircle(cirName);
+          setAvailablePlans(fetchedData.plans || []);
           navigation.navigate("StorePlans", {
             mobile: num, operator: opName, circle: cirName,
             plans: fetchedData.plans || [], operatorCode: opCode,
@@ -518,32 +526,70 @@ export default function TopUpScreen({ navigation, route }) {
                   <Text style={styles.currencySymbol}>₹</Text>
                   <TextInput
                     value={amount}
-                    onChangeText={(val) => setAmount(val.replace(/[^0-9]/g, ""))}
+                    onChangeText={(val) => {
+                      setAmount(val.replace(/[^0-9]/g, ""));
+                      // Clear plan info if user manually types amount
+                      if (route.params?.selectedAmount && val !== String(route.params.selectedAmount)) {
+                        setPlanDesc("");
+                        setPlanValidity("");
+                      }
+                    }}
                     placeholder="0"
                     placeholderTextColor={Colors.amberOpacity_30}
                     keyboardType="numeric"
                     style={styles.hugeInput}
                   />
                 </View>
-                <View style={styles.suggestionsWrapper}>
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.suggestionsContainer}
-                  >
-                    {["199", "299", "499", "666", "849"].map((val) => (
-                      <TouchableOpacity
-                        key={val}
-                        style={[styles.suggestionChip, amount === val && styles.suggestionChipActive]}
-                        onPress={() => setAmount(val)}
-                      >
-                        <Text style={[styles.suggestionText, amount === val && styles.suggestionTextActive]}>
-                          ₹{val}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
+
+                {planDesc ? (
+                  <View style={styles.selectedPlanWrap}>
+                    <Icon name="check-circle" size={16} color={Colors.success} style={{ marginTop: 2 }} />
+                    <View style={{ flex: 1, marginLeft: 8 }}>
+                      {!!planValidity && <Text style={styles.selectedPlanValidity}>Validity: {planValidity}</Text>}
+                      <Text style={styles.selectedPlanDesc}>{planDesc}</Text>
+                    </View>
+                  </View>
+                ) : (
+                  <View style={styles.suggestionsWrapper}>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.suggestionsContainer}
+                    >
+                      {["199", "299", "499", "666", "849"].map((val) => (
+                        <TouchableOpacity
+                          key={val}
+                          style={[styles.suggestionChip, amount === val && styles.suggestionChipActive]}
+                          onPress={async () => {
+                            setAmount(val);
+                            let plansToCheck = availablePlans;
+                            if (plansToCheck.length === 0 && mobile.length === 10 && operator && circle) {
+                              setLoading(true);
+                              const res = await fetchPlans(mobile, circle, operator);
+                              if (res?.status === "SUCCESS") {
+                                plansToCheck = res.plans || [];
+                                setAvailablePlans(plansToCheck);
+                              }
+                              setLoading(false);
+                            }
+                            const matchedPlan = plansToCheck.find((p) => String(p.price || p.amount) === val);
+                            if (matchedPlan) {
+                              setPlanDesc(matchedPlan.description || "");
+                              setPlanValidity(matchedPlan.validity || "");
+                            } else {
+                              setPlanDesc("");
+                              setPlanValidity("");
+                            }
+                          }}
+                        >
+                          <Text style={[styles.suggestionText, amount === val && styles.suggestionTextActive]}>
+                            ₹{val}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
                 <TouchableOpacity
                   style={styles.viewPlansBtn}
                   onPress={async () => {
@@ -830,6 +876,9 @@ const styles = StyleSheet.create({
   amountInputRow: { flexDirection: "row", alignItems: "center", marginBottom: 12, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", paddingVertical: 8, paddingHorizontal: 14 },
   currencySymbol: { fontSize: 20, fontFamily: Fonts.Bold, color: Colors.finance_accent, marginRight: 8 },
   hugeInput: { flex: 1, fontSize: 28, fontFamily: Fonts.Bold, color: Colors.white, padding: 0 },
+  selectedPlanWrap: { flexDirection: "row", marginBottom: 16, padding: 12, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 12, borderWidth: 1, borderColor: "rgba(212,176,106,0.2)" },
+  selectedPlanValidity: { color: Colors.white, fontSize: 13, fontFamily: Fonts.Bold, marginBottom: 4 },
+  selectedPlanDesc: { color: "rgba(255,255,255,0.75)", fontSize: 12, fontFamily: Fonts.Medium, lineHeight: 18 },
   suggestionsWrapper: { marginBottom: 12 },
   suggestionsContainer: { flexDirection: "row", alignItems: "center", gap: 8 },
   suggestionChip: { backgroundColor: "rgba(255,255,255,0.05)", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
