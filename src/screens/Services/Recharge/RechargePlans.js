@@ -220,8 +220,11 @@ export default function StorePlans({ navigation, route }) {
       operator,
       circle,
       operatorCode: route.params?.operatorCode,
+      planDesc: item.description,
+      validity: item.validity,
+      allPlans: allPlans,
     });
-  }, [mobile, operator, circle]);
+  }, [mobile, operator, circle, allPlans]);
 
   // ── Render plan card ──────────────────────────────────────────────────
   const renderPlan = useCallback(({ item }) => (
