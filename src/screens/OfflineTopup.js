@@ -335,8 +335,6 @@ const PIL = StyleSheet.create({
   txt: { fontSize: S(11), fontFamily: Fonts.Bold },
 });
 
-
-
 // ─── Reusable text input row ──────────────────────────────────────────────
 const InputBox = ({ label, value, setValue, icon, placeholder, keyboardType, error, maxLength, filter }) => (
   <View style={st.fieldWrap}>
@@ -638,7 +636,7 @@ export default function OfflineTopup({ navigation }) {
           ],
           note: "Your topup request has been submitted and is pending approval (usually within 2-4 hours)."
         });
-        fetchRequests(); // Automatically refresh list
+        fetchRequests(startDateRef.current, endDateRef.current); // Automatically refresh list
       } else {
         showAlert("error", "Submission Failed", result?.message || "Unable to submit. Please try again.");
       }
@@ -1083,12 +1081,10 @@ const st = StyleSheet.create({
   fieldWrap: { width: "100%", marginTop: S(16) },
 
   // ── UNIFIED field label ───────────────────────────────────────────────
-  // Amount label, Payment Mode label, Receiver Bank label, UTR label,
-  // Payment Date label, Payment Proof label — all share this one style.
   fieldLabel: {
-    fontSize: S(12),          // same size everywhere
-    fontFamily: Fonts.Bold,   // same weight everywhere
-    color: FG,                // same colour everywhere
+    fontSize: S(12),
+    fontFamily: Fonts.Bold,
+    color: FG,
     marginBottom: S(7),
     letterSpacing: 0.2,
     includeFontPadding: false,
@@ -1100,7 +1096,7 @@ const st = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: S(8),       // overrides the fieldLabel marginBottom
+    marginBottom: S(8),
   },
   modeHintTxt: {
     fontSize: S(10),
@@ -1121,7 +1117,7 @@ const st = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(212,176,106,0.32)",
     borderRadius: S(11),
-    backgroundColor: SURFACE,  // always white
+    backgroundColor: SURFACE,
     paddingHorizontal: S(12),
   },
   inputRowGreen: {
