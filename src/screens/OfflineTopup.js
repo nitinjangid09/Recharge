@@ -24,11 +24,7 @@ import Colors from "../constants/Colors";
 import Fonts from "../constants/Fonts";
 import HeaderBar from "../componets/HeaderBar/HeaderBar";
 import { SafeAreaView } from "react-native-safe-area-context";
-<<<<<<< HEAD
-import { getAllTopupBanks, addOfflineTopupRequest, getAllOfflineTopupRequests } from "../api/AuthApi";
-=======
 import { getAllTopupBanks, addOfflineTopupRequest, getAllOfflineTopupRequests, getOfflineTopupStats } from "../api/AuthApi";
->>>>>>> 502055ae55a7ce747cce3c56a10a0ae0ef070e6a
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import CustomAlert from "../componets/Alerts/CustomAlert";
 import ImageUploadAlert from "../componets/Alerts/Imageuploadalert";
@@ -82,13 +78,8 @@ const S = (n) => Math.round(PixelRatio.roundToNearestPixel(n * (W / 375)));
 const ACCENT = Colors.finance_accent || "#D4A843";
 const FG = Colors.finance_text || "#1A1A2E";
 const SURFACE = Colors.white || "#FFFFFF";
-<<<<<<< HEAD
-const BG = Colors.homeSecondry || "#F4F5F7";
-const CARD_BG = Colors.bg || "#FFFFFF";
-=======
 const BG = Colors.bg || "#F4F5F7";
 const CARD_BG = Colors.homebg || "#FFFFFF";
->>>>>>> 502055ae55a7ce747cce3c56a10a0ae0ef070e6a
 
 // ─── Payment mode config ──────────────────────────────────────────────────
 const PAYMENT_MODES = [
@@ -336,8 +327,6 @@ const PIL = StyleSheet.create({
   txt: { fontSize: S(11), fontFamily: Fonts.Bold },
 });
 
-
-
 // ─── Reusable text input row ──────────────────────────────────────────────
 const InputBox = ({ label, value, setValue, icon, placeholder, keyboardType, error, maxLength, filter }) => (
   <View style={st.fieldWrap}>
@@ -391,10 +380,7 @@ export default function OfflineTopup({ navigation }) {
   const [requestsLoading, setRequestsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
-<<<<<<< HEAD
-=======
   const [topupStats, setTopupStats] = useState(null);
->>>>>>> 502055ae55a7ce747cce3c56a10a0ae0ef070e6a
 
   // ── Filter State ──
   const today = new Date();
@@ -447,18 +433,6 @@ export default function OfflineTopup({ navigation }) {
     setRequestsLoading(true);
     try {
       const headerToken = await AsyncStorage.getItem("header_token");
-<<<<<<< HEAD
-      const result = await getAllOfflineTopupRequests({
-        headerToken,
-        page: 1,
-        limit: 10,
-        from: from ? toQueryDate(from) : undefined,
-        to: to ? toQueryDate(to) : undefined
-      });
-      if (result?.success) setRequests(result.data || []);
-    } catch (e) {
-      console.log("Fetch requests error:", e);
-=======
       const [result, statsRes] = await Promise.all([
         getAllOfflineTopupRequests({
           headerToken,
@@ -474,7 +448,6 @@ export default function OfflineTopup({ navigation }) {
       if (statsRes?.success) setTopupStats(statsRes.data);
     } catch (e) {
       console.log("Fetch requests/stats error:", e);
->>>>>>> 502055ae55a7ce747cce3c56a10a0ae0ef070e6a
     } finally {
       setRequestsLoading(false);
       setRefreshing(false); // Reset both loaders
@@ -653,7 +626,7 @@ export default function OfflineTopup({ navigation }) {
           ],
           note: "Your topup request has been submitted and is pending approval (usually within 2-4 hours)."
         });
-        fetchRequests(); // Automatically refresh list
+        fetchRequests(startDateRef.current, endDateRef.current); // Automatically refresh list
       } else {
         showAlert("error", "Submission Failed", result?.message || "Unable to submit. Please try again.");
       }
@@ -849,8 +822,6 @@ export default function OfflineTopup({ navigation }) {
           </TouchableOpacity>
         </View>
 
-<<<<<<< HEAD
-=======
         {/* ── Topup Stats ── */}
         {topupStats && (
           <View style={statsGridStyles.container}>
@@ -881,7 +852,6 @@ export default function OfflineTopup({ navigation }) {
           </View>
         )}
 
->>>>>>> 502055ae55a7ce747cce3c56a10a0ae0ef070e6a
         {/* ── Requests History ── */}
         <View style={st.historySection}>
           <View style={st.historyHeaderRow}>
@@ -1098,12 +1068,10 @@ const st = StyleSheet.create({
   fieldWrap: { width: "100%", marginTop: S(16) },
 
   // ── UNIFIED field label ───────────────────────────────────────────────
-  // Amount label, Payment Mode label, Receiver Bank label, UTR label,
-  // Payment Date label, Payment Proof label — all share this one style.
   fieldLabel: {
-    fontSize: S(12),          // same size everywhere
-    fontFamily: Fonts.Bold,   // same weight everywhere
-    color: FG,                // same colour everywhere
+    fontSize: S(12),
+    fontFamily: Fonts.Bold,
+    color: FG,
     marginBottom: S(7),
     letterSpacing: 0.2,
     includeFontPadding: false,
@@ -1115,7 +1083,7 @@ const st = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: S(8),       // overrides the fieldLabel marginBottom
+    marginBottom: S(8),
   },
   modeHintTxt: {
     fontSize: S(10),
@@ -1136,7 +1104,7 @@ const st = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(212,176,106,0.32)",
     borderRadius: S(11),
-    backgroundColor: SURFACE,  // always white
+    backgroundColor: SURFACE,
     paddingHorizontal: S(12),
   },
   inputRowGreen: {
@@ -1259,11 +1227,7 @@ const st = StyleSheet.create({
   },
   sheetCloseTxt: { fontFamily: Fonts.Bold, color: FG, fontSize: S(13) },
 
-<<<<<<< HEAD
-  historySection: { width: "92%", marginTop: S(24), marginBottom: S(10) },
-=======
   historySection: { width: "92%", marginBottom: S(10) },
->>>>>>> 502055ae55a7ce747cce3c56a10a0ae0ef070e6a
   historyHeaderRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: S(15), paddingHorizontal: S(4) },
   historyHeaderLeft: { flexDirection: "row", alignItems: "center", gap: S(8) },
   historyHeaderTitle: { fontSize: S(14), fontFamily: Fonts.Bold, color: FG, letterSpacing: 0.3 },
@@ -1297,8 +1261,6 @@ const st = StyleSheet.create({
   emptyIconCircle: { width: S(64), height: S(64), borderRadius: S(32), backgroundColor: "#F3F4F6", alignItems: "center", justifyContent: "center", marginBottom: S(16) },
   emptyTitle: { fontSize: S(15), fontFamily: Fonts.Bold, color: FG, marginBottom: S(4) },
   emptySubtitle: { fontSize: S(12), fontFamily: Fonts.Medium, color: "#9CA3AF", textAlign: "center" },
-<<<<<<< HEAD
-=======
 });
 
 const statsGridStyles = StyleSheet.create({
@@ -1341,5 +1303,4 @@ const statsGridStyles = StyleSheet.create({
     letterSpacing: 0.8,
     marginTop: S(1),
   },
->>>>>>> 502055ae55a7ce747cce3c56a10a0ae0ef070e6a
 });
