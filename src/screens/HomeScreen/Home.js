@@ -167,9 +167,9 @@ const NewsMarquee = ({ notifications }) => {
 export default function FinanceHome({ navigation }) {
   const insets = useSafeAreaInsets();
 
-  const TOP_ROW_H = rs(56);
-  const WALLET_H = vscale(177);
-  const GAP = rs(8);
+  const TOP_ROW_H = rs(52);
+  const WALLET_H = vscale(160);
+  const GAP = rs(6);
   const HEADER_MAX = insets.top + TOP_ROW_H + GAP + WALLET_H + rs(14);
   const HEADER_MIN = insets.top + TOP_ROW_H + rs(14);
   const SCROLL_D = HEADER_MAX - HEADER_MIN;
@@ -882,6 +882,9 @@ export default function FinanceHome({ navigation }) {
             style={[S.body, { backgroundColor: Colors.bg, opacity: bodyFade, transform: [{ translateY: bodySlide }] }]}
           >
 
+            {/* ── NEWS MARQUEE ── */}
+            <NewsMarquee notifications={notifications} />
+
             {/* ── OVERVIEW STATS ── */}
             <OverviewStats
               navigation={navigation}
@@ -892,16 +895,11 @@ export default function FinanceHome({ navigation }) {
               txnVolume={txnVolume}
             />
 
-            {/* ── NEWS MARQUEE ── */}
-            <NewsMarquee notifications={notifications} />
-
             {/* ── SERVICES GRID ── */}
             <SectionHeader title="Services" linkLabel="View All" onLink={() => { }} />
             <View style={S.svcGrid}>
               {[
-                ...allServices.flatMap(s => (s.pipeline || []).map(p => ({ code: p.code, service: s, isStatic: false }))),
-                { code: "offline", label: "OFFLINE SERVICES", n: "offline", base: "offline", isStatic: true, screen: "OfflineServices", Svg: OfflineServicesIconSVG, isLocked: false },
-                { code: "online", label: "ONLINE SERVICES", n: "online", base: "online", isStatic: true, screen: "OnlineServices", Svg: OnlineServicesIconSVG, isLocked: false }
+                ...allServices.flatMap(s => (s.pipeline || []).map(p => ({ code: p.code, service: s, isStatic: false })))
               ]
                 .map(item => {
                   if (item.isStatic) return item;
@@ -916,6 +914,8 @@ export default function FinanceHome({ navigation }) {
                   if (n === "recharge1") label = "RECHARGE";
                   if (base === "xpresspayout" || base === "xpress-payout") label = "Xpress Payout";
                   if (base === "upi-payout") label = "UPI Payout";
+                  if (n.includes("offline")) label = "OFFLINE SERVICES";
+                  if (n.includes("online")) label = "ONLINE SERVICES";
                   return { ...item, label, n, base, isLocked };
                 })
                 .sort((a, b) => a.label.localeCompare(b.label))
@@ -1069,6 +1069,10 @@ export default function FinanceHome({ navigation }) {
                           <XpressIconSVG width={rs(26)} height={rs(26)} />
                         ) : (base === "upi" || base === "upi-payout") && typeof UpiIconSVG === "function" ? (
                           <UpiIconSVG width={rs(26)} height={rs(26)} />
+                        ) : (n.includes("offline")) && typeof OfflineServicesIconSVG === "function" ? (
+                          <OfflineServicesIconSVG width={rs(26)} height={rs(26)} />
+                        ) : (n.includes("online")) && typeof OnlineServicesIconSVG === "function" ? (
+                          <OnlineServicesIconSVG width={rs(26)} height={rs(26)} />
                         ) : (
                           <Icon
                             name={iconName}
@@ -1087,7 +1091,7 @@ export default function FinanceHome({ navigation }) {
 
             {/* ── PROMO BANNER ── */}
             {banners.length > 0 ? (
-              <View style={{ marginTop: rs(10) }}>
+              <View style={{ marginTop: rs(4) }}>
                 <View style={S.bannerWrap}>
                   <ScrollView
                     ref={scrollRef}
@@ -1223,7 +1227,7 @@ function OverviewStats({ navigation, kycStatus, assignedServices, statusMessage,
 
   if (kycStatus !== "approved") {
     return (
-      <View style={{ marginBottom: rs(8) }}>
+      <View style={{ marginBottom: rs(2) }}>
         <SectionHeader title="Overview" />
         <View style={S.statsRow}>
           {/* KYC Alert Card */}
@@ -1250,7 +1254,7 @@ function OverviewStats({ navigation, kycStatus, assignedServices, statusMessage,
   }
 
   return (
-    <View style={{ marginBottom: rs(8) }}>
+    <View style={{ marginBottom: rs(2) }}>
       <SectionHeader title="Overview" />
       <View style={S.statsRow}>
         <View style={S.statCard}>
@@ -1432,7 +1436,7 @@ const S = StyleSheet.create({
   // ── SECTION HEADER ──
   secHeaderRow: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    marginTop: rs(20), marginBottom: rs(12),
+    marginTop: rs(10), marginBottom: rs(6),
   },
   secTitle: {
     fontSize: rs(16), fontFamily: Fonts.Bold, color: "#0B0F1A",
@@ -1472,8 +1476,8 @@ const S = StyleSheet.create({
   },
 
   // ── SERVICES GRID ──
-  svcGrid: { flexDirection: "row", flexWrap: "wrap", marginBottom: rs(4) },
-  svcGridItem: { width: "25%", alignItems: "center", paddingVertical: rs(8) },
+  svcGrid: { flexDirection: "row", flexWrap: "wrap", marginBottom: rs(0) },
+  svcGridItem: { width: "25%", alignItems: "center", paddingVertical: rs(4) },
   svcIconCircle: {
     width: rs(56), height: rs(56), borderRadius: rs(16),
     backgroundColor: "#FFF",
@@ -1547,13 +1551,13 @@ const S = StyleSheet.create({
   },
 
   // ── BANNERS (dynamic) ──
-  bannerWrap: { height: vscale(128), borderRadius: rs(12), overflow: "hidden", justifyContent: "center", alignItems: "center" },
-  bannerImg: { width: SW - rs(36), height: vscale(128), resizeMode: "cover", borderRadius: rs(12), backgroundColor: "#fff", marginRight: rs(10) },
+  bannerWrap: { height: vscale(110), borderRadius: rs(12), overflow: "hidden", justifyContent: "center", alignItems: "center" },
+  bannerImg: { width: SW - rs(36), height: vscale(110), resizeMode: "cover", borderRadius: rs(12), backgroundColor: "#fff", marginRight: rs(10) },
   paginRow: { position: "absolute", bottom: rs(7), flexDirection: "row", alignSelf: "center" },
   paginDot: { height: rs(5), borderRadius: rs(3), backgroundColor: Colors.finance_accent, marginHorizontal: rs(3) },
 
   // ── RECENT TRANSACTIONS ──
-  txnList: { gap: rs(8), marginBottom: rs(8) },
+  txnList: { gap: rs(6), marginBottom: rs(4) },
   txnItem: {
     backgroundColor: "#FFF",
     borderRadius: rs(16),
