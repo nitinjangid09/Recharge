@@ -36,8 +36,10 @@ import { fadeIn, slideUp, buttonPress } from '../../../utils/ScreenAnimations';
 import Colors from '../../../constants/Colors';
 import FullScreenLoader from '../../../componets/Loader/FullScreenLoader';
 
-const { width: SW } = Dimensions.get('window');
-const S = SW / 375;
+const { width: SW, height: SH } = Dimensions.get("window");
+const scale = (n) => Math.round((SW / 375) * n);
+const rs = (n, lo = n * 0.82, hi = n * 1.28) =>
+  Math.min(Math.max(scale(n), lo), hi);
 
 // ─── Device list comes from RDService.js ─────────────────────────────────────
 const DEVICE_LIST = RDService.DEVICE_LIST;
@@ -67,7 +69,7 @@ const DailyLogin = () => {
 
   // ── Animations ────────────────────────────────────────────────────────────
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(20 * S)).current;
+  const slideAnim = useRef(new Animated.Value(rs(20))).current;
   const btnScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -609,86 +611,86 @@ const styles = StyleSheet.create({
     backgroundColor: '#FAF3E1',
   },
   customHeader: {
-    height: 60,
+    height: rs(60),
     backgroundColor: '#1A1A2E',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 15,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    paddingHorizontal: rs(15),
+    borderBottomLeftRadius: rs(20),
+    borderBottomRightRadius: rs(20),
   },
   backCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: rs(40),
+    height: rs(40),
+    borderRadius: rs(20),
     backgroundColor: '#FFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTitle: {
     color: '#FFF',
-    fontSize: 18,
+    fontSize: rs(16),
     fontWeight: '700',
   },
   scroll: {
-    paddingBottom: 40,
+    paddingBottom: rs(40),
   },
   headerSection: {
     alignItems: 'center',
-    marginTop: 30,
-    marginBottom: 25,
-    paddingHorizontal: 20,
+    marginTop: rs(25),
+    marginBottom: rs(20),
+    paddingHorizontal: rs(20),
   },
   shieldCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: rs(72),
+    height: rs(72),
+    borderRadius: rs(36),
     backgroundColor: '#FFF',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: rs(15),
   },
   mainTitle: {
-    fontSize: 28,
+    fontSize: rs(24),
     fontWeight: '700',
     color: '#333',
   },
   mainSubtitle: {
-    fontSize: 14,
+    fontSize: rs(13),
     color: '#888',
     textAlign: 'center',
-    marginTop: 6,
+    marginTop: rs(4),
     maxWidth: '85%',
-    lineHeight: 20,
+    lineHeight: rs(18),
   },
   card: {
     backgroundColor: '#F9E7C4',
-    marginHorizontal: 15,
-    padding: 24,
-    borderRadius: 40,
+    marginHorizontal: rs(15),
+    padding: rs(20),
+    borderRadius: rs(30),
   },
   label: {
-    fontSize: 11,
+    fontSize: rs(10),
     fontWeight: '700',
     color: '#888',
-    marginTop: 18,
-    marginBottom: 10,
+    marginTop: rs(14),
+    marginBottom: rs(8),
     letterSpacing: 0.8,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFF',
-    borderRadius: 20,
-    paddingHorizontal: 18,
-    height: 56,
+    borderRadius: rs(18),
+    paddingHorizontal: rs(16),
+    height: rs(54),
   },
   input: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: rs(10),
     color: '#222',
-    fontSize: 15,
+    fontSize: rs(14),
     fontWeight: '500',
   },
   inputError: {
@@ -697,29 +699,29 @@ const styles = StyleSheet.create({
   },
   error: {
     color: '#EF4444',
-    fontSize: 11,
-    marginTop: 4,
-    marginLeft: 12,
+    fontSize: rs(10),
+    marginTop: rs(4),
+    marginLeft: rs(12),
   },
   authRow: {
     flexDirection: 'row',
-    gap: 15,
-    marginTop: 30,
+    gap: rs(12),
+    marginTop: rs(24),
   },
   authTile: {
     flex: 1,
-    height: 110,
+    height: rs(90),
     backgroundColor: '#FFF',
-    borderRadius: 25,
+    borderRadius: rs(20),
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: rs(6),
   },
   authTileActive: {
     backgroundColor: '#1A1A2E',
   },
   authTileText: {
-    fontSize: 14,
+    fontSize: rs(13),
     color: '#777',
     fontWeight: '600',
   },
@@ -731,26 +733,26 @@ const styles = StyleSheet.create({
   },
   pickerPlaceholder: {
     color: '#BBB',
-    fontSize: 14,
+    fontSize: rs(14),
     flex: 1,
-    marginLeft: 12,
+    marginLeft: rs(10),
   },
   pickerValue: {
     color: '#333',
-    fontSize: 14,
+    fontSize: rs(14),
     flex: 1,
-    marginLeft: 12,
+    marginLeft: rs(10),
     fontWeight: '500',
   },
   dropdown: {
     backgroundColor: '#FFF',
-    borderRadius: 20,
-    marginTop: 10,
-    paddingVertical: 8,
+    borderRadius: rs(18),
+    marginTop: rs(10),
+    paddingVertical: rs(6),
   },
   dropdownItem: {
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    paddingVertical: rs(14),
+    paddingHorizontal: rs(18),
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -762,7 +764,7 @@ const styles = StyleSheet.create({
   },
   dropdownText: {
     color: '#444',
-    fontSize: 14,
+    fontSize: rs(13),
   },
   dropdownTextActive: {
     color: '#1A1A2E',
@@ -771,43 +773,43 @@ const styles = StyleSheet.create({
   rdBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 15,
-    paddingHorizontal: 5,
+    marginTop: rs(12),
+    paddingHorizontal: rs(5),
   },
   rdBannerText: {
-    fontSize: 12,
+    fontSize: rs(11),
     color: '#666',
   },
   installLink: {
-    fontSize: 12,
+    fontSize: rs(11),
     color: '#EF4444',
     fontWeight: '700',
   },
   instructionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 25,
-    marginBottom: 20,
+    marginTop: rs(20),
+    marginBottom: rs(15),
   },
   dot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
+    width: rs(6),
+    height: rs(6),
+    borderRadius: rs(3),
     backgroundColor: '#B8860B',
-    marginRight: 10,
+    marginRight: rs(8),
   },
   instructionText: {
-    fontSize: 13,
+    fontSize: rs(12),
     color: '#888',
     fontWeight: '500',
   },
   submitBtn: {
     backgroundColor: '#1A1A2E',
-    height: 64,
+    height: rs(58),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 25,
+    borderRadius: rs(20),
   },
   submitBtnDisabled: {
     backgroundColor: '#555',
@@ -815,16 +817,16 @@ const styles = StyleSheet.create({
   submitBtnText: {
     color: '#FFF',
     fontWeight: '700',
-    fontSize: 17,
+    fontSize: rs(15),
     letterSpacing: 0.5,
   },
   footer: {
-    marginTop: 35,
+    marginTop: rs(30),
     alignItems: 'center',
-    paddingBottom: 20,
+    paddingBottom: rs(20),
   },
   footerText: {
-    fontSize: 11,
+    fontSize: rs(10),
     color: '#AAA',
     letterSpacing: 1.2,
     fontWeight: '600',
