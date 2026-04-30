@@ -1019,7 +1019,8 @@ const st = StyleSheet.create({
     backgroundColor: CARD_BG,
     borderRadius: S(18),
     padding: S(18),
-    marginTop: S(16),  },
+    marginTop: S(16),
+  },
   cardTitle: {
     fontSize: S(15),
     fontFamily: Fonts.Bold,
@@ -1133,7 +1134,8 @@ const st = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: S(7),  },
+    gap: S(7),
+  },
   submitTxt: {
     color: "#000",
     fontFamily: Fonts.Bold,
@@ -1149,7 +1151,8 @@ const st = StyleSheet.create({
     borderTopRightRadius: S(22),
     padding: S(18),
     paddingTop: S(10),
-    alignItems: "center",  },
+    alignItems: "center",
+  },
   sheetHandle: {
     width: S(36), height: S(4),
     borderRadius: S(2),

@@ -580,174 +580,178 @@ export default function FinanceHome({ navigation }) {
       if (n.includes("offline")) label = "OFFLINE SERVICES";
       if (n.includes("online")) label = "ONLINE SERVICES";
       return { ...item, label, n, base, isLocked };
-    })
-    .sort((a, b) => a.label.localeCompare(b.label));
+    });
 
   const aepsServices = allServiceItems.filter(i => i.base === "aeps" || i.n.includes("aeps"));
-  const rechargeServices = allServiceItems.filter(i => i.base === "recharge" || i.base === "bbps" || i.n.includes("recharge") || i.n.includes("bbps"));
+  const rechargeServices = allServiceItems
+    .filter(i => i.base === "recharge" || i.base === "bbps" || i.n.includes("recharge") || i.n.includes("bbps"))
+    .sort((a, b) => (a.n.includes("recharge") ? -1 : b.n.includes("recharge") ? 1 : 0));
   const transferServices = allServiceItems.filter(i => i.base === "dmt" || i.n.includes("dmt") || i.n.includes("xpress") || i.n.includes("upi") || i.n === "dmt1");
   const onlineOfflineServices = allServiceItems.filter(i => i.n.includes("online") || i.n.includes("offline"));
 
-  const renderServiceGrid = (items) => {
+  const renderServiceGrid = (items, title, subtitle) => {
     if (!items || items.length === 0) return null;
     return (
-      <View style={S.svcGrid}>
-        {items.map((item, idx) => {
-          const { code, service, label, n, base, isStatic, screen, Svg, isLocked } = item;
-          const iconName = SERVICE_ICON_MAP[base] || SERVICE_ICON_MAP.default;
+      <View style={S.sectionCard}>
+        <SectionHeader title={title || "Services"} subtitle={subtitle} />
+        <View style={S.svcGrid}>
+          {items.map((item, idx) => {
+            const { code, service, label, n, base, isStatic, screen, Svg, isLocked } = item;
+            const iconName = SERVICE_ICON_MAP[base] || SERVICE_ICON_MAP.default;
 
-          return (
-            <TouchableOpacity
-              key={`${code}-${idx}`}
-              style={[S.svcGridItem]}
-              activeOpacity={0.78}
-              onPress={async () => {
-                if (isLocked) {
-                  const isAlreadyRequested = userProfile?.requestedService?.some(req => req.serviceName === n && req.status === "pending");
+            return (
+              <TouchableOpacity
+                key={`${code}-${idx}`}
+                style={[S.svcGridItem]}
+                activeOpacity={0.78}
+                onPress={async () => {
+                  if (isLocked) {
+                    const isAlreadyRequested = userProfile?.requestedService?.some(req => req.serviceName === n && req.status === "pending");
 
-                  if (isAlreadyRequested) {
-                    showAlert("warning", "Notice", "Request already exist for this User waiting for further reviews");
-                    return;
-                  }
-
-                  const rejectedService = userProfile?.requestedService?.find(req => req.serviceName === n && req.status === "rejected");
-
-                  if (rejectedService) {
-                    showAlert("error", "Request Rejected", `Reason: ${rejectedService.reason}`);
-                    return;
-                  }
-
-                  showAlert(
-                    "theme",
-                    "Service Locked",
-                    "Do you want to request this service from the admin?",
-                    async () => {
-                      try {
-                        setAlert(p => ({ ...p, isLoading: true }));
-                        const res = await requestService({
-                          serviceId: service._id || service.serviceId,
-                          pipeline: n,
-                          headerToken: token
-                        });
-
-                        if (res?.success) {
-                          try {
-                            const profileRes = await fetchUserProfile({ headerToken: token });
-                            if (profileRes?.success && profileRes?.data) {
-                              setUserProfile(profileRes.data);
-                              setProfileAssignedServices(Array.isArray(profileRes.data.assignedServices) ? profileRes.data.assignedServices : []);
-                            }
-                          } catch (e) {
-                            console.log("Failed to refresh profile:", e);
-                          }
-                        }
-
-                        setAlert(p => ({
-                          ...p,
-                          type: res.success ? "success" : "warning",
-                          title: res.success ? "Request Sent" : "Notice",
-                          message: res.message || "Your request has been sent.",
-                          isLoading: false,
-                          onConfirm: null,
-                        }));
-                      } catch (error) {
-                        setAlert(p => ({
-                          ...p,
-                          type: "error",
-                          title: "Error",
-                          message: "Failed to request service. Please try again.",
-                          isLoading: false,
-                          onConfirm: null,
-                        }));
-                      }
-                    },
-                    "Yes, Request"
-                  );
-                  return;
-                }
-                if (isStatic) {
-                  navigation.navigate(screen);
-                  return;
-                }
-                if (n === "recharge" || n === "recharge1" || service.name === "recharge" || service.serviceId === "699314b271936d89b7185e48") {
-                  navigation.navigate("TopUpScreen");
-                } else if (n === "bbps" || n === "bbps1" || service.name === "bbps" || service.serviceId === "6993147e71936d89b7185e36") {
-                  navigation.navigate("PaymentsScreen");
-                } else if (n === "aeps1" || n === "aeps") {
-                  const aeps1 = userProfile?.aeps1 || {};
-                  if (Object.keys(aeps1).length === 0) {
-                    navigation.navigate("AepsRegistration");
-                  } else if (aeps1.action === "ACTION-REQUIRED") {
-                    navigation.navigate("AEPS_OnBoard");
-                  } else if (aeps1.action === "NO-ACTION-REQUIRED") {
-                    setBalanceLoading(true);
-                    try {
-                      const statusRes = await getAepsStatus({ headerToken: token });
-                      if (statusRes.code === "LOGIN_NOT_REQUIRED") {
-                        navigation.navigate("AEPS1");
-                      } else if (statusRes.code === "LOGIN_REQUIRED") {
-                        navigation.navigate("DailyLogin");
-                      } else {
-                        navigation.navigate("DailyLogin");
-                      }
-                    } catch (err) {
-                      showAlert("error", "Status Check Failed", "Unable to verify AEPS session. Please try again.");
-                    } finally {
-                      setBalanceLoading(false);
+                    if (isAlreadyRequested) {
+                      showAlert("warning", "Notice", "Request already exist for this User waiting for further reviews");
+                      return;
                     }
-                  } else {
-                    navigation.navigate("AEPSAadhaarOTP");
+
+                    const rejectedService = userProfile?.requestedService?.find(req => req.serviceName === n && req.status === "rejected");
+
+                    if (rejectedService) {
+                      showAlert("error", "Request Rejected", `Reason: ${rejectedService.reason}`);
+                      return;
+                    }
+
+                    showAlert(
+                      "theme",
+                      "Service Locked",
+                      "Do you want to request this service from the admin?",
+                      async () => {
+                        try {
+                          setAlert(p => ({ ...p, isLoading: true }));
+                          const res = await requestService({
+                            serviceId: service._id || service.serviceId,
+                            pipeline: n,
+                            headerToken: token
+                          });
+
+                          if (res?.success) {
+                            try {
+                              const profileRes = await fetchUserProfile({ headerToken: token });
+                              if (profileRes?.success && profileRes?.data) {
+                                setUserProfile(profileRes.data);
+                                setProfileAssignedServices(Array.isArray(profileRes.data.assignedServices) ? profileRes.data.assignedServices : []);
+                              }
+                            } catch (e) {
+                              console.log("Failed to refresh profile:", e);
+                            }
+                          }
+
+                          setAlert(p => ({
+                            ...p,
+                            type: res.success ? "success" : "warning",
+                            title: res.success ? "Request Sent" : "Notice",
+                            message: res.message || "Your request has been sent.",
+                            isLoading: false,
+                            onConfirm: null,
+                          }));
+                        } catch (error) {
+                          setAlert(p => ({
+                            ...p,
+                            type: "error",
+                            title: "Error",
+                            message: "Failed to request service. Please try again.",
+                            isLoading: false,
+                            onConfirm: null,
+                          }));
+                        }
+                      },
+                      "Yes, Request"
+                    );
+                    return;
                   }
-                } else if (n === "aeps2") {
-                  const aeps2 = userProfile?.aeps2 || {};
-                  const { isActivated, isLoginRequired } = aeps2;
-                  if (Object.keys(aeps2).length === 0) {
-                    navigation.navigate("AEPSSecondaryRegistration");
-                  } else if (isActivated === true && isLoginRequired === true) {
-                    navigation.navigate("AEPSPortalAccess");
-                  } else if (isActivated === false && isLoginRequired === true) {
-                    navigation.navigate("AEPSServiceActivation");
-                  } else if (isActivated === true && isLoginRequired === false) {
-                    navigation.navigate("AePSDashboard");
-                  } else {
-                    navigation.navigate("AEPSAadhaarOTP");
+                  if (isStatic) {
+                    navigation.navigate(screen);
+                    return;
                   }
-                } else if (n === "dmt" || n === "dmt1") {
-                  navigation.navigate("DmtLogin");
-                } else if (base === "xpresspayout" || base === "xpress-payout" || base === "upi-payout" || base === "aepspayout" || base === "aeps-payout" || n === "aepspayout") {
-                  navigation.navigate("XpressPayout");
-                }
-              }}
-            >
-              <View style={[S.svcIconCircle]}>
-                {isStatic && Svg ? (
-                  <Svg width={rs(24)} height={rs(24)} />
-                ) : (base === "bbps" || n === "bbps1") && typeof BBPSIconSVG === "function" ? (
-                  <BBPSIconSVG width={rs(26)} height={rs(26)} />
-                ) : (base === "recharge" || n === "recharge1") && typeof RechargeIconSVG === "function" ? (
-                  <RechargeIconSVG width={rs(26)} height={rs(26)} />
-                ) : (base === "aeps" || n.includes("aeps")) && typeof AEPSIconSVG === "function" ? (
-                  <AEPSIconSVG width={rs(26)} height={rs(26)} />
-                ) : (base === "dmt" || n.includes("dmt")) && typeof MoneyTransferIconSVG === "function" ? (
-                  <MoneyTransferIconSVG width={rs(26)} height={rs(26)} />
-                ) : (base === "xpresspayout" || base === "xpress-payout") && typeof XpressIconSVG === "function" ? (
-                  <XpressIconSVG width={rs(26)} height={rs(26)} />
-                ) : (base === "upi" || base === "upi-payout") && typeof UpiIconSVG === "function" ? (
-                  <UpiIconSVG width={rs(26)} height={rs(26)} />
-                ) : (n.includes("offline")) && typeof OfflineServicesIconSVG === "function" ? (
-                  <OfflineServicesIconSVG width={rs(26)} height={rs(26)} />
-                ) : (n.includes("online")) && typeof OnlineServicesIconSVG === "function" ? (
-                  <OnlineServicesIconSVG width={rs(26)} height={rs(26)} />
-                ) : (
-                  <Icon name={iconName} size={rs(22)} color={Colors.finance_accent} />
-                )}
-              </View>
-              <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
-                {label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
+                  if (n === "recharge" || n === "recharge1" || service.name === "recharge" || service.serviceId === "699314b271936d89b7185e48") {
+                    navigation.navigate("TopUpScreen");
+                  } else if (n === "bbps" || n === "bbps1" || service.name === "bbps" || service.serviceId === "6993147e71936d89b7185e36") {
+                    navigation.navigate("PaymentsScreen");
+                  } else if (n === "aeps1" || n === "aeps") {
+                    const aeps1 = userProfile?.aeps1 || {};
+                    if (Object.keys(aeps1).length === 0) {
+                      navigation.navigate("AepsRegistration");
+                    } else if (aeps1.action === "ACTION-REQUIRED") {
+                      navigation.navigate("AEPS_OnBoard");
+                    } else if (aeps1.action === "NO-ACTION-REQUIRED") {
+                      setBalanceLoading(true);
+                      try {
+                        const statusRes = await getAepsStatus({ headerToken: token });
+                        if (statusRes.code === "LOGIN_NOT_REQUIRED") {
+                          navigation.navigate("AEPS1");
+                        } else if (statusRes.code === "LOGIN_REQUIRED") {
+                          navigation.navigate("DailyLogin");
+                        } else {
+                          navigation.navigate("DailyLogin");
+                        }
+                      } catch (err) {
+                        showAlert("error", "Status Check Failed", "Unable to verify AEPS session. Please try again.");
+                      } finally {
+                        setBalanceLoading(false);
+                      }
+                    } else {
+                      navigation.navigate("AEPSAadhaarOTP");
+                    }
+                  } else if (n === "aeps2") {
+                    const aeps2 = userProfile?.aeps2 || {};
+                    const { isActivated, isLoginRequired } = aeps2;
+                    if (Object.keys(aeps2).length === 0) {
+                      navigation.navigate("AEPSSecondaryRegistration");
+                    } else if (isActivated === true && isLoginRequired === true) {
+                      navigation.navigate("AEPSPortalAccess");
+                    } else if (isActivated === false && isLoginRequired === true) {
+                      navigation.navigate("AEPSServiceActivation");
+                    } else if (isActivated === true && isLoginRequired === false) {
+                      navigation.navigate("AePSDashboard");
+                    } else {
+                      navigation.navigate("AEPSAadhaarOTP");
+                    }
+                  } else if (n === "dmt" || n === "dmt1") {
+                    navigation.navigate("DmtLogin");
+                  } else if (base === "xpresspayout" || base === "xpress-payout" || base === "upi-payout" || base === "aepspayout" || base === "aeps-payout" || n === "aepspayout") {
+                    navigation.navigate("XpressPayout");
+                  }
+                }}
+              >
+                <View style={[S.svcIconCircle]}>
+                  {isStatic && Svg ? (
+                    <Svg width={rs(30)} height={rs(30)} />
+                  ) : (base === "bbps" || n === "bbps1") && typeof BBPSIconSVG === "function" ? (
+                    <BBPSIconSVG width={rs(32)} height={rs(32)} />
+                  ) : (base === "recharge" || n === "recharge1") && typeof RechargeIconSVG === "function" ? (
+                    <RechargeIconSVG width={rs(32)} height={rs(32)} />
+                  ) : (base === "aeps" || n.includes("aeps")) && typeof AEPSIconSVG === "function" ? (
+                    <AEPSIconSVG width={rs(32)} height={rs(32)} />
+                  ) : (base === "dmt" || n.includes("dmt")) && typeof MoneyTransferIconSVG === "function" ? (
+                    <MoneyTransferIconSVG width={rs(32)} height={rs(32)} />
+                  ) : (base === "xpresspayout" || base === "xpress-payout") && typeof XpressIconSVG === "function" ? (
+                    <XpressIconSVG width={rs(32)} height={rs(32)} />
+                  ) : (base === "upi" || base === "upi-payout") && typeof UpiIconSVG === "function" ? (
+                    <UpiIconSVG width={rs(32)} height={rs(32)} />
+                  ) : (n.includes("offline")) && typeof OfflineServicesIconSVG === "function" ? (
+                    <OfflineServicesIconSVG width={rs(32)} height={rs(32)} />
+                  ) : (n.includes("online")) && typeof OnlineServicesIconSVG === "function" ? (
+                    <OnlineServicesIconSVG width={rs(32)} height={rs(32)} />
+                  ) : (
+                    <Icon name={iconName} size={rs(28)} color={Colors.finance_accent} />
+                  )}
+                </View>
+                <Text style={[S.svcGridLabel]} numberOfLines={1} adjustsFontSizeToFit>
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
     );
   };
@@ -1087,38 +1091,17 @@ export default function FinanceHome({ navigation }) {
               txnVolume={txnVolume}
             />
 
-            {/* ── SERVICES GRID ── */}
-            {/* ── AEPS ── */}
-            {aepsServices.length > 0 && (
-              <>
-                <SectionHeader title="AEPS Services" />
-                {renderServiceGrid(aepsServices)}
-              </>
-            )}
-
             {/* ── RECHARGE AND BILL PAYMENT ── */}
-            {rechargeServices.length > 0 && (
-              <>
-                <SectionHeader title="Recharge and Bill Payment" />
-                {renderServiceGrid(rechargeServices)}
-              </>
-            )}
+            {rechargeServices.length > 0 && renderServiceGrid(rechargeServices, "Recharge & Bills")}
+
+            {/* ── AEPS ── */}
+            {aepsServices.length > 0 && renderServiceGrid(aepsServices, "AEPS")}
 
             {/* ── TRANSFER SERVICE ── */}
-            {transferServices.length > 0 && (
-              <>
-                <SectionHeader title="Transfer Service" />
-                {renderServiceGrid(transferServices)}
-              </>
-            )}
+            {transferServices.length > 0 && renderServiceGrid(transferServices, "Money Transfer")}
 
             {/* ── ONLINE AND OFFLINE SERVICES ── */}
-            {onlineOfflineServices.length > 0 && (
-              <>
-                <SectionHeader title="Online and Offline Services" />
-                {renderServiceGrid(onlineOfflineServices)}
-              </>
-            )}
+            {onlineOfflineServices.length > 0 && renderServiceGrid(onlineOfflineServices, "Services")}
 
             {/* ── PROMO BANNER ── */}
             {banners.length > 0 ? (
@@ -1258,7 +1241,7 @@ function OverviewStats({ navigation, kycStatus, assignedServices, statusMessage,
 
   if (kycStatus !== "approved") {
     return (
-      <View style={{ marginBottom: rs(2) }}>
+      <View style={{ marginBottom: rs(8) }}>
         <SectionHeader title="Overview" />
         <View style={S.statsRow}>
           {/* KYC Alert Card */}
@@ -1285,7 +1268,7 @@ function OverviewStats({ navigation, kycStatus, assignedServices, statusMessage,
   }
 
   return (
-    <View style={{ marginBottom: rs(2) }}>
+    <View style={{ marginBottom: rs(8) }}>
       <SectionHeader title="Overview" />
       <View style={S.statsRow}>
         <View style={S.statCard}>
@@ -1314,15 +1297,20 @@ function OverviewStats({ navigation, kycStatus, assignedServices, statusMessage,
 // ─────────────────────────────────────────────────────────────────────────────
 // SECTION HEADER
 // ─────────────────────────────────────────────────────────────────────────────
-function SectionHeader({ title, linkLabel, onLink }) {
+function SectionHeader({ title, subtitle, linkLabel = "See all", onLink }) {
   return (
     <View style={S.secHeaderRow}>
-      <Text style={S.secTitle}>{title}</Text>
-      {!!linkLabel && (
-        <TouchableOpacity onPress={onLink} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Text style={S.secLink}>{linkLabel}</Text>
-        </TouchableOpacity>
-      )}
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <Text style={S.secTitle}>{title}</Text>
+        {!!subtitle && (
+          <View style={S.secSubtitleBadge}>
+            <Text style={S.secSubtitleTxt}>{subtitle}</Text>
+          </View>
+        )}
+      </View>
+      <TouchableOpacity onPress={onLink} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+        <Text style={S.secLink}>{linkLabel}</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -1331,8 +1319,8 @@ function SectionHeader({ title, linkLabel, onLink }) {
 // STYLES
 // ─────────────────────────────────────────────────────────────────────────────
 const S = StyleSheet.create({
-  safe: { flex: 1 },
-  root: { flex: 1 },
+  safe: { flex: 1, backgroundColor: "#F3F4F6" },
+  root: { flex: 1, backgroundColor: "#F3F4F6" },
   rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
 
   splash: { flex: 1, justifyContent: "center", alignItems: "center" },
@@ -1346,7 +1334,8 @@ const S = StyleSheet.create({
     overflow: "visible",
     backgroundColor: "#161616",
     borderBottomLeftRadius: rs(32),
-    borderBottomRightRadius: rs(32),  },
+    borderBottomRightRadius: rs(32),
+  },
   headerGrad: {
     flex: 1,
     paddingHorizontal: rs(18),
@@ -1409,7 +1398,8 @@ const S = StyleSheet.create({
     position: "absolute", left: rs(16), right: rs(16),
     zIndex: 200, backgroundColor: "#1C1C1C",
     borderRadius: rs(16), borderWidth: 1,
-    borderColor: "rgba(212,176,106,0.22)", overflow: "hidden",  },
+    borderColor: "rgba(212,176,106,0.22)", overflow: "hidden",
+  },
   flipCard: {
     position: "absolute", top: 0, left: 0, width: "100%",
     backfaceVisibility: "hidden",
@@ -1452,24 +1442,30 @@ const S = StyleSheet.create({
   kycBadgeTxt: { fontSize: rs(9), fontFamily: Fonts.Bold, letterSpacing: 0.5 },
 
   // ── BODY ──
-  body: { paddingHorizontal: rs(16), paddingTop: rs(4) },
+  body: { paddingHorizontal: rs(10), paddingTop: rs(10), backgroundColor: "#F3F4F6" },
 
   loadingWrap: { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: rs(32) },
   loadingTxt: { color: "#888", fontFamily: Fonts.Medium, fontSize: rs(13), marginLeft: rs(8) },
 
   // ── SECTION HEADER ──
   secHeaderRow: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    marginTop: rs(10), marginBottom: rs(6),
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: rs(16),
+    marginBottom: rs(8),
   },
   secTitle: {
-    fontSize: rs(16), fontFamily: Fonts.Bold, color: "#0B0F1A",
-    letterSpacing: -0.3,
-    // Left accent bar via border
-    borderLeftWidth: rs(3), borderLeftColor: Colors.finance_accent,
-    paddingLeft: rs(8),
+    fontSize: rs(15),
+    fontFamily: Fonts.Bold,
+    color: "#1F2937",
+    letterSpacing: -0.2,
   },
-  secLink: { fontSize: 15, fontFamily: Fonts.Bold, color: Colors.finance_accent },
+  secLink: {
+    fontSize: rs(13),
+    fontFamily: Fonts.Bold,
+    color: "#007185", // Amazon Link Color
+  },
 
   // ── OVERVIEW STATS ──
   statsRow: { flexDirection: "row", gap: rs(12) },
@@ -1479,7 +1475,8 @@ const S = StyleSheet.create({
     borderRadius: rs(16),
     padding: rs(16),
     borderWidth: 1,
-    borderColor: "rgba(11,15,26,0.07)",  },
+    borderColor: "rgba(11,15,26,0.07)",
+  },
   statIconBox: {
     width: rs(36), height: rs(36),
     borderRadius: rs(10),
@@ -1497,22 +1494,40 @@ const S = StyleSheet.create({
   },
 
   // ── SERVICES GRID ──
-  svcGrid: { flexDirection: "row", flexWrap: "wrap", marginBottom: rs(0) },
-  svcGridItem: { width: "25%", alignItems: "center", paddingVertical: rs(4) },
-  svcIconCircle: {
-    width: rs(56), height: rs(56), borderRadius: rs(16),
+  sectionCard: {
     backgroundColor: "#FFF",
-    alignItems: "center", justifyContent: "center",
+    borderRadius: rs(12),
+    paddingTop: rs(8),
+    paddingBottom: rs(4),
     marginBottom: rs(6),
-    borderWidth: 1, borderColor: "rgba(11,15,26,0.07)",  },
-  svcIconCircleActive: {
-    backgroundColor: "#0B0F1A",
-    borderColor: "transparent",  },
-  svcGridLabel: {
-    fontSize: rs(10), fontFamily: Fonts.Bold, color: Colors.primary,
-    textAlign: "center", letterSpacing: 0.2,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.04)",
   },
-  svcGridLabelActive: { color: "#0B0F1A" },
+  svcGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginTop: rs(4),
+  },
+  svcGridItem: {
+    width: "25%",
+    alignItems: "center",
+    paddingVertical: rs(4),
+  },
+  svcIconCircle: {
+    width: rs(48),
+    height: rs(48),
+    borderRadius: rs(24),
+    backgroundColor: "transparent",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: rs(2),
+  },
+  svcGridLabel: {
+    fontSize: rs(9),
+    fontFamily: Fonts.Medium,
+    color: "#374151",
+    textAlign: "center",
+  },
 
   // ── AEPS CARD GRID ──
   aepsGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginBottom: rs(4) },
@@ -1524,7 +1539,8 @@ const S = StyleSheet.create({
     paddingHorizontal: rs(4),
     borderRadius: rs(16),
     marginVertical: rs(4),
-    borderWidth: 1, borderColor: "rgba(11,15,26,0.07)",  },
+    borderWidth: 1, borderColor: "rgba(11,15,26,0.07)",
+  },
   aepsCardLocked: { backgroundColor: "#FFF8F8", borderColor: "rgba(249,115,22,0.25)", opacity: 0.88 },
   aepsIconWrap: { position: "relative", marginBottom: rs(6) },
   aepsCardTxt: { color: "#444", fontSize: rs(9), textAlign: "center", fontFamily: Fonts.Medium, lineHeight: rs(13) },
@@ -1537,7 +1553,8 @@ const S = StyleSheet.create({
     position: "absolute", top: rs(-1), right: rs(-1),
     width: rs(10), height: rs(10), borderRadius: rs(5),
     backgroundColor: "#22C55E",
-    borderWidth: 1.5, borderColor: "#FFF",  },
+    borderWidth: 1.5, borderColor: "#FFF",
+  },
   kycNeedTxt: { color: "#F97316", fontSize: rs(7), textAlign: "center", marginTop: rs(2), fontFamily: Fonts.Medium },
 
 
@@ -1552,6 +1569,7 @@ const S = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(212,176,106,0.3)",
     overflow: "hidden",
+    marginBottom: rs(12),
   },
   newsMarqueeText: {
     color: Colors.finance_accent,
@@ -1573,7 +1591,8 @@ const S = StyleSheet.create({
     borderRadius: rs(16),
     padding: rs(14),
     flexDirection: "row", alignItems: "center", gap: rs(12),
-    borderWidth: 1, borderColor: "rgba(11,15,26,0.07)",  },
+    borderWidth: 1, borderColor: "rgba(11,15,26,0.07)",
+  },
   txnIcon: {
     width: rs(42), height: rs(42), borderRadius: rs(12),
     alignItems: "center", justifyContent: "center", flexShrink: 0,
@@ -1610,11 +1629,13 @@ const S = StyleSheet.create({
   navBar: {
     backgroundColor: "#1A1A1A", width: "92%", height: rs(58),
     borderRadius: rs(29), flexDirection: "row", justifyContent: "space-between",
-    alignItems: "center", paddingHorizontal: rs(7),    borderWidth: 1, borderColor: "#333",
+    alignItems: "center", paddingHorizontal: rs(7),
+    borderWidth: 1, borderColor: "#333",
   },
   tabItem: { flex: 1, height: "100%", justifyContent: "center", alignItems: "center" },
   activeTab: {
-    flexDirection: "row", alignItems: "center", padding: rs(6), borderRadius: rs(15),  },
+    flexDirection: "row", alignItems: "center", padding: rs(6), borderRadius: rs(15),
+  },
   navLabel: { color: "#888", fontSize: rs(9), fontFamily: Fonts.Medium, marginTop: rs(3) },
   navLabelActive: { color: Colors.finance_accent, fontSize: rs(9), fontFamily: Fonts.Bold, marginTop: rs(3) },
 });
