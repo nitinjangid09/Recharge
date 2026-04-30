@@ -194,6 +194,9 @@ const FilterSheet = ({ visible, onClose, onApply, activeFilters, startDate, endD
 
   const activeCount = local.date !== DEFAULT_FILTERS.date ? 1 : 0;
   const isCustomDate = local.date === 'custom';
+  const today = new Date();
+  today.setHours(23, 59, 59, 999); // allow today
+  const isFuture = isCustomDate && (startDate > today || endDate > today);
 
   return (
     <Modal transparent visible={visible} animationType="none" onRequestClose={onClose}>
@@ -242,7 +245,12 @@ const FilterSheet = ({ visible, onClose, onApply, activeFilters, startDate, endD
           </ScrollView>
         </View>
         <View style={FST.footer}>
-          <TouchableOpacity style={FST.applyBtn} onPress={() => onApply(local)} activeOpacity={0.88}>
+          <TouchableOpacity
+            style={[FST.applyBtn, isFuture && { opacity: 0.5 }]}
+            onPress={() => !isFuture && onApply(local)}
+            activeOpacity={isFuture ? 1 : 0.88}
+            disabled={isFuture}
+          >
             <Text style={FST.applyTxt}>Apply Filters</Text>
             {activeCount > 0 && <View style={FST.badge}><Text style={FST.badgeTxt}>{activeCount}</Text></View>}
           </TouchableOpacity>
@@ -342,6 +350,7 @@ const InputBox = ({ label, value, setValue, icon, placeholder, keyboardType, err
             v = v.replace(/[^a-zA-Z0-9]/g, "");
           } else if (keyboardType === "numeric" || keyboardType === "number-pad") {
             v = v.replace(/[^0-9]/g, "");
+            if (v.startsWith("0")) v = v.replace(/^0+/, "");
           }
           setValue(v);
         }}
@@ -596,6 +605,7 @@ export default function OfflineTopup({ navigation }) {
       }
     }
     if (!paymentDate) { newErrors.paymentDate = "Payment date is required"; hasError = true; }
+    else if (new Date(paymentDate) > new Date()) { newErrors.paymentDate = "Future dates not allowed"; hasError = true; }
     if (!paymentProof) { newErrors.paymentProof = "Payment proof screenshot is required"; hasError = true; }
 
     setErrors(newErrors);
@@ -665,11 +675,14 @@ export default function OfflineTopup({ navigation }) {
             placeholder="Enter amount"
             value={amount}
             setValue={(val) => {
-              if (val !== "" && Number(val) > 1000000) {
+              let cleaned = val.replace(/[^0-9]/g, "");
+              if (cleaned.startsWith("0")) cleaned = cleaned.replace(/^0+/, "");
+              
+              if (cleaned !== "" && Number(cleaned) > 1000000) {
                 setErrors(prev => ({ ...prev, amount: "Max amount allowed is ₹10,00,000" }));
                 return;
               }
-              setAmount(val);
+              setAmount(cleaned);
               if (errors.amount) setErrors(prev => ({ ...prev, amount: null }));
             }}
             icon="currency-inr"

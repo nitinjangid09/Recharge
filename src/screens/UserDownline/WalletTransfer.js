@@ -315,7 +315,11 @@ const WalletTransfer = ({ navigation }) => {
                 placeholderTextColor={Colors.white}
                 keyboardType="numeric"
                 value={amount}
-                onChangeText={setAmount}
+                onChangeText={(val) => {
+                  let cleaned = val.replace(/[^0-9]/g, "");
+                  if (cleaned.startsWith("0")) cleaned = cleaned.replace(/^0+/, "");
+                  setAmount(cleaned);
+                }}
               />
             </View>
           </View>

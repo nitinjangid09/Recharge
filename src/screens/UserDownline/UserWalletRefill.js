@@ -422,7 +422,9 @@ function WalletScreen({ navigation }) {
                         style={[styles.inputField, errors.amount && { borderColor: Colors.red }]}
                         value={amount}
                         onChangeText={(t) => {
-                            setAmount(t);
+                            let cleaned = t.replace(/[^0-9]/g, "");
+                            if (cleaned.startsWith("0")) cleaned = cleaned.replace(/^0+/, "");
+                            setAmount(cleaned);
                             setSelectedQuick(null);
                             setErrors(prev => ({ ...prev, amount: null }));
                         }}

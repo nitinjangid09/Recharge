@@ -169,7 +169,9 @@ export default function AEPS_Transfer({ navigation, route }) {
                 keyboardType="numeric"
                 value={amount}
                 onChangeText={(val) => {
-                  setAmount(val);
+                  let cleaned = val.replace(/[^0-9]/g, "");
+                  if (cleaned.startsWith("0")) cleaned = cleaned.replace(/^0+/, "");
+                  setAmount(cleaned);
                   setErrors(prev => ({ ...prev, amount: null }));
                 }}
                 placeholderTextColor={Colors.gray_BD}

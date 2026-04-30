@@ -527,9 +527,11 @@ export default function TopUpScreen({ navigation, route }) {
                   <TextInput
                     value={amount}
                     onChangeText={(val) => {
-                      setAmount(val.replace(/[^0-9]/g, ""));
+                      let cleaned = val.replace(/[^0-9]/g, "");
+                      if (cleaned.startsWith("0")) cleaned = cleaned.replace(/^0+/, "");
+                      setAmount(cleaned);
                       // Clear plan info if user manually types amount
-                      if (route.params?.selectedAmount && val !== String(route.params.selectedAmount)) {
+                      if (route.params?.selectedAmount && cleaned !== String(route.params.selectedAmount)) {
                         setPlanDesc("");
                         setPlanValidity("");
                       }

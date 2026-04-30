@@ -93,7 +93,11 @@ const CalendarModal = ({ visible, initialDate, title, onConfirm, onCancel, minDa
   const tD = norm(today);
 
   const startYear = 1940;
-  const yearList = Array.from({ length: today.getFullYear() - startYear + 11 }, (_, i) => startYear + i);
+  const maxYear = maxD ? maxD.getFullYear() : today.getFullYear() + 10;
+  const yearList = Array.from({ length: maxYear - startYear + 1 }, (_, i) => startYear + i);
+
+  const currentSelDate = new Date(viewYear, viewMonth, selDay);
+  const isInvalid = (maxD && currentSelDate > maxD) || (minD && currentSelDate < minD) || (!maxD && currentSelDate > tD);
 
   return (
     <Modal transparent visible={visible} animationType="none" onRequestClose={onCancel}>
@@ -191,7 +195,12 @@ const CalendarModal = ({ visible, initialDate, title, onConfirm, onCancel, minDa
             <TouchableOpacity style={cal.cancelBtn} onPress={onCancel} activeOpacity={0.8}>
               <Text style={cal.cancelTxt}>Cancel</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={cal.confirmBtn} onPress={() => onConfirm(new Date(viewYear, viewMonth, selDay))} activeOpacity={0.85}>
+            <TouchableOpacity
+              style={[cal.confirmBtn, isInvalid && { opacity: 0.5 }]}
+              onPress={() => !isInvalid && onConfirm(new Date(viewYear, viewMonth, selDay))}
+              activeOpacity={isInvalid ? 1 : 0.85}
+              disabled={isInvalid}
+            >
               <Icon name="check" size={rs(14)} color={Colors.white} style={{ marginRight: sc(5) }} />
               <Text style={cal.confirmTxt}>Apply Date</Text>
             </TouchableOpacity>

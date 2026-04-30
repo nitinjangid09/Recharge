@@ -90,7 +90,13 @@ export default function OfflineServiceForm({ navigation, route }) {
     };
 
     const handleFieldChange = (key, val) => {
-        setFormValues(prev => ({ ...prev, [key]: val }));
+        let sanitized = val;
+        // If it's an amount field, prevent leading zeros
+        if (key.toLowerCase().includes('amount') || key.toLowerCase().includes('amt')) {
+            sanitized = val.replace(/[^0-9]/g, '');
+            if (sanitized.startsWith("0")) sanitized = sanitized.replace(/^0+/, "");
+        }
+        setFormValues(prev => ({ ...prev, [key]: sanitized }));
     };
 
     const handlePickDocument = (key, label) => {

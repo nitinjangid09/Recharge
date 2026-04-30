@@ -945,7 +945,8 @@ const BbpsDynamicServiceScreen = () => {
                     keyboardType="numeric"
                     value={customAmountStr}
                     onChangeText={(txt) => {
-                      const cleaned = txt.replace(/[^0-9.]/g, '');
+                      let cleaned = txt.replace(/[^0-9]/g, '');
+                      if (cleaned.startsWith("0")) cleaned = cleaned.replace(/^0+/, "");
                       setCustomAmountStr(cleaned);
                       setSelectedPayAmount(cleaned || "0");
                     }}
