@@ -412,6 +412,18 @@ export default function AePSDashboardScreen({ navigation }) {
         return;
       }
 
+      // 1.1 Check Device Connection
+      const conn = await RDService.checkConnection(device);
+      if (!conn.success) {
+        AlertService.showAlert({
+          type: "warning",
+          title: "Device Not Ready",
+          message: `The ${RDService.getDeviceLabel(device)} is not connected or not ready. Please check the cable and try again.`
+        });
+        setSubmitting(false);
+        return;
+      }
+
       // 2. Capture Biometric
       const pidOptString = '<PidOptions ver="1.0">'
         + '<Opts fCount="1" fType="2" iCount="0" pCount="0" format="0" pidVer="2.0" timeout="20000" otp="" posh="UNKNOWN" env="P" />'

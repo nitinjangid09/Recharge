@@ -288,8 +288,20 @@ const CashWithdraw = () => {
       }
 
       buttonPress(btnScale).start();
-
-      // 2. Capture Fingerprint
+ 
+      // 2. Check Device Connection
+      const conn = await RDService.checkConnection(device);
+      if (!conn.success) {
+        AlertService.showAlert({
+          type: "warning",
+          title: "Device Not Ready",
+          message: `The ${RDService.getDeviceLabel(device)} is not connected or not ready. Please check the cable and try again.`
+        });
+        setLoading(false);
+        return;
+      }
+ 
+      // 3. Capture Fingerprint
       const pidData = await RDService.capture(device);
       if (!pidData) {
         throw new Error("No biometric data captured");
