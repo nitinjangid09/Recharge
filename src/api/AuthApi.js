@@ -839,7 +839,7 @@ export const submitOfflineKyc = async ({ personal, business, files, banking }) =
   }
 };
 
-export const reuploadOfflineKyc = async ({ personal, business, files, banking }) => {
+export const reuploadOfflineKyc = async ({ personal, business, files, banking, kycStatuses }) => {
   // ── STEP 1: Read login credentials ─
   const tokenStr = await AsyncStorage.getItem("token");
   let finalToken = await AsyncStorage.getItem("header_token");
@@ -867,54 +867,141 @@ export const reuploadOfflineKyc = async ({ personal, business, files, banking })
   const form = new FormData();
 
   if (userId) form.append("userId", userId);
-  form.append("firstName", safeTrim(personal.firstName));
-  form.append("lastName", safeTrim(personal.lastName));
-  form.append("fatherName", safeTrim(personal.fatherName));
-  form.append("gender", safeTrim(personal.gender));
-  form.append("email", safeTrim(personal.email));
-  form.append("phone", safeTrim(personal.phone));
-
-  let formattedDob = safeTrim(personal.dob);
-  if (/^\d{2}-\d{2}-\d{4}$/.test(formattedDob)) {
-    const [dd, mm, yyyy] = formattedDob.split("-");
-    formattedDob = `${yyyy}-${mm}-${dd}`;
-  }
-  form.append("dob", formattedDob);
-  form.append("personalAddress", safeTrim(personal.personalAddress));
-  form.append("personalCity", safeTrim(personal.personalCity));
-  form.append("personalState", safeTrim(personal.personalState));
-  form.append("personalPincode", safeTrim(personal.personalPincode));
-
-  form.append("shopName", safeTrim(business.shopName));
-  form.append("businessAddress", safeTrim(business.businessAddress));
-  form.append("businessCity", safeTrim(business.businessCity));
-  form.append("businessState", safeTrim(business.businessState));
-  form.append("businessPincode", safeTrim(business.businessPincode));
-  form.append("panNumber", safeTrim(business.panNumber));
-  form.append("aadharNumber", safeTrim(business.aadharNumber));
-
-  if (safeTrim(business.businessPanNumber)) form.append("businessPanNumber", safeTrim(business.businessPanNumber));
-  if (safeTrim(business.gstNumber)) form.append("gstNumber", safeTrim(business.gstNumber));
-
-  form.append("accountHolderName", safeTrim(banking.accountHolderName));
-  form.append("bankName", safeTrim(banking.bankName));
-  form.append("accountNumber", safeTrim(banking.accountNumber));
-  form.append("branchName", safeTrim(banking.branchName));
-  form.append("ifscCode", safeTrim(banking.ifscCode));
 
   const appendFile = (key, file, fallbackName) => {
-    if (file) {
-      form.append(key, {
-        uri: file.uri,
-        name: file.name || fallbackName,
-        type: file.type || "image/jpeg",
-      });
+    if (file && file.uri) {
+      if (file.uri.startsWith("http")) {
+        // For existing files, send the relative path instead of the full URL
+        const relativePath = file.uri.replace(BASE_URL, "");
+        form.append(key, relativePath);
+      } else {
+        // For new local files, send as a file object
+        form.append(key, {
+          uri: file.uri,
+          name: file.name || fallbackName,
+          type: file.type || "image/jpeg",
+        });
+      }
     }
   };
-  appendFile("aadharFile", files.aadharFile, "aadharFile.jpg");
-  appendFile("panFile", files.panFile, "panFile.jpg");
-  appendFile("shopImage", files.shopImage, "shopImage.jpg");
-  appendFile("blankCheque", files.blankCheque, "blankCheque.jpg");
+
+  if (kycStatuses) {
+    // ── NEW FORMAT (Grouped by Rejected Sections) ──
+    const sections = [];
+
+    // 1. Personal
+    if (kycStatuses.personal !== "approved") {
+      let formattedDob = safeTrim(personal.dob);
+      if (/^\d{2}-\d{2}-\d{4}$/.test(formattedDob)) {
+        const [dd, mm, yyyy] = formattedDob.split("-");
+        formattedDob = `${yyyy}-${mm}-${dd}`;
+      }
+      sections.push({
+        section: "personal",
+        data: {
+          firstName: safeTrim(personal.firstName),
+          lastName: safeTrim(personal.lastName),
+          fatherName: safeTrim(personal.fatherName),
+          gender: safeTrim(personal.gender),
+          email: safeTrim(personal.email),
+          phone: safeTrim(personal.phone),
+          dob: formattedDob,
+          personalAddress: safeTrim(personal.personalAddress),
+          personalCity: safeTrim(personal.personalCity),
+          personalState: safeTrim(personal.personalState),
+          personalPincode: safeTrim(personal.personalPincode),
+        }
+      });
+    }
+
+    // 2. Business
+    if (kycStatuses.business !== "approved") {
+      sections.push({
+        section: "business",
+        data: {
+          shopName: safeTrim(business.shopName),
+          businessAddress: safeTrim(business.businessAddress),
+          businessCity: safeTrim(business.businessCity),
+          businessState: safeTrim(business.businessState),
+          businessPincode: safeTrim(business.businessPincode),
+          businessPanNumber: safeTrim(business.businessPanNumber),
+          gstNumber: safeTrim(business.gstNumber),
+        }
+      });
+      appendFile("shopImage", files.shopImage, "shopImage.jpg");
+    }
+
+    // 3. Identity
+    if (kycStatuses.identity !== "approved") {
+      sections.push({
+        section: "identity",
+        data: {
+          panNumber: safeTrim(business.panNumber),
+          aadharNumber: safeTrim(business.aadharNumber),
+        }
+      });
+      appendFile("aadharFile", files.aadharFile, "aadharFile.jpg");
+      appendFile("panFile", files.panFile, "panFile.jpg");
+    }
+
+    // 4. Bank
+    if (kycStatuses.bank !== "approved") {
+      sections.push({
+        section: "bank",
+        data: {
+          accountHolderName: safeTrim(banking.accountHolderName),
+          bankName: safeTrim(banking.bankName),
+          accountNumber: safeTrim(banking.accountNumber),
+          ifscCode: safeTrim(banking.ifscCode),
+        }
+      });
+      appendFile("blankCheque", files.blankCheque, "blankCheque.jpg");
+    }
+
+    form.append("sections", JSON.stringify(sections));
+
+  } else {
+    // ── OLD FORMAT (Fallback) ──
+    form.append("firstName", safeTrim(personal.firstName));
+    form.append("lastName", safeTrim(personal.lastName));
+    form.append("fatherName", safeTrim(personal.fatherName));
+    form.append("gender", safeTrim(personal.gender));
+    form.append("email", safeTrim(personal.email));
+    form.append("phone", safeTrim(personal.phone));
+
+    let formattedDob = safeTrim(personal.dob);
+    if (/^\d{2}-\d{2}-\d{4}$/.test(formattedDob)) {
+      const [dd, mm, yyyy] = formattedDob.split("-");
+      formattedDob = `${yyyy}-${mm}-${dd}`;
+    }
+    form.append("dob", formattedDob);
+    form.append("personalAddress", safeTrim(personal.personalAddress));
+    form.append("personalCity", safeTrim(personal.personalCity));
+    form.append("personalState", safeTrim(personal.personalState));
+    form.append("personalPincode", safeTrim(personal.personalPincode));
+
+    form.append("shopName", safeTrim(business.shopName));
+    form.append("businessAddress", safeTrim(business.businessAddress));
+    form.append("businessCity", safeTrim(business.businessCity));
+    form.append("businessState", safeTrim(business.businessState));
+    form.append("businessPincode", safeTrim(business.businessPincode));
+    form.append("panNumber", safeTrim(business.panNumber));
+    form.append("aadharNumber", safeTrim(business.aadharNumber));
+
+    if (safeTrim(business.businessPanNumber)) form.append("businessPanNumber", safeTrim(business.businessPanNumber));
+    if (safeTrim(business.gstNumber)) form.append("gstNumber", safeTrim(business.gstNumber));
+
+    form.append("accountHolderName", safeTrim(banking.accountHolderName));
+    form.append("bankName", safeTrim(banking.bankName));
+    form.append("accountNumber", safeTrim(banking.accountNumber));
+    form.append("branchName", safeTrim(banking.branchName));
+    form.append("ifscCode", safeTrim(banking.ifscCode));
+
+    appendFile("aadharFile", files.aadharFile, "aadharFile.jpg");
+    appendFile("panFile", files.panFile, "panFile.jpg");
+    appendFile("shopImage", files.shopImage, "shopImage.jpg");
+    appendFile("blankCheque", files.blankCheque, "blankCheque.jpg");
+  }
 
   // ── STEP 3: POST ───────────────────────────────────────────────────────────
   try {

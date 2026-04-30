@@ -260,6 +260,13 @@ export default function Offlinekyc({ navigation, route }) {
     ifscCode: false,
   });
 
+  const [kycStatuses, setKycStatuses] = useState({
+    personal: "pending",
+    business: "pending",
+    identity: "pending",
+    bank: "pending",
+  });
+
   // ── Account match ──────────────────────────────────────────────────────
   const accMatchStatus = (() => {
     const acc = banking.accountNumber.trim();
@@ -420,6 +427,13 @@ export default function Offlinekyc({ navigation, route }) {
           bankName: bankApproved && !!d.bankName,
           accountNumber: bankApproved && !!d.accountNumber,
           ifscCode: bankApproved && !!d.ifscCode,
+        });
+
+        setKycStatuses({
+          personal: d.personalDetailStatus || "pending",
+          business: d.businessDetailStatus || "pending",
+          identity: d.identityDetailStatus || "pending",
+          bank: d.bankDetailStatus || "pending",
         });
 
         if (d.rejectionReason) {
@@ -717,7 +731,7 @@ export default function Offlinekyc({ navigation, route }) {
     setLoading(true);
     const kycStatus = route?.params?.user?.kycStatus || (await AsyncStorage.getItem("kyc_status"));
     const result = kycStatus === "rekyc"
-      ? await reuploadOfflineKyc({ personal, business, files, banking })
+      ? await reuploadOfflineKyc({ personal, business, files, banking, kycStatuses })
       : await submitOfflineKyc({ personal, business, files, banking });
     setLoading(false);
 
