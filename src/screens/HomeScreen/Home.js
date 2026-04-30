@@ -37,6 +37,14 @@ import MoneyTransferIconSVG from "../../assets/ServicesIcons/Money Transfer.svg"
 import XpressIconSVG from "../../assets/ServicesIcons/xpress.svg";
 import UpiIconSVG from "../../assets/ServicesIcons/Upi.svg";
 import OnlineServicesIconSVG from "../../assets/ServicesIcons/online service.svg";
+import ElectricityIcon from "../../assets/BBPSIcon/Electricity.svg";
+import GasIcon from "../../assets/BBPSIcon/Gas.svg";
+import WaterIcon from "../../assets/BBPSIcon/Water.svg";
+import FastagIcon from "../../assets/BBPSIcon/Fastag.svg";
+import DTHIcon from "../../assets/BBPSIcon/DTH.svg";
+import CreditCardIcon from "../../assets/BBPSIcon/Credit Card.svg";
+import MobilePostpaidIcon from "../../assets/BBPSIcon/Mobile Postpaid.svg";
+import LPGIcon from "../../assets/BBPSIcon/LPG Gas.svg";
 
 
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -561,12 +569,18 @@ export default function FinanceHome({ navigation }) {
   }
 
   const allServiceItems = [
-    ...allServices.flatMap(s => (s.pipeline || []).map(p => ({ code: p.code, service: s, isStatic: false })))
+    ...allServices.flatMap(s => (s.pipeline || []).map(p => ({ code: p.code, service: s, isStatic: false }))),
+    { code: "dth_cat", label: "DTH", base: "bbps_cat", isStatic: true, screen: "BbpsDynamicServiceScreen", params: { serviceType: "DTH" }, Svg: DTHIcon, sortOrder: 1 },
+    { code: "fastag_cat", label: "Fastag", base: "bbps_cat", isStatic: true, screen: "BbpsDynamicServiceScreen", params: { serviceType: "Fastag" }, Svg: FastagIcon, sortOrder: 2 },
+    { code: "electricity_cat", label: "Electricity", base: "bbps_cat", isStatic: true, screen: "BbpsDynamicServiceScreen", params: { serviceType: "Electricity" }, Svg: ElectricityIcon, sortOrder: 3 },
+    { code: "credit_card_cat", label: "Credit Card", base: "bbps_cat", isStatic: true, screen: "BbpsDynamicServiceScreen", params: { serviceType: "Credit Card" }, Svg: CreditCardIcon, sortOrder: 4 },
+    { code: "mobile_postpaid_cat", label: "Mobile Postpaid", base: "bbps_cat", isStatic: true, screen: "BbpsDynamicServiceScreen", params: { serviceType: "Mobile Postpaid" }, Svg: MobilePostpaidIcon, sortOrder: 5 },
+    { code: "lpg_gas_cat", label: "LPG Gas", base: "bbps_cat", isStatic: true, screen: "BbpsDynamicServiceScreen", params: { serviceType: "LPG Gas" }, Svg: LPGIcon, sortOrder: 6 },
   ]
     .map(item => {
-      if (item.isStatic) return item;
+      const n = (item.code || "").toLowerCase();
+      if (item.isStatic) return { ...item, n };
       const isLocked = !hasService(item.code);
-      const n = item.code.toLowerCase();
       const base = n.replace(/\d+$/, "");
       let label = n.toUpperCase();
       if (n === "dmt1") label = "DMT";
@@ -577,15 +591,38 @@ export default function FinanceHome({ navigation }) {
       if (base === "xpresspayout" || base === "xpress-payout") label = "Xpress Payout";
       if (base === "aepspayout" || base === "aeps-payout" || n === "aepspayout") label = "AEPS Payout";
       if (base === "upi-payout") label = "UPI Payout";
-      if (n.includes("offline")) label = "OFFLINE SERVICES";
-      if (n.includes("online")) label = "ONLINE SERVICES";
+      if (n && n.includes("offline")) label = "OFFLINE SERVICES";
+      if (n && n.includes("online")) label = "ONLINE SERVICES";
       return { ...item, label, n, base, isLocked };
     });
 
-  const aepsServices = allServiceItems.filter(i => i.base === "aeps" || i.n.includes("aeps"));
+  const aepsServices = allServiceItems.filter(i => i.base === "aeps" || (i.n && i.n.includes("aeps")));
   const rechargeServices = allServiceItems
-    .filter(i => i.base === "recharge" || i.base === "bbps" || i.n.includes("recharge") || i.n.includes("bbps"))
-    .sort((a, b) => (a.n.includes("recharge") ? -1 : b.n.includes("recharge") ? 1 : 0));
+    .filter(i => i.base === "recharge" || i.base === "bbps" || i.base === "bbps_cat" || (i.n && (i.n.includes("recharge") || i.n.includes("bbps"))))
+    .map(i => {
+      if (i.n === "bbps1" || i.n === "bbps") {
+        return { ...i, label: "More" };
+      }
+      return i;
+    })
+    .sort((a, b) => {
+      // 1. Recharge always first
+      const aIsRec = a.n?.includes("recharge");
+      const bIsRec = b.n?.includes("recharge");
+      if (aIsRec && !bIsRec) return -1;
+      if (!aIsRec && bIsRec) return 1;
+
+      // 2. More button always last
+      if (a.label === "More") return 1;
+      if (b.label === "More") return -1;
+
+      // 3. BBPS categories in their assigned order
+      if (a.base === "bbps_cat" && b.base === "bbps_cat") {
+        return (a.sortOrder || 99) - (b.sortOrder || 99);
+      }
+
+      return 0;
+    });
   const transferServices = allServiceItems.filter(i => i.base === "dmt" || i.n.includes("dmt") || i.n.includes("xpress") || i.n.includes("upi") || i.n === "dmt1");
   const onlineOfflineServices = allServiceItems.filter(i => i.n.includes("online") || i.n.includes("offline"));
 
@@ -605,6 +642,10 @@ export default function FinanceHome({ navigation }) {
                 style={[S.svcGridItem]}
                 activeOpacity={0.78}
                 onPress={async () => {
+                  if (isStatic && screen) {
+                    navigation.navigate(screen, item.params || {});
+                    return;
+                  }
                   if (isLocked) {
                     const isAlreadyRequested = userProfile?.requestedService?.some(req => req.serviceName === n && req.status === "pending");
 
