@@ -284,7 +284,19 @@ const BalanceEnquiry = () => {
 
       buttonPress(btnScale).start();
 
-      // ── 2. Capture Biometric PID Data ──
+      // ── 2. Check Device Connection ──
+      const conn = await RDService.checkConnection(device);
+      if (!conn.success) {
+        AlertService.showAlert({
+          type: "warning",
+          title: "Device Not Ready",
+          message: `The ${RDService.getDeviceLabel(device)} is not connected or not ready. Please check the cable and try again.`
+        });
+        setLoading(false);
+        return;
+      }
+
+      // ── 3. Capture Biometric PID Data ──
       const pidData = await RDService.capture(device);
 
       // ── 3. Get User Location ──

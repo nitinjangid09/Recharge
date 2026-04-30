@@ -85,13 +85,24 @@ const AEPS2BiometricKYCScreen = ({ navigation, route }) => {
         try {
             const isInstalled = await RD_BRIDGE.isInstalled(selectedDevice);
             if (isInstalled) {
-                setRdState({
-                    connected: true,
-                    scanning: false,
-                    capturing: false,
-                    deviceInfo: RD_BRIDGE.getDeviceLabel(selectedDevice),
-                    error: null,
-                });
+                // Check physical connection
+                const conn = await RD_BRIDGE.checkConnection(selectedDevice);
+                if (conn.success) {
+                    setRdState({
+                        connected: true,
+                        scanning: false,
+                        capturing: false,
+                        deviceInfo: RD_BRIDGE.getDeviceLabel(selectedDevice),
+                        error: null,
+                    });
+                } else {
+                    setRdState((s) => ({
+                        ...s,
+                        scanning: false,
+                        connected: false,
+                        error: "Device not connected or not ready"
+                    }));
+                }
             } else {
                 setRdState((s) => ({ ...s, scanning: false, connected: false, error: "RD Service app not found" }));
                 AlertService.showAlert({

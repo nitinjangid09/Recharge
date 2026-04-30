@@ -46,18 +46,19 @@ public class RDServiceModule extends ReactContextBaseJavaModule {
 
     // ── Request code for RD Service Activity result ──────────────────────────
     private static final int RD_SERVICE_REQUEST_CODE = 1001;
+    private static final int RD_SERVICE_INFO_REQUEST_CODE = 1002;
 
     // ── Standard UIDAI RD Service action ─────────────────────────────────────
     private static final String RD_ACTION_STANDARD = "in.gov.uidai.rdservice.fp.CAPTURE";
+    private static final String RD_ACTION_INFO = "in.gov.uidai.rdservice.fp.INFO";
 
     // ── Morpho alternate action (some Morpho builds use this instead) ─────────
     private static final String RD_ACTION_MORPHO_ALT = "com.morpho.rdservice.fp.CAPTURE";
 
     // ── Morpho package ID (needs alternate action fallback) ───────────────────
     private static final String MORPHO_PACKAGE = "com.idemia.l1rdservice";
-
-    // ── PID data key returned by all RD Service apps ──────────────────────────
     private static final String PID_DATA_KEY = "PID_DATA";
+    private static final String DEVICE_INFO_KEY = "DEVICE_INFO";
 
     // ── Default PID Options XML (UIDAI standard) ──────────────────────────────
     // Most RD Service apps require this; otherwise they may cancel immediately.
@@ -117,10 +118,25 @@ public class RDServiceModule extends ReactContextBaseJavaModule {
                 int resultCode,
                 @Nullable Intent data) {
 
-            if (requestCode != RD_SERVICE_REQUEST_CODE)
+            if (requestCode != RD_SERVICE_REQUEST_CODE && requestCode != RD_SERVICE_INFO_REQUEST_CODE)
                 return;
             if (pendingPromise == null)
                 return;
+
+            if (requestCode == RD_SERVICE_INFO_REQUEST_CODE) {
+                if (resultCode == Activity.RESULT_OK && data != null) {
+                    String deviceInfo = data.getStringExtra(DEVICE_INFO_KEY);
+                    if (deviceInfo != null && !deviceInfo.trim().isEmpty()) {
+                        pendingPromise.resolve(deviceInfo);
+                    } else {
+                        pendingPromise.reject("NO_INFO", "RD Service returned empty device info.");
+                    }
+                } else {
+                    pendingPromise.reject("INFO_ERROR", "Failed to get device info. Result code: " + resultCode);
+                }
+                clearPending();
+                return;
+            }
 
             if (resultCode == Activity.RESULT_OK && data != null) {
                 String pidData = data.getStringExtra(PID_DATA_KEY);
@@ -247,6 +263,38 @@ public class RDServiceModule extends ReactContextBaseJavaModule {
         pendingPromise = promise;
 
         launchRdService(currentActivity, packageId, RD_ACTION_STANDARD, pidOptions);
+    }
+
+    @ReactMethod
+    public void getDeviceInfo(String packageId, Promise promise) {
+        Activity currentActivity = getCurrentActivity();
+
+        if (currentActivity == null) {
+            promise.reject("NO_ACTIVITY", "No active Android Activity.");
+            return;
+        }
+
+        if (pendingPromise != null) {
+            promise.reject("BUSY", "Another RD Service operation is in progress.");
+            return;
+        }
+
+        if (!isPackageInstalled(packageId)) {
+            promise.reject("NOT_INSTALLED", "RD Service app (" + packageId + ") is not installed.");
+            return;
+        }
+
+        pendingPackageId = packageId;
+        pendingPromise = promise;
+
+        try {
+            Intent intent = new Intent(RD_ACTION_INFO);
+            intent.setPackage(packageId);
+            currentActivity.startActivityForResult(intent, RD_SERVICE_INFO_REQUEST_CODE);
+        } catch (Exception e) {
+            promise.reject("INFO_LAUNCH_ERROR", "Failed to launch info: " + e.getMessage());
+            clearPending();
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────

@@ -187,9 +187,44 @@ const parsePidXml = (xml) => {
   return res;
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// getDeviceInfo(deviceKey)
+// ─────────────────────────────────────────────────────────────────────────────
+const getDeviceInfo = async (deviceKey) => {
+  const packageId = getPackageId(deviceKey);
+  const mod = getNativeModule();
+  return await mod.getDeviceInfo(packageId);
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// checkConnection(deviceKey)
+// Helper to check if device is plugged in and ready
+// ─────────────────────────────────────────────────────────────────────────────
+const checkConnection = async (deviceKey) => {
+  try {
+    const xml = await getDeviceInfo(deviceKey);
+    if (!xml) return { success: false, status: 'UNKNOWN', message: 'No info received' };
+    
+    // Simple regex to find status="READY" or status="NOTREADY"
+    const statusMatch = xml.match(/status="([^"]*)"/i);
+    const status = statusMatch ? statusMatch[1].toUpperCase() : 'UNKNOWN';
+    
+    return {
+      success: status === 'READY',
+      status: status,
+      message: status === 'READY' ? 'Device connected' : 'Device not connected or not ready',
+      xml: xml
+    };
+  } catch (err) {
+    return { success: false, status: 'ERROR', message: err.message || 'Check failed' };
+  }
+};
+
 const RDService = {
   isInstalled,
   capture,
+  getDeviceInfo,
+  checkConnection,
   openInstallPage,
   getDeviceLabel,
   parsePidXml,
