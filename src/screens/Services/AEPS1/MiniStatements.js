@@ -537,16 +537,16 @@ const MiniStatement = () => {
             <Text style={rm.statusTitle}>
               {(receiptData?.data?.message || receiptData?.message || "Transaction Successful").toUpperCase()}
             </Text>
-            
+
             <View style={rm.amtBox}>
               <Text style={rm.amtLabel}>AVAILABLE BALANCE</Text>
               <Text style={rm.amtValue}>
                 ₹{Number(
-                  (receiptData?.data?.data?.bankAccountBalance || 
-                   receiptData?.data?.data?.balance || 
-                   receiptData?.data?.response?.data?.bankAccountBalance || 
-                   receiptData?.data?.response?.data?.closingBalance || 
-                   receiptData?.data?.balance || "0.00")
+                  (receiptData?.data?.data?.bankAccountBalance ||
+                    receiptData?.data?.data?.balance ||
+                    receiptData?.data?.response?.data?.bankAccountBalance ||
+                    receiptData?.data?.response?.data?.closingBalance ||
+                    receiptData?.data?.balance || "0.00")
                 ).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </Text>
             </View>
@@ -555,7 +555,7 @@ const MiniStatement = () => {
             <View style={{ width: '100%', flexShrink: 1, maxHeight: SH * 0.45 }}>
               <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={rm.divider} />
-                
+
                 {/* Details Section */}
                 <View style={rm.list}>
                   <View style={rm.row}>
@@ -597,8 +597,8 @@ const MiniStatement = () => {
               </ScrollView>
             </View>
 
-            <TouchableOpacity 
-              style={rm.closeBtn} 
+            <TouchableOpacity
+              style={rm.closeBtn}
               onPress={() => {
                 setReceiptVisible(false);
                 setReceiptData(null);
@@ -654,8 +654,6 @@ const styles = StyleSheet.create({
   // ── Cards ──
   card: {
     backgroundColor: Colors.homebg, borderRadius: scale(18), padding: scale(16),
-    elevation: 3, shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8,
   },
   cardHeader: {
     flexDirection: "row", alignItems: "center",
@@ -715,12 +713,9 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: Colors.primary, paddingVertical: vs(14),
     borderRadius: scale(14), alignItems: "center",
-    elevation: 3, shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8,
   },
   buttonDisabled: {
     backgroundColor: Colors.gray_BD,
-    shadowOpacity: 0.1,
   },
   buttonText: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(14), letterSpacing: 0.3 },
 
@@ -735,9 +730,9 @@ const styles = StyleSheet.create({
 // ══════════════════════════════════════════════════════════════════════════════
 const rm = StyleSheet.create({
   overlay: {
-    flex: 1, 
-    backgroundColor: 'rgba(0,0,0,0.6)', 
-    justifyContent: 'center', 
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
     alignItems: 'center',
     padding: scale(20),
   },
@@ -747,10 +742,6 @@ const rm = StyleSheet.create({
     borderRadius: scale(24),
     padding: scale(24),
     alignItems: 'center',
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.2, shadowRadius: 15,
   },
   iconBadge: {
     width: scale(56), height: scale(56), borderRadius: scale(28),
@@ -780,7 +771,7 @@ const rm = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   rowLabel: { fontFamily: Fonts.Medium, fontSize: rs(11), color: Colors.gray_9E },
   rowValue: { fontFamily: Fonts.Bold, fontSize: rs(11), color: Colors.gray_21 },
-  
+
   // Statement Row
   stRow: {
     flexDirection: 'row', alignItems: 'center', paddingVertical: vs(10),
@@ -853,9 +844,6 @@ const sp = StyleSheet.create({
     backgroundColor: Colors.white,
     borderTopLeftRadius: scale(24), borderTopRightRadius: scale(24),
     maxHeight: SH * 0.68,
-    elevation: 20,
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.15, shadowRadius: 12,
   },
   sheetHeader: {
     paddingHorizontal: scale(16), paddingBottom: vs(10),

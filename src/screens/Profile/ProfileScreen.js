@@ -633,11 +633,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 5,
     height: 82, // Fixed height to keep all tiles uniform
-    shadowColor: Colors.ink,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 3,
     borderWidth: 1,
     borderColor: Colors.border,
   },
@@ -679,11 +674,6 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.white,
     borderRadius: 14,
-    shadowColor: Colors.ink,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
     overflow: "hidden",
   },
   row: {

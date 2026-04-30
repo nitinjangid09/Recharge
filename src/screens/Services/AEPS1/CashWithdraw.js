@@ -665,8 +665,6 @@ const styles = StyleSheet.create({
   // ── Cards ──
   card: {
     backgroundColor: Colors.homebg, borderRadius: scale(18), padding: scale(16),
-    elevation: 3, shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8,
   },
   cardHeader: {
     flexDirection: "row", alignItems: "center",
@@ -727,8 +725,6 @@ const styles = StyleSheet.create({
   summaryStrip: {
     marginTop: vs(14), backgroundColor: Colors.white,
     borderRadius: scale(14), padding: scale(14),
-    elevation: 2, shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6,
   },
   summaryRow: {
     flexDirection: "row", justifyContent: "space-between",
@@ -742,12 +738,9 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: Colors.primary, paddingVertical: vs(14),
     borderRadius: scale(14), alignItems: "center",
-    elevation: 3, shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8,
   },
   buttonDisabled: {
     backgroundColor: Colors.gray_BD,
-    shadowOpacity: 0.1,
   },
   buttonText: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(15), letterSpacing: 0.3 },
 
@@ -813,9 +806,6 @@ const sp = StyleSheet.create({
     backgroundColor: Colors.white,
     borderTopLeftRadius: scale(24), borderTopRightRadius: scale(24),
     maxHeight: SH * 0.68,
-    elevation: 20,
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.15, shadowRadius: 12,
   },
   sheetHeader: {
     paddingHorizontal: scale(16),

@@ -262,10 +262,7 @@ const styles = StyleSheet.create({
     borderRadius: rs(24),
     padding: rs(24),
     marginBottom: rs(24),
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.2, shadowRadius: 12 },
-      android: { elevation: 8 },
-    }),
+
   },
   bcTop: {
     flexDirection: 'row',
@@ -365,10 +362,7 @@ const styles = StyleSheet.create({
     marginBottom: rs(28),
     borderWidth: 1,
     borderColor: Colors.border,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8 },
-      android: { elevation: 3 },
-    }),
+
   },
   manageGrid: {
     flexDirection: 'row',
@@ -458,10 +452,7 @@ const styles = StyleSheet.create({
     padding: rs(28),
     borderWidth: 1,
     borderColor: Colors.border,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10 },
-      android: { elevation: 3 },
-    }),
+
   },
   formTitle: {
     fontSize: rs(20),
@@ -560,10 +551,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: rs(10),
     marginTop: rs(12),
-    ...Platform.select({
-      ios: { shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 10 },
-      android: { elevation: 6 },
-    }),
+
   },
   transferBtnText: {
     fontSize: rs(16),
@@ -594,10 +582,7 @@ const styles = StyleSheet.create({
     borderRadius: rs(34),
     flexDirection: 'row',
     padding: rs(6),
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.15, shadowRadius: 20 },
-      android: { elevation: 10 },
-    }),
+
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.04)',
   },

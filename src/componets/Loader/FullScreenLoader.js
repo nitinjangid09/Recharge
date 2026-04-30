@@ -64,11 +64,6 @@ const styles = StyleSheet.create({
     paddingVertical: 36,
     paddingHorizontal: 44,
     alignItems: "center",
-    elevation: 24,
-    shadowColor: Colors.black,
-    shadowOpacity: 0.18,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 6 },
     gap: 16,
   },
   ring: {

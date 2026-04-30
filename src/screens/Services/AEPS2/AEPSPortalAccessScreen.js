@@ -339,10 +339,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: Colors.border,
     alignItems: 'center',
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: rs(8) }, shadowOpacity: 0.08, shadowRadius: rs(24) },
-      android: { elevation: 4 },
-    }),
+
   },
 
   cardTitle: {

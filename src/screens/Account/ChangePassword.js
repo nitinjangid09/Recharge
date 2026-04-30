@@ -71,13 +71,7 @@ const FloatInput = ({ id, label, value, onChangeText, secureTextEntry, onToggleS
         style={[
           styles.fField,
           {
-            borderColor,
-            shadowOpacity: (error || success || focused) ? 1 : 0,
-            shadowColor: error ? Colors.red : (success ? Colors.green : Colors.amber),
-            shadowOffset: { width: 0, height: 0 },
-            shadowRadius: 6,
-            elevation: (focused || error || success) ? 2 : 0,
-          },
+            borderColor,          },
         ]}
       >
         {/* Floating label */}
@@ -523,13 +517,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 7,
-    shadowColor: Colors.ink,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 6,
-  },
+    gap: 7,  },
   btnSolidTxt: {
     fontFamily: Fonts.SemiBold,
     fontSize: 14,

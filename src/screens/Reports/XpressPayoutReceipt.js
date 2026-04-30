@@ -133,11 +133,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
-    elevation: 4,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
   },
   amountLabel: {
     fontSize: 12,
@@ -168,11 +163,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
     borderRadius: 20,
     padding: 20,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
   },
   detailsTitle: {
     fontSize: 16,

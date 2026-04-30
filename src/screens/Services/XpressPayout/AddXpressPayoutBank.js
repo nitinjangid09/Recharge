@@ -330,7 +330,7 @@ function FormInput({ label, icon, placeholder, value, onChangeText, error, ...pr
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.bg },
   scrollContent: { paddingHorizontal: rs(16), paddingTop: rs(16) },
-  formCard: { backgroundColor: Colors.homebg, borderRadius: rs(28), padding: rs(28), borderWidth: 1, borderColor: Colors.border, ...Platform.select({ ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10 }, android: { elevation: 3 } }) },
+  formCard: { backgroundColor: Colors.homebg, borderRadius: rs(28), padding: rs(28), borderWidth: 1, borderColor: Colors.border },
   formTitle: { fontSize: rs(20), fontFamily: Fonts.Bold, color: Colors.text_primary },
   formSub: { fontSize: rs(13), fontFamily: Fonts.Medium, color: Colors.text_secondary, marginTop: rs(4), marginBottom: rs(28) },
   inputWrapper: { marginBottom: rs(20) },
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
   imageActions: { flex: 1, gap: rs(8) },
   imageActionBtn: { flexDirection: 'row', alignItems: 'center', gap: rs(6), paddingVertical: rs(4), paddingHorizontal: rs(8), borderRadius: rs(8), borderWidth: 1, borderColor: Colors.border, alignSelf: 'flex-start' },
   imageActionTxt: { fontSize: rs(11), fontFamily: Fonts.Bold, color: Colors.primary },
-  submitBtn: { backgroundColor: Colors.primary, height: rs(60), borderRadius: rs(20), flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: rs(10), marginTop: rs(12), ...Platform.select({ ios: { shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 10 }, android: { elevation: 6 } }) },
+  submitBtn: { backgroundColor: Colors.primary, height: rs(60), borderRadius: rs(20), flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: rs(10), marginTop: rs(12) },
   submitBtnText: { fontSize: rs(16), fontFamily: Fonts.Bold, color: Colors.white },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'flex-end' },
   modalContent: { backgroundColor: Colors.white, borderTopLeftRadius: rs(30), borderTopRightRadius: rs(30), height: '80%', padding: rs(20) },

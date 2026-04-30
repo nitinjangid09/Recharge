@@ -296,11 +296,6 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.homebg,
         borderRadius: rs(30),
         padding: rs(24),
-        elevation: 10,
-        shadowColor: ACCENT,
-        shadowOpacity: 0.25,
-        shadowRadius: 12,
-        shadowOffset: { width: 0, height: 8 }
     },
     label: {
         fontSize: rs(10),
@@ -343,9 +338,6 @@ const styles = StyleSheet.create({
     chipActive: {
         backgroundColor: PRIMARY,
         borderColor: PRIMARY,
-        elevation: 4,
-        shadowColor: PRIMARY,
-        shadowOpacity: 0.3
     },
     chipText: {
         fontSize: rs(11),
@@ -374,16 +366,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: rs(32),
-        elevation: 10,
-        shadowColor: PRIMARY,
-        shadowOpacity: 0.35,
-        shadowRadius: 15,
-        shadowOffset: { width: 0, height: 8 }
     },
     btnActionDisabled: {
         backgroundColor: '#CBD5E1',
-        elevation: 0,
-        shadowOpacity: 0
     },
     btnActionText: {
         fontSize: rs(15),
@@ -413,9 +398,6 @@ const styles = StyleSheet.create({
         backgroundColor: WHITE,
         alignItems: 'center',
         justifyContent: 'center',
-        elevation: 20,
-        shadowColor: ACCENT,
-        shadowOpacity: 0.2
     },
     capTitle: {
         fontSize: rs(28),

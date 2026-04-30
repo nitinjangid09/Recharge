@@ -355,17 +355,8 @@ const styles = StyleSheet.create({
         gap: 12,
         marginBottom: 8,
         position: 'relative',
-        overflow: 'hidden',
-        shadowColor: Colors.shadow,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-        elevation: 2,
-    },
-    notifCardUnread: {
-        shadowOpacity: 0.08,
-        elevation: 3,
-    },
+        overflow: 'hidden',    },
+    notifCardUnread: {    },
     unreadBar: {
         position: 'absolute',
         left: 0,

@@ -57,10 +57,7 @@ const cardStyles = StyleSheet.create({
     marginBottom: rs(14),
     borderWidth: 0.5,
     borderColor: Colors.border,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: rs(8) },
-      android: { elevation: 2 },
-    }),
+
   },
 });
 

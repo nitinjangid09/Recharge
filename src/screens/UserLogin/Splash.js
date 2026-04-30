@@ -181,10 +181,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20 * scale,
     paddingVertical: 25 * scale,
     width: "88%",
-    borderRadius: 18 * scale,
-    shadowColor: Colors.text_primary,
-    elevation: 6,
-  },
+    borderRadius: 18 * scale,  },
   cardTitle: { fontSize: 16 * scale, fontFamily: Fonts.Bold },
   cardNumber: { fontSize: 18 * scale, marginVertical: 10 * scale, letterSpacing: 2 * scale, fontFamily: Fonts.Medium },
 
@@ -196,10 +193,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20 * scale,
     paddingVertical: 25 * scale,
     borderRadius: 16 * scale,
-    width: "65%",
-    shadowColor: Colors.text_primary,
-    elevation: 5
-  },
+    width: "65%",  },
   transactionTitle: { fontFamily: Fonts.Bold, fontSize: 14 * scale },
   transactionRow: {
     flexDirection: "row",
@@ -256,8 +250,6 @@ const styles = StyleSheet.create({
     borderRadius: 30 * scale,
     backgroundColor: Colors.button_bg,
     justifyContent: "center",
-    alignItems: "center",
-    elevation: 8,
-    zIndex: 10
+    alignItems: "center",    zIndex: 10
   }
 });

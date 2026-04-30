@@ -938,13 +938,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         borderRadius: 100,
         borderWidth: 1,
-        borderColor: Colors.hub_border,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.04,
-        shadowRadius: 4,
-        elevation: 1
-    },
+        borderColor: Colors.hub_border,    },
     trustPillIcon: { fontSize: 12, marginRight: 6 },
     trustItem: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.hub_slate, textTransform: 'uppercase', letterSpacing: 0.5 },
 

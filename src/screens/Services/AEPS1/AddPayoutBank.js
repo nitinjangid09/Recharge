@@ -425,10 +425,7 @@ const styles = StyleSheet.create({
     padding: rs(28),
     borderWidth: 1,
     borderColor: Colors.border,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10 },
-      android: { elevation: 3 },
-    }),
+
   },
   formTitle: {
     fontSize: rs(20),
@@ -549,10 +546,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: rs(10),
     marginTop: rs(12),
-    ...Platform.select({
-      ios: { shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 10 },
-      android: { elevation: 6 },
-    }),
+
   },
   submitBtnText: {
     fontSize: rs(16),
@@ -569,11 +563,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: rs(30),
     borderTopRightRadius: rs(30),
     height: '80%',
-    padding: rs(20),
-    elevation: 0,
-    shadowOpacity: 0,
-    shadowRadius: 0,
-  },
+    padding: rs(20),  },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',

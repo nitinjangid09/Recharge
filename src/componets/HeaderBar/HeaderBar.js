@@ -53,14 +53,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-
-    elevation: 6,
-    shadowColor: Colors.finance_accent,
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-  },
+    justifyContent: "space-between",  },
 
   iconBtn: {
     width: 33,
@@ -69,9 +62,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white, // Light Beige
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: .5,
-    elevation: 5,
-  },
+    borderWidth: .5,  },
 
   title: {
     color: Colors.finance_text, // Dark Text

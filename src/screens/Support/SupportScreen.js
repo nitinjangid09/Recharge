@@ -369,13 +369,7 @@ const st = StyleSheet.create({
     backgroundColor: Colors.slate_900,
     borderBottomLeftRadius: S(28),
     borderBottomRightRadius: S(28),
-    // Shadow so it floats slightly above the light body
-    elevation: 4,
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: S(8),
-  },
+    // Shadow so it floats slightly above the light body  },
 
   // ── Light body ────────────────────────────────────────────────────────
   // Sits flush BELOW the curveConnector — no negative margin, no overlap
@@ -393,13 +387,7 @@ const st = StyleSheet.create({
     borderRadius: S(16),
     paddingHorizontal: S(16),
     paddingVertical: S(4),
-    marginBottom: S(24),
-    elevation: 3,
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: S(8),
-  },
+    marginBottom: S(24),  },
   contactRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -440,13 +428,7 @@ const st = StyleSheet.create({
     backgroundColor: Colors.homebg,
     borderRadius: S(14),
     padding: S(14),
-    borderTopWidth: 3,
-    elevation: 2,
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: S(6),
-  },
+    borderTopWidth: 3,  },
   quickIconBox: {
     width: S(38), height: S(38), borderRadius: S(11),
     justifyContent: "center", alignItems: "center",
@@ -469,13 +451,7 @@ const st = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: S(9),
-    elevation: 4,
-    shadowColor: Colors.finance_accent,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: S(8),
-  },
+    gap: S(9),  },
   callTxt: {
     color: Colors.slate_900, fontSize: S(15),
     fontFamily: Fonts.Bold, letterSpacing: 0.3,

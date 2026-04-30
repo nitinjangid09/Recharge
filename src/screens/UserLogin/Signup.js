@@ -346,17 +346,12 @@ const styles = StyleSheet.create({
     header: { alignItems: "center", marginBottom: 20 * scale, marginTop: 40 * scale },
     logoContainer: {
         width: 64 * scale, height: 64 * scale, borderRadius: 18 * scale,
-        backgroundColor: Colors.button_bg, justifyContent: 'center', alignItems: 'center',
-        elevation: 8, shadowColor: Colors.shadow, shadowOpacity: 0.3, shadowRadius: 8,
-        shadowOffset: { width: 0, height: 4 }, marginBottom: 10 * scale
-    },
+        backgroundColor: Colors.button_bg, justifyContent: 'center', alignItems: 'center',    },
     logoText: { fontSize: 32 * scale, fontFamily: Fonts.Bold, color: Colors.white },
     appName: { fontSize: 24 * scale, fontFamily: Fonts.Bold, color: Colors.text_primary, letterSpacing: 0.5 },
     card: {
         marginHorizontal: 16 * scale, backgroundColor: Colors.secondary, borderRadius: 24 * scale,
-        padding: 16 * scale, shadowColor: Colors.black, shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05, shadowRadius: 4, elevation: 2,
-    },
+        padding: 16 * scale,     },
     welcome: { fontSize: 22 * scale, fontFamily: Fonts.Bold, textAlign: "center", color: Colors.primary },
     subTitle: { fontSize: 13 * scale, fontFamily: Fonts.Medium, color: Colors.text_secondary, textAlign: "center", marginTop: 6 * scale, marginBottom: 20 * scale },
     inputContainer: { marginBottom: 16 * scale },
@@ -376,9 +371,7 @@ const styles = StyleSheet.create({
     input: { flex: 1, fontSize: 15 * scale, color: Colors.black, fontFamily: Fonts.Medium, padding: 0 },
     loginBtn: {
         backgroundColor: Colors.button_bg, borderRadius: 25 * scale, height: 50 * scale,
-        justifyContent: "center", alignItems: "center", shadowColor: Colors.shadow,
-        shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 5, marginTop: 10 * scale
-    },
+        justifyContent: "center", alignItems: "center",     },
     loginText: { color: Colors.white, fontSize: 16 * scale, fontFamily: Fonts.Bold, letterSpacing: 0.5 },
     signupContainer: { flexDirection: 'row', justifyContent: 'center', marginTop: 20 * scale },
     signupText: { fontSize: 13 * scale, color: Colors.text_secondary, fontFamily: Fonts.Medium },
@@ -394,13 +387,7 @@ const styles = StyleSheet.create({
     customDropContainer: {
         backgroundColor: Colors.button_bg,
         borderRadius: 16 * scale,
-        marginTop: 6 * scale,
-        elevation: 6,
-        shadowColor: Colors.black,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
-        shadowRadius: 8,
-        overflow: 'hidden',
+        marginTop: 6 * scale,        overflow: 'hidden',
     },
     customDropItem: {
         flexDirection: 'row',

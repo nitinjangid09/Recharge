@@ -59,13 +59,7 @@ const FloatPinInput = ({
         style={[
           styles.fField,
           {
-            borderColor,
-            shadowColor: error ? Colors.red || "#C13B3B" : (success ? Colors.green : Colors.amber),
-            shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: (focused || error || success) ? 1 : 0,
-            shadowRadius: 6,
-            elevation: (focused || error || success) ? 2 : 0,
-          },
+            borderColor,          },
         ]}
       >
         {/* Floating label */}
@@ -414,12 +408,7 @@ const styles = StyleSheet.create({
   },
   pinDotOn: {
     backgroundColor: Colors.amber,
-    borderColor: Colors.amber,
-    shadowColor: Colors.amber,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 4,
-  },
+    borderColor: Colors.amber,  },
 
   /* ── Tip box ── */
   tipBox: {
@@ -452,13 +441,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 7,
-    shadowColor: Colors.ink,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 6,
-  },
+    gap: 7,  },
   btnSolidTxt: {
     fontFamily: Fonts.SemiBold,
     fontSize: 14,

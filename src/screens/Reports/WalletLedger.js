@@ -313,7 +313,7 @@ const FST = StyleSheet.create({
     position: 'absolute', bottom: 0, left: 0, right: 0,
     backgroundColor: Colors.white,
     borderTopLeftRadius: sc(24), borderTopRightRadius: sc(24),
-    maxHeight: SH * 0.78, elevation: 24, shadowColor: Colors.black, shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.14, shadowRadius: 16,
+    maxHeight: SH * 0.78,
   },
   handle: { width: sc(32), height: vs(4), backgroundColor: Colors.blackOpacity_12, borderRadius: 2, alignSelf: 'center', marginTop: vs(10), marginBottom: vs(2) },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: sc(20), paddingVertical: vs(14), borderBottomWidth: 1, borderBottomColor: Colors.border },
@@ -446,11 +446,11 @@ const SummaryStrip = ({ data, fromDate, toDate, walletStats }) => {
 };
 
 const SS = StyleSheet.create({
-  wrap: { marginHorizontal: sc(14), marginBottom: vs(10), backgroundColor: Colors.white, borderRadius: sc(16), overflow: 'hidden', elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4 },
+  wrap: { marginHorizontal: sc(14), marginBottom: vs(10), backgroundColor: Colors.white, borderRadius: sc(16), overflow: 'hidden' },
   rangeRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: sc(16), paddingVertical: vs(10), borderBottomWidth: 1, borderBottomColor: Colors.border },
   rangeTxt: { fontSize: rs(13), fontFamily: Fonts.Bold, color: Colors.text_primary },
   scrollContainer: { paddingHorizontal: sc(16), paddingVertical: vs(14), gap: sc(12) },
-  card: { width: sc(130), backgroundColor: Colors.white, borderRadius: sc(12), padding: sc(12), borderWidth: 1, borderColor: Colors.border, shadowColor: Colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.02, shadowRadius: 3, elevation: 1 },
+  card: { width: sc(130), backgroundColor: Colors.white, borderRadius: sc(12), padding: sc(12), borderWidth: 1, borderColor: Colors.border },
   cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: vs(10) },
   cardIconBg: { width: sc(28), height: sc(28), borderRadius: sc(8), alignItems: 'center', justifyContent: 'center', marginRight: sc(8) },
   cardTitle: { fontSize: rs(9), fontFamily: Fonts.Bold, color: Colors.text_placeholder, letterSpacing: 0.5 },

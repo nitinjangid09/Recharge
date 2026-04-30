@@ -559,15 +559,15 @@ const BalanceEnquiry = () => {
             <Text style={rm.statusTitle}>
               {(receiptData?.data?.message || receiptData?.message || "Transaction Successful").toUpperCase()}
             </Text>
-            
+
             <View style={rm.amtBox}>
               <Text style={rm.amtLabel}>AVAILABLE BALANCE</Text>
               <Text style={rm.amtValue}>
                 ₹{Number(
-                  (receiptData?.data?.data?.balance || 
-                   receiptData?.data?.response?.data?.bankAccountBalance || 
-                   receiptData?.data?.response?.data?.closingBalance || 
-                   receiptData?.data?.balance || "0.00")
+                  (receiptData?.data?.data?.balance ||
+                    receiptData?.data?.response?.data?.bankAccountBalance ||
+                    receiptData?.data?.response?.data?.closingBalance ||
+                    receiptData?.data?.balance || "0.00")
                 ).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </Text>
             </View>
@@ -594,8 +594,8 @@ const BalanceEnquiry = () => {
               </View>
             </View>
 
-            <TouchableOpacity 
-              style={rm.closeBtn} 
+            <TouchableOpacity
+              style={rm.closeBtn}
               onPress={() => {
                 setReceiptVisible(false);
                 setReceiptData(null);
@@ -661,11 +661,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.homebg,
     borderRadius: scale(18),
     padding: scale(16),
-    elevation: 3,
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
   },
   cardHeader: {
     flexDirection: "row", alignItems: "center",
@@ -719,13 +714,9 @@ const styles = StyleSheet.create({
     paddingVertical: vs(14),
     borderRadius: scale(14),
     alignItems: "center",
-    elevation: 3,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8,
   },
   buttonDisabled: {
     backgroundColor: Colors.gray_BD,
-    shadowOpacity: 0.1,
   },
   buttonText: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(15), letterSpacing: 0.3 },
 
@@ -740,9 +731,9 @@ const styles = StyleSheet.create({
 // ══════════════════════════════════════════════════════════════════════════════
 const rm = StyleSheet.create({
   overlay: {
-    flex: 1, 
-    backgroundColor: 'rgba(0,0,0,0.6)', 
-    justifyContent: 'center', 
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
     alignItems: 'center',
     padding: scale(20),
   },
@@ -752,11 +743,6 @@ const rm = StyleSheet.create({
     borderRadius: scale(24),
     padding: scale(24),
     alignItems: 'center',
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.2,
-    shadowRadius: 15,
   },
   iconBadge: {
     width: scale(64),
@@ -903,9 +889,6 @@ const sp = StyleSheet.create({
     backgroundColor: Colors.white,
     borderTopLeftRadius: scale(24), borderTopRightRadius: scale(24),
     maxHeight: SH * 0.68,
-    elevation: 20,
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.15, shadowRadius: 12,
   },
 
   sheetHeader: {

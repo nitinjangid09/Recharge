@@ -198,11 +198,11 @@ const DailyLogin = () => {
         biometricData: RDService.parsePidXml(pidData),
       };
 
-      const res = await aepsInstantDailyLogin({ 
-        data: payload, 
-        headerToken, 
-        headerKey, 
-        idempotencyKey 
+      const res = await aepsInstantDailyLogin({
+        data: payload,
+        headerToken,
+        headerKey,
+        idempotencyKey
       });
 
       if (res.success || res.status === 'SUCCESS') {
@@ -625,11 +625,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
   },
   headerTitle: {
     color: '#FFF',
@@ -652,11 +647,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
     marginBottom: 20,
   },
   mainTitle: {
@@ -677,11 +667,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 15,
     padding: 24,
     borderRadius: 40,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 5 },
   },
   label: {
     fontSize: 11,
@@ -762,11 +747,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginTop: 10,
     paddingVertical: 8,
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 15,
-    shadowOffset: { width: 0, height: 5 },
   },
   dropdownItem: {
     paddingVertical: 16,
@@ -828,11 +808,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 25,
-    elevation: 4,
-    shadowColor: '#1A1A2E',
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
   },
   submitBtnDisabled: {
     backgroundColor: '#555',

@@ -334,10 +334,7 @@ const styles = StyleSheet.create({
     marginTop: rs(8),
     borderWidth: 0.5,
     borderColor: Colors.border,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: rs(4) }, shadowOpacity: 0.07, shadowRadius: rs(16) },
-      android: { elevation: 3 },
-    }),
+
   },
 
   badge: {

@@ -250,9 +250,7 @@ const styles = StyleSheet.create({
     width: 80, height: 80, borderRadius: 40,
     alignItems: "center", justifyContent: "center",
     marginBottom: 16,
-    borderWidth: 3,
-    elevation: 4,
-  },
+    borderWidth: 3,  },
   iconWrapSuccess: { backgroundColor: SUCCESS_BG, borderColor: SUCCESS_RING },
   iconWrapFailed: { backgroundColor: FAILED_BG, borderColor: FAILED_RING },
   iconEmoji: { fontSize: 34, fontFamily: Fonts.Bold },
@@ -273,9 +271,7 @@ const styles = StyleSheet.create({
   card: {
     width: "100%",
     backgroundColor: Colors.white || "#FFF",
-    borderRadius: 20,
-    elevation: 4,
-    marginTop: 22,
+    borderRadius: 20,    marginTop: 22,
     overflow: "hidden",
   },
   cardHeader: {
@@ -319,12 +315,12 @@ const styles = StyleSheet.create({
   retryBtn: {
     backgroundColor: Colors.white || "#FFF",
     borderWidth: 1.5, borderColor: FAILED_RED,
-    paddingVertical: 16, borderRadius: 16, alignItems: "center", elevation: 1,
+    paddingVertical: 16, borderRadius: 16, alignItems: "center",
   },
   retryBtnTxt: { color: FAILED_RED, fontSize: 15, fontFamily: Fonts.Bold },
 
   doneBtn: {
-    paddingVertical: 16, borderRadius: 16, alignItems: "center", elevation: 5,
+    paddingVertical: 16, borderRadius: 16, alignItems: "center",
   },
   doneBtnSuccess: { backgroundColor: Colors.accent || Colors.primary },
   doneBtnNeutral: { backgroundColor: Colors.primary },

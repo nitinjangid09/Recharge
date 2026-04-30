@@ -620,10 +620,7 @@ const styles = StyleSheet.create({
   header: { alignItems: "center", marginBottom: 20 * scale, marginTop: 60 * scale },
   logoContainer: {
     width: 64 * scale, height: 64 * scale, borderRadius: 18 * scale,
-    backgroundColor: Colors.button_bg, justifyContent: "center", alignItems: "center",
-    elevation: 8, shadowColor: Colors.shadow, shadowOpacity: 0.3, shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 }, marginBottom: 10 * scale,
-  },
+    backgroundColor: Colors.button_bg, justifyContent: "center", alignItems: "center",  },
   logoText: { fontSize: 32 * scale, fontFamily: Fonts.Bold, color: Colors.white },
   appName: {
     fontSize: 24 * scale, fontFamily: Fonts.Bold,
@@ -633,10 +630,7 @@ const styles = StyleSheet.create({
   // Card
   card: {
     marginHorizontal: 16 * scale, backgroundColor: Colors.secondary,
-    borderRadius: 24 * scale, padding: 16 * scale,
-    shadowColor: Colors.black, shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05, shadowRadius: 4, elevation: 2,
-  },
+    borderRadius: 24 * scale, padding: 16 * scale,  },
   welcome: {
     fontSize: 22 * scale, fontFamily: Fonts.Bold,
     textAlign: "center", color: Colors.primary,
@@ -690,10 +684,7 @@ const styles = StyleSheet.create({
   // Button
   loginBtn: {
     backgroundColor: Colors.button_bg, borderRadius: 25 * scale,
-    height: 50 * scale, justifyContent: "center", alignItems: "center",
-    shadowColor: Colors.shadow, shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3, shadowRadius: 8, elevation: 5,
-  },
+    height: 50 * scale, justifyContent: "center", alignItems: "center",  },
   loginText: {
     color: Colors.white, fontSize: 16 * scale,
     fontFamily: Fonts.Bold, letterSpacing: 0.5,
@@ -720,10 +711,7 @@ const styles = StyleSheet.create({
   socialBtn: {
     width: 46 * scale, height: 46 * scale, borderRadius: 14 * scale,
     backgroundColor: Colors.surface, justifyContent: "center", alignItems: "center",
-    marginHorizontal: 10 * scale, elevation: 2,
-    shadowColor: Colors.shadow, shadowOpacity: 0.1, shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
-  },
+    marginHorizontal: 10 * scale,   },
   socialIcon: { width: 22 * scale, height: 22 * scale },
 
   // Decorative

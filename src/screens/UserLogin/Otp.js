@@ -379,10 +379,7 @@ export default function OTP({ navigation, route }) {
                 inputRange: [0, 1],
                 outputRange: [1, 1.05],
               });
-              const elevation = inputAnims[i].interpolate({
-                inputRange: [0, 1],
-                outputRange: [2, 8],
-              });
+
 
               return (
                 <Animated.View
@@ -392,11 +389,9 @@ export default function OTP({ navigation, route }) {
                     {
                       transform: [{ scale }],
                       borderColor,
-                      elevation,
-                      shadowOpacity: inputAnims[i].interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0.1, 0.3],
-                      }),
+
+
+
                     },
                   ]}
                 >
@@ -531,11 +526,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 0.8,
-    shadowColor: Colors.slate_500,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 3,
   },
   input: {
     fontSize: 20,

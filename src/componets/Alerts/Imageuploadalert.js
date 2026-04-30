@@ -193,9 +193,7 @@ const styles = StyleSheet.create({
     triggerBtn: {
         flexDirection: 'row', alignItems: 'center', gap: 10,
         backgroundColor: '#A78BFA', paddingHorizontal: 32, paddingVertical: 16,
-        borderRadius: 16, shadowColor: '#A78BFA', shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.45, shadowRadius: 20, elevation: 10,
-    },
+        borderRadius: 16, shadowColor: '#A78BFA', shadowOffset: { width: 0, height: 8 },    },
     triggerTxt: {
         color: '#0F172A', fontWeight: '700', fontSize: 16, letterSpacing: 0.2,
     },
@@ -210,10 +208,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
         borderTopLeftRadius: 32, borderTopRightRadius: 32,
         paddingHorizontal: 24, paddingTop: 12,
-        paddingBottom: 20,
-        shadowColor: '#000', shadowOffset: { width: 0, height: -10 },
-        shadowOpacity: 0.1, shadowRadius: 20, elevation: 25,
-    },
+        paddingBottom: 20,    },
     handle: {
         alignSelf: 'center', width: 36, height: 4,
         backgroundColor: '#E5E7EB', borderRadius: 2, marginBottom: 20,

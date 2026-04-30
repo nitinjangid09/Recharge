@@ -60,10 +60,7 @@ const cardStyles = StyleSheet.create({
     marginBottom: rs(14),
     borderWidth: 0.5,
     borderColor: 'rgba(212,176,106,0.3)',
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: rs(8) },
-      android: { elevation: 2 },
-    }),
+
   },
   header: { flexDirection: 'row', alignItems: 'center', gap: rs(12), marginBottom: rs(16) },
   iconWrap: {

@@ -231,10 +231,7 @@ const styles = StyleSheet.create({
     borderRadius: rs(24),
     padding: rs(24),
     marginBottom: rs(24),
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.2, shadowRadius: 12 },
-      android: { elevation: 8 },
-    }),
+
   },
   bcTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   bcLabel: { fontSize: rs(11), fontFamily: Fonts.Bold, color: Colors.whiteOpacity_60, letterSpacing: 1.5 },
@@ -260,10 +257,7 @@ const styles = StyleSheet.create({
     marginBottom: rs(28),
     borderWidth: 1,
     borderColor: Colors.border,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8 },
-      android: { elevation: 3 },
-    }),
+
   },
   manageGrid: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   fCard: { flex: 1, alignItems: 'center', gap: rs(6) },

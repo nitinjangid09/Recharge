@@ -29,13 +29,7 @@ const StatCard = ({ label, amount, txnCount, amountColor }) => (
     borderRadius: Radius.lg,
     padding: Spacing.md,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2
-  }}>
+    borderColor: '#E2E8F0',  }}>
     <Text style={{ fontSize: rs(10), fontWeight: '700', color: '#64748B', textTransform: 'uppercase', marginBottom: 4 }}>{label}</Text>
     <Text style={{ fontSize: rs(16), fontWeight: '800', color: amountColor || Colors.black }}>{amount}</Text>
     <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>

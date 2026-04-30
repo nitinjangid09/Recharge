@@ -69,11 +69,6 @@ const FloatInput = ({ label, value, onChangeText, secureTextEntry, onToggleSecur
           styles.fField,
           {
             borderColor,
-            shadowOpacity: (error || success || focused) ? 1 : 0,
-            shadowColor: error ? Colors.red : (success ? Colors.green : Colors.amber),
-            shadowOffset: { width: 0, height: 0 },
-            shadowRadius: 6,
-            elevation: (focused || error || success) ? 2 : 0,
           },
         ]}
       >
