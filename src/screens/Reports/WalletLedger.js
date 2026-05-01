@@ -370,11 +370,11 @@ const FilterPills = ({ filters, onRemove }) => {
   const serviceOpt = SERVICE_TYPES.find(o => o.key === filters.service);
   const txnOpt = TXN_TYPES.find(o => o.key === filters.txnType);
   if (filters.date !== 'this_month' && dateOpt) pills.push({ key: 'date', label: dateOpt.label, icon: 'calendar-range', color: Colors.finance_accent });
-  if (filters.userId !== 'all') pills.push({ key: 'userId', label: 'Specified User', icon: 'account-outline', color: Colors.amber });
-  if (filters.service !== 'all' && serviceOpt) pills.push({ key: 'service', label: serviceOpt.label, icon: serviceOpt.icon, color: Colors.indigo });
+  if (filters.userId !== 'all') pills.push({ key: 'userId', label: 'Specified User', icon: 'account-outline', color: Colors.finance_accent });
+  if (filters.service !== 'all' && serviceOpt) pills.push({ key: 'service', label: serviceOpt.label, icon: serviceOpt.icon, color: Colors.finance_accent });
   if (filters.txnType !== 'all' && txnOpt) pills.push({
     key: 'txnType', label: txnOpt.label, icon: txnOpt.icon,
-    color: filters.txnType === 'credit' ? Colors.success : filters.txnType === 'debit' ? Colors.error : Colors.finance_accent
+    color: Colors.finance_accent
   });
   if (!pills.length) return null;
   return (
