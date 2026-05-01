@@ -53,7 +53,7 @@ export default FullScreenLoader;
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: Colors.blackOpacity_45 || "rgba(0,0,0,0.45)",
+    backgroundColor: "rgba(0,0,0,0.45)" || "rgba(0,0,0,0.45)",
     justifyContent: "center",
     alignItems: "center",
     zIndex: 9999,
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.slate_700 || "#334155",
+    color: Colors.slate_700 || Colors.slate_700,
     letterSpacing: 0.3,
   },
 });

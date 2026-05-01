@@ -346,7 +346,7 @@ const DailyLogin = () => {
     if (rdStatus === STATUS.CHECKING) {
       return (
         <View style={[styles.rdBanner, styles.rdChecking]}>
-          <ActivityIndicator size="small" color="#555" />
+          <ActivityIndicator size="small" color="rgb(85, 85, 85)" />
           <Text style={styles.rdBannerText}>  Checking RD Service…</Text>
         </View>
       );
@@ -379,7 +379,7 @@ const DailyLogin = () => {
   };
 
   // ── Disable submit while checking or if RD Service missing ───────────────
-  const isSubmitDisabled = loading;
+  const isSubmitDisabled = loading || aadhaarNumber.length < 12 || mobileNumber.length < 10 || !authMethod || (authMethod === 'finger' && !device);
 
   const selectedDeviceLabel = device ? RDService.getDeviceLabel(device) : null;
 
@@ -394,7 +394,7 @@ const DailyLogin = () => {
           style={styles.backCircle}
           onPress={() => NavigationService.goBack()}
         >
-          <MaterialCommunityIcons name="chevron-left" size={28} color="#000" />
+          <MaterialCommunityIcons name="chevron-left" size={28} color="rgb(0, 0, 0)" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>NPCI Daily Login</Text>
         <View style={{ width: 44 }} />
@@ -408,7 +408,7 @@ const DailyLogin = () => {
         {/* ── Shield & Title ──────────────────────────────────────────────── */}
         <Animated.View style={[styles.headerSection, { opacity: fadeAnim }]}>
           <View style={styles.shieldCircle}>
-            <MaterialCommunityIcons name="shield-lock" size={34} color="#B8860B" />
+            <MaterialCommunityIcons name="shield-lock" size={34} color="rgb(184, 134, 11)" />
           </View>
           <Text style={styles.mainTitle}>Merchant Login</Text>
           <Text style={styles.mainSubtitle}>
@@ -426,11 +426,11 @@ const DailyLogin = () => {
             {/* ── Aadhaar ─────────────────────────────────────────────── */}
             <Text style={styles.label}>AADHAAR NUMBER</Text>
             <View style={[styles.inputContainer, errors.aadhaar && styles.inputError]}>
-              <MaterialCommunityIcons name="face-recognition" size={24} color="#B8860B" />
+              <MaterialCommunityIcons name="face-recognition" size={24} color="rgb(184, 134, 11)" />
               <TextInput
                 style={styles.input}
                 placeholder="12 Digit Aadhaar Number"
-                placeholderTextColor="#A0A0A0"
+                placeholderTextColor="rgb(160, 160, 160)"
                 keyboardType="numeric"
                 maxLength={12}
                 value={aadhaarNumber}
@@ -446,11 +446,11 @@ const DailyLogin = () => {
             {/* ── Mobile ──────────────────────────────────────────────── */}
             <Text style={styles.label}>MOBILE NUMBER</Text>
             <View style={[styles.inputContainer, errors.mobile && styles.inputError]}>
-              <MaterialCommunityIcons name="phone" size={22} color="#B8860B" />
+              <MaterialCommunityIcons name="phone" size={22} color="rgb(184, 134, 11)" />
               <TextInput
                 style={styles.input}
                 placeholder="10 Digit Mobile Number"
-                placeholderTextColor="#A0A0A0"
+                placeholderTextColor="rgb(160, 160, 160)"
                 keyboardType="numeric"
                 maxLength={10}
                 value={mobileNumber}
@@ -472,7 +472,7 @@ const DailyLogin = () => {
                 <MaterialCommunityIcons
                   name="fingerprint"
                   size={32}
-                  color={authMethod === 'finger' ? '#FFF' : '#777'}
+                  color={authMethod === 'finger' ? 'rgb(255, 255, 255)' : 'rgb(119, 119, 119)'}
                 />
                 <Text
                   style={[
@@ -491,7 +491,7 @@ const DailyLogin = () => {
                 <MaterialCommunityIcons
                   name="face-recognition"
                   size={32}
-                  color={authMethod === 'face' ? '#FFF' : '#777'}
+                  color={authMethod === 'face' ? 'rgb(255, 255, 255)' : 'rgb(119, 119, 119)'}
                 />
                 <Text
                   style={[
@@ -519,14 +519,14 @@ const DailyLogin = () => {
                   onPress={() => setShowDeviceList((v) => !v)}
                   activeOpacity={0.7}
                 >
-                  <MaterialCommunityIcons name="usb-flash-drive" size={20} color="#B8860B" />
+                  <MaterialCommunityIcons name="usb-flash-drive" size={20} color="rgb(184, 134, 11)" />
                   <Text style={selectedDeviceLabel ? styles.pickerValue : styles.pickerPlaceholder}>
                     {selectedDeviceLabel ?? 'Choose scanner'}
                   </Text>
                   <MaterialCommunityIcons
                     name={showDeviceList ? 'chevron-up' : 'chevron-down'}
                     size={20}
-                    color="#A0A0A0"
+                    color="rgb(160, 160, 160)"
                   />
                 </TouchableOpacity>
 
@@ -553,7 +553,7 @@ const DailyLogin = () => {
                           {d.label}
                         </Text>
                         {device === d.value && (
-                          <MaterialCommunityIcons name="check" size={18} color="#1A1A2E" />
+                          <MaterialCommunityIcons name="check" size={18} color={Colors.primary} />
                         )}
                       </TouchableOpacity>
                     ))}
@@ -582,8 +582,8 @@ const DailyLogin = () => {
                 disabled={isSubmitDisabled}
                 activeOpacity={0.85}
               >
-                <MaterialCommunityIcons name="fingerprint" size={24} color="#FFF" style={{ marginRight: 10 }} />
-                <Text style={styles.submitBtnText}>
+                <MaterialCommunityIcons name="fingerprint" size={24} color={isSubmitDisabled ? Colors.slate_500 : Colors.white} style={{ marginRight: 10 }} />
+                <Text style={[styles.submitBtnText, isSubmitDisabled && { color: Colors.slate_500 }]}>
                   {authMethod === 'face' ? 'Start Face Authentication' : 'Capture Fingerprint'}
                 </Text>
               </TouchableOpacity>
@@ -608,11 +608,11 @@ export default DailyLogin;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF3E1',
+    backgroundColor: Colors.beige,
   },
   customHeader: {
     height: rs(60),
-    backgroundColor: '#1A1A2E',
+    backgroundColor: Colors.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -624,12 +624,12 @@ const styles = StyleSheet.create({
     width: rs(40),
     height: rs(40),
     borderRadius: rs(20),
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.white,
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTitle: {
-    color: '#FFF',
+    color: 'rgb(255, 255, 255)',
     fontSize: rs(16),
     fontWeight: '700',
   },
@@ -646,7 +646,7 @@ const styles = StyleSheet.create({
     width: rs(72),
     height: rs(72),
     borderRadius: rs(36),
-    backgroundColor: '#FFF',
+    backgroundColor: 'rgb(255, 255, 255)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: rs(15),
@@ -654,26 +654,28 @@ const styles = StyleSheet.create({
   mainTitle: {
     fontSize: rs(24),
     fontWeight: '700',
-    color: '#333',
+    color: 'rgb(51, 51, 51)',
   },
   mainSubtitle: {
     fontSize: rs(13),
-    color: '#888',
+    color: 'rgb(136, 136, 136)',
     textAlign: 'center',
     marginTop: rs(4),
     maxWidth: '85%',
     lineHeight: rs(18),
   },
   card: {
-    backgroundColor: '#F9E7C4',
+    backgroundColor: Colors.beige,
     marginHorizontal: rs(15),
     padding: rs(20),
     borderRadius: rs(30),
+    borderWidth: 1,
+    borderColor: "rgba(245,158,11,0.30)",
   },
   label: {
     fontSize: rs(10),
     fontWeight: '700',
-    color: '#888',
+    color: 'rgb(136, 136, 136)',
     marginTop: rs(14),
     marginBottom: rs(8),
     letterSpacing: 0.8,
@@ -681,7 +683,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: 'rgb(255, 255, 255)',
     borderRadius: rs(18),
     paddingHorizontal: rs(16),
     height: rs(54),
@@ -689,16 +691,16 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     marginLeft: rs(10),
-    color: '#222',
+    color: 'rgb(34, 34, 34)',
     fontSize: rs(14),
     fontWeight: '500',
   },
   inputError: {
     borderWidth: 1,
-    borderColor: '#EF4444',
+    borderColor: Colors.red,
   },
   error: {
-    color: '#EF4444',
+    color: Colors.red,
     fontSize: rs(10),
     marginTop: rs(4),
     marginLeft: rs(12),
@@ -711,41 +713,41 @@ const styles = StyleSheet.create({
   authTile: {
     flex: 1,
     height: rs(90),
-    backgroundColor: '#FFF',
+    backgroundColor: 'rgb(255, 255, 255)',
     borderRadius: rs(20),
     alignItems: 'center',
     justifyContent: 'center',
     gap: rs(6),
   },
   authTileActive: {
-    backgroundColor: '#1A1A2E',
+    backgroundColor: 'rgb(26, 26, 46)',
   },
   authTileText: {
     fontSize: rs(13),
-    color: '#777',
+    color: 'rgb(119, 119, 119)',
     fontWeight: '600',
   },
   authTileTextActive: {
-    color: '#FFF',
+    color: 'rgb(255, 255, 255)',
   },
   picker: {
     justifyContent: 'space-between',
   },
   pickerPlaceholder: {
-    color: '#BBB',
+    color: 'rgb(187, 187, 187)',
     fontSize: rs(14),
     flex: 1,
     marginLeft: rs(10),
   },
   pickerValue: {
-    color: '#333',
+    color: 'rgb(51, 51, 51)',
     fontSize: rs(14),
     flex: 1,
     marginLeft: rs(10),
     fontWeight: '500',
   },
   dropdown: {
-    backgroundColor: '#FFF',
+    backgroundColor: 'rgb(255, 255, 255)',
     borderRadius: rs(18),
     marginTop: rs(10),
     paddingVertical: rs(6),
@@ -757,17 +759,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#F5F5F5',
+    borderBottomColor: 'rgb(245, 245, 245)',
   },
   dropdownItemActive: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: 'rgb(248, 250, 252)',
   },
   dropdownText: {
-    color: '#444',
+    color: 'rgb(68, 68, 68)',
     fontSize: rs(13),
   },
   dropdownTextActive: {
-    color: '#1A1A2E',
+    color: 'rgb(26, 26, 46)',
     fontWeight: '700',
   },
   rdBanner: {
@@ -778,11 +780,11 @@ const styles = StyleSheet.create({
   },
   rdBannerText: {
     fontSize: rs(11),
-    color: '#666',
+    color: 'rgb(102, 102, 102)',
   },
   installLink: {
     fontSize: rs(11),
-    color: '#EF4444',
+    color: 'rgb(239, 68, 68)',
     fontWeight: '700',
   },
   instructionRow: {
@@ -795,16 +797,16 @@ const styles = StyleSheet.create({
     width: rs(6),
     height: rs(6),
     borderRadius: rs(3),
-    backgroundColor: '#B8860B',
+    backgroundColor: 'rgb(184, 134, 11)',
     marginRight: rs(8),
   },
   instructionText: {
     fontSize: rs(12),
-    color: '#888',
+    color: 'rgb(136, 136, 136)',
     fontWeight: '500',
   },
   submitBtn: {
-    backgroundColor: '#1A1A2E',
+    backgroundColor: 'rgb(26, 26, 46)',
     height: rs(58),
     flexDirection: 'row',
     alignItems: 'center',
@@ -812,10 +814,10 @@ const styles = StyleSheet.create({
     borderRadius: rs(20),
   },
   submitBtnDisabled: {
-    backgroundColor: '#555',
+    backgroundColor: Colors.gold,
   },
   submitBtnText: {
-    color: '#FFF',
+    color: 'rgb(255, 255, 255)',
     fontWeight: '700',
     fontSize: rs(15),
     letterSpacing: 0.5,
@@ -827,7 +829,7 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: rs(10),
-    color: '#AAA',
+    color: 'rgb(170, 170, 170)',
     letterSpacing: 1.2,
     fontWeight: '600',
   },

@@ -47,7 +47,7 @@ export default function Signup({ navigation }) {
     const btnScale = useRef(new Animated.Value(1)).current;
 
     // Simplified Focus Animations
-    const getBorderColor = (isFocused) => isFocused ? Colors.input_border_focus : Colors.input_border;
+    const getBorderColor = (isFocused) => isFocused ? Colors.primary : Colors.input_border;
     const getScale = (isFocused) => isFocused ? 1.02 : 1;
     const getBgColor = (isFocused) => isFocused ? Colors.white : Colors.input_bg;
 
@@ -181,10 +181,10 @@ export default function Signup({ navigation }) {
                         }
                     ]}
                 >
-                    <MaterialCommunityIcons name={icon} size={20} color={hasError ? Colors.red : isFocused ? Colors.icon_primary : Colors.icon_secondary} style={styles.inputIcon} />
+                    <MaterialCommunityIcons name={icon} size={20} color={hasError ? Colors.red : isFocused ? Colors.black : Colors.gray} style={styles.inputIcon} />
                     <TextInput
                         placeholder={`Enter ${label}`}
-                        placeholderTextColor={Colors.text_placeholder}
+                        placeholderTextColor={Colors.gray}
                         keyboardType={keyboardType}
                         value={value}
                         onChangeText={(text) => {
@@ -255,7 +255,7 @@ export default function Signup({ navigation }) {
                                         justifyContent: 'space-between',
                                         paddingHorizontal: 16 * scale,
                                         backgroundColor: roleOpen ? Colors.white : Colors.input_bg,
-                                        borderColor: errors.role ? Colors.red : roleOpen ? Colors.input_border_focus : Colors.input_border
+                                        borderColor: errors.role ? Colors.red : roleOpen ? Colors.primary : Colors.input_border
                                     }
                                 ]}
                                 onPress={() => {
@@ -265,12 +265,12 @@ export default function Signup({ navigation }) {
                                 activeOpacity={0.85}
                             >
                                 <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                                    <MaterialCommunityIcons name="account-group-outline" size={20} color={errors.role ? Colors.red : role ? Colors.icon_primary : Colors.icon_secondary} style={styles.inputIcon} />
-                                    <Text style={[styles.input, { color: role ? Colors.black : Colors.text_placeholder }]}>
+                                    <MaterialCommunityIcons name="account-group-outline" size={20} color={errors.role ? Colors.red : role ? Colors.black : Colors.gray} style={styles.inputIcon} />
+                                    <Text style={[styles.input, { color: role ? Colors.black : Colors.gray }]}>
                                         {rolesList.find(r => r.value === role)?.label || "Select Role..."}
                                     </Text>
                                 </View>
-                                <MaterialCommunityIcons name="chevron-down" size={20} color={Colors.icon_secondary} />
+                                <MaterialCommunityIcons name="chevron-down" size={20} color={Colors.gray} />
                             </TouchableOpacity>
 
                             {errors.role && (
@@ -288,7 +288,7 @@ export default function Signup({ navigation }) {
                                                 style={[
                                                     styles.customDropItem,
                                                     index === rolesList.length - 1 && { borderBottomWidth: 0 },
-                                                    role === r.value && { backgroundColor: Colors.whiteOpacity_12 }
+                                                    role === r.value && { backgroundColor: "rgba(255,255,255,0.12)" }
                                                 ]}
                                                 onPress={() => {
                                                     setRole(r.value);
@@ -346,16 +346,18 @@ const styles = StyleSheet.create({
     header: { alignItems: "center", marginBottom: 20 * scale, marginTop: 40 * scale },
     logoContainer: {
         width: 64 * scale, height: 64 * scale, borderRadius: 18 * scale,
-        backgroundColor: Colors.button_bg, justifyContent: 'center', alignItems: 'center',    },
+        backgroundColor: Colors.primary, justifyContent: 'center', alignItems: 'center',
+    },
     logoText: { fontSize: 32 * scale, fontFamily: Fonts.Bold, color: Colors.white },
-    appName: { fontSize: 24 * scale, fontFamily: Fonts.Bold, color: Colors.text_primary, letterSpacing: 0.5 },
+    appName: { fontSize: 24 * scale, fontFamily: Fonts.Bold, color: Colors.black, letterSpacing: 0.5 },
     card: {
-        marginHorizontal: 16 * scale, backgroundColor: Colors.secondary, borderRadius: 24 * scale,
-        padding: 16 * scale,     },
+        marginHorizontal: 16 * scale, backgroundColor: Colors.beige, borderRadius: 24 * scale,
+        padding: 16 * scale,
+    },
     welcome: { fontSize: 22 * scale, fontFamily: Fonts.Bold, textAlign: "center", color: Colors.primary },
     subTitle: { fontSize: 13 * scale, fontFamily: Fonts.Medium, color: Colors.text_secondary, textAlign: "center", marginTop: 6 * scale, marginBottom: 20 * scale },
     inputContainer: { marginBottom: 16 * scale },
-    label: { fontSize: 13 * scale, fontFamily: Fonts.Bold, color: Colors.text_primary, marginBottom: 6 * scale, marginLeft: 4 * scale },
+    label: { fontSize: 13 * scale, fontFamily: Fonts.Bold, color: Colors.black, marginBottom: 6 * scale, marginLeft: 4 * scale },
     inputBox: {
         flexDirection: "row", alignItems: "center", borderRadius: 30 * scale, height: 50 * scale,
         paddingHorizontal: 16 * scale, borderWidth: 1
@@ -370,12 +372,13 @@ const styles = StyleSheet.create({
     },
     input: { flex: 1, fontSize: 15 * scale, color: Colors.black, fontFamily: Fonts.Medium, padding: 0 },
     loginBtn: {
-        backgroundColor: Colors.button_bg, borderRadius: 25 * scale, height: 50 * scale,
-        justifyContent: "center", alignItems: "center",     },
+        backgroundColor: Colors.primary, borderRadius: 25 * scale, height: 50 * scale,
+        justifyContent: "center", alignItems: "center",
+    },
     loginText: { color: Colors.white, fontSize: 16 * scale, fontFamily: Fonts.Bold, letterSpacing: 0.5 },
     signupContainer: { flexDirection: 'row', justifyContent: 'center', marginTop: 20 * scale },
     signupText: { fontSize: 13 * scale, color: Colors.text_secondary, fontFamily: Fonts.Medium },
-    signupLink: { color: Colors.text_link, fontFamily: Fonts.Bold, fontSize: 13 * scale },
+    signupLink: { color: Colors.primary, fontFamily: Fonts.Bold, fontSize: 13 * scale },
     circle1: {
         position: 'absolute', width: 250 * scale, height: 250 * scale, borderRadius: 125 * scale,
         backgroundColor: Colors.circle_bg, top: -70 * scale, right: -70 * scale,
@@ -385,9 +388,10 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.circle_bg, bottom: -40 * scale, left: -40 * scale,
     },
     customDropContainer: {
-        backgroundColor: Colors.button_bg,
+        backgroundColor: Colors.primary,
         borderRadius: 16 * scale,
-        marginTop: 6 * scale,        overflow: 'hidden',
+        marginTop: 6 * scale,
+        overflow: 'hidden',
     },
     customDropItem: {
         flexDirection: 'row',
@@ -396,7 +400,7 @@ const styles = StyleSheet.create({
         paddingVertical: 14 * scale,
         paddingHorizontal: 16 * scale,
         borderBottomWidth: 1,
-        borderBottomColor: Colors.whiteOpacity_12,
+        borderBottomColor: "rgba(255,255,255,0.12)",
     },
     customDropText: {
         fontSize: 14 * scale,

@@ -137,8 +137,8 @@ function DashboardContent({ onTransfer, onAddBank, banks, loading, onRefresh, ba
             <Text style={styles.bcAmount}>₹{Number(main).toLocaleString('en-IN')}<Text style={styles.bcDecimal}>.{decimal || '00'}</Text></Text>
           </View>
           <TouchableOpacity style={styles.refreshBtn} onPress={onRefresh} disabled={loading}>
-            <ActivityIndicator size="small" color={Colors.whiteOpacity_60} animating={loading} style={{ position: 'absolute' }} />
-            {!loading && <Icon name="refresh" size={rs(20)} color={Colors.whiteOpacity_60} />}
+            <ActivityIndicator size="small" color={"rgba(255,255,255,0.60)"} animating={loading} style={{ position: 'absolute' }} />
+            {!loading && <Icon name="refresh" size={rs(20)} color={"rgba(255,255,255,0.60)"} />}
           </TouchableOpacity>
         </View>
 
@@ -169,11 +169,11 @@ function DashboardContent({ onTransfer, onAddBank, banks, loading, onRefresh, ba
 
       <View style={styles.managementCard}>
         <View style={styles.manageGrid}>
-          <FeatureCard icon="account-plus" label="Add Bank" color="#10B981" onPress={onAddBank} />
-          <FeatureCard icon="history" label="Txn History" color="#6366F1" onPress={() => navigation.navigate("AEPS_Payout_Report")} />
+          <FeatureCard icon="account-plus" label="Add Bank" color="rgb(16, 185, 129)" onPress={onAddBank} />
+          <FeatureCard icon="history" label="Txn History" color={Colors.indigo} onPress={() => navigation.navigate("AEPS_Payout_Report")} />
 
-          <FeatureCard icon="shield-check" label="Verification" color="#F59E0B" />
-          <FeatureCard icon="bank-transfer" label="Bulk Payout" color="#E11D48" />
+          <FeatureCard icon="shield-check" label="Verification" color={Colors.warning} />
+          <FeatureCard icon="bank-transfer" label="Bulk Payout" color="rgb(225, 29, 72)" />
         </View>
       </View>
 
@@ -185,7 +185,7 @@ function DashboardContent({ onTransfer, onAddBank, banks, loading, onRefresh, ba
 
       {displayBanks.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Icon name="bank-off-outline" size={rs(40)} color={Colors.border} />
+          <Icon name="bank-off-outline" size={rs(40)} color={Colors.input_border} />
           <Text style={styles.emptyText}>No beneficiaries found</Text>
         </View>
       ) : displayBanks.slice(0, 5).map(bene => (
@@ -202,11 +202,11 @@ function DashboardContent({ onTransfer, onAddBank, banks, loading, onRefresh, ba
           <View style={styles.beneRightRow}>
             <View style={[
               styles.statusBadge,
-              { backgroundColor: (bene.status?.toLowerCase() === 'approved' || bene.status?.toLowerCase() === 'active') ? Colors.successOpacity_10 : Colors.warningOpacity_10 }
+              { backgroundColor: (bene.status?.toLowerCase() === 'approved' || bene.status?.toLowerCase() === 'active') ? "rgba(34,197,94,0.10)" : "rgba(245,158,11,0.10)" }
             ]}>
               <Text style={[
                 styles.statusText,
-                { color: (bene.status?.toLowerCase() === 'approved' || bene.status?.toLowerCase() === 'active') ? Colors.success : Colors.amber }
+                { color: (bene.status?.toLowerCase() === 'approved' || bene.status?.toLowerCase() === 'active') ? Colors.green : Colors.amber }
               ]}>
                 {bene.status || 'PENDING'}
               </Text>
@@ -221,7 +221,7 @@ function DashboardContent({ onTransfer, onAddBank, banks, loading, onRefresh, ba
                 onConfirm: () => onDeleteBank(bene._id)
               })}
             >
-              <Icon name="delete-outline" size={rs(18)} color={Colors.error} />
+              <Icon name="delete-outline" size={rs(18)} color={Colors.red} />
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -246,7 +246,7 @@ const FeatureCard = ({ icon, label, color, onPress }) => (
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.bg,
+    backgroundColor: Colors.beige,
   },
   container: {
     flex: 1,
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
   bcLabel: {
     fontSize: rs(11),
     fontFamily: Fonts.Bold,
-    color: Colors.whiteOpacity_60,
+    color: "rgba(255,255,255,0.60)",
     letterSpacing: 1.5,
   },
   bcAmount: {
@@ -283,16 +283,16 @@ const styles = StyleSheet.create({
   },
   bcDecimal: {
     fontSize: rs(16),
-    color: Colors.whiteOpacity_45,
+    color: "rgba(255,255,255,0.45)",
   },
   refreshBtn: {
     padding: rs(8),
-    backgroundColor: Colors.whiteOpacity_10,
+    backgroundColor: "rgba(255,255,255,0.1)",
     borderRadius: rs(12),
   },
   bcDivider: {
     height: 1,
-    backgroundColor: Colors.whiteOpacity_10,
+    backgroundColor: "rgba(255,255,255,0.1)",
     marginVertical: rs(20),
   },
   bcStats: {
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   bcStatLabel: {
     fontSize: rs(10),
     fontFamily: Fonts.Medium,
-    color: Colors.whiteOpacity_45,
+    color: "rgba(255,255,255,0.45)",
   },
   bcStatValue: {
     fontSize: rs(14),
@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
   bcStatDivider: {
     width: 1,
     height: rs(24),
-    backgroundColor: Colors.whiteOpacity_10,
+    backgroundColor: "rgba(255,255,255,0.1)",
     marginHorizontal: rs(10),
   },
   topupBtn: {
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: rs(16),
     fontFamily: Fonts.Bold,
-    color: Colors.text_primary,
+    color: Colors.black,
   },
   viewMore: {
     fontSize: rs(13),
@@ -355,14 +355,13 @@ const styles = StyleSheet.create({
 
   // ── Management Card ──
   managementCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.beige,
     borderRadius: rs(20),
     paddingVertical: rs(16),
     paddingHorizontal: rs(10),
     marginBottom: rs(28),
     borderWidth: 1,
-    borderColor: Colors.border,
-
+    borderColor: "rgba(245,158,11,0.30)",
   },
   manageGrid: {
     flexDirection: 'row',
@@ -393,14 +392,14 @@ const styles = StyleSheet.create({
 
   // ── Beneficiary List ──
   beneCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.beige,
     borderRadius: rs(20),
     padding: rs(12),
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: rs(12),
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: "rgba(245,158,11,0.30)",
   },
   beneIcon: {
     width: rs(44),
@@ -416,7 +415,7 @@ const styles = StyleSheet.create({
   beneName: {
     fontSize: rs(14),
     fontFamily: Fonts.Bold,
-    color: Colors.text_primary,
+    color: Colors.black,
   },
   beneDetail: {
     fontSize: rs(11),
@@ -447,17 +446,16 @@ const styles = StyleSheet.create({
 
   // ── Transfer Form ──
   formCard: {
-    backgroundColor: Colors.homebg,
+    backgroundColor: Colors.beige,
     borderRadius: rs(28),
     padding: rs(28),
     borderWidth: 1,
-    borderColor: Colors.border,
-
+    borderColor: "rgba(245,158,11,0.30)",
   },
   formTitle: {
     fontSize: rs(20),
     fontFamily: Fonts.Bold,
-    color: Colors.text_primary,
+    color: Colors.black,
   },
   formSub: {
     fontSize: rs(13),
@@ -472,7 +470,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: rs(12),
     fontFamily: Fonts.Bold,
-    color: Colors.text_primary,
+    color: Colors.black,
     marginBottom: rs(10),
     marginLeft: rs(4),
   },
@@ -481,7 +479,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: rs(18),
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.input_border,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: rs(16),
@@ -501,19 +499,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: rs(20),
     borderWidth: 1,
-    borderColor: Colors.amberOpacity_30,
+    borderColor: "rgba(245,158,11,0.30)",
   },
   currencySymbol: {
     fontSize: rs(24),
     fontFamily: Fonts.Bold,
-    color: Colors.text_primary,
+    color: Colors.black,
     marginRight: rs(8),
   },
   field: {
     flex: 1,
     fontSize: rs(24),
     fontFamily: Fonts.Bold,
-    color: Colors.text_primary,
+    color: Colors.black,
     padding: 0,
   },
   modeRow: {
@@ -528,7 +526,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.input_border,
   },
   modeBtnActive: {
     backgroundColor: Colors.primary,
@@ -609,10 +607,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: rs(40),
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.beige,
     borderRadius: rs(20),
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: "rgba(245,158,11,0.30)",
     borderStyle: 'dashed',
     marginBottom: rs(20),
   },

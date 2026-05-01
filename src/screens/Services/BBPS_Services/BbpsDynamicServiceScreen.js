@@ -293,7 +293,7 @@ const Dropdown = ({
       {/* Dropdown Portal via Modal as a Bottom Sheet */}
       <Modal visible={open} transparent animationType="none" onRequestClose={closeDrop}>
         <View style={ddStyles.modalOverlay}>
-          <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.blackOpacity_50, opacity: overlayOpacity }]}>
+          <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.5)", opacity: overlayOpacity }]}>
             <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={closeDrop} />
           </Animated.View>
 
@@ -318,7 +318,7 @@ const Dropdown = ({
                 <TextInput
                   style={ddStyles.searchInput}
                   placeholder={searchPlaceholder || "Search…"}
-                  placeholderTextColor="#B0B8CC"
+                  placeholderTextColor="rgb(176, 184, 204)"
                   value={search}
                   onChangeText={setSearch}
                 />
@@ -397,7 +397,7 @@ const DynamicField = ({ field, value, onChangeText, totalFields, index, onOpenCa
           <TextInput
             style={styles.textInput}
             placeholder={`Enter ${field.label}`}
-            placeholderTextColor="#B0B8CC"
+            placeholderTextColor="rgb(176, 184, 204)"
             keyboardType={field.type === "NUMERIC" || field.type === "NUM" ? "numeric" : field.type === "EMAIL" ? "email-address" : "default"}
             maxLength={field.maxLength > 0 ? field.maxLength : undefined}
             value={value}
@@ -883,7 +883,7 @@ const BbpsDynamicServiceScreen = () => {
               ].map(([lbl, val]) => (
                 <View key={lbl} style={styles.billRow}>
                   <Text style={styles.billLabel}>{lbl}</Text>
-                  <Text style={[styles.billValue, lbl === "Ref ID" && { fontSize: 11, color: "#6B7280" }]} numberOfLines={1}>{val}</Text>
+                  <Text style={[styles.billValue, lbl === "Ref ID" && { fontSize: 11, color: Colors.kyc_textSub }]} numberOfLines={1}>{val}</Text>
                 </View>
               ))}
 
@@ -941,7 +941,7 @@ const BbpsDynamicServiceScreen = () => {
                   <TextInput
                     style={styles.customAmountInput}
                     placeholder="Enter amount"
-                    placeholderTextColor="#9CA3AF"
+                    placeholderTextColor={Colors.kyc_textMuted}
                     keyboardType="numeric"
                     value={customAmountStr}
                     onChangeText={(txt) => {
@@ -990,19 +990,19 @@ const ddStyles = StyleSheet.create({
   wrap: { marginBottom: 18 },
   label: { fontSize: 11, fontWeight: "700", color: Colors.primary, letterSpacing: 0.8, marginBottom: 8 },
   trigger: {
-    borderWidth: 1, borderColor: Colors.lightGray,
+    borderWidth: 1, borderColor: Colors.gray,
     borderRadius: 14, paddingHorizontal: 16, paddingVertical: 15,
     backgroundColor: Colors.white,
     minHeight: 54, justifyContent: "center",
   },
-  triggerOpen: { borderColor: Colors.lightGray, borderWidth: 1 },
+  triggerOpen: { borderColor: Colors.gray, borderWidth: 1 },
   triggerDisabled: { opacity: 0.4 },
   row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   triggerTxt: { fontSize: 15, color: Colors.black, flex: 1 },
-  placeholder: { color: Colors.text_placeholder },
-  chevron: { fontSize: 20, color: Colors.slate_400, marginLeft: 10, transform: [{ rotate: "90deg" }] },
+  placeholder: { color: Colors.gray },
+  chevron: { fontSize: 20, color: Colors.gray, marginLeft: 10, transform: [{ rotate: "90deg" }] },
   chevronOpen: { transform: [{ rotate: "-90deg" }] },
-  loadingTxt: { fontSize: 14, color: Colors.slate_400 },
+  loadingTxt: { fontSize: 14, color: Colors.gray },
 
   dropdown: {
     backgroundColor: Colors.white,
@@ -1010,7 +1010,8 @@ const ddStyles = StyleSheet.create({
     borderTopRightRadius: 24,
     width: "100%",
     maxHeight: SCREEN_H * 0.7,
-    paddingBottom: 20,  },
+    paddingBottom: 20,
+  },
   modalOverlay: {
     flex: 1,
     justifyContent: "flex-end",
@@ -1018,7 +1019,7 @@ const ddStyles = StyleSheet.create({
   handle: {
     width: 40,
     height: 4,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: Colors.kyc_border,
     borderRadius: 2,
     alignSelf: "center",
     marginTop: 12,
@@ -1031,7 +1032,7 @@ const ddStyles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.slate_50,
+    borderBottomColor: Colors.bg_F8,
   },
   sheetTitle: {
     fontSize: 14,
@@ -1050,27 +1051,27 @@ const ddStyles = StyleSheet.create({
   searchWrap: {
     flexDirection: "row", alignItems: "center",
     paddingHorizontal: 16, paddingVertical: 12,
-    backgroundColor: Colors.slate_50,
+    backgroundColor: Colors.bg_F8,
     marginHorizontal: 14,
     marginTop: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: Colors.divider,
+    borderColor: Colors.input_border,
   },
-  searchIcon: { fontSize: 14, marginRight: 8, color: Colors.slate_400 },
+  searchIcon: { fontSize: 14, marginRight: 8, color: Colors.gray },
   searchInput: { flex: 1, fontSize: 15, color: Colors.black, paddingVertical: 0, height: 20 },
-  clearBtn: { fontSize: 14, color: Colors.slate_400, paddingLeft: 8 },
+  clearBtn: { fontSize: 14, color: Colors.gray, paddingLeft: 8 },
 
   item: {
     flexDirection: "row", alignItems: "center",
     paddingHorizontal: 14, paddingVertical: 13,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#F0F2F8",
+    borderBottomColor: "rgb(240, 242, 248)",
   },
   itemSelected: { backgroundColor: Colors.primary + "0D" },
   itemIconBox: {
     width: 34, height: 34, borderRadius: 10,
-    backgroundColor: Colors.slate_50,
+    backgroundColor: Colors.bg_F8,
     justifyContent: "center", alignItems: "center", marginRight: 12,
   },
   itemIconBoxSelected: { backgroundColor: Colors.primary + "1A" },
@@ -1079,21 +1080,21 @@ const ddStyles = StyleSheet.create({
   itemTxtSelected: { color: Colors.primary, fontWeight: "700" },
   checkmark: { fontSize: 14, color: Colors.primary, marginLeft: 8, fontWeight: "700" },
   emptyWrap: { paddingVertical: 24, alignItems: "center" },
-  emptyTxt: { fontSize: 13, color: Colors.text_placeholder },
+  emptyTxt: { fontSize: 13, color: Colors.gray },
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Calendar Styles
 // ─────────────────────────────────────────────────────────────────────────────
 const calStyles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: Colors.blackOpacity_50, justifyContent: "center", alignItems: "center", paddingHorizontal: 20 },
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", paddingHorizontal: 20 },
   card: { width: "100%", backgroundColor: Colors.white, borderRadius: 22, overflow: "hidden" },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: Colors.primary, paddingVertical: 16, paddingHorizontal: 18 },
   navBtn: { padding: 4 },
   navTxt: { fontSize: 26, color: Colors.white, fontWeight: "300", lineHeight: 30 },
   monthYearBtn: { flexDirection: "row", alignItems: "center" },
   monthYearTxt: { fontSize: 17, fontWeight: "700", color: Colors.white },
-  dropArrow: { fontSize: 12, color: Colors.whiteOpacity_80 },
+  dropArrow: { fontSize: 12, color: "rgba(255,255,255,0.80)" },
   dayRow: { flexDirection: "row", paddingHorizontal: 12, paddingTop: 14, paddingBottom: 6 },
   dayHeader: { flex: 1, textAlign: "center", fontSize: 12, fontWeight: "700", color: Colors.primary, letterSpacing: 0.3 },
   grid: { flexDirection: "row", flexWrap: "wrap", paddingHorizontal: 12, paddingBottom: 10 },
@@ -1101,16 +1102,16 @@ const calStyles = StyleSheet.create({
   cellSelected: { backgroundColor: Colors.primary },
   cellToday: { borderWidth: 1.5, borderColor: Colors.primary },
   cellDisabled: { opacity: 0.25 },
-  cellTxt: { fontSize: 14, color: Colors.slate_900 },
+  cellTxt: { fontSize: 14, color: Colors.primary },
   cellTxtSelected: { color: Colors.white, fontFamily: Fonts.Bold },
   cellTxtToday: { color: Colors.primary, fontFamily: Fonts.Bold },
-  cellTxtDisabled: { color: Colors.slate_400 },
+  cellTxtDisabled: { color: Colors.gray },
   yearList: { maxHeight: 250 },
-  yearItem: { height: 44, justifyContent: "center", alignItems: "center", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.divider },
+  yearItem: { height: 44, justifyContent: "center", alignItems: "center", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.input_border },
   yearItemSelected: { backgroundColor: Colors.primary + "15" },
-  yearItemTxt: { fontSize: 16, color: Colors.slate_900 },
+  yearItemTxt: { fontSize: 16, color: Colors.primary },
   yearItemTxtSelected: { color: Colors.primary, fontFamily: Fonts.Bold },
-  footer: { flexDirection: "row", justifyContent: "flex-end", paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: Colors.divider, gap: 12 },
+  footer: { flexDirection: "row", justifyContent: "flex-end", paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: Colors.input_border, gap: 12 },
   cancelBtn: { paddingHorizontal: 16, paddingVertical: 8 },
   cancelTxt: { fontSize: 14, color: Colors.slate_500, fontFamily: Fonts.SemiBold },
   todayBtn: { paddingHorizontal: 16, paddingVertical: 8, backgroundColor: Colors.primary + "15", borderRadius: 8 },
@@ -1124,19 +1125,20 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Colors.primary },
   header: { paddingVertical: 22, alignItems: "center" },
   headerTitle: { fontSize: 22, fontFamily: Fonts.Bold, color: Colors.white, letterSpacing: 0.3 },
-  headerSub: { fontSize: 12, fontFamily: Fonts.Regular, color: Colors.whiteOpacity_60, marginTop: 3 },
-  body: { flex: 1, backgroundColor: Colors.bg || "#F4F6FB", paddingHorizontal: 20, paddingTop: 22, borderTopLeftRadius: 26, borderTopRightRadius: 26 },
+  headerSub: { fontSize: 12, fontFamily: Fonts.Regular, color: "rgba(255,255,255,0.60)", marginTop: 3 },
+  body: { flex: 1, backgroundColor: Colors.beige || "rgb(244, 246, 251)", paddingHorizontal: 20, paddingTop: 22, borderTopLeftRadius: 26, borderTopRightRadius: 26 },
 
   serviceBanner: {
     flexDirection: "row", alignItems: "center",
     backgroundColor: Colors.white,
     paddingHorizontal: 16, paddingVertical: 14,
-    borderRadius: 16, marginBottom: 20,    borderWidth: 1, borderColor: "rgba(0,0,0,0.02)",
+    borderRadius: 16, marginBottom: 20,
+    borderWidth: 1, borderColor: "rgba(0,0,0,0.02)",
   },
   bannerBbpsLogo: { width: 70, height: 60, resizeMode: "contain", marginLeft: 10 },
   serviceIconCircle: {
     width: 44, height: 44, borderRadius: 14,
-    backgroundColor: Colors.slate_50,
+    backgroundColor: Colors.bg_F8,
     justifyContent: "center", alignItems: "center", marginRight: 14,
   },
   serviceIcon: { fontSize: 22 },
@@ -1144,65 +1146,65 @@ const styles = StyleSheet.create({
   serviceBannerSubText: { fontSize: 11, fontFamily: Fonts.Regular, color: Colors.slate_500, marginTop: 4, lineHeight: 16 },
 
   fieldsWrap: { marginTop: 6 },
-  sectionTitle: { fontSize: 11, fontFamily: Fonts.Bold, color: Colors.primary, letterSpacing: 0.8, marginBottom: 14, borderBottomWidth: 1, borderBottomColor: Colors.divider, paddingBottom: 8 },
+  sectionTitle: { fontSize: 11, fontFamily: Fonts.Bold, color: Colors.primary, letterSpacing: 0.8, marginBottom: 14, borderBottomWidth: 1, borderBottomColor: Colors.input_border, paddingBottom: 8 },
   inputBlock: { marginBottom: 18 },
   inputLabel: { fontSize: 13, fontFamily: Fonts.SemiBold, color: Colors.black, marginBottom: 7 },
-  req: { color: Colors.error },
-  textInput: { borderWidth: 1, borderColor: Colors.divider, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14, backgroundColor: Colors.white, fontSize: 15, color: Colors.black },
+  req: { color: Colors.red },
+  textInput: { borderWidth: 1, borderColor: Colors.input_border, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14, backgroundColor: Colors.white, fontSize: 15, color: Colors.black },
   dobInput: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 14 },
   dobTxt: { fontSize: 15, color: Colors.black, flex: 1 },
   calIcon: { fontSize: 20 },
-  inputError: { borderColor: Colors.error, backgroundColor: Colors.error_light },
-  errorInline: { fontSize: 12, color: Colors.error, marginTop: 4, marginLeft: 2 },
-  hint: { fontSize: 11, color: Colors.slate_400, marginTop: 4, marginLeft: 2 },
+  inputError: { borderColor: Colors.red, backgroundColor: Colors.error_light },
+  errorInline: { fontSize: 12, color: Colors.red, marginTop: 4, marginLeft: 2 },
+  hint: { fontSize: 11, color: Colors.gray, marginTop: 4, marginLeft: 2 },
 
-  infoTxt: { textAlign: "center", color: Colors.slate_400, fontSize: 13, marginVertical: 18 },
-  errorBox: { marginVertical: 18, padding: 16, backgroundColor: Colors.error_light, borderRadius: 12, borderWidth: 1, borderColor: Colors.divider, alignItems: "center" },
+  infoTxt: { textAlign: "center", color: Colors.gray, fontSize: 13, marginVertical: 18 },
+  errorBox: { marginVertical: 18, padding: 16, backgroundColor: Colors.error_light, borderRadius: 12, borderWidth: 1, borderColor: Colors.input_border, alignItems: "center" },
   errorTxt: { fontSize: 13, color: Colors.error_dark, textAlign: "center", lineHeight: 20 },
   retryBtn: { marginTop: 12, paddingHorizontal: 24, paddingVertical: 8, backgroundColor: Colors.primary, borderRadius: 8 },
   retryTxt: { color: Colors.white, fontSize: 13, fontFamily: Fonts.SemiBold },
   payBtn: { marginTop: 8, backgroundColor: Colors.finance_accent || Colors.primary, paddingVertical: 12, borderRadius: 16, alignItems: "center" },
   payBtnTxt: { color: Colors.white, fontSize: 16, fontFamily: Fonts.Bold, letterSpacing: 0.3 },
-  payBtnSub: { color: Colors.whiteOpacity_70, fontSize: 11, marginTop: 3 },
+  payBtnSub: { color: "rgba(255,255,255,0.7)", fontSize: 11, marginTop: 3 },
 
-  billDetailsCard: { backgroundColor: Colors.white, padding: 18, borderRadius: 16, borderWidth: 1, borderColor: Colors.divider, marginTop: 18 },
-  billTitle: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.black, marginBottom: 14, borderBottomWidth: 1, borderBottomColor: Colors.slate_50, paddingBottom: 8 },
+  billDetailsCard: { backgroundColor: Colors.white, padding: 18, borderRadius: 16, borderWidth: 1, borderColor: Colors.input_border, marginTop: 18 },
+  billTitle: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.black, marginBottom: 14, borderBottomWidth: 1, borderBottomColor: Colors.bg_F8, paddingBottom: 8 },
   billRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 7 },
   billLabel: { fontSize: 13, fontFamily: Fonts.Regular, color: Colors.slate_500 },
-  billValue: { fontSize: 14, fontFamily: Fonts.SemiBold, color: Colors.slate_900, flex: 1, textAlign: "right", marginLeft: 10 },
-  billAmountRow: { marginTop: 8, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.slate_50 },
-  billAmountLabel: { fontSize: 14, fontFamily: Fonts.Bold, color: Colors.slate_900 },
+  billValue: { fontSize: 14, fontFamily: Fonts.SemiBold, color: Colors.primary, flex: 1, textAlign: "right", marginLeft: 10 },
+  billAmountRow: { marginTop: 8, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.bg_F8 },
+  billAmountLabel: { fontSize: 14, fontFamily: Fonts.Bold, color: Colors.primary },
   billAmountValue: { fontSize: 18, fontFamily: Fonts.Bold, color: Colors.success_dark },
 
-  payOption: { flexDirection: "row", alignItems: "center", paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: Colors.slate_50, marginBottom: 4 },
+  payOption: { flexDirection: "row", alignItems: "center", paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: Colors.bg_F8, marginBottom: 4 },
   payOptionSelected: { backgroundColor: "transparent" },
-  radioOut: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: Colors.divider, justifyContent: "center", alignItems: "center", marginRight: 12 },
+  radioOut: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: Colors.input_border, justifyContent: "center", alignItems: "center", marginRight: 12 },
   radioOutSelected: { borderColor: Colors.primary },
   radioIn: { width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.primary },
   payOptionContent: { flex: 1, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   payOptionLabel: { fontSize: 14, fontFamily: Fonts.SemiBold, color: Colors.slate_500, flex: 1, paddingRight: 8 },
   payOptionLabelSelected: { color: Colors.primary },
-  payOptionValue: { fontSize: 15, fontFamily: Fonts.Bold, color: Colors.slate_900 },
+  payOptionValue: { fontSize: 15, fontFamily: Fonts.Bold, color: Colors.primary },
   payOptionValueSelected: { color: Colors.primary },
 
   customAmountContainer: {
     paddingHorizontal: 14, paddingVertical: 10,
-    backgroundColor: Colors.secondary, borderBottomWidth: 1, borderBottomColor: Colors.slate_50,
+    backgroundColor: Colors.white, borderBottomWidth: 1, borderBottomColor: Colors.bg_F8,
     flexDirection: "row", alignItems: "center"
   },
-  rsPrefix: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.slate_900, marginRight: 8 },
+  rsPrefix: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.primary, marginRight: 8 },
   customAmountInput: {
-    flex: 1, fontSize: 16, fontFamily: Fonts.SemiBold, color: Colors.slate_900, paddingVertical: 4
+    flex: 1, fontSize: 16, fontFamily: Fonts.SemiBold, color: Colors.primary, paddingVertical: 4
   },
 });
 
 const alertStyles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: Colors.blackOpacity_50, justifyContent: "center", alignItems: "center", padding: 30 },
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", padding: 30 },
   card: { backgroundColor: Colors.white, borderRadius: 24, padding: 25, width: "100%", alignItems: "center" },
   iconWrap: { width: 60, height: 60, borderRadius: 30, backgroundColor: Colors.error_light, alignItems: "center", justifyContent: "center", marginBottom: 15 },
   iconWrapSuccess: { backgroundColor: Colors.success_light },
   icon: { fontSize: 30 },
-  title: { fontSize: 18, fontFamily: Fonts.Bold, color: Colors.slate_900, marginBottom: 8, textAlign: "center" },
+  title: { fontSize: 18, fontFamily: Fonts.Bold, color: Colors.primary, marginBottom: 8, textAlign: "center" },
   message: { fontSize: 14, fontFamily: Fonts.Regular, color: Colors.slate_700, textAlign: "center", lineHeight: 20, marginBottom: 20 },
   btn: { backgroundColor: Colors.finance_accent, paddingVertical: 12, paddingHorizontal: 35, borderRadius: 14 },
   btnTxt: { color: Colors.white, fontSize: 15, fontFamily: Fonts.Bold },

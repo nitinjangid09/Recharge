@@ -17,6 +17,7 @@ import {
     ActivityIndicator,
     RefreshControl,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '../../constants/Colors';
@@ -67,7 +68,7 @@ function DecorCircle({ size, top, right, opacity = 0.18 }) {
             style={{
                 position: 'absolute', top, right,
                 width: size, height: size, borderRadius: size / 2,
-                backgroundColor: Colors.whiteOpacity_08,
+                backgroundColor: "rgba(255,255,255,0.08)",
             }}
         />
     );
@@ -294,7 +295,7 @@ function WalletScreen({ navigation }) {
     };
 
     return (
-        <View style={{ flex: 1, backgroundColor: Colors.homebg }}>
+        <View style={{ flex: 1, backgroundColor: 'transparent' }}>
             <FullScreenLoader visible={loadingUsers || submittingRefill} label={submittingRefill ? "Processing refill..." : "Fetching users..."} />
             <HeaderBar
                 title="User Wallet Refill"
@@ -373,7 +374,7 @@ function WalletScreen({ navigation }) {
                                                 <Text style={styles.selectSubText}>{userProfile?.userName || selectedUser.code}</Text>
                                             </>
                                         ) : (
-                                            <Text style={[styles.selectText, { color: Colors.text_placeholder }]}>
+                                            <Text style={[styles.selectText, { color: Colors.gray }]}>
                                                 Select a user
                                             </Text>
                                         )}
@@ -429,7 +430,7 @@ function WalletScreen({ navigation }) {
                             setErrors(prev => ({ ...prev, amount: null }));
                         }}
                         placeholder="Enter amount"
-                        placeholderTextColor={Colors.text_placeholder}
+                        placeholderTextColor={Colors.gray}
                         keyboardType="numeric"
                     />
                     {!!errors.amount && (
@@ -548,12 +549,13 @@ function WalletScreen({ navigation }) {
 // ─── MAIN SCREEN ──────────────────────────────────────────────────────────────
 export default function UserWalletRefillScreen({ navigation }) {
     return (
-        <SafeAreaView style={styles.safeArea}>
-            {/* Screen Content */}
-            <View style={styles.screenContainer}>
-                <WalletScreen navigation={navigation} />
-            </View>
-        </SafeAreaView>
+        <LinearGradient colors={Colors.background_gradient} style={{ flex: 1 }}>
+            <SafeAreaView style={styles.safeArea}>
+                <View style={styles.screenContainer}>
+                    <WalletScreen navigation={navigation} />
+                </View>
+            </SafeAreaView>
+        </LinearGradient>
     );
 }
 
@@ -570,17 +572,14 @@ const styles = StyleSheet.create({
     },
     safeArea: {
         flex: 1,
-        backgroundColor: Colors.homebg,
     },
 
     // Screen
     screenContainer: {
         flex: 1,
-        backgroundColor: Colors.homebg,
     },
     screenScroll: {
         flex: 1,
-        backgroundColor: Colors.homebg,
     },
 
     // Loading
@@ -603,8 +602,9 @@ const styles = StyleSheet.create({
         borderRadius: 24,
         padding: 24,
         marginHorizontal: 20,
-        marginBottom: 16,        borderWidth: 1,
-        borderColor: Colors.whiteOpacity_08,
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.08)",
     },
     walletHeroHeader: {
         flexDirection: 'row',
@@ -615,7 +615,7 @@ const styles = StyleSheet.create({
 
     walletHeroLabel: {
         fontSize: 12,
-        color: Colors.whiteOpacity_60,
+        color: "rgba(255,255,255,0.60)",
         fontWeight: '600',
         letterSpacing: 0.5,
     },
@@ -626,7 +626,7 @@ const styles = StyleSheet.create({
     walletDivider: {
         width: 1,
         height: 35,
-        backgroundColor: Colors.whiteOpacity_15,
+        backgroundColor: "rgba(255,255,255,0.15)",
         marginHorizontal: 20,
     },
     walletStatItem: {
@@ -655,27 +655,29 @@ const styles = StyleSheet.create({
 
     // Card
     refillCard: {
-        backgroundColor: Colors.secondary,
+        backgroundColor: Colors.beige,
         borderRadius: 20,
         padding: 24,
         marginHorizontal: 20,
         marginBottom: 16,
-
+        borderWidth: 1,
+        borderColor: Colors.input_border,
     },
     profileCard: {
-        backgroundColor: Colors.secondary,
+        backgroundColor: Colors.beige,
         borderRadius: 20,
         padding: 24,
         marginHorizontal: 20,
         marginBottom: 16,
-
+        borderWidth: 1,
+        borderColor: Colors.input_border,
     },
 
     // Select / Input
     fieldLabel: {
         fontSize: 10,
         fontWeight: '700',
-        color: Colors.text_primary,
+        color: Colors.black,
         letterSpacing: 1.2,
         marginBottom: 7,
         textTransform: 'uppercase',
@@ -690,12 +692,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         borderWidth: 1,
-        borderColor: Colors.secondary,
-        marginBottom: 4,    },
+        borderColor: Colors.input_border,
+        marginBottom: 4,
+    },
     selectText: {
         fontSize: 14,
         fontWeight: '600',
-        color: Colors.text_primary,
+        color: Colors.black,
     },
     selectSubText: {
         fontSize: 11,
@@ -717,22 +720,23 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.white,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: Colors.secondary,
+        borderColor: Colors.input_border,
         overflow: 'hidden',
-        zIndex: 999,        maxHeight: 250,
+        zIndex: 999,
+        maxHeight: 250,
     },
     dropdownItem: {
         paddingVertical: 12,
         paddingHorizontal: 16,
         borderBottomWidth: 1,
-        borderBottomColor: Colors.divider,
+        borderBottomColor: Colors.input_border,
     },
     dropdownItemActive: {
-        backgroundColor: Colors.blackOpacity_05,
+        backgroundColor: "rgba(0,0,0,0.05)",
     },
     dropdownItemText: {
         fontSize: 14,
-        color: Colors.text_primary,
+        color: Colors.black,
         fontWeight: '600',
     },
     dropdownItemTextActive: {
@@ -757,9 +761,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         fontSize: 14,
         fontFamily: Fonts.Medium,
-        color: Colors.text_primary,
+        color: Colors.black,
         borderWidth: 1,
-        borderColor: Colors.secondary,    },
+        borderColor: Colors.input_border,
+    },
 
     // Quick Amounts
     quickAmounts: {
@@ -775,14 +780,16 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
-        borderColor: Colors.secondary,    },
+        borderColor: Colors.input_border,
+    },
     quickBtnActive: {
         backgroundColor: Colors.primary,
-        borderColor: Colors.finance_accent,    },
+        borderColor: Colors.finance_accent,
+    },
     quickBtnText: {
         fontSize: 13,
         fontWeight: '800',
-        color: Colors.text_primary,
+        color: Colors.black,
     },
     quickBtnTextActive: {
         color: Colors.finance_accent,
@@ -795,7 +802,8 @@ const styles = StyleSheet.create({
         borderRadius: 14,
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: 14,    },
+        marginTop: 14,
+    },
     primaryBtnText: {
         fontSize: 14,
         fontWeight: '800',
@@ -842,7 +850,7 @@ const styles = StyleSheet.create({
     profileName: {
         fontSize: 16,
         fontWeight: '800',
-        color: Colors.text_primary,
+        color: Colors.black,
         letterSpacing: -0.2,
     },
     profileUid: {
@@ -857,7 +865,7 @@ const styles = StyleSheet.create({
     },
     profileMetaValue: {
         fontSize: 13,
-        color: Colors.text_primary,
+        color: Colors.black,
         fontWeight: '500',
     },
 
@@ -884,7 +892,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 16,
         fontWeight: '800',
-        color: Colors.text_primary,
+        color: Colors.black,
     },
     seeAll: {
         fontSize: 12,
@@ -894,7 +902,7 @@ const styles = StyleSheet.create({
 
     // Transaction Row
     txnRow: {
-        backgroundColor: Colors.secondary,
+        backgroundColor: Colors.beige,
         borderRadius: 20,
         padding: 18,
         flexDirection: 'row',
@@ -902,7 +910,8 @@ const styles = StyleSheet.create({
         gap: 16,
         marginHorizontal: 20,
         marginBottom: 12,
-
+        borderWidth: 1,
+        borderColor: Colors.input_border,
     },
     txnIcon: {
         width: 48,
@@ -910,7 +919,8 @@ const styles = StyleSheet.create({
         borderRadius: 14,
         backgroundColor: Colors.white,
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'center',
+
     },
     txnIconText: {
         fontSize: 20,
@@ -918,7 +928,7 @@ const styles = StyleSheet.create({
     txnName: {
         fontSize: 15,
         fontWeight: '800',
-        color: Colors.text_primary,
+        color: Colors.black,
         letterSpacing: -0.2,
     },
     txnMeta: {

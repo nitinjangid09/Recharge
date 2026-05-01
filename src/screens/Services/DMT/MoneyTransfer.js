@@ -309,7 +309,7 @@ const MoneyTransferScreen = ({ route, navigation }) => {
               <TextInput
                 style={styles.input}
                 placeholder="Enter Amount"
-                placeholderTextColor={Colors.text_placeholder}
+                placeholderTextColor={Colors.gray}
                 keyboardType="numeric"
                 value={amount}
                 onChangeText={(t) => {
@@ -388,9 +388,14 @@ const MoneyTransferScreen = ({ route, navigation }) => {
             )}
 
             <Animated.View style={{ transform: [{ scale: btnScale }], marginTop: vs(20) }}>
-              <TouchableOpacity style={styles.button} onPress={handleConfirm} activeOpacity={0.88}>
-                <Text style={styles.buttonText}>Proceed Transfer</Text>
-                <Text style={styles.btnArrowTxt}>→</Text>
+              <TouchableOpacity
+                style={[styles.button, { backgroundColor: (amount.length > 0 && Number(amount) > 0) ? Colors.primary : Colors.gold }]}
+                onPress={handleConfirm}
+                disabled={!amount || Number(amount) <= 0}
+                activeOpacity={0.88}
+              >
+                <Text style={[styles.buttonText, { color: (amount.length > 0 && Number(amount) > 0) ? Colors.white : Colors.slate_500 }]}>Proceed Transfer</Text>
+                <Text style={[styles.btnArrowTxt, { color: (amount.length > 0 && Number(amount) > 0) ? Colors.white : Colors.slate_500 }]}>→</Text>
               </TouchableOpacity>
             </Animated.View>
           </View>
@@ -454,7 +459,7 @@ const MoneyTransferScreen = ({ route, navigation }) => {
           <Animated.View
             style={[styles.modalCard, { opacity: otpOp, transform: [{ scale: otpScale }] }]}
           >
-            <View style={[styles.modalIconWrap, { backgroundColor: Colors.whiteOpacity_10 }]}>
+            <View style={[styles.modalIconWrap, { backgroundColor: "rgba(255,255,255,0.1)" }]}>
               <Text style={styles.modalIcon}>💬</Text>
             </View>
             <Text style={styles.modalTitle}>Verify OTP</Text>
@@ -466,7 +471,7 @@ const MoneyTransferScreen = ({ route, navigation }) => {
                   { flex: 1, textAlign: "center", fontSize: rs(22), letterSpacing: scale(8), fontWeight: "800" },
                 ]}
                 placeholder="• • • • • •"
-                placeholderTextColor={Colors.text_placeholder}
+                placeholderTextColor={Colors.gray}
                 keyboardType="number-pad"
                 value={otp}
                 onChangeText={(t) => {
@@ -485,15 +490,15 @@ const MoneyTransferScreen = ({ route, navigation }) => {
             </View>
 
             <TouchableOpacity
-              style={[styles.button, { marginTop: vs(16) }, submitting && { opacity: 0.7 }]}
+              style={[styles.button, { marginTop: vs(16), backgroundColor: (otp.length === 6 && !submitting) ? Colors.primary : Colors.gold }]}
               onPress={handleTransfer}
               activeOpacity={0.88}
-              disabled={submitting}
+              disabled={otp.length !== 6 || submitting}
             >
               {submitting ? (
                 <ActivityIndicator color={Colors.white} />
               ) : (
-                <Text style={styles.buttonText}>Verify &amp; Transfer</Text>
+                <Text style={[styles.buttonText, { color: otp.length === 6 ? Colors.white : Colors.slate_500 }]}>Verify &amp; Transfer</Text>
               )}
             </TouchableOpacity>
 
@@ -533,7 +538,7 @@ export default MoneyTransferScreen;
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.primary },
-  scroll: { flex: 1, backgroundColor: Colors.bg },
+  scroll: { flex: 1, backgroundColor: Colors.beige },
   scrollContent: { padding: scale(16), paddingBottom: vs(50) },
   header: {
     backgroundColor: Colors.primary,
@@ -547,9 +552,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     alignSelf: "flex-start",
-    backgroundColor: Colors.whiteOpacity_10,
+    backgroundColor: "rgba(255,255,255,0.1)",
     borderWidth: 1,
-    borderColor: Colors.whiteOpacity_18,
+    borderColor: "rgba(255,255,255,0.18)",
     borderRadius: scale(20),
     paddingHorizontal: scale(10),
     paddingVertical: vs(4),
@@ -581,7 +586,7 @@ const styles = StyleSheet.create({
   },
   headerSub: {
     fontFamily: Fonts.Medium,
-    color: Colors.whiteOpacity_65,
+    color: "rgba(255,255,255,0.65)",
     fontSize: rs(13),
     fontWeight: "500",
     marginBottom: vs(18),
@@ -589,9 +594,9 @@ const styles = StyleSheet.create({
   recipientChip: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.whiteOpacity_10,
+    backgroundColor: "rgba(255,255,255,0.1)",
     borderWidth: 1,
-    borderColor: Colors.whiteOpacity_18,
+    borderColor: "rgba(255,255,255,0.18)",
     borderRadius: scale(14),
     padding: scale(10),
     gap: scale(10),
@@ -608,7 +613,7 @@ const styles = StyleSheet.create({
   recipientName: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(13), fontWeight: "800" },
   recipientBank: {
     fontFamily: Fonts.Regular,
-    color: Colors.whiteOpacity_65,
+    color: "rgba(255,255,255,0.65)",
     fontSize: rs(10),
     marginTop: vs(2),
   },
@@ -622,9 +627,12 @@ const styles = StyleSheet.create({
   },
   verifiedTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(10), fontWeight: "900" },
   formCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.beige,
     borderRadius: scale(20),
-    padding: scale(18),  },
+    padding: scale(18),
+    borderWidth: 1,
+    borderColor: "rgba(245,158,11,0.30)",
+  },
   fieldHeading: {
     fontFamily: Fonts.Bold,
     fontSize: rs(9),
@@ -636,20 +644,20 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.gray_FA,
+    backgroundColor: Colors.bg_F8,
     borderRadius: scale(14),
     borderWidth: 1,
-    borderColor: Colors.gray_EB,
+    borderColor: "rgb(235, 235, 235)",
     paddingHorizontal: scale(14),
     minHeight: vs(54),
     marginBottom: vs(8),
   },
   inputError: {
-    borderColor: "#ef4444",
+    borderColor: Colors.red,
   },
   errorText: {
     fontFamily: Fonts.Bold,
-    color: "#ef4444",
+    color: Colors.red,
     fontSize: rs(10),
     marginTop: vs(2),
     marginBottom: vs(12),
@@ -662,36 +670,36 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     marginRight: scale(4),
   },
-  inputDivider: { width: 1, height: vs(20), backgroundColor: Colors.gray_E0, marginRight: scale(10) },
+  inputDivider: { width: 1, height: vs(20), backgroundColor: Colors.kyc_border, marginRight: scale(10) },
   input: {
     fontFamily: Fonts.Bold,
     flex: 1,
     fontSize: rs(15),
-    color: Colors.gray_21,
+    color: Colors.heroEnd,
     padding: 0,
     fontWeight: "700",
   },
   clearIcon: {
     fontFamily: Fonts.Bold,
-    color: Colors.gray_BD,
+    color: Colors.gray,
     fontSize: rs(14),
     fontWeight: "700",
     marginLeft: scale(6),
   },
   hintRow: { flexDirection: "row", alignItems: "flex-start", gap: scale(5), marginBottom: vs(2) },
   hintDot: { color: Colors.accent, fontSize: rs(12), lineHeight: rs(16), marginTop: vs(1) },
-  hintTxt: { fontFamily: Fonts.Regular, color: Colors.gray_9E, fontSize: rs(10), lineHeight: rs(16), flex: 1 },
+  hintTxt: { fontFamily: Fonts.Regular, color: Colors.gray, fontSize: rs(10), lineHeight: rs(16), flex: 1 },
   quickRow: { marginTop: vs(12), marginBottom: vs(4) },
   quickChip: {
     paddingHorizontal: scale(12),
     paddingVertical: vs(7),
     borderRadius: scale(20),
-    backgroundColor: Colors.gray_F0,
+    backgroundColor: "rgb(240, 240, 240)",
     borderWidth: 1,
-    borderColor: Colors.gray_E0,
+    borderColor: Colors.kyc_border,
   },
   quickChipActive: { backgroundColor: Colors.accent + "18", borderColor: Colors.accent },
-  quickChipTxt: { fontFamily: Fonts.Medium, fontSize: rs(11), color: Colors.gray_75, fontWeight: "600" },
+  quickChipTxt: { fontFamily: Fonts.Medium, fontSize: rs(11), color: "rgb(117, 117, 117)", fontWeight: "600" },
   quickChipTxtActive: { fontFamily: Fonts.Bold, color: Colors.accent, fontWeight: "800" },
   summaryBox: {
     marginTop: vs(16),
@@ -699,7 +707,7 @@ const styles = StyleSheet.create({
     borderRadius: scale(12),
     padding: scale(12),
     borderWidth: 1,
-    borderColor: Colors.gray_EB,
+    borderColor: "rgb(235, 235, 235)",
   },
   summaryRow: {
     flexDirection: "row",
@@ -707,17 +715,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: vs(5),
   },
-  summaryDivider: { height: 1, backgroundColor: Colors.gray_EB },
-  summaryLbl: { fontFamily: Fonts.Medium, fontSize: rs(11), color: Colors.gray_9E, fontWeight: "600" },
+  summaryDivider: { height: 1, backgroundColor: "rgb(235, 235, 235)" },
+  summaryLbl: { fontFamily: Fonts.Medium, fontSize: rs(11), color: Colors.gray, fontWeight: "600" },
   summaryVal: { fontFamily: Fonts.Bold, fontSize: rs(12), color: Colors.primary, fontWeight: "700" },
   button: {
-    backgroundColor: Colors.primary,
     borderRadius: scale(14),
     padding: vs(15),
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: scale(10),  },
+    gap: scale(10),
+  },
   buttonText: {
     fontFamily: Fonts.Bold,
     color: Colors.white,
@@ -729,7 +737,7 @@ const styles = StyleSheet.create({
     width: scale(26),
     height: scale(26),
     borderRadius: scale(13),
-    backgroundColor: Colors.whiteOpacity_10,
+    backgroundColor: "rgba(255,255,255,0.1)",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -743,19 +751,19 @@ const styles = StyleSheet.create({
     borderRadius: scale(12),
     padding: scale(12),
     borderWidth: 1,
-    borderColor: Colors.gray_EB,
+    borderColor: "rgb(235, 235, 235)",
   },
   secureNoteIcon: { fontSize: rs(14), marginTop: vs(1) },
   secureNoteTxt: {
     fontFamily: Fonts.Regular,
     flex: 1,
-    color: Colors.gray_9E,
+    color: Colors.gray,
     fontSize: rs(10),
     lineHeight: rs(16),
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: Colors.blackOpacity_45,
+    backgroundColor: "rgba(0,0,0,0.45)",
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: scale(24),
@@ -766,7 +774,8 @@ const styles = StyleSheet.create({
     borderRadius: scale(24),
     paddingVertical: vs(28),
     paddingHorizontal: scale(22),
-    alignItems: "center",  },
+    alignItems: "center",
+  },
   modalIconWrap: {
     width: scale(56),
     height: scale(56),
@@ -786,21 +795,21 @@ const styles = StyleSheet.create({
   modalSub: {
     fontFamily: Fonts.Medium,
     fontSize: rs(12),
-    color: Colors.gray_9E,
+    color: Colors.gray,
     marginBottom: vs(12),
     textAlign: "center",
   },
   modalRecipient: {
     fontFamily: Fonts.Regular,
     fontSize: rs(13),
-    color: Colors.gray_9E,
+    color: Colors.gray,
     textAlign: "center",
     marginBottom: vs(4),
   },
   modalBankInfo: {
     fontFamily: Fonts.Regular,
     fontSize: rs(11),
-    color: Colors.gray_BD,
+    color: Colors.gray,
     marginBottom: vs(20),
     textAlign: "center",
   },
@@ -819,19 +828,20 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: vs(13),
     borderRadius: scale(12),
-    backgroundColor: Colors.gray_F4,
+    backgroundColor: "rgb(244, 244, 244)",
     alignItems: "center",
   },
-  modalCancelTxt: { fontFamily: Fonts.Bold, color: Colors.gray_75, fontSize: rs(13), fontWeight: "700" },
+  modalCancelTxt: { fontFamily: Fonts.Bold, color: "rgb(117, 117, 117)", fontSize: rs(13), fontWeight: "700" },
   modalConfirmBtn: {
     flex: 2,
     paddingVertical: vs(13),
     borderRadius: scale(12),
     backgroundColor: Colors.accent,
-    alignItems: "center",  },
+    alignItems: "center",
+  },
   modalConfirmTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(13), fontWeight: "900" },
   otpFooter: { flexDirection: "row", alignItems: "center", gap: scale(12), marginTop: vs(14) },
   resendTxt: { fontFamily: Fonts.Bold, color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
-  otpDivider: { color: Colors.gray_E0, fontSize: rs(14) },
-  cancelTxt: { fontFamily: Fonts.Medium, color: Colors.gray_9E, fontSize: rs(12), fontWeight: "600" },
-});
+  otpDivider: { color: Colors.kyc_border, fontSize: rs(14) },
+  cancelTxt: { fontFamily: Fonts.Medium, color: Colors.gray, fontSize: rs(12), fontWeight: "600" },
+});

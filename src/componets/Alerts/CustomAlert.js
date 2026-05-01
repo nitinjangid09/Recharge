@@ -41,11 +41,11 @@ const S = width / 375;
 // ─── Type → accent color ──────────────────────────────────────────────────
 const getColor = (type) => {
   switch (type) {
-    case "success": return "#22C55E";
-    case "error": return "#EF4444";
-    case "warning": return "#F59E0B";
-    case "theme": return Colors.finance_accent || "#d4b06a";
-    default: return Colors.primary || "#6366F1";
+    case "success": return Colors.green;
+    case "error": return Colors.red;
+    case "warning": return Colors.warning;
+    case "theme": return Colors.finance_accent || Colors.finance_accent;
+    default: return Colors.primary || Colors.indigo;
   }
 };
 
@@ -119,7 +119,7 @@ const CustomAlert = ({
                   onPress={onClose}
                   activeOpacity={0.7}
                 >
-                  <Text style={[styles.alertBtnTxt, { color: "#64748B" }]}>{cancelText}</Text>
+                  <Text style={[styles.alertBtnTxt, { color: Colors.slate_500 }]}>{cancelText}</Text>
                 </TouchableOpacity>
               )}
 
@@ -159,7 +159,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: 22 * S,
     alignItems: "center",
-    overflow: "hidden",    paddingBottom: 28 * S,
+    overflow: "hidden",
+    paddingBottom: 28 * S,
   },
   alertAccentBar: {
     width: "100%",
@@ -184,7 +185,7 @@ const styles = StyleSheet.create({
   },
   alertMessage: {
     fontSize: 14 * S,
-    color: "#64748B",
+    color: Colors.slate_500,
     textAlign: "center",
     marginBottom: 24 * S,
     lineHeight: 21 * S,
@@ -210,7 +211,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   alertBtnTxt: {
-    color: "#fff",
+    color: "rgb(255, 255, 255)",
     fontFamily: Fonts.Bold,
     fontSize: 16 * S,
     letterSpacing: 0.4,

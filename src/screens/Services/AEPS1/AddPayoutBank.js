@@ -211,12 +211,12 @@ export default function AddPayoutBank({ navigation }) {
             activeOpacity={0.7}
           >
             <Text style={styles.inputLabel}>Bank Name</Text>
-            <View style={[styles.inputBox, errors.bankId && { borderColor: Colors.error }]}>
-              <Icon name="bank" size={rs(18)} color={errors.bankId ? Colors.error : Colors.text_secondary} />
+            <View style={[styles.inputBox, errors.bankId && { borderColor: Colors.red }]}>
+              <Icon name="bank" size={rs(18)} color={errors.bankId ? Colors.red : Colors.text_secondary} />
               <Text
                 style={[
                   styles.field,
-                  { color: form.bankName ? Colors.text_primary : Colors.gray_BD }
+                  { color: form.bankName ? Colors.black : Colors.gray }
                 ]}
                 numberOfLines={1}
               >
@@ -285,40 +285,49 @@ export default function AddPayoutBank({ navigation }) {
                     <Text style={styles.imageActionTxt}>Change</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={[styles.imageActionBtn, { borderColor: Colors.error }]}
+                    style={[styles.imageActionBtn, { borderColor: Colors.red }]}
                     onPress={() => setPassbookImage(null)}
                   >
-                    <Icon name="trash-can-outline" size={rs(16)} color={Colors.error} />
-                    <Text style={[styles.imageActionTxt, { color: Colors.error }]}>Remove</Text>
+                    <Icon name="trash-can-outline" size={rs(16)} color={Colors.red} />
+                    <Text style={[styles.imageActionTxt, { color: Colors.red }]}>Remove</Text>
                   </TouchableOpacity>
                 </View>
               </View>
             ) : (
               <TouchableOpacity
-                style={[styles.uploadArea, errors.passbookImage && { borderColor: Colors.error }]}
+                style={[styles.uploadArea, errors.passbookImage && { borderColor: Colors.red }]}
                 onPress={() => {
                   setIsImageModalVisible(true);
                   setErrors({ ...errors, passbookImage: null });
                 }}
               >
-                <Icon name="cloud-upload-outline" size={rs(32)} color={errors.passbookImage ? Colors.error : Colors.primary} />
-                <Text style={[styles.uploadTxt, errors.passbookImage && { color: Colors.error }]}>
+                <Icon name="cloud-upload-outline" size={rs(32)} color={errors.passbookImage ? Colors.red : Colors.primary} />
+                <Text style={[styles.uploadTxt, errors.passbookImage && { color: Colors.red }]}>
                   {errors.passbookImage || "Click to upload image"}
                 </Text>
               </TouchableOpacity>
             )}
           </View>
 
-          <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={loading}>
-            {loading ? (
-              <ActivityIndicator color={Colors.white} />
-            ) : (
-              <>
-                <Text style={styles.submitBtnText}>Submit Request</Text>
-                <Icon name="check-circle" size={rs(18)} color={Colors.white} />
-              </>
-            )}
-          </TouchableOpacity>
+          {(() => {
+            const isReady = !!form.bankId && !!form.accountHolderName && !!form.accountNumber && !!form.ifscCode && !!passbookImage && !loading;
+            return (
+              <TouchableOpacity
+                style={[styles.submitBtn, { backgroundColor: isReady ? Colors.primary : Colors.gold }]}
+                onPress={handleSubmit}
+                disabled={!isReady}
+              >
+                {loading ? (
+                  <ActivityIndicator color={Colors.white} />
+                ) : (
+                  <>
+                    <Text style={[styles.submitBtnText, { color: isReady ? Colors.white : Colors.slate_500 }]}>Submit Request</Text>
+                    <Icon name="check-circle" size={rs(18)} color={isReady ? Colors.white : Colors.slate_500} />
+                  </>
+                )}
+              </TouchableOpacity>
+            );
+          })()}
         </View>
         <View style={{ height: rs(40) }} />
       </ScrollView>
@@ -344,7 +353,7 @@ export default function AddPayoutBank({ navigation }) {
               <TextInput
                 style={styles.searchInput}
                 placeholder="Search bank name..."
-                placeholderTextColor={Colors.gray_BD}
+                placeholderTextColor={Colors.gray}
                 value={searchQuery}
                 onChangeText={handleSearch}
               />
@@ -364,12 +373,12 @@ export default function AddPayoutBank({ navigation }) {
                       <Icon name="bank-outline" size={rs(18)} color={Colors.primary} />
                     </View>
                     <Text style={styles.bankItemName}>{item.bankName}</Text>
-                    <Icon name="chevron-right" size={rs(18)} color={Colors.border} />
+                    <Icon name="chevron-right" size={rs(18)} color={Colors.input_border} />
                   </TouchableOpacity>
                 )}
                 ListEmptyComponent={
                   <View style={styles.emptyWrap}>
-                    <Icon name="bank-off-outline" size={rs(48)} color={Colors.border} />
+                    <Icon name="bank-off-outline" size={rs(48)} color={Colors.input_border} />
                     <Text style={styles.emptyTxt}>No banks found</Text>
                   </View>
                 }
@@ -394,14 +403,14 @@ function FormInput({ label, icon, placeholder, value, onChangeText, error, ...pr
   return (
     <View style={styles.inputWrapper}>
       <Text style={styles.inputLabel}>{label}</Text>
-      <View style={[styles.inputBox, error && { borderColor: Colors.error }]}>
-        <Icon name={icon} size={rs(18)} color={error ? Colors.error : Colors.text_secondary} />
+      <View style={[styles.inputBox, error && { borderColor: Colors.red }]}>
+        <Icon name={icon} size={rs(18)} color={error ? Colors.red : Colors.text_secondary} />
         <TextInput
           style={styles.field}
           placeholder={placeholder}
           value={value}
           onChangeText={onChangeText}
-          placeholderTextColor={Colors.gray_BD}
+          placeholderTextColor={Colors.gray}
           {...props}
         />
       </View>
@@ -413,24 +422,23 @@ function FormInput({ label, icon, placeholder, value, onChangeText, error, ...pr
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.bg,
+    backgroundColor: Colors.beige,
   },
   scrollContent: {
     paddingHorizontal: rs(16),
     paddingTop: rs(16),
   },
   formCard: {
-    backgroundColor: Colors.homebg,
+    backgroundColor: Colors.beige,
     borderRadius: rs(28),
     padding: rs(28),
     borderWidth: 1,
-    borderColor: Colors.border,
-
+    borderColor: "rgba(245,158,11,0.30)",
   },
   formTitle: {
     fontSize: rs(20),
     fontFamily: Fonts.Bold,
-    color: Colors.text_primary,
+    color: Colors.black,
   },
   formSub: {
     fontSize: rs(13),
@@ -445,14 +453,14 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: rs(12),
     fontFamily: Fonts.Bold,
-    color: Colors.text_primary,
+    color: Colors.black,
     marginBottom: rs(6),
     marginLeft: rs(4),
   },
   imageHint: {
     fontSize: rs(10),
     fontFamily: Fonts.Medium,
-    color: Colors.gray_BD,
+    color: Colors.gray,
     marginTop: rs(-4),
     marginBottom: rs(10),
     marginLeft: rs(4),
@@ -462,7 +470,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: rs(20),
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.input_border,
     borderStyle: 'dashed',
     alignItems: 'center',
     justifyContent: 'center',
@@ -488,7 +496,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: rs(20),
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.input_border,
     padding: rs(10),
   },
   imageActions: {
@@ -513,7 +521,7 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
   errorText: {
-    color: Colors.error,
+    color: Colors.red,
     fontSize: rs(10),
     fontFamily: Fonts.Medium,
     marginTop: rs(4),
@@ -524,7 +532,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: rs(18),
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.input_border,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: rs(16),
@@ -534,11 +542,10 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: rs(14),
     fontFamily: Fonts.Medium,
-    color: Colors.text_primary,
+    color: Colors.black,
     padding: 0,
   },
   submitBtn: {
-    backgroundColor: Colors.primary,
     height: rs(60),
     borderRadius: rs(20),
     flexDirection: 'row',
@@ -546,7 +553,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: rs(10),
     marginTop: rs(12),
-
   },
   submitBtnText: {
     fontSize: rs(16),
@@ -563,7 +569,8 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: rs(30),
     borderTopRightRadius: rs(30),
     height: '80%',
-    padding: rs(20),  },
+    padding: rs(20),
+  },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -574,7 +581,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: rs(20),
     fontFamily: Fonts.Bold,
-    color: Colors.text_primary,
+    color: Colors.black,
   },
   searchBar: {
     flexDirection: 'row',
@@ -584,7 +591,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: rs(15),
     height: rs(50),
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.input_border,
     marginBottom: rs(20),
     gap: rs(10),
   },
@@ -592,7 +599,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: rs(14),
     fontFamily: Fonts.Medium,
-    color: Colors.text_primary,
+    color: Colors.black,
     padding: 0,
   },
   bankItem: {
@@ -600,13 +607,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: rs(16),
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors.input_border,
     gap: rs(15),
   },
   bankIconWrap: {
     width: rs(40),
     height: rs(40),
-    backgroundColor: Colors.primaryOpacity_10,
+    backgroundColor: "rgba(26,26,46,0.10)",
     borderRadius: rs(10),
     alignItems: 'center',
     justifyContent: 'center',
@@ -615,7 +622,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: rs(14),
     fontFamily: Fonts.Medium,
-    color: Colors.text_primary,
+    color: Colors.black,
   },
   emptyWrap: {
     alignItems: 'center',

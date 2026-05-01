@@ -32,12 +32,12 @@ const rs = (s) => Math.round(Math.sqrt((SW * SH) / (BASE_W * BASE_H)) * s);
 
 // ─── Avatar color palette ─────────────────────────────────────────────────────
 const AVATAR_COLORS = [
-  "#5C6BC0", // indigo
-  "#9C27B0", // purple
-  "#00897B", // teal
-  "#F4511E", // deep orange
-  "#0288D1", // blue
-  "#558B2F", // green
+  "rgb(92, 107, 192)", // indigo
+  "rgb(156, 39, 176)", // purple
+  "rgb(0, 137, 123)", // teal
+  "rgb(244, 81, 30)", // deep orange
+  "rgb(2, 136, 209)", // blue
+  "rgb(85, 139, 47)", // green
 ];
 
 const getAvatarColor = (name = "U") => {
@@ -96,7 +96,7 @@ const AccountCard = ({ item, index, onTransfer, onDelete }) => {
               <Text style={styles.detailLabel}>ACCOUNT</Text>
               <Text style={styles.detailValue}>{item.accountNumber}</Text>
             </View>
-            <View style={[styles.detailItem, { borderLeftWidth: 1, borderLeftColor: Colors.gray_F0 }]}>
+            <View style={[styles.detailItem, { borderLeftWidth: 1, borderLeftColor: "rgb(240, 240, 240)" }]}>
               <Text style={styles.detailLabel}>IFSC</Text>
               <Text style={styles.detailValue}>{item.ifsc}</Text>
             </View>
@@ -305,7 +305,7 @@ const DmtHome = () => {
 
       {/* ── Action Buttons ── */}
       <View style={styles.actionRow}>
-        {/* Add Beneficiary — accent / orange */}
+        {/* Add Beneficiary */}
         <TouchableOpacity
           style={[styles.actionBtn, styles.actionBtnAdd]}
           onPress={() => navigation.navigate("AddBenificial", { senderMobile })}
@@ -315,7 +315,7 @@ const DmtHome = () => {
           <Text style={styles.actionBtnTxt}>Add Beneficiary</Text>
         </TouchableOpacity>
 
-        {/* Fetch Beneficiary — different color (primary / dark) */}
+        {/* Fetch Beneficiary */}
         <TouchableOpacity
           style={[styles.actionBtn, styles.actionBtnFetch]}
           onPress={fetchBeneficiaries}
@@ -429,7 +429,7 @@ export default DmtHome;
 // ══════════════════════════════════════════════════════════════════════════════
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.primary },
-  body: { flex: 1, backgroundColor: Colors.bg },
+  body: { flex: 1, backgroundColor: Colors.beige },
   listContent: { paddingHorizontal: scale(16), paddingBottom: vs(30) },
 
   // ── Header ──
@@ -444,7 +444,7 @@ const styles = StyleSheet.create({
     marginBottom: vs(16),
   },
   budgetLabel: {
-    fontFamily: Fonts.Bold, color: Colors.whiteOpacity_65, fontSize: rs(10), letterSpacing: 0.8,
+    fontFamily: Fonts.Bold, color: "rgba(255,255,255,0.65)", fontSize: rs(10), letterSpacing: 0.8,
   },
   budgetAmount: {
     fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(36), letterSpacing: -0.5, marginTop: vs(2),
@@ -457,8 +457,8 @@ const styles = StyleSheet.create({
   },
   remainingPill: {
     flexDirection: "row", alignItems: "center",
-    backgroundColor: Colors.whiteOpacity_10,
-    borderWidth: 1, borderColor: Colors.whiteOpacity_18,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.18)",
     borderRadius: scale(20), paddingHorizontal: scale(10), paddingVertical: vs(4),
     gap: scale(5),
   },
@@ -467,12 +467,12 @@ const styles = StyleSheet.create({
   remainingAmt: { fontFamily: Fonts.Bold, color: Colors.kyc_accent, fontSize: rs(20) },
 
   progressTrack: {
-    height: vs(5), backgroundColor: Colors.whiteOpacity_18,
+    height: vs(5), backgroundColor: "rgba(255,255,255,0.18)",
     borderRadius: scale(4), overflow: "hidden", marginBottom: vs(6),
   },
   progressFill: { height: "100%", backgroundColor: Colors.kyc_accent, borderRadius: scale(4) },
   progressInfoRow: { flexDirection: "row", justifyContent: "space-between" },
-  progressInfoTxt: { fontFamily: Fonts.Medium, color: Colors.whiteOpacity_65, fontSize: rs(10) },
+  progressInfoTxt: { fontFamily: Fonts.Medium, color: "rgba(255,255,255,0.65)", fontSize: rs(10) },
 
   // ── Action buttons ──
   actionRow: {
@@ -487,12 +487,23 @@ const styles = StyleSheet.create({
   // Add Beneficiary — primary color
   actionBtnAdd: {
     backgroundColor: Colors.primary,
-    borderWidth: 1, borderColor: Colors.whiteOpacity_15,
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.15)",
   },
   // Fetch Beneficiary — primary dark color
   actionBtnFetch: {
     backgroundColor: Colors.kyc_accent,
-    borderWidth: 1, borderColor: Colors.whiteOpacity_10,
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.1)",
+  },
+  actionBtnPayout: {
+    backgroundColor: Colors.primary,
+    borderWidth: 1, borderColor: "rgba(245,158,11,0.30)",
+    marginTop: vs(8),
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: scale(8),
+    paddingVertical: vs(13),
+    borderRadius: scale(14),
   },
   actionBtnIcon: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(15) },
   actionBtnTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(12) },
@@ -512,11 +523,11 @@ const styles = StyleSheet.create({
 
   // ── Account Card Redesign ──
   card: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.beige,
     borderRadius: scale(20),
     marginBottom: vs(16),
     borderWidth: 1,
-    borderColor: 'rgba(212,176,106,0.12)',
+    borderColor: 'rgba(245,158,11,0.30)',
     overflow: 'hidden',
   },
   cardMain: {
@@ -564,18 +575,18 @@ const styles = StyleSheet.create({
   cardName: {
     fontFamily: Fonts.Bold,
     fontSize: rs(14),
-    color: "#1E293B",
+    color: Colors.slate_900,
     marginRight: scale(4),
   },
   cardBank: {
     fontFamily: Fonts.Medium,
     fontSize: rs(11),
-    color: "#64748B",
+    color: Colors.slate_500,
     marginBottom: vs(8),
   },
   detailsGrid: {
     flexDirection: "row",
-    backgroundColor: "#F8FAFC",
+    backgroundColor: Colors.bg_F8,
     borderRadius: scale(10),
     paddingVertical: vs(6),
     paddingHorizontal: scale(8),
@@ -588,14 +599,14 @@ const styles = StyleSheet.create({
   detailLabel: {
     fontSize: rs(7),
     fontFamily: Fonts.Bold,
-    color: "#94A3B8",
+    color: Colors.gray,
     letterSpacing: 0.5,
     marginBottom: vs(1),
   },
   detailValue: {
     fontSize: rs(10),
     fontFamily: Fonts.Medium,
-    color: "#334155",
+    color: Colors.slate_700,
   },
   actionRowInline: {
     flexDirection: "row",
@@ -626,9 +637,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
-  center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: Colors.bg },
-  loadingTxt: { fontFamily: Fonts.Medium, color: Colors.gray_9E, marginTop: vs(10), fontSize: rs(13) },
+  center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: Colors.beige },
+  loadingTxt: { fontFamily: Fonts.Medium, color: Colors.gray, marginTop: vs(10), fontSize: rs(13) },
   emptyWrap: { alignItems: "center", justifyContent: "center", marginTop: vs(60) },
   emptyTxt: { fontFamily: Fonts.Bold, color: Colors.primary, fontSize: rs(16) },
-  emptySub: { fontFamily: Fonts.Medium, color: Colors.gray_9E, fontSize: rs(13), marginTop: vs(4) },
+  emptySub: { fontFamily: Fonts.Medium, color: Colors.gray, fontSize: rs(13), marginTop: vs(4) },
 });

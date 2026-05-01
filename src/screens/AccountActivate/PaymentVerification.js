@@ -43,12 +43,12 @@ export default function PaymentVerification({ navigation }) {
                 // Update local storage with fresh user data
                 await AsyncStorage.setItem("user_profile", JSON.stringify(u));
                 if (u.kycStatus) await AsyncStorage.setItem("kyc_status", u.kycStatus);
-                
+
                 // If account is now active or payment is confirmed, navigate away
                 // Note: The logic for redirection depends on the backend's status field names.
                 // Here we assume 'approved' or 'active' means they can go to Home.
                 if (u.id_payment_status === 'success' || u.id_payment_status === 'approved' || u.kycStatus === 'approved') {
-                     navigation.reset({
+                    navigation.reset({
                         index: 0,
                         routes: [{ name: 'Home' }],
                     });
@@ -66,7 +66,7 @@ export default function PaymentVerification({ navigation }) {
             <Animated.View style={[styles.card, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
                 {/* Icon Wrapper */}
                 <View style={styles.iconCircle}>
-                    <Text style={{ fontSize: 40, color: Colors.hub_hubIndigo }}>🕒</Text>
+                    <Text style={{ fontSize: 40, color: Colors.primary }}>🕒</Text>
                 </View>
 
                 {/* Title & Description */}
@@ -86,8 +86,8 @@ export default function PaymentVerification({ navigation }) {
                 </View>
 
                 {/* Footer Action */}
-                <TouchableOpacity 
-                    style={[styles.refreshBtn, refreshing && { opacity: 0.7 }]} 
+                <TouchableOpacity
+                    style={[styles.refreshBtn, refreshing && { opacity: 0.7 }]}
                     onPress={handleRefresh}
                     disabled={refreshing}
                 >
@@ -107,27 +107,28 @@ export default function PaymentVerification({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.slate_50, justifyContent: 'center', alignItems: 'center', padding: 20 },
+    container: { flex: 1, backgroundColor: Colors.bg_F8, justifyContent: 'center', alignItems: 'center', padding: 20 },
     card: {
         width: '100%',
         backgroundColor: Colors.white,
         borderRadius: 32,
         padding: 40,
-        alignItems: 'center',    },
+        alignItems: 'center',
+    },
     iconCircle: {
         width: 100,
         height: 100,
         borderRadius: 50,
-        backgroundColor: Colors.hub_hubIndigoGlow,
+        backgroundColor: Colors.info_light,
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 32,
     },
-    title: { fontSize: 26, fontWeight: '900', color: Colors.slate_900, marginBottom: 12, textAlign: 'center' },
-    desc: { fontSize: 13, color: Colors.slate_500, textAlign: 'center', lineHeight: 22, maxWidth: 280, marginBottom: 40 },
+    title: { fontSize: 26, fontWeight: '900', color: Colors.primary, marginBottom: 12, textAlign: 'center' },
+    desc: { fontSize: 13, color: Colors.bg_F8, textAlign: 'center', lineHeight: 22, maxWidth: 280, marginBottom: 40 },
     statusBox: {
         width: '100%',
-        backgroundColor: Colors.slate_50,
+        backgroundColor: Colors.bg_F8,
         borderRadius: 24,
         padding: 24,
         alignItems: 'center',
@@ -137,18 +138,19 @@ const styles = StyleSheet.create({
     },
     statusDotRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 6 },
     dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.amber },
-    statusSubtitle: { fontSize: 10, fontWeight: '800', color: Colors.slate_400, letterSpacing: 1 },
-    statusMain: { fontSize: 18, fontWeight: '800', color: Colors.slate_900, marginBottom: 4 },
-    estTime: { fontSize: 11, fontWeight: '700', color: Colors.slate_400 },
+    statusSubtitle: { fontSize: 10, fontWeight: '800', color: Colors.gray, letterSpacing: 1 },
+    statusMain: { fontSize: 18, fontWeight: '800', color: Colors.primary, marginBottom: 4 },
+    estTime: { fontSize: 11, fontWeight: '700', color: Colors.gray },
     logoutBtn: { paddingVertical: 10 },
-    logoutText: { fontSize: 14, fontWeight: '700', color: Colors.slate_400 },
-    refreshBtn: { 
-        width: '100%', 
-        height: 54, 
-        backgroundColor: Colors.hub_hubIndigo, 
-        borderRadius: 18, 
-        justifyContent: 'center', 
+    logoutText: { fontSize: 14, fontWeight: '700', color: Colors.gray },
+    refreshBtn: {
+        width: '100%',
+        height: 54,
+        backgroundColor: Colors.primary,
+        borderRadius: 18,
+        justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 16,    },
+        marginBottom: 16,
+    },
     refreshText: { fontSize: 15, fontWeight: '800', color: Colors.white },
 });

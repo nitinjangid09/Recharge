@@ -38,7 +38,7 @@ const PROTOCOLS_MOCK = [];
 const STATUS_CONFIG = {
     PROCESSING: { bg: Colors.warning_light, dot: Colors.amber, text: Colors.warning_dark },
     COMPLETED: { bg: Colors.success_light, dot: Colors.green, text: Colors.success_dark },
-    PENDING: { bg: Colors.slate_50, dot: Colors.slate_400, text: Colors.slate_500 },
+    PENDING: { bg: Colors.bg_F8, dot: Colors.gray, text: Colors.slate_500 },
 };
 
 // ─── Components ───────────────────────────────────────────────────────────────
@@ -274,7 +274,7 @@ export default function OnlineServices({ navigation }) {
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: Colors.secondary,
+        backgroundColor: Colors.white,
     },
     scrollView: { flex: 1 },
 
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
         padding: 18,
         backgroundColor: Colors.white,
         borderWidth: 1,
-        borderColor: Colors.divider,
+        borderColor: Colors.input_border,
     },
     statValue: {
         fontSize: 34,
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
     sectionLabelLine: {
         flex: 1,
         height: 1,
-        backgroundColor: Colors.divider,
+        backgroundColor: Colors.input_border,
     },
     sectionLabel: {
         fontSize: 10,
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
         borderRadius: 22,
         padding: 22,
         borderWidth: 1,
-        borderColor: Colors.divider,
+        borderColor: Colors.input_border,
     },
     itrMainRow: {
         flexDirection: 'row',
@@ -388,11 +388,11 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         borderRadius: 14,
-        backgroundColor: Colors.finance_chip,
+        backgroundColor: Colors.gold,
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: Colors.input_border,
     },
     itrIconEmoji: { fontSize: 26 },
     itrInfo: {
@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
         borderRadius: 18,
         padding: 16,
         borderWidth: 1,
-        borderColor: Colors.divider,
+        borderColor: Colors.input_border,
         marginBottom: 2,
     },
     pcHeader: {
@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
     },
     pcDivider: {
         height: 1,
-        backgroundColor: Colors.divider,
+        backgroundColor: Colors.input_border,
         marginVertical: 10,
     },
     pcFooter: {

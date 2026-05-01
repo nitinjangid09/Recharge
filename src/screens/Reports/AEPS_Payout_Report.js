@@ -23,10 +23,10 @@ import FullScreenLoader from '../../componets/Loader/FullScreenLoader';
 const { width: SW } = Dimensions.get('window');
 
 const STATUS_CONFIG = {
-  SUCCESS: { color: '#2ECC71', bg: '#EAFAF1', icon: 'check-circle' },
-  PENDING: { color: '#F1C40F', bg: '#FEF9E7', icon: 'clock' },
-  FAILED: { color: '#E74C3C', bg: '#FDEDEC', icon: 'close-circle' },
-  REVERSED: { color: '#9B59B6', bg: '#F5EEF8', icon: 'undo-variant' },
+  SUCCESS: { color: 'rgb(46, 204, 113)', bg: 'rgb(234, 250, 241)', icon: 'check-circle' },
+  PENDING: { color: 'rgb(241, 196, 15)', bg: 'rgb(254, 249, 231)', icon: 'clock' },
+  FAILED: { color: 'rgb(231, 76, 60)', bg: 'rgb(253, 237, 236)', icon: 'close-circle' },
+  REVERSED: { color: 'rgb(155, 89, 182)', bg: 'rgb(245, 238, 248)', icon: 'undo-variant' },
 };
 
 const TxnCard = ({ txn, onPress }) => {
@@ -56,7 +56,7 @@ const TxnCard = ({ txn, onPress }) => {
         <Text style={styles.dateText}>
           {new Date(txn.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} • {new Date(txn.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
         </Text>
-        <Icon name="chevron-right" size={18} color={Colors.text_placeholder} />
+        <Icon name="chevron-right" size={18} color={Colors.gray} />
       </View>
     </TouchableOpacity>
   );
@@ -149,7 +149,7 @@ export default function AEPS_Payout_Report({ navigation }) {
         </View>
         <View style={styles.summaryDivider} />
         <View style={styles.summaryItem}>
-          <Text style={[styles.summaryVal, { color: '#2ECC71' }]}>₹{summary.amount.toLocaleString('en-IN')}</Text>
+          <Text style={[styles.summaryVal, { color: 'rgb(46, 204, 113)' }]}>₹{summary.amount.toLocaleString('en-IN')}</Text>
           <Text style={styles.summaryLbl}>AMOUNT</Text>
         </View>
         <View style={styles.summaryDivider} />
@@ -174,7 +174,7 @@ export default function AEPS_Payout_Report({ navigation }) {
           onEndReachedThreshold={0.5}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Icon name="file-search-outline" size={64} color={Colors.text_placeholder} />
+              <Icon name="file-search-outline" size={64} color={Colors.gray} />
               <Text style={styles.emptyText}>No payout records found</Text>
             </View>
           }
@@ -192,7 +192,7 @@ export default function AEPS_Payout_Report({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.bg,
+    backgroundColor: Colors.beige,
   },
   summaryContainer: {
     flexDirection: 'row',
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
   summaryVal: {
     fontSize: 16,
     fontFamily: Fonts.Bold,
-    color: Colors.text_primary,
+    color: Colors.black,
   },
   summaryLbl: {
     fontSize: 10,
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
   summaryDivider: {
     width: 1,
     height: '60%',
-    backgroundColor: '#E2E8F0',
+    backgroundColor: 'rgb(226, 232, 240)',
     alignSelf: 'center',
   },
   listContent: {
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
   beneficiaryName: {
     fontSize: 14,
     fontFamily: Fonts.Bold,
-    color: Colors.text_primary,
+    color: Colors.black,
   },
   refId: {
     fontSize: 10,
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   bankInfo: {
     fontSize: 10,
     fontFamily: Fonts.Medium,
-    color: Colors.text_placeholder,
+    color: Colors.gray,
     marginTop: 2,
   },
   cardRight: {
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
   amount: {
     fontSize: 16,
     fontFamily: Fonts.Bold,
-    color: Colors.text_primary,
+    color: Colors.black,
   },
   statusBadge: {
     flexDirection: 'row',
@@ -292,12 +292,12 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: 'rgb(241, 245, 249)',
   },
   dateText: {
     fontSize: 10,
     fontFamily: Fonts.Medium,
-    color: Colors.text_placeholder,
+    color: Colors.gray,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     fontFamily: Fonts.Medium,
-    color: Colors.text_placeholder,
+    color: Colors.gray,
     marginTop: 16,
   },
 });

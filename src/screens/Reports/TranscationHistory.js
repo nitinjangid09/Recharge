@@ -27,15 +27,15 @@ const rs = (x) => x;
 
 // ─── Design Tokens — matching WalletLedger ────────────────────────────────────
 const D = {
-  headerBg: Colors.slate_900,
+  headerBg: Colors.primary,
   cardBg: Colors.white,
-  surfaceMid: Colors.slate_50,
+  surfaceMid: Colors.bg_F8,
   gold: Colors.finance_accent,
-  goldDim: Colors.amberOpacity_15,
-  textPri: Colors.text_primary,
+  goldDim: "rgba(245,158,11,0.15)",
+  textPri: Colors.black,
   textSec: Colors.text_secondary,
-  textMuted: Colors.text_placeholder,
-  border: Colors.border,
+  textMuted: Colors.gray,
+  border: Colors.input_border,
 };
 
 // ─── All logic unchanged ──────────────────────────────────────────────────────
@@ -102,9 +102,9 @@ const TABS = [
 ];
 
 const STATUS_CONFIG = {
-  Success: { color: Colors.green, bg: Colors.greenBg, border: Colors.hub_greenDim, icon: 'check-circle-outline', label: 'Success' },
-  Pending: { color: Colors.amber, bg: Colors.amberSoft, border: Colors.amberDim, icon: 'clock-outline', label: 'Pending' },
-  Failed: { color: Colors.red, bg: Colors.redSoft, border: Colors.redDim, icon: 'close-circle-outline', label: 'Failed' },
+  Success: { color: Colors.green, bg: "rgba(34,197,94,0.10)", border: "rgba(34,197,94,0.15)", icon: 'check-circle-outline', label: 'Success' },
+  Pending: { color: Colors.amber, bg: "rgba(245,158,11,0.10)", border: "rgba(245,158,11,0.15)", icon: 'clock-outline', label: 'Pending' },
+  Failed: { color: Colors.red, bg: "rgba(239,68,68,0.10)", border: "rgba(239,68,68,0.15)", icon: 'close-circle-outline', label: 'Failed' },
 };
 
 const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -175,16 +175,16 @@ const DateFilterBtn = ({ label, date, onPress }) => {
 
 
 const SH_S = StyleSheet.create({
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: Colors.blackOpacity_45 },
+  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.45)" },
   sheet: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: Colors.surfaceMid,
+    backgroundColor: Colors.white,
     borderTopLeftRadius: 30, borderTopRightRadius: 30,
     maxHeight: SH * 0.85,
     paddingTop: 12,
   },
   handle: {
-    width: 36, height: 4, backgroundColor: Colors.gray_EB,
+    width: 36, height: 4, backgroundColor: "rgb(235, 235, 235)",
     borderRadius: 2, alignSelf: 'center', marginBottom: 20,
   },
   topCardsGrid: {
@@ -204,9 +204,9 @@ const SH_S = StyleSheet.create({
     overflow: 'hidden',
   },
   topCardHeader: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 },
-  topCardLabel: { fontSize: 7, fontFamily: Fonts.Bold, color: Colors.whiteOpacity_80, letterSpacing: 0.3 },
+  topCardLabel: { fontSize: 7, fontFamily: Fonts.Bold, color: "rgba(255,255,255,0.80)", letterSpacing: 0.3 },
   topCardVal: { fontSize: 14, fontFamily: Fonts.Bold, color: Colors.white, marginBottom: 0.5 },
-  topCardSub: { fontSize: 6.5, fontFamily: Fonts.Bold, color: Colors.whiteOpacity_60, letterSpacing: 0.2 },
+  topCardSub: { fontSize: 6.5, fontFamily: Fonts.Bold, color: "rgba(255,255,255,0.60)", letterSpacing: 0.2 },
   topCardBgIcon: { position: 'absolute', right: -6, top: 2, transform: [{ scale: 0.7 }] },
 
   auditContainer: {
@@ -215,21 +215,22 @@ const SH_S = StyleSheet.create({
     borderRadius: 24,
     padding: 20,
     borderWidth: 1,
-    borderColor: Colors.blackOpacity_03,  },
+    borderColor: "rgba(0,0,0,0.03)",
+  },
   auditHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 },
   auditIconBox: {
-    width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.hub_hubIndigo,
+    width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primary,
     alignItems: 'center', justifyContent: 'center',
   },
-  auditTitle: { fontSize: 14, fontFamily: Fonts.Bold, color: Colors.text_primary, letterSpacing: 0.5 },
-  auditSub: { fontSize: 10, fontFamily: Fonts.Bold, color: Colors.slate_400, letterSpacing: 0.3 },
+  auditTitle: { fontSize: 14, fontFamily: Fonts.Bold, color: Colors.black, letterSpacing: 0.5 },
+  auditSub: { fontSize: 10, fontFamily: Fonts.Bold, color: Colors.gray, letterSpacing: 0.3 },
   divider: { height: 1, backgroundColor: Colors.slate_100, marginBottom: 16 },
 
   grid: { gap: 8 },
   gridItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.slate_50,
+    backgroundColor: Colors.bg_F8,
     borderWidth: 1,
     borderColor: Colors.slate_100,
     borderRadius: 14,
@@ -237,15 +238,15 @@ const SH_S = StyleSheet.create({
     gap: 12,
   },
   gridIconBox: {
-    width: 32, height: 32, borderRadius: 10, backgroundColor: Colors.whiteOpacity_15,
+    width: 32, height: 32, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.15)",
     alignItems: 'center', justifyContent: 'center',
   },
-  gridLabel: { fontSize: 8.5, fontFamily: Fonts.Bold, color: Colors.slate_500, letterSpacing: 0.5, marginBottom: 2 },
-  gridVal: { fontSize: 12, fontFamily: Fonts.Bold, color: Colors.slate_900 },
+  gridLabel: { fontSize: 8.5, fontFamily: Fonts.Bold, color: Colors.bg_F8, letterSpacing: 0.5, marginBottom: 2 },
+  gridVal: { fontSize: 12, fontFamily: Fonts.Bold, color: Colors.primary },
 
   doneBtn: {
     margin: 16,
-    backgroundColor: Colors.hub_hubIndigo,
+    backgroundColor: Colors.primary,
     paddingVertical: 16,
     borderRadius: 16,
     alignItems: 'center',
@@ -315,7 +316,7 @@ const TxnCard = ({ txn, onPress }) => {
             <View style={TC.featureRow}>
               {extra.isRefunded && (
                 <View style={TC.plainItem}>
-                  <Icon name="keyboard-return" size={12} color={Colors.hub_hubIndigo} style={{ marginRight: 4 }} />
+                  <Icon name="keyboard-return" size={12} color={Colors.primary} style={{ marginRight: 4 }} />
                   <Text style={[TC.plainTxt, { color: Colors.ink2 }]}>Refunded</Text>
                 </View>
               )}
@@ -341,7 +342,10 @@ const TC = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 10,
     flexDirection: 'row',
-    overflow: 'hidden',  },
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: "rgba(245,158,11,0.30)",
+  },
   bar: { width: 4.5 },
   inner: { flex: 1, padding: 12, position: 'relative' },
   bgIcon: { position: 'absolute', right: -6, top: -6, zIndex: 0 },
@@ -349,8 +353,8 @@ const TC = StyleSheet.create({
   mainRow: { flexDirection: 'row', alignItems: 'center', zIndex: 1 },
   iconBox: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 1.2 },
   centerCol: { flex: 1, marginLeft: 12, justifyContent: 'center' },
-  title: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.text_primary, marginBottom: 3 },
-  refId: { fontSize: 10, fontFamily: Fonts.Medium, color: Colors.textMuted },
+  title: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.black, marginBottom: 3 },
+  refId: { fontSize: 10, fontFamily: Fonts.Medium, color: Colors.gray },
 
   rightCol: { alignItems: 'flex-end', justifyContent: 'center' },
   statusBadge: {
@@ -361,7 +365,7 @@ const TC = StyleSheet.create({
   statusTxt: { fontSize: 8.5, fontFamily: Fonts.Bold, letterSpacing: 0.8 },
 
   amount: { fontSize: 16, fontFamily: Fonts.Bold, letterSpacing: -0.4, marginBottom: 3 },
-  dateTxt: { fontSize: 9.5, fontFamily: Fonts.Medium, color: Colors.textMuted },
+  dateTxt: { fontSize: 9.5, fontFamily: Fonts.Medium, color: Colors.gray },
 
   featureRow: {
     flexDirection: 'row', marginTop: 10, paddingTop: 10,
@@ -399,10 +403,10 @@ const StatusChips = ({ value, onChange }) => {
         {chips.map(chip => {
           const isActive = value === chip.key;
           const cfg = chip.key !== 'All' ? STATUS_CONFIG[chip.key] : null;
-          const activeBg = chip.key === 'All' ? Colors.headerBg : cfg?.color;
+          const activeBg = chip.key === 'All' ? Colors.primary : cfg?.color;
           const activeIcon = isActive ? Colors.white : (cfg?.color || Colors.text_secondary);
           const activeTxt = isActive ? Colors.white : Colors.text_secondary;
-          const activeBorder = isActive ? 'transparent' : Colors.border;
+          const activeBorder = isActive ? 'transparent' : Colors.input_border;
 
           return (
             <TouchableOpacity
@@ -596,8 +600,8 @@ const FilterSheet = ({ visible, onClose, onApply, activeFilters, startDate, endD
               const changed = local[sec.stateKey] !== sec.defaultKey;
               return (
                 <TouchableOpacity key={sec.key} style={[FST.navItem, isActive && FST.navItemActive]} onPress={() => setActiveSection(sec.key)} activeOpacity={0.7}>
-                  <View style={[FST.navIconBox, isActive && { backgroundColor: Colors.finance_accentDim }]}>
-                    <Icon name={sec.icon} size={15} color={isActive ? Colors.finance_accent : Colors.textMuted} />
+                  <View style={[FST.navIconBox, isActive && { backgroundColor: "rgba(212,176,106,0.15)" }]}>
+                    <Icon name={sec.icon} size={15} color={isActive ? Colors.finance_accent : Colors.gray} />
                   </View>
                   <Text style={[FST.navTxt, isActive && FST.navTxtActive]}>{sec.label.split(' ')[0]}</Text>
                   {changed && <View style={FST.navDot} />}
@@ -620,8 +624,8 @@ const FilterSheet = ({ visible, onClose, onApply, activeFilters, startDate, endD
               const isSel = local[currentSection.stateKey] === opt.key;
               return (
                 <TouchableOpacity key={opt.key} style={[FST.optRow, isSel && FST.optRowActive]} onPress={() => setLocal(p => ({ ...p, [currentSection.stateKey]: opt.key }))} activeOpacity={0.7}>
-                  <View style={[FST.optIconBox, isSel && { backgroundColor: Colors.finance_accentDim }]}>
-                    <Icon name={opt.icon} size={14} color={isSel ? Colors.finance_accent : Colors.textMuted} />
+                  <View style={[FST.optIconBox, isSel && { backgroundColor: "rgba(212,176,106,0.15)" }]}>
+                    <Icon name={opt.icon} size={14} color={isSel ? Colors.finance_accent : Colors.gray} />
                   </View>
                   <Text style={[FST.optTxt, isSel && FST.optTxtActive]}>{opt.label}</Text>
                   <View style={isSel ? FST.radioOn : FST.radioOff}>
@@ -812,7 +816,7 @@ export default function InvoiceScreen({ navigation, route, isInnerTab }) {
                 <Icon
                   name={tab.icon}
                   size={13}
-                  color={isActive ? Colors.finance_accent : Colors.textMuted}
+                  color={isActive ? Colors.finance_accent : Colors.gray}
                   style={{ marginRight: 5 }}
                 />
                 <Text style={[S.tabTxt, isActive && S.tabTxtActive]}>{tab.label}</Text>
@@ -838,7 +842,7 @@ export default function InvoiceScreen({ navigation, route, isInnerTab }) {
               onPress={() => setSearch('')}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Icon name="close-circle" size={15} color={Colors.text_primary} />
+              <Icon name="close-circle" size={15} color={Colors.black} />
             </TouchableOpacity>
           )}
         </View>
@@ -870,7 +874,7 @@ export default function InvoiceScreen({ navigation, route, isInnerTab }) {
         </View>
       ) : !tabHasApi ? (
         <View style={S.center}>
-          <View style={[S.errorIcon, { backgroundColor: Colors.finance_accentDim }]}>
+          <View style={[S.errorIcon, { backgroundColor: "rgba(212,176,106,0.15)" }]}>
             <Icon name="clock-outline" size={28} color={Colors.finance_accent} />
           </View>
           <Text style={S.errorTitle}>Coming Soon</Text>
@@ -888,13 +892,13 @@ export default function InvoiceScreen({ navigation, route, isInnerTab }) {
               onRefresh={() => onRefresh()}
               tintColor={Colors.finance_accent}
               colors={[Colors.finance_accent]}
-              progressBackgroundColor={Colors.headerBg}
+              progressBackgroundColor={Colors.primary}
             />
           }
         >
           {filtered.length === 0 ? (
             <View style={S.center}>
-              <View style={[S.errorIcon, { backgroundColor: Colors.finance_accentDim }]}>
+              <View style={[S.errorIcon, { backgroundColor: "rgba(212,176,106,0.15)" }]}>
                 <Icon name="file-search-outline" size={28} color={Colors.finance_accent} />
               </View>
               <Text style={S.errorTitle}>No results</Text>
@@ -990,16 +994,17 @@ export default function InvoiceScreen({ navigation, route, isInnerTab }) {
 //  SCREEN STYLES
 // ══════════════════════════════════════════════════════════════════════════════
 const S = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
+  safe: { flex: 1, backgroundColor: Colors.beige },
 
   // Header
   header: {
-    backgroundColor: Colors.headerBg,
+    backgroundColor: Colors.primary,
     paddingHorizontal: 16, paddingVertical: 10,
-    flexDirection: 'row', alignItems: 'center',  },
+    flexDirection: 'row', alignItems: 'center',
+  },
   hBtn: {
     width: 36, height: 36, borderRadius: 10,
-    backgroundColor: Colors.whiteOpacity_10,
+    backgroundColor: "rgba(255,255,255,0.1)",
     alignItems: 'center', justifyContent: 'center',
   },
   hTitle: {
@@ -1008,14 +1013,14 @@ const S = StyleSheet.create({
   },
 
   // Tab bar
-  tabBar: { backgroundColor: Colors.cardBg, borderBottomWidth: 1, borderBottomColor: Colors.border },
+  tabBar: { backgroundColor: Colors.white, borderBottomWidth: 1, borderBottomColor: Colors.input_border },
   tabScroll: { paddingHorizontal: 12, alignItems: 'center' },
   tabItem: {
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 14, paddingVertical: 8, marginRight: 2,
   },
   tabItemActive: { borderBottomWidth: 2, borderBottomColor: Colors.finance_accent },
-  tabTxt: { fontSize: 13, fontFamily: Fonts.Medium, color: Colors.textMuted },
+  tabTxt: { fontSize: 13, fontFamily: Fonts.Medium, color: Colors.gray },
   tabTxtActive: { fontFamily: Fonts.Bold, color: Colors.finance_accent },
 
   // Search & Filter
@@ -1027,7 +1032,8 @@ const S = StyleSheet.create({
     flex: 1, flexDirection: 'row', alignItems: 'center',
     backgroundColor: Colors.white, height: 42,
     borderRadius: 10, paddingHorizontal: 12,
-    borderWidth: 1, borderColor: Colors.border,  },
+    borderWidth: 1, borderColor: Colors.input_border,
+  },
   sfInput: {
     flex: 1, fontSize: 13,
     fontFamily: Fonts.Medium, color: Colors.primary, padding: 0,
@@ -1038,41 +1044,42 @@ const S = StyleSheet.create({
   sfFilterIconBox: {
     width: 42, height: 42, borderRadius: 10, backgroundColor: Colors.white,
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: Colors.border,  },
+    borderWidth: 1, borderColor: Colors.input_border,
+  },
 
   // List
   listContent: { paddingHorizontal: 16, paddingTop: 0, paddingBottom: 40 },
 
   // States
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 48 },
-  centerTxt: { marginTop: 12, fontSize: 13, fontFamily: Fonts.Medium, color: Colors.textMuted },
+  centerTxt: { marginTop: 12, fontSize: 13, fontFamily: Fonts.Medium, color: Colors.gray },
   errorIcon: {
     width: 60, height: 60, borderRadius: 18,
-    backgroundColor: Colors.redSoft,
+    backgroundColor: "rgba(239,68,68,0.10)",
     alignItems: 'center', justifyContent: 'center', marginBottom: 14,
   },
-  errorTitle: { fontSize: 15, fontFamily: Fonts.Bold, color: Colors.text_primary, marginBottom: 6 },
+  errorTitle: { fontSize: 15, fontFamily: Fonts.Bold, color: Colors.black, marginBottom: 6 },
   errorSub: {
-    fontSize: 13, fontFamily: Fonts.Medium, color: Colors.textMuted,
+    fontSize: 13, fontFamily: Fonts.Medium, color: Colors.gray,
     textAlign: 'center', marginHorizontal: 32, marginBottom: 20,
   },
   retryBtn: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: Colors.headerBg,
+    backgroundColor: Colors.primary,
     paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10,
   },
   retryTxt: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.white },
 });
 
 const FST = StyleSheet.create({
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: Colors.blackOpacity_55 },
+  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.55)" },
   sheet: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     backgroundColor: D.cardBg,
     borderTopLeftRadius: sc(24), borderTopRightRadius: sc(24),
     maxHeight: SH * 0.78, elevation: 24, shadowColor: Colors.black, shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.14, shadowRadius: 16,
   },
-  handle: { width: sc(32), height: vs(4), backgroundColor: Colors.blackOpacity_12, borderRadius: 2, alignSelf: 'center', marginTop: vs(10), marginBottom: vs(2) },
+  handle: { width: sc(32), height: vs(4), backgroundColor: "rgba(0,0,0,0.12)", borderRadius: 2, alignSelf: 'center', marginTop: vs(10), marginBottom: vs(2) },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: sc(20), paddingVertical: vs(14), borderBottomWidth: 1, borderBottomColor: D.border },
   title: { fontSize: rs(17), fontFamily: Fonts.Bold, color: D.textPri },
   resetBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: sc(12), paddingVertical: vs(6), borderRadius: sc(8), backgroundColor: D.goldDim },

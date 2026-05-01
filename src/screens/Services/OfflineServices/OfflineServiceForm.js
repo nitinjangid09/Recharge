@@ -243,7 +243,7 @@ export default function OfflineServiceForm({ navigation, route }) {
                                     <TextInput
                                         style={styles.input}
                                         placeholder={`Enter ${field.label.toLowerCase()}`}
-                                        placeholderTextColor={Colors.text_placeholder}
+                                        placeholderTextColor={Colors.gray}
                                         value={formValues[field.key]}
                                         onChangeText={(val) => handleFieldChange(field.key, val)}
                                     />
@@ -339,11 +339,11 @@ export default function OfflineServiceForm({ navigation, route }) {
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: Colors.secondary,
+        backgroundColor: Colors.white,
     },
     loadingContainer: {
         flex: 1,
-        backgroundColor: Colors.secondary,
+        backgroundColor: Colors.white,
     },
     loaderCentering: {
         flex: 1,
@@ -365,7 +365,8 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.primary,
         borderRadius: 20,
         padding: 20,
-        marginBottom: 20,    },
+        marginBottom: 20,
+    },
     infoTitle: {
         fontSize: 18,
         color: Colors.white,
@@ -374,7 +375,7 @@ const styles = StyleSheet.create({
     },
     infoDesc: {
         fontSize: 13,
-        color: Colors.whiteOpacity_70,
+        color: "rgba(255,255,255,0.7)",
         lineHeight: 18,
         fontFamily: Fonts.Regular,
         marginBottom: 15,
@@ -382,7 +383,7 @@ const styles = StyleSheet.create({
     feeTag: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: Colors.whiteOpacity_10,
+        backgroundColor: "rgba(255,255,255,0.1)",
         paddingHorizontal: 12,
         paddingVertical: 8,
         borderRadius: 10,
@@ -423,9 +424,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
         paddingVertical: 12,
         fontSize: 14,
-        color: Colors.text_primary,
+        color: Colors.black,
         borderWidth: 1,
-        borderColor: Colors.divider,
+        borderColor: Colors.input_border,
         fontFamily: Fonts.Regular,
     },
 
@@ -443,11 +444,11 @@ const styles = StyleSheet.create({
     },
     uploadBox: {
         aspectRatio: 1,
-        backgroundColor: Colors.blackOpacity_03,
+        backgroundColor: "rgba(0,0,0,0.03)",
         borderRadius: 15,
         borderWidth: 1,
         borderStyle: 'dashed',
-        borderColor: Colors.divider,
+        borderColor: Colors.input_border,
         justifyContent: 'center',
         alignItems: 'center',
         overflow: 'hidden'
@@ -472,7 +473,7 @@ const styles = StyleSheet.create({
         right: 5,
         width: 24,
         height: 24,
-        backgroundColor: Colors.blackOpacity_50,
+        backgroundColor: "rgba(0,0,0,0.5)",
         borderRadius: 12,
         justifyContent: 'center',
         alignItems: 'center'
@@ -488,7 +489,8 @@ const styles = StyleSheet.create({
         height: 56,
         borderRadius: 15,
         alignItems: 'center',
-        justifyContent: 'center',    },
+        justifyContent: 'center',
+    },
     submitBtnText: {
         fontSize: 14,
         color: Colors.primary,

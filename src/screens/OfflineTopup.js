@@ -75,11 +75,11 @@ const toQueryDate = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.
 const { width: W, height: SH } = Dimensions.get("window");
 const S = (n) => Math.round(PixelRatio.roundToNearestPixel(n * (W / 375)));
 
-const ACCENT = Colors.finance_accent || "#D4A843";
-const FG = Colors.finance_text || "#1A1A2E";
-const SURFACE = Colors.white || "#FFFFFF";
-const BG = Colors.bg || "#F4F5F7";
-const CARD_BG = Colors.homebg || "#FFFFFF";
+const ACCENT = Colors.finance_accent || "rgb(212, 168, 67)";
+const FG = Colors.finance_text || Colors.primary;
+const SURFACE = Colors.white || Colors.white;
+const BG = Colors.beige || Colors.kyc_bg;
+const CARD_BG = Colors.beige || Colors.white;
 
 // ─── Payment mode config ──────────────────────────────────────────────────
 const PAYMENT_MODES = [
@@ -144,7 +144,7 @@ const pillSt = StyleSheet.create({
     // ── matches field label: same font, same size ──
     fontSize: S(12),
     fontFamily: Fonts.Bold,
-    color: "#B0B0B0",
+    color: "rgb(176, 176, 176)",
     letterSpacing: 0.2,
     includeFontPadding: false,
     lineHeight: S(16),
@@ -235,7 +235,7 @@ const FilterSheet = ({ visible, onClose, onApply, activeFilters, startDate, endD
               return (
                 <TouchableOpacity key={opt.key} style={[FST.optRow, isSel && FST.optRowActive]} onPress={() => setLocal({ date: opt.key })} activeOpacity={0.7}>
                   <View style={[FST.optIconBox, isSel && { backgroundColor: ACCENT + '15' }]}>
-                    <Icon name={opt.icon} size={S(14)} color={isSel ? ACCENT : "#999"} />
+                    <Icon name={opt.icon} size={S(14)} color={isSel ? ACCENT : "rgb(153, 153, 153)"} />
                   </View>
                   <Text style={[FST.optTxt, isSel && FST.optTxtActive]}>{opt.label}</Text>
                   <View style={isSel ? FST.radioOn : FST.radioOff}>{isSel && <View style={FST.radioInner} />}</View>
@@ -270,7 +270,7 @@ const DateFilterBtn = ({ label, date, onPress }) => {
           <Text style={st.datePillLabel}>{label}</Text>
           <Text style={st.datePillValue}>{formatDisplay(date)}</Text>
         </View>
-        <Icon name="chevron-down" size={S(13)} color="#C4C4C4" />
+        <Icon name="chevron-down" size={S(13)} color="rgb(196, 196, 196)" />
       </TouchableOpacity>
     </Animated.View>
   );
@@ -300,33 +300,33 @@ const FST = StyleSheet.create({
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.55)' },
   sheet: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: SURFACE, borderTopLeftRadius: S(24), borderTopRightRadius: S(24), maxHeight: SH * 0.78, elevation: 24 },
   handle: { width: S(32), height: S(4), backgroundColor: 'rgba(0,0,0,0.12)', borderRadius: 2, alignSelf: 'center', marginTop: S(10), marginBottom: S(2) },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S(20), paddingVertical: S(14), borderBottomWidth: 1, borderBottomColor: '#EEE' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S(20), paddingVertical: S(14), borderBottomWidth: 1, borderBottomColor: 'rgb(238, 238, 238)' },
   title: { fontSize: S(17), fontFamily: Fonts.Bold, color: FG },
   resetBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: S(12), paddingVertical: S(6), borderRadius: S(8), backgroundColor: ACCENT + '15' },
   resetTxt: { fontSize: S(12), fontFamily: Fonts.Bold, color: ACCENT },
   body: { flexDirection: 'row', flex: 1, maxHeight: SH * 0.52 },
-  navCol: { width: S(82), borderRightWidth: 1, borderRightColor: '#EEE', paddingTop: S(10) },
+  navCol: { width: S(82), borderRightWidth: 1, borderRightColor: 'rgb(238, 238, 238)', paddingTop: S(10) },
   navItem: { paddingVertical: S(18), alignItems: 'center', paddingHorizontal: S(6) },
-  navItemActive: { backgroundColor: '#F8F9FA' },
+  navItemActive: { backgroundColor: 'rgb(248, 249, 250)' },
   navIconBox: { width: S(34), height: S(34), borderRadius: S(10), alignItems: 'center', justifyContent: 'center', marginBottom: S(5) },
-  navTxt: { fontSize: S(9), fontFamily: Fonts.Medium, color: '#999', textAlign: 'center', letterSpacing: 0.3 },
+  navTxt: { fontSize: S(9), fontFamily: Fonts.Medium, color: 'rgb(153, 153, 153)', textAlign: 'center', letterSpacing: 0.3 },
   navTxtActive: { color: ACCENT, fontFamily: Fonts.Bold },
   optCol: { flex: 1, paddingHorizontal: S(14) },
-  optSectionLabel: { fontSize: S(9), fontFamily: Fonts.Bold, color: '#999', letterSpacing: 1.2, marginBottom: S(10), textTransform: 'uppercase' },
+  optSectionLabel: { fontSize: S(9), fontFamily: Fonts.Bold, color: 'rgb(153, 153, 153)', letterSpacing: 1.2, marginBottom: S(10), textTransform: 'uppercase' },
   optRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: S(12), gap: S(10), borderRadius: S(10), paddingHorizontal: S(4) },
   optRowActive: { backgroundColor: ACCENT + '10', marginHorizontal: -S(4), paddingHorizontal: S(8) },
-  optIconBox: { width: S(32), height: S(32), borderRadius: S(9), backgroundColor: '#F0F0F0', alignItems: 'center', justifyContent: 'center' },
+  optIconBox: { width: S(32), height: S(32), borderRadius: S(9), backgroundColor: 'rgb(240, 240, 240)', alignItems: 'center', justifyContent: 'center' },
   optTxt: { flex: 1, fontSize: S(13), fontFamily: Fonts.Medium, color: FG },
   optTxtActive: { color: ACCENT, fontFamily: Fonts.Bold },
-  radioOff: { width: S(18), height: S(18), borderRadius: S(9), borderWidth: 1.5, borderColor: '#EEE' },
+  radioOff: { width: S(18), height: S(18), borderRadius: S(9), borderWidth: 1.5, borderColor: 'rgb(238, 238, 238)' },
   radioOn: { width: S(18), height: S(18), borderRadius: S(9), borderWidth: 2, borderColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
   radioInner: { width: S(8), height: S(8), borderRadius: S(4), backgroundColor: ACCENT },
   customDateRow: { flexDirection: 'row', alignItems: 'center', marginBottom: S(16), paddingHorizontal: S(4) },
-  footer: { paddingHorizontal: S(20), paddingTop: S(12), paddingBottom: S(20), borderTopWidth: 1, borderTopColor: '#EEE' },
+  footer: { paddingHorizontal: S(20), paddingTop: S(12), paddingBottom: S(20), borderTopWidth: 1, borderTopColor: 'rgb(238, 238, 238)' },
   applyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: FG, borderRadius: S(14), paddingVertical: S(15) },
   applyTxt: { color: SURFACE, fontSize: S(14), fontFamily: Fonts.Bold },
   badge: { marginLeft: S(8), backgroundColor: ACCENT, minWidth: S(20), height: S(20), borderRadius: S(10), alignItems: 'center', justifyContent: 'center', paddingHorizontal: S(4) },
-  badgeTxt: { color: '#000', fontSize: S(9), fontFamily: Fonts.Bold },
+  badgeTxt: { color: 'rgb(0, 0, 0)', fontSize: S(9), fontFamily: Fonts.Bold },
 });
 
 const PIL = StyleSheet.create({
@@ -354,12 +354,12 @@ const InputBox = ({ label, value, setValue, icon, placeholder, keyboardType, err
         }}
         keyboardType={keyboardType || "default"}
         placeholder={placeholder}
-        placeholderTextColor="#C4C4C4"
+        placeholderTextColor="rgb(196, 196, 196)"
         style={st.inputText}
         autoCapitalize="characters"
         maxLength={maxLength}
       />
-      <Icon name={icon} size={S(18)} color={error ? "#EF4444" : ACCENT + "90"} />
+      <Icon name={icon} size={S(18)} color={error ? Colors.red : ACCENT + "90"} />
     </View>
     {!!error && <Text style={st.errorTxt}>{error}</Text>}
   </View>
@@ -658,7 +658,7 @@ export default function OfflineTopup({ navigation }) {
             onRefresh={onRefresh}
             tintColor={ACCENT}
             colors={[ACCENT]}
-            progressBackgroundColor="#FFF"
+            progressBackgroundColor="rgb(255, 255, 255)"
           />
         }
       >
@@ -675,7 +675,7 @@ export default function OfflineTopup({ navigation }) {
             setValue={(val) => {
               let cleaned = val.replace(/[^0-9]/g, "");
               if (cleaned.startsWith("0")) cleaned = cleaned.replace(/^0+/, "");
-              
+
               if (cleaned !== "" && Number(cleaned) > 1000000) {
                 setErrors(prev => ({ ...prev, amount: "Max amount allowed is ₹10,00,000" }));
                 return;
@@ -720,12 +720,12 @@ export default function OfflineTopup({ navigation }) {
               activeOpacity={0.7}
             >
               <Text
-                style={[st.inputText, { color: receiverBank ? FG : "#C4C4C4", paddingVertical: S(11) }]}
+                style={[st.inputText, { color: receiverBank ? FG : "rgb(196, 196, 196)", paddingVertical: S(11) }]}
                 numberOfLines={1}
               >
                 {selectedBankName || "Choose a Bank"}
               </Text>
-              <Icon name="chevron-down" size={S(18)} color={errors.receiverBank ? "#EF4444" : ACCENT + "90"} />
+              <Icon name="chevron-down" size={S(18)} color={errors.receiverBank ? Colors.red : ACCENT + "90"} />
             </TouchableOpacity>
             {!!errors.receiverBank && <Text style={st.errorTxt}>{errors.receiverBank}</Text>}
           </View>
@@ -758,10 +758,10 @@ export default function OfflineTopup({ navigation }) {
               }}
               activeOpacity={0.7}
             >
-              <Text style={[st.inputText, { color: paymentDate ? FG : "#C4C4C4", paddingVertical: S(11) }]}>
+              <Text style={[st.inputText, { color: paymentDate ? FG : "rgb(196, 196, 196)", paddingVertical: S(11) }]}>
                 {paymentDate || "YYYY-MM-DD"}
               </Text>
-              <Icon name="calendar" size={S(18)} color={errors.paymentDate ? "#EF4444" : ACCENT + "90"} />
+              <Icon name="calendar" size={S(18)} color={errors.paymentDate ? Colors.red : ACCENT + "90"} />
             </TouchableOpacity>
             {!!errors.paymentDate && <Text style={st.errorTxt}>{errors.paymentDate}</Text>}
           </View>
@@ -789,7 +789,7 @@ export default function OfflineTopup({ navigation }) {
               <Text style={[
                 st.inputText,
                 {
-                  color: paymentProof ? "#16A34A" : "#C4C4C4",
+                  color: paymentProof ? Colors.kyc_success : "rgb(196, 196, 196)",
                   fontFamily: paymentProof ? Fonts.Bold : Fonts.Medium,
                   paddingVertical: S(11),
                 },
@@ -799,7 +799,7 @@ export default function OfflineTopup({ navigation }) {
               <Icon
                 name={paymentProof ? "check-circle" : "camera-plus-outline"}
                 size={S(18)}
-                color={errors.paymentProof ? "#EF4444" : paymentProof ? "#16A34A" : ACCENT + "90"}
+                color={errors.paymentProof ? Colors.red : paymentProof ? Colors.kyc_success : ACCENT + "90"}
               />
             </TouchableOpacity>
             {!!errors.paymentProof && <Text style={st.errorTxt}>{errors.paymentProof}</Text>}
@@ -809,11 +809,11 @@ export default function OfflineTopup({ navigation }) {
                 <Image source={{ uri: paymentProof }} style={st.previewImg} />
                 <View style={st.chipRow}>
                   <TouchableOpacity style={st.actionChip} onPress={() => setUploadVisible(true)}>
-                    <Icon name="pencil" size={S(11)} color="#fff" />
+                    <Icon name="pencil" size={S(11)} color="rgb(255, 255, 255)" />
                     <Text style={st.actionChipTxt}>Change</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={[st.actionChip, st.removeChipBg]} onPress={() => setPaymentProof("")}>
-                    <Icon name="delete" size={S(11)} color="#fff" />
+                    <Icon name="delete" size={S(11)} color="rgb(255, 255, 255)" />
                     <Text style={st.actionChipTxt}>Remove</Text>
                   </TouchableOpacity>
                 </View>
@@ -822,36 +822,45 @@ export default function OfflineTopup({ navigation }) {
           </View>
 
           {/* ── Submit ── */}
-          <TouchableOpacity onPress={handleSubmit} style={st.submitWrap} disabled={submitting} activeOpacity={0.85}>
-            <LinearGradient
-              colors={[ACCENT, "#C29A47"]}
-              style={st.submitBtn}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <Icon name="send" size={S(15)} color="#000" />
-              <Text style={st.submitTxt}>Submit Request</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+          {(() => {
+            const isReady = !!amount && !!receiverBank && !!utrNumber && !!paymentDate && !!paymentProof && !submitting;
+            return (
+              <TouchableOpacity
+                onPress={handleSubmit}
+                style={[st.submitBtn, { backgroundColor: isReady ? Colors.primary : Colors.gold }]}
+                disabled={!isReady}
+                activeOpacity={0.85}
+              >
+                {submitting ? (
+                  <ActivityIndicator color={Colors.white} />
+                ) : (
+                  <>
+                    <Icon name="send" size={S(15)} color={isReady ? Colors.white : Colors.slate_500} />
+                    <Text style={[st.submitTxt, { color: isReady ? Colors.white : Colors.slate_500 }]}>Submit Request</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            );
+          })()}
         </View>
 
         {/* ── Topup Stats ── */}
         {topupStats && (
           <View style={statsGridStyles.container}>
             <View style={statsGridStyles.row}>
-              <View style={[statsGridStyles.card, { borderLeftColor: "#D97706" }]}>
+              <View style={[statsGridStyles.card, { borderLeftColor: Colors.kyc_warning }]}>
                 <Text style={statsGridStyles.val}>{topupStats.pending?.count || 0}</Text>
                 <Text style={statsGridStyles.amt}>₹{topupStats.pending?.amount || 0}</Text>
                 <Text style={statsGridStyles.lbl}>PENDING</Text>
               </View>
-              <View style={[statsGridStyles.card, { borderLeftColor: "#16A34A" }]}>
+              <View style={[statsGridStyles.card, { borderLeftColor: Colors.kyc_success }]}>
                 <Text style={statsGridStyles.val}>{topupStats.approved?.count || 0}</Text>
                 <Text style={statsGridStyles.amt}>₹{topupStats.approved?.amount || 0}</Text>
                 <Text style={statsGridStyles.lbl}>APPROVED</Text>
               </View>
             </View>
             <View style={statsGridStyles.row}>
-              <View style={[statsGridStyles.card, { borderLeftColor: "#DC2626" }]}>
+              <View style={[statsGridStyles.card, { borderLeftColor: Colors.error_dark }]}>
                 <Text style={statsGridStyles.val}>{topupStats.rejected?.count || 0}</Text>
                 <Text style={statsGridStyles.amt}>₹{topupStats.rejected?.amount || 0}</Text>
                 <Text style={statsGridStyles.lbl}>REJECTED</Text>
@@ -890,8 +899,8 @@ export default function OfflineTopup({ navigation }) {
               const status = (item.status || "pending").toLowerCase();
               const isApproved = status === "approved";
               const isRejected = status === "rejected";
-              const statusColor = isApproved ? "#16A34A" : isRejected ? "#DC2626" : "#D97706";
-              const statusBg = isApproved ? "#F0FDF4" : isRejected ? "#FEF2F2" : "#FFFBEB";
+              const statusColor = isApproved ? Colors.kyc_success : isRejected ? Colors.error_dark : Colors.kyc_warning;
+              const statusBg = isApproved ? Colors.greenSoft : isRejected ? "rgb(254, 242, 242)" : "rgb(255, 255, 255)BEB";
               const statusIcon = isApproved ? "check-circle" : isRejected ? "close-circle" : "timer-sand";
 
               return (
@@ -945,7 +954,7 @@ export default function OfflineTopup({ navigation }) {
 
                   {isRejected && !!item.rejectionReason && (
                     <View style={st.rejectionBox}>
-                      <Icon name="information-outline" size={S(14)} color="#DC2626" style={{ marginTop: S(2) }} />
+                      <Icon name="information-outline" size={S(14)} color={Colors.error_dark} style={{ marginTop: S(2) }} />
                       <View style={{ flex: 1 }}>
                         <Text style={st.rejectionTxt}>{item.rejectionReason}</Text>
                         {!!item.rejectedAt && (
@@ -964,7 +973,7 @@ export default function OfflineTopup({ navigation }) {
           ) : (
             <View style={st.emptyStateBox}>
               <View style={st.emptyIconCircle}>
-                <Icon name="history" size={S(32)} color="#D1D5DB" />
+                <Icon name="history" size={S(32)} color={Colors.kyc_lockedBorder} />
               </View>
               <Text style={st.emptyTitle}>No transaction history</Text>
               <Text style={st.emptySubtitle}>Your offline topup requests will appear here</Text>
@@ -1067,6 +1076,8 @@ const st = StyleSheet.create({
     borderRadius: S(18),
     padding: S(18),
     marginTop: S(16),
+    borderWidth: 1,
+    borderColor: "rgba(245,158,11,0.30)",
   },
   cardTitle: {
     fontSize: S(15),
@@ -1121,8 +1132,8 @@ const st = StyleSheet.create({
     paddingHorizontal: S(12),
   },
   inputRowGreen: {
-    borderColor: "#16A34A",
-    backgroundColor: "#F0FDF4",
+    borderColor: Colors.kyc_success,
+    backgroundColor: Colors.greenSoft,
   },
   inputText: {
     flex: 1,
@@ -1133,10 +1144,10 @@ const st = StyleSheet.create({
     includeFontPadding: false,
   },
   inputRowError: {
-    borderColor: "#EF4444",
+    borderColor: Colors.red,
   },
   errorTxt: {
-    color: "#EF4444",
+    color: Colors.red,
     fontSize: S(10),
     fontFamily: Fonts.Medium,
     marginTop: S(4),
@@ -1169,11 +1180,12 @@ const st = StyleSheet.create({
   removeChipBg: {
     backgroundColor: "rgba(220, 38, 38, 0.85)",
   },
-  actionChipTxt: { color: "#fff", fontSize: S(11), fontFamily: Fonts.Medium },
+  actionChipTxt: { color: "rgb(255, 255, 255)", fontSize: S(11), fontFamily: Fonts.Medium },
 
   // ── Submit ────────────────────────────────────────────────────────────
   submitWrap: { marginTop: S(22) },
   submitBtn: {
+    marginTop: S(22),
     borderRadius: S(12),
     paddingVertical: S(14),
     flexDirection: "row",
@@ -1182,7 +1194,7 @@ const st = StyleSheet.create({
     gap: S(7),
   },
   submitTxt: {
-    color: "#000",
+    color: "rgb(0, 0, 0)",
     fontFamily: Fonts.Bold,
     fontSize: S(14),
     letterSpacing: 0.4,
@@ -1201,7 +1213,7 @@ const st = StyleSheet.create({
   sheetHandle: {
     width: S(36), height: S(4),
     borderRadius: S(2),
-    backgroundColor: "#E5E7EB",
+    backgroundColor: Colors.kyc_border,
     marginBottom: S(14),
   },
   sheetTitle: {
@@ -1212,7 +1224,7 @@ const st = StyleSheet.create({
     alignSelf: "flex-start",
   },
   sheetEmpty: {
-    color: "#999",
+    color: "rgb(153, 153, 153)",
     marginVertical: S(10),
     fontFamily: Fonts.Medium,
     fontSize: S(13),
@@ -1229,13 +1241,13 @@ const st = StyleSheet.create({
   },
   bankRowActive: { backgroundColor: ACCENT + "0E", borderRadius: S(8) },
   bankName: { fontSize: S(13), fontFamily: Fonts.Bold, color: FG },
-  bankSub: { fontSize: S(10), fontFamily: Fonts.Medium, color: "#9CA3AF", marginTop: S(2) },
+  bankSub: { fontSize: S(10), fontFamily: Fonts.Medium, color: Colors.kyc_textMuted, marginTop: S(2) },
   sheetCloseBtn: {
     marginTop: S(14),
     paddingVertical: S(12),
     width: "100%",
     alignItems: "center",
-    backgroundColor: "#F5F5F7",
+    backgroundColor: "rgb(245, 245, 247)",
     borderRadius: S(12),
   },
   sheetCloseTxt: { fontFamily: Fonts.Bold, color: FG, fontSize: S(13) },
@@ -1247,33 +1259,45 @@ const st = StyleSheet.create({
   historyCountBadge: { backgroundColor: SURFACE, borderWidth: 1, borderColor: "rgba(0,0,0,0.06)", borderRadius: S(8), paddingHorizontal: S(8), paddingVertical: S(2) },
   historyCountTxt: { fontSize: S(11), fontFamily: Fonts.Bold, color: FG },
 
-  transactionCard: { backgroundColor: SURFACE, borderRadius: S(16), padding: S(14), marginBottom: S(12), elevation: 2, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: S(6), borderWidth: 1, borderColor: "rgba(0,0,0,0.03)" },
+  transactionCard: {
+    backgroundColor: SURFACE,
+    borderRadius: S(16),
+    padding: S(14),
+    marginBottom: S(12),
+    elevation: 2,
+    shadowColor: "rgb(0, 0, 0)",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: S(6),
+    borderWidth: 1,
+    borderColor: "rgba(245,158,11,0.30)"
+  },
   cardHeaderTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   amtColumn: { gap: S(2) },
   amtSymbol: { fontSize: S(13), fontFamily: Fonts.Bold, color: ACCENT },
   amtVal: { fontSize: S(19), color: FG },
-  dateLabel: { fontSize: S(10), fontFamily: Fonts.Medium, color: "#9CA3AF" },
+  dateLabel: { fontSize: S(10), fontFamily: Fonts.Medium, color: Colors.kyc_textMuted },
   cardStatusPill: { flexDirection: "row", alignItems: "center", paddingHorizontal: S(10), paddingVertical: S(5), borderRadius: S(100), borderWidth: 1 },
   cardStatusTxt: { fontSize: S(10), fontFamily: Fonts.Bold, letterSpacing: 0.5 },
-  cardInnerDivider: { height: 1, backgroundColor: "#F3F4F6", marginVertical: S(12), opacity: 0.8 },
+  cardInnerDivider: { height: 1, backgroundColor: Colors.kyc_lockedBg, marginVertical: S(12), opacity: 0.8 },
   cardDetailsGrid: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   detailItem: { flex: 1 },
-  detailLabel: { fontSize: S(9), fontFamily: Fonts.Bold, color: "#9CA3AF", letterSpacing: 0.8, marginBottom: S(4) },
+  detailLabel: { fontSize: S(9), fontFamily: Fonts.Bold, color: Colors.kyc_textMuted, letterSpacing: 0.8, marginBottom: S(4) },
   detailValue: { fontSize: S(12), fontFamily: Fonts.Bold, color: FG, letterSpacing: 0.2 },
   modeGroup: { flexDirection: "row", alignItems: "center", gap: S(5) },
-  rejectionBox: { flexDirection: "row", alignItems: "flex-start", backgroundColor: "#FEF2F2", padding: S(10), borderRadius: S(8), marginTop: S(12), gap: S(8), borderWidth: 1, borderColor: "rgba(220,38,38,0.15)" },
-  rejectionTxt: { fontSize: S(11), fontFamily: Fonts.Medium, color: "#991B1B", lineHeight: S(16) },
-  rejectionTimeTxt: { fontSize: S(9), fontFamily: Fonts.Medium, color: "#DC2626", marginTop: S(4) },
+  rejectionBox: { flexDirection: "row", alignItems: "flex-start", backgroundColor: "rgb(254, 242, 242)", padding: S(10), borderRadius: S(8), marginTop: S(12), gap: S(8), borderWidth: 1, borderColor: "rgba(220,38,38,0.15)" },
+  rejectionTxt: { fontSize: S(11), fontFamily: Fonts.Medium, color: "rgb(153, 27, 27)", lineHeight: S(16) },
+  rejectionTimeTxt: { fontSize: S(9), fontFamily: Fonts.Medium, color: Colors.error_dark, marginTop: S(4) },
 
   emptyStateBox: { alignItems: "center", justifyContent: "center", paddingVertical: S(50) },
   filterBtn: { width: S(32), height: S(32), borderRadius: S(8), backgroundColor: ACCENT + '15', alignItems: 'center', justifyContent: 'center' },
   filterBtnActive: { backgroundColor: ACCENT },
-  datePill: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F9FA', borderRadius: S(12), paddingHorizontal: S(12), paddingVertical: S(8), borderWidth: 1, borderColor: '#EEE' },
-  datePillLabel: { fontSize: S(8), fontFamily: Fonts.Bold, color: '#999', textTransform: 'uppercase' },
+  datePill: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgb(248, 249, 250)', borderRadius: S(12), paddingHorizontal: S(12), paddingVertical: S(8), borderWidth: 1, borderColor: 'rgb(238, 238, 238)' },
+  datePillLabel: { fontSize: S(8), fontFamily: Fonts.Bold, color: 'rgb(153, 153, 153)', textTransform: 'uppercase' },
   datePillValue: { fontSize: S(11), fontFamily: Fonts.Bold, color: FG, marginTop: S(1) },
-  emptyIconCircle: { width: S(64), height: S(64), borderRadius: S(32), backgroundColor: "#F3F4F6", alignItems: "center", justifyContent: "center", marginBottom: S(16) },
+  emptyIconCircle: { width: S(64), height: S(64), borderRadius: S(32), backgroundColor: Colors.kyc_lockedBg, alignItems: "center", justifyContent: "center", marginBottom: S(16) },
   emptyTitle: { fontSize: S(15), fontFamily: Fonts.Bold, color: FG, marginBottom: S(4) },
-  emptySubtitle: { fontSize: S(12), fontFamily: Fonts.Medium, color: "#9CA3AF", textAlign: "center" },
+  emptySubtitle: { fontSize: S(12), fontFamily: Fonts.Medium, color: Colors.kyc_textMuted, textAlign: "center" },
 });
 
 const statsGridStyles = StyleSheet.create({
@@ -1288,12 +1312,15 @@ const statsGridStyles = StyleSheet.create({
   },
   card: {
     flex: 1,
-    backgroundColor: SURFACE,
+    backgroundColor: Colors.white,
     borderRadius: S(12),
     padding: S(10),
     borderLeftWidth: 3,
+    borderLeftColor: ACCENT,
+    borderWidth: 1,
+    borderColor: "rgba(245,158,11,0.30)",
     elevation: 2,
-    shadowColor: "#000",
+    shadowColor: "rgb(0, 0, 0)",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -1312,7 +1339,7 @@ const statsGridStyles = StyleSheet.create({
   lbl: {
     fontSize: S(8),
     fontFamily: Fonts.Bold,
-    color: "#9CA3AF",
+    color: Colors.kyc_textMuted,
     letterSpacing: 0.8,
     marginTop: S(1),
   },

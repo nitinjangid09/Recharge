@@ -58,9 +58,9 @@ function CopyButton({ value }) {
 // ─── BADGE ────────────────────────────────────────────────────────────────────
 function Badge({ type, label }) {
     const map = {
-        failed: { bg: 'rgba(239,68,68,0.1)', color: '#EF4444', border: 'rgba(239,68,68,0.2)' },
-        success: { bg: 'rgba(34,197,94,0.1)', color: '#22C55E', border: 'rgba(34,197,94,0.2)' },
-        refund: { bg: 'rgba(212,176,106,0.15)', color: '#A07830', border: Colors.amberOpacity_30 },
+        failed: { bg: 'rgba(239,68,68,0.1)', color: 'rgb(239, 68, 68)', border: 'rgba(239,68,68,0.2)' },
+        success: { bg: 'rgba(34,197,94,0.1)', color: 'rgb(34, 197, 94)', border: 'rgba(34,197,94,0.2)' },
+        refund: { bg: 'rgba(212,176,106,0.15)', color: 'rgb(160, 120, 48)', border: "rgba(245,158,11,0.30)" },
     };
     const c = map[type];
     return (
@@ -126,8 +126,8 @@ function FinGrid({ tiles }) {
     };
     const iconColorMap = {
         cream: Colors.finance_accent,
-        green: Colors.success,
-        red: Colors.error,
+        green: Colors.green,
+        red: Colors.red,
         gold: Colors.gold,
     };
 
@@ -178,11 +178,11 @@ function BalanceFlow({ txn }) {
                 <View style={styles.bfArrowLine}>
                     <Text style={{ color: Colors.finance_accent, fontSize: 14 }}>→</Text>
                 </View>
-                <Text style={[styles.bfDelta, { color: txn.type === 'credit' || txn.isRefunded ? Colors.success : Colors.error }]}>{txn.amountStr || `₹${txn.amount || '0'}`}</Text>
+                <Text style={[styles.bfDelta, { color: txn.type === 'credit' || txn.isRefunded ? Colors.green : Colors.red }]}>{txn.amountStr || `₹${txn.amount || '0'}`}</Text>
             </View>
             <View style={{ flex: 1, alignItems: 'flex-end' }}>
                 <Text style={styles.bfLabel}>Closing Bal</Text>
-                <Text style={[styles.bfValue, { color: txn.type === 'credit' || txn.isRefunded ? Colors.success : Colors.error }]}>{txn.closingBalance || '₹0.00'}</Text>
+                <Text style={[styles.bfValue, { color: txn.type === 'credit' || txn.isRefunded ? Colors.green : Colors.red }]}>{txn.closingBalance || '₹0.00'}</Text>
                 <Text style={styles.bfSub}>After txn</Text>
             </View>
         </View>
@@ -203,8 +203,8 @@ export default function TransactionAuditScreen({ navigation, route }) {
 
     const finTiles = [
         { icon: '₹', iconColor: 'cream', label: 'Txn Amount', value: `₹${amtInt}`, sub: `.${amtDec}` },
-        { icon: '🏛', iconColor: 'green', label: 'GST Amount', value: txn.gst || '₹0.00', valueColor: Colors.success, sub: 'Tax (CR)' },
-        { icon: '✕', iconColor: 'red', label: 'Charges', value: txn.charges || '₹0.00', valueColor: Colors.error, sub: 'Processing' },
+        { icon: '🏛', iconColor: 'green', label: 'GST Amount', value: txn.gst || '₹0.00', valueColor: Colors.green, sub: 'Tax (CR)' },
+        { icon: '✕', iconColor: 'red', label: 'Charges', value: txn.charges || '₹0.00', valueColor: Colors.red, sub: 'Processing' },
         { icon: '📉', iconColor: 'gold', label: 'TDS Deducted', value: txn.tds || '₹0.00', valueColor: Colors.finance_accent, sub: 'Govt Levy' },
     ];
 
@@ -234,8 +234,8 @@ export default function TransactionAuditScreen({ navigation, route }) {
                     </View>
                     <Text style={styles.heroLabel}>Transaction Amount</Text>
                     <View style={styles.heroAmount}>
-                        <Text style={[styles.heroCurrency, { color: txn.type === 'credit' || txn.isRefunded ? Colors.success : Colors.error }]}>₹</Text>
-                        <Text style={[styles.heroAmountNum, { color: txn.type === 'credit' || txn.isRefunded ? Colors.success : Colors.error }]}>{amtInt}</Text>
+                        <Text style={[styles.heroCurrency, { color: txn.type === 'credit' || txn.isRefunded ? Colors.green : Colors.red }]}>₹</Text>
+                        <Text style={[styles.heroAmountNum, { color: txn.type === 'credit' || txn.isRefunded ? Colors.green : Colors.red }]}>{amtInt}</Text>
                         <Text style={styles.heroAmountDec}>.{amtDec}</Text>
                     </View>
 
@@ -254,7 +254,7 @@ export default function TransactionAuditScreen({ navigation, route }) {
                     <View style={styles.heroMeta}>
                         <View>
                             <Text style={styles.heroStatLabel}>Status</Text>
-                            <Text style={[styles.heroStatValue, { color: txn.type === 'credit' || txn.isRefunded ? Colors.success : Colors.error }]}>
+                            <Text style={[styles.heroStatValue, { color: txn.type === 'credit' || txn.isRefunded ? Colors.green : Colors.red }]}>
                                 {txn.isRefunded ? 'Refunded' : 'Success'}
                             </Text>
                         </View>
@@ -324,7 +324,7 @@ export default function TransactionAuditScreen({ navigation, route }) {
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: Colors.bg,
+        backgroundColor: Colors.beige,
     },
 
     // Styles for topbar removed as HeaderBar is used
@@ -472,10 +472,10 @@ const styles = StyleSheet.create({
 
     // INFO CARD
     infoCard: {
-        backgroundColor: Colors.homebg,
+        backgroundColor: Colors.beige,
         borderRadius: 20,
         borderWidth: 1,
-        borderColor: Colors.amberOpacity_30,
+        borderColor: "rgba(245,158,11,0.30)",
         overflow: 'hidden',
     },
     infoRow: {
@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
-        borderColor: Colors.amberOpacity_30,
+        borderColor: "rgba(245,158,11,0.30)",
     },
     infoRowLabel: {
         fontSize: 10,
@@ -522,14 +522,14 @@ const styles = StyleSheet.create({
     infoRowValue: {
         fontSize: 12.5,
         fontWeight: '800',
-        color: Colors.text_primary,
+        color: Colors.black,
         textAlign: 'right',
         flexShrink: 1,
     },
     infoRowValueMono: {
         fontSize: 10.5,
         fontWeight: '500',
-        color: Colors.text_primary,
+        color: Colors.black,
         textAlign: 'right',
         flexShrink: 1,
         fontVariant: ['tabular-nums'],
@@ -540,7 +540,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         backgroundColor: Colors.gold,
         borderWidth: 1,
-        borderColor: Colors.amberOpacity_30,
+        borderColor: "rgba(245,158,11,0.30)",
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -559,10 +559,10 @@ const styles = StyleSheet.create({
 
     // BALANCE FLOW
     balanceFlow: {
-        backgroundColor: Colors.bg,
+        backgroundColor: Colors.beige,
         borderRadius: 20,
         borderWidth: 1,
-        borderColor: Colors.amberOpacity_30,
+        borderColor: "rgba(245,158,11,0.30)",
         padding: 18,
         flexDirection: 'row',
         alignItems: 'center',
@@ -595,14 +595,14 @@ const styles = StyleSheet.create({
     bfArrowLine: {
         width: 50,
         height: 1,
-        backgroundColor: Colors.amberOpacity_30,
+        backgroundColor: "rgba(245,158,11,0.30)",
         alignItems: 'center',
         justifyContent: 'center',
     },
     bfDelta: {
         fontSize: 10,
         fontWeight: '900',
-        color: Colors.success,
+        color: Colors.green,
         marginTop: 4,
     },
 
@@ -614,10 +614,10 @@ const styles = StyleSheet.create({
     },
     finTile: {
         width: (SCREEN_WIDTH - 42) / 2,
-        backgroundColor: Colors.homebg,
+        backgroundColor: Colors.beige,
         borderRadius: 20,
         borderWidth: 1,
-        borderColor: Colors.amberOpacity_30,
+        borderColor: "rgba(245,158,11,0.30)",
         padding: 16,
         gap: 6,
     },
@@ -632,7 +632,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
-        borderColor: Colors.amberOpacity_30,
+        borderColor: "rgba(245,158,11,0.30)",
         marginBottom: 4,
     },
     finTileLabel: {
@@ -646,7 +646,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '900',
         letterSpacing: -0.3,
-        color: Colors.text_primary,
+        color: Colors.black,
     },
     finTileSub: {
         fontSize: 10,
@@ -673,7 +673,7 @@ const styles = StyleSheet.create({
     actionBtnSecondary: {
         backgroundColor: Colors.gold,
         borderWidth: 1,
-        borderColor: Colors.amberOpacity_30,
+        borderColor: "rgba(245,158,11,0.30)",
     },
     actionBtnSecondaryText: { fontSize: 11.5, fontWeight: '800', color: Colors.black },
 

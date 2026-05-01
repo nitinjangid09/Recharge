@@ -72,14 +72,14 @@ export default function ProductDetailsScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.headerBg} />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
       <HeaderBar title="Product Details" onBack={() => navigation.goBack()} />
 
       {loading ? (
         <FullScreenLoader visible={true} label="Loading Product..." />
       ) : error ? (
         <View style={s.center}>
-          <Icon name="alert-circle-outline" size={60} color={Colors.finance_error} />
+          <Icon name="alert-circle-outline" size={60} color={Colors.red} />
           <Text style={s.errorTxt}>{error}</Text>
           <TouchableOpacity style={s.retryBtn} onPress={fetchDetails}>
             <Text style={s.retryTxt}>Retry</Text>
@@ -95,7 +95,7 @@ export default function ProductDetailsScreen({ navigation, route }) {
                 {imgUrl ? (
                   <Image source={{ uri: imgUrl }} style={s.mainImg} resizeMode="contain" />
                 ) : (
-                  <Icon name="chip" size={150} color="#E2E8F0" />
+                  <Icon name="chip" size={150} color="rgb(226, 232, 240)" />
                 )}
               </View>
 
@@ -122,7 +122,7 @@ export default function ProductDetailsScreen({ navigation, route }) {
                     <Icon
                       name={isFav ? "heart" : "heart-outline"}
                       size={20}
-                      color={isFav ? "#EF4444" : Colors.finance_accent}
+                      color={isFav ? Colors.red : Colors.finance_accent}
                     />
                   </TouchableOpacity>
                 </View>
@@ -160,7 +160,7 @@ export default function ProductDetailsScreen({ navigation, route }) {
                 </View>
                 <View style={s.infoBox}>
                   <Text style={s.infoLabel}>Status</Text>
-                  <Text style={[s.infoVal, { color: product.isActive ? '#10B981' : '#EF4444' }]}>
+                  <Text style={[s.infoVal, { color: product.isActive ? 'rgb(16, 185, 129)' : 'rgb(239, 68, 68)' }]}>
                     {product.isActive ? 'Active' : 'Inactive'}
                   </Text>
                 </View>
@@ -177,7 +177,7 @@ export default function ProductDetailsScreen({ navigation, route }) {
 
               <TouchableOpacity style={s.buyBtn}>
                 <LinearGradient
-                  colors={['#161616', '#2A2A2A']}
+                  colors={['rgb(22, 22, 22)', 'rgb(42, 42, 42)']}
                   style={s.buyBtnGrad}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
@@ -194,22 +194,22 @@ export default function ProductDetailsScreen({ navigation, route }) {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#FFFFFF' },
+  root: { flex: 1, backgroundColor: 'rgb(255, 255, 255)' },
   scrollContent: { paddingBottom: 120 },
 
   // Image Section
-  imageContainer: { width: width, height: height * 0.35, backgroundColor: '#F9FAFB', alignItems: 'center' },
+  imageContainer: { width: width, height: height * 0.35, backgroundColor: 'rgb(249, 250, 251)', alignItems: 'center' },
   productImgBox: { flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' },
   mainImg: { width: '75%', height: '75%' },
   indicatorRow: { flexDirection: 'row', gap: 5, marginBottom: 15 },
-  dot: { width: 8, height: 4, borderRadius: 2, backgroundColor: '#CBD5E1' },
+  dot: { width: 8, height: 4, borderRadius: 2, backgroundColor: 'rgb(203, 213, 225)' },
   dotActive: { width: 24, backgroundColor: Colors.finance_accent },
 
   // Info Section
   infoSection: { paddingHorizontal: 25, paddingTop: 15 },
   titleRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 15 },
-  productTitle: { fontFamily: Fonts.Bold, fontSize: 24, color: '#161616', marginBottom: 2 },
-  subTitle: { fontFamily: Fonts.Medium, fontSize: 12, color: '#94A3B8' },
+  productTitle: { fontFamily: Fonts.Bold, fontSize: 24, color: 'rgb(22, 22, 22)', marginBottom: 2 },
+  subTitle: { fontFamily: Fonts.Medium, fontSize: 12, color: 'rgb(148, 163, 184)' },
   iconActions: { flexDirection: 'row', gap: 10 },
   styledIconBtn: {
     width: 36,
@@ -224,19 +224,19 @@ const s = StyleSheet.create({
 
   attrRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 25 },
   attrItem: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  attrText: { fontFamily: Fonts.Bold, fontSize: 11, color: '#475569' },
+  attrText: { fontFamily: Fonts.Bold, fontSize: 11, color: 'rgb(71, 85, 105)' },
 
   descSection: { marginBottom: 15 },
-  sectionHeader: { fontFamily: Fonts.Bold, fontSize: 16, color: '#161616' },
-  descText: { fontFamily: Fonts.Medium, fontSize: 13, color: '#64748B', lineHeight: 20 },
+  sectionHeader: { fontFamily: Fonts.Bold, fontSize: 16, color: 'rgb(22, 22, 22)' },
+  descText: { fontFamily: Fonts.Medium, fontSize: 13, color: 'rgb(100, 116, 139)', lineHeight: 20 },
 
   extraInfoGrid: { flexDirection: 'row', gap: 12, marginTop: 5 },
-  infoBox: { flex: 1, backgroundColor: '#F9FAFB', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#F1F5F9' },
-  infoLabel: { fontFamily: Fonts.Medium, fontSize: 10, color: '#94A3B8', marginBottom: 2 },
-  infoVal: { fontFamily: Fonts.Bold, fontSize: 13, color: '#161616' },
+  infoBox: { flex: 1, backgroundColor: 'rgb(249, 250, 251)', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: 'rgb(241, 245, 249)' },
+  infoLabel: { fontFamily: Fonts.Medium, fontSize: 10, color: 'rgb(148, 163, 184)', marginBottom: 2 },
+  infoVal: { fontFamily: Fonts.Bold, fontSize: 13, color: 'rgb(22, 22, 22)' },
 
   // Footer
-  footer: { position: 'absolute', bottom: 0, width: width, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#F1F5F9' },
+  footer: { position: 'absolute', bottom: 0, width: width, backgroundColor: 'rgb(255, 255, 255)', borderTopWidth: 1, borderTopColor: 'rgb(241, 245, 249)' },
   footerInner: { flexDirection: 'row', alignItems: 'center', padding: 20, gap: 15 },
   chatBtn: { width: 55, height: 55, borderRadius: 12, borderWidth: 1.5, borderColor: 'rgba(212,176,106,0.2)', alignItems: 'center', justifyContent: 'center' },
   buyBtn: { flex: 1, height: 55, borderRadius: 12, overflow: 'hidden' },
@@ -244,7 +244,7 @@ const s = StyleSheet.create({
   buyBtnTxt: { fontFamily: Fonts.Bold, color: Colors.finance_accent, fontSize: 16, letterSpacing: 0.5 },
 
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 30 },
-  errorTxt: { fontFamily: Fonts.Medium, fontSize: 16, color: '#64748B', textAlign: 'center', marginTop: 15 },
+  errorTxt: { fontFamily: Fonts.Medium, fontSize: 16, color: 'rgb(100, 116, 139)', textAlign: 'center', marginTop: 15 },
   retryBtn: { marginTop: 25, backgroundColor: Colors.finance_accent, paddingHorizontal: 30, paddingVertical: 12, borderRadius: 12 },
-  retryTxt: { fontFamily: Fonts.Bold, color: '#000', fontSize: 14 },
+  retryTxt: { fontFamily: Fonts.Bold, color: 'rgb(0, 0, 0)', fontSize: 14 },
 });

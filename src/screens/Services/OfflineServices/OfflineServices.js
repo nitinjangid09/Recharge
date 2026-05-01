@@ -58,7 +58,7 @@ const PROTOCOLS_MOCK = [
 const STATUS_CONFIG = {
     PROCESSING: { bg: Colors.warning_light, dot: Colors.amber, text: Colors.warning_dark },
     COMPLETED: { bg: Colors.success_light, dot: Colors.green, text: Colors.success_dark },
-    PENDING: { bg: Colors.slate_50, dot: Colors.slate_400, text: Colors.slate_500 },
+    PENDING: { bg: Colors.bg_F8, dot: Colors.gray, text: Colors.slate_500 },
 };
 
 // ─── Components ───────────────────────────────────────────────────────────────
@@ -264,7 +264,7 @@ export default function OfflineServices({ navigation }) {
                     <TextInput
                         style={styles.searchInput}
                         placeholder="Search protocols..."
-                        placeholderTextColor={Colors.text_placeholder}
+                        placeholderTextColor={Colors.gray}
                         value={search}
                         onChangeText={setSearch}
                     />
@@ -304,7 +304,7 @@ export default function OfflineServices({ navigation }) {
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: Colors.secondary,
+        backgroundColor: Colors.white,
     },
     scrollView: { flex: 1 },
 
@@ -341,7 +341,8 @@ const styles = StyleSheet.create({
         padding: 18,
         backgroundColor: Colors.white,
         borderWidth: 1,
-        borderColor: Colors.divider,    },
+        borderColor: Colors.input_border,
+    },
     statValue: {
         fontSize: 34,
         color: Colors.primary,
@@ -367,7 +368,7 @@ const styles = StyleSheet.create({
     sectionLabelLine: {
         flex: 1,
         height: 1,
-        backgroundColor: Colors.divider,
+        backgroundColor: Colors.input_border,
     },
     sectionLabel: {
         fontSize: 10,
@@ -396,7 +397,8 @@ const styles = StyleSheet.create({
         borderRadius: 22,
         padding: 22,
         borderWidth: 1,
-        borderColor: Colors.divider,    },
+        borderColor: Colors.input_border,
+    },
     itrMainRow: {
         flexDirection: 'row',
         alignItems: 'flex-start',
@@ -411,11 +413,11 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         borderRadius: 14,
-        backgroundColor: Colors.finance_chip,
+        backgroundColor: Colors.gold,
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: Colors.input_border,
     },
     itrIconEmoji: { fontSize: 26 },
     itrInfo: {
@@ -457,7 +459,8 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.primary,
         paddingHorizontal: 22,
         paddingVertical: 14,
-        borderRadius: 32,    },
+        borderRadius: 32,
+    },
     proceedBtnText: {
         fontSize: 12,
         color: Colors.white,
@@ -476,12 +479,13 @@ const styles = StyleSheet.create({
         paddingHorizontal: 14,
         paddingVertical: 11,
         borderWidth: 1,
-        borderColor: Colors.divider,    },
+        borderColor: Colors.input_border,
+    },
     searchIconText: { fontSize: 14, marginRight: 8 },
     searchInput: {
         flex: 1,
         fontSize: 13,
-        color: Colors.text_primary,
+        color: Colors.black,
         fontFamily: Fonts.Regular,
         paddingVertical: 0,
     },
@@ -503,7 +507,8 @@ const styles = StyleSheet.create({
         borderRadius: 18,
         padding: 16,
         borderWidth: 1,
-        borderColor: Colors.divider,        marginBottom: 2,
+        borderColor: Colors.input_border,
+        marginBottom: 2,
     },
     pcHeader: {
         flexDirection: 'row',
@@ -542,7 +547,7 @@ const styles = StyleSheet.create({
     },
     pcDivider: {
         height: 1,
-        backgroundColor: Colors.divider,
+        backgroundColor: Colors.input_border,
         marginVertical: 10,
     },
     pcFooter: {

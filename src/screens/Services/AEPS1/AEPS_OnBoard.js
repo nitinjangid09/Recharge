@@ -40,25 +40,25 @@ const SCREENS = { HUB: 1, BIOMETRIC: 2, CAPTURING: 3 };
 const WADH_VALUE = "E0jzJ/P8UopUHAieZn8CKqS4WPMi5ZSYXgfnlfkWjrc=";
 
 // Theme
-const GOLD = "#D4A843";
-const GOLD_LIGHT = "#E8C46A";
+const GOLD = "rgb(212, 168, 67)";
+const GOLD_LIGHT = "rgb(232, 196, 106)";
 const GOLD_DIM = "rgba(212,168,67,0.15)";
 const GOLD_BORDER = "rgba(212,168,67,0.28)";
-const BG_DEEP = "#080714";
-const BG_MID = "#0E0C1C";
+const BG_DEEP = "rgb(8, 7, 20)";
+const BG_MID = "rgb(14, 12, 28)";
 const BG_CARD = "rgba(255,255,255,0.04)";
 const BG_CARD2 = "rgba(255,255,255,0.07)";
-const WHITE = "#FFFFFF";
+const WHITE = Colors.white;
 const W05 = "rgba(255,255,255,0.05)";
 const W10 = "rgba(255,255,255,0.10)";
 const W20 = "rgba(255,255,255,0.20)";
 const W35 = "rgba(255,255,255,0.35)";
 const W55 = "rgba(255,255,255,0.55)";
-const GREEN = "#22C55E";
+const GREEN = Colors.green;
 const GREEN_DIM = "rgba(34,197,94,0.12)";
 const GREEN_BDR = "rgba(34,197,94,0.28)";
-const RED = "#F72F20";
-const AMBER = "#F59E0B";
+const RED = "rgb(247, 47, 32)";
+const AMBER = Colors.warning;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -888,7 +888,7 @@ const AEPS_OnBoard = () => {
 
             {/* Background gradient */}
             <LinearGradient
-                colors={[BG_DEEP, BG_MID, "#09081A"]}
+                colors={[BG_DEEP, BG_MID, "rgb(9, 8, 26)"]}
                 style={StyleSheet.absoluteFill}
             />
 
@@ -1065,7 +1065,8 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        marginBottom: 14 * S,    },
+        marginBottom: 14 * S,
+    },
     btnPrimaryTxt: {
         fontSize: 15,
         fontFamily: Fonts.Bold,

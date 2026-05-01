@@ -172,7 +172,7 @@ const AEPS_Services = () => {
                 {/* ── Agent Card ── */}
                 <View style={styles.agentCard}>
                     <View style={styles.agentIconBox}>
-                        <Icon name="credit-card-outline" size={18 * S} color="#D4A843" />
+                        <Icon name="credit-card-outline" size={18 * S} color="rgb(212, 168, 67)" />
                     </View>
                     <View style={{ flex: 1 }}>
                         <Text style={styles.agentName}>{user.name} · BC Agent</Text>
@@ -221,18 +221,18 @@ const AEPS_Services = () => {
                 <Text style={styles.sectionLabel}>RECENT ACTIVITY</Text>
                 {recentTxns.length > 0 ? recentTxns.map(txn => (
                     <View key={txn.id} style={styles.txnItem}>
-                        <View style={[styles.txnIconBox, { backgroundColor: txn.status === 'success' ? '#EBFDF5' : '#FFF9EE' }]}>
+                        <View style={[styles.txnIconBox, { backgroundColor: txn.status === 'success' ? 'rgb(235, 253, 245)' : 'rgb(255, 249, 238)' }]}>
                             <Icon
                                 name={txn.status === 'success' ? "arrow-right" : "history"}
                                 size={16 * S}
-                                color={txn.status === 'success' ? '#10B981' : '#D4A843'}
+                                color={txn.status === 'success' ? 'rgb(16, 185, 129)' : 'rgb(212, 168, 67)'}
                             />
                         </View>
                         <View style={{ flex: 1 }}>
                             <Text style={styles.txnTitle}>{txn.type}</Text>
                             <Text style={styles.txnSub}>{txn.date} · {txn.details}</Text>
                         </View>
-                        <Text style={[styles.txnAmount, { color: txn.status === 'success' ? '#10B981' : '#1A1A1A' }]}>
+                        <Text style={[styles.txnAmount, { color: txn.status === 'success' ? 'rgb(16, 185, 129)' : 'rgb(26, 26, 26)' }]}>
                             {txn.amount}
                         </Text>
                     </View>
@@ -256,7 +256,7 @@ const AEPS_Services = () => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: "#EBE3CC" },
+    container: { flex: 1, backgroundColor: "rgb(235, 227, 204)" },
     scroll: { paddingHorizontal: 16 * S, paddingBottom: 16 * S },
 
     // ── Header ──────────────────────────────────────────────
@@ -268,30 +268,31 @@ const styles = StyleSheet.create({
         paddingVertical: 12 * S,
         marginTop: 4,
     },
-    headerTitle: { fontSize: 20 * S, fontFamily: Fonts.Bold, color: "#1A1A1A" },
-    headerSub: { fontSize: 12 * S, fontFamily: Fonts.Medium, color: "#717171", marginTop: 1 },
+    headerTitle: { fontSize: 20 * S, fontFamily: Fonts.Bold, color: Colors.hub_dark },
+    headerSub: { fontSize: 12 * S, fontFamily: Fonts.Medium, color: "rgb(113, 113, 113)", marginTop: 1 },
     profileBtn: {
         width: 38 * S, height: 38 * S,
-        backgroundColor: "#000", borderRadius: 12,
+        backgroundColor: "rgb(0, 0, 0)", borderRadius: 12,
         alignItems: "center", justifyContent: "center",
     },
     badge: {
         position: "absolute", top: -4, right: -4,
-        backgroundColor: "#EF4444", borderRadius: 10,
+        backgroundColor: Colors.red, borderRadius: 10,
         width: 16 * S, height: 16 * S,
         alignItems: "center", justifyContent: "center",
-        borderWidth: 2, borderColor: "#EBE3CC",
+        borderWidth: 2, borderColor: "rgb(235, 227, 204)",
     },
-    badgeText: { color: "#FFF", fontSize: 9, fontFamily: Fonts.Bold },
+    badgeText: { color: "rgb(255, 255, 255)", fontSize: 9, fontFamily: Fonts.Bold },
 
     // ── Compact Wallet Card ─────────────────────────────────
     mainCard: {
-        backgroundColor: "#000",
+        backgroundColor: "rgb(0, 0, 0)",
         borderRadius: 24 * S,
         paddingHorizontal: 20 * S,
         paddingTop: 16 * S,
         paddingBottom: 14 * S,
-        marginBottom: 14 * S,    },
+        marginBottom: 14 * S,
+    },
     walletTop: { marginBottom: 12 * S },
     walletLabel: {
         color: "rgba(255,255,255,0.4)",
@@ -316,33 +317,36 @@ const styles = StyleSheet.create({
 
     // ── Agent Card ──────────────────────────────────────────
     agentCard: {
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.beige,
         borderRadius: 20 * S,
         padding: 14 * S,
         flexDirection: "row",
         alignItems: "center",
-        marginBottom: 20 * S,    },
+        marginBottom: 20 * S,
+        borderWidth: 1,
+        borderColor: "rgba(245,158,11,0.30)",
+    },
     agentIconBox: {
         width: 38 * S, height: 38 * S,
-        borderRadius: 10, backgroundColor: "#FFF9EE",
+        borderRadius: 10, backgroundColor: "rgb(255, 249, 238)",
         alignItems: "center", justifyContent: "center",
         marginRight: 10 * S,
     },
-    agentName: { fontSize: 13 * S, fontFamily: Fonts.Bold, color: "#1A1A1A" },
-    merchantID: { fontSize: 10 * S, fontFamily: Fonts.Medium, color: "#9E9E9E", marginTop: 2 },
+    agentName: { fontSize: 13 * S, fontFamily: Fonts.Bold, color: Colors.hub_dark },
+    merchantID: { fontSize: 10 * S, fontFamily: Fonts.Medium, color: Colors.gray, marginTop: 2 },
     statusBadge: {
-        backgroundColor: "#EBFDF5",
+        backgroundColor: "rgb(235, 253, 245)",
         paddingHorizontal: 8, paddingVertical: 5,
         borderRadius: 12, flexDirection: "row", alignItems: "center",
     },
-    statusDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: "#10B981", marginRight: 5 },
-    statusText: { fontSize: 10 * S, fontFamily: Fonts.Bold, color: "#10B981" },
+    statusDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: "rgb(16, 185, 129)", marginRight: 5 },
+    statusText: { fontSize: 10 * S, fontFamily: Fonts.Bold, color: "rgb(16, 185, 129)" },
 
     // ── Section Label ───────────────────────────────────────
     sectionLabel: {
         fontSize: 10 * S,
         fontFamily: Fonts.Bold,
-        color: "#D4A843",
+        color: "rgb(212, 168, 67)",
         letterSpacing: 1.5,
         marginBottom: 10 * S,
         textTransform: "uppercase",
@@ -353,11 +357,13 @@ const styles = StyleSheet.create({
     gridRow: { flexDirection: "row", gap: 10 * S },
     card: {
         flex: 1,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.beige,
         borderRadius: 20 * S,
         padding: 14 * S,
         justifyContent: "space-between",
         minHeight: 88 * S,
+        borderWidth: 1,
+        borderColor: "rgba(245,158,11,0.30)",
     },
     iconBox: {
         width: 50 * S, height: 50 * S,
@@ -377,6 +383,8 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         marginBottom: 8 * S,
+        borderWidth: 1,
+        borderColor: "rgba(245,158,11,0.30)",
     },
     txnIconBox: {
         width: 36 * S, height: 36 * S,
@@ -384,8 +392,8 @@ const styles = StyleSheet.create({
         alignItems: "center", justifyContent: "center",
         marginRight: 10 * S,
     },
-    txnTitle: { fontSize: 13 * S, fontFamily: Fonts.Bold, color: "#1A1A1A" },
-    txnSub: { fontSize: 10 * S, fontFamily: Fonts.Medium, color: "#9E9E9E", marginTop: 2 },
+    txnTitle: { fontSize: 13 * S, fontFamily: Fonts.Bold, color: Colors.hub_dark },
+    txnSub: { fontSize: 10 * S, fontFamily: Fonts.Medium, color: Colors.gray, marginTop: 2 },
     txnAmount: { fontSize: 13 * S, fontFamily: Fonts.Bold },
 });
 

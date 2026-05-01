@@ -45,8 +45,8 @@ const CONTACT_ROWS = [
 const QUICK_CARDS = [
   { icon: "message-text-outline", title: "Live Chat", sub: "Chat with an agent instantly", accent: Colors.finance_accent },
   { icon: "frequently-asked-questions", title: "FAQs", sub: "Browse common questions", accent: Colors.primary },
-  { icon: "ticket-outline", title: "Raise Ticket", sub: "Submit a support request", accent: Colors.finance_success },
-  { icon: "phone-incoming-outline", title: "Callback", sub: "We'll call you back soon", accent: Colors.finance_error },
+  { icon: "ticket-outline", title: "Raise Ticket", sub: "Submit a support request", accent: Colors.green },
+  { icon: "phone-incoming-outline", title: "Callback", sub: "We'll call you back soon", accent: Colors.red },
 ];
 
 const STATS = [
@@ -92,7 +92,7 @@ const SupportScreen = () => {
 
   return (
     <SafeAreaView style={st.safe} edges={["top"]}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.slate_900} />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
       <FullScreenLoader visible={refreshing} label="Connecting to support..." />
 
       {/* ════════════════════════════════════════════════
@@ -112,7 +112,7 @@ const SupportScreen = () => {
           activeOpacity={0.7}
         >
           <View style={st.profileCircle}>
-            <Icon name="account-outline" size={S(17)} color={Colors.slate_400} />
+            <Icon name="account-outline" size={S(17)} color={Colors.gray} />
           </View>
         </TouchableOpacity>
       </View>
@@ -134,7 +134,7 @@ const SupportScreen = () => {
             onRefresh={onRefresh}
             tintColor={Colors.finance_accent}
             colors={[Colors.finance_accent]}
-            progressBackgroundColor={Colors.slate_900}
+            progressBackgroundColor={Colors.primary}
           />
         }
       >
@@ -204,7 +204,7 @@ const SupportScreen = () => {
                     </Text>
                   </View>
                   <TouchableOpacity style={st.contactAction} onPress={row.onAction}>
-                    <Icon name={row.actionIcon} size={S(15)} color={Colors.subText} />
+                    <Icon name={row.actionIcon} size={S(15)} color={Colors.text_secondary} />
                   </TouchableOpacity>
                 </View>
                 {i < CONTACT_ROWS.length - 1 && <View style={st.divider} />}
@@ -248,7 +248,7 @@ const SupportScreen = () => {
                   end={{ x: 1, y: 0 }}
                   style={st.callBtn}
                 >
-                  <Icon name="phone" size={S(17)} color={Colors.slate_900} />
+                  <Icon name="phone" size={S(17)} color={Colors.primary} />
                   <Text style={st.callTxt}>Call Support</Text>
                 </LinearGradient>
               </TouchableOpacity>
@@ -274,13 +274,13 @@ export default SupportScreen;
 // STYLES
 // ─────────────────────────────────────────────────────────────────────────────
 const st = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.slate_900 },
+  safe: { flex: 1, backgroundColor: Colors.primary },
   scroll: { flex: 1 },
-  scrollContent: { flexGrow: 1, backgroundColor: Colors.bg },
+  scrollContent: { flexGrow: 1, backgroundColor: Colors.beige },
 
   // ── Header ────────────────────────────────────────────────────────────
   header: {
-    backgroundColor: Colors.slate_900,
+    backgroundColor: Colors.primary,
     paddingVertical: S(11),
     paddingHorizontal: S(16),
     flexDirection: "row",
@@ -293,15 +293,15 @@ const st = StyleSheet.create({
   profileBtn: { minWidth: S(60), alignItems: "flex-end" },
   profileCircle: {
     width: S(34), height: S(34), borderRadius: S(17),
-    backgroundColor: Colors.hex_2E2E2E,
+    backgroundColor: Colors.ink2,
     justifyContent: "center", alignItems: "center",
-    borderWidth: 1, borderColor: Colors.hex_3A3A3A,
+    borderWidth: 1, borderColor: Colors.ink3,
   },
 
   // ── Hero ──────────────────────────────────────────────────────────────
   // NO borderRadius at bottom — the curveConnector handles the curve
   hero: {
-    backgroundColor: Colors.slate_900,
+    backgroundColor: Colors.primary,
     paddingHorizontal: S(20),
     paddingTop: S(10),
     paddingBottom: S(20),
@@ -309,21 +309,21 @@ const st = StyleSheet.create({
   onlineBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.finance_success + "20",
+    backgroundColor: Colors.green + "20",
     alignSelf: "flex-start",
     borderRadius: S(20),
     paddingHorizontal: S(12),
     paddingVertical: S(5),
     marginBottom: S(16),
     borderWidth: 1,
-    borderColor: Colors.finance_success + "40",
+    borderColor: Colors.green + "40",
   },
   onlineDot: {
     width: S(7), height: S(7), borderRadius: S(4),
-    backgroundColor: Colors.finance_success, marginRight: S(7),
+    backgroundColor: Colors.green, marginRight: S(7),
   },
   onlineTxt: {
-    color: Colors.finance_success, fontSize: S(10),
+    color: Colors.green, fontSize: S(10),
     fontFamily: Fonts.Bold, letterSpacing: 0.8,
     includeFontPadding: false, lineHeight: S(14),
   },
@@ -338,7 +338,7 @@ const st = StyleSheet.create({
     color: Colors.white, lineHeight: S(33), marginBottom: S(8),
   },
   heroSubTxt: {
-    fontSize: S(12), color: Colors.slate_400,
+    fontSize: S(12), color: Colors.gray,
     lineHeight: S(18), fontFamily: Fonts.Medium,
   },
   agentCircle: {
@@ -349,7 +349,7 @@ const st = StyleSheet.create({
   statsRow: { flexDirection: "row", gap: S(10) },
   statChip: {
     flex: 1,
-    backgroundColor: Colors.hex_232323,
+    backgroundColor: Colors.ink2,
     borderRadius: S(10),
     paddingVertical: S(9),
     paddingHorizontal: S(10),
@@ -357,16 +357,16 @@ const st = StyleSheet.create({
     alignItems: "center",
     gap: S(6),
     borderWidth: 1,
-    borderColor: Colors.hex_2E2E2E,
+    borderColor: Colors.ink,
   },
-  statTxt: { fontSize: S(10), color: Colors.slate_400, lineHeight: S(14), fontFamily: Fonts.Medium },
+  statTxt: { fontSize: S(10), color: Colors.gray, lineHeight: S(14), fontFamily: Fonts.Medium },
 
   // ── Curve connector ──────────────────────────────────────────────────
   // Dark background + rounded bottom corners creates the smooth arch
   // that joins the dark hero to the light body WITHOUT any overlap.
   curveConnector: {
     height: S(28),
-    backgroundColor: Colors.slate_900,
+    backgroundColor: Colors.primary,
     borderBottomLeftRadius: S(28),
     borderBottomRightRadius: S(28),
     // Shadow so it floats slightly above the light body
@@ -375,7 +375,7 @@ const st = StyleSheet.create({
   // ── Light body ────────────────────────────────────────────────────────
   // Sits flush BELOW the curveConnector — no negative margin, no overlap
   body: {
-    backgroundColor: Colors.bg,
+    backgroundColor: Colors.beige,
     paddingHorizontal: S(16),
     paddingTop: S(20),
     paddingBottom: S(40),
@@ -384,7 +384,7 @@ const st = StyleSheet.create({
 
   // ── Contact card ──────────────────────────────────────────────────────
   contactCard: {
-    backgroundColor: Colors.homebg,
+    backgroundColor: Colors.white,
     borderRadius: S(16),
     paddingHorizontal: S(16),
     paddingVertical: S(4),
@@ -411,7 +411,7 @@ const st = StyleSheet.create({
     color: Colors.finance_text, includeFontPadding: false, lineHeight: S(20),
   },
   contactAction: { padding: S(6) },
-  divider: { height: 1, backgroundColor: Colors.border, marginLeft: S(52) },
+  divider: { height: 1, backgroundColor: Colors.input_border, marginLeft: S(52) },
 
   // ── Quick help ────────────────────────────────────────────────────────
   sectionTitle: {
@@ -427,7 +427,7 @@ const st = StyleSheet.create({
   },
   quickCard: {
     width: "47%",
-    backgroundColor: Colors.homebg,
+    backgroundColor: Colors.white,
     borderRadius: S(14),
     padding: S(14),
     borderTopWidth: 3,
@@ -457,12 +457,12 @@ const st = StyleSheet.create({
     gap: S(9),
   },
   callTxt: {
-    color: Colors.slate_900, fontSize: S(15),
+    color: Colors.primary, fontSize: S(15),
     fontFamily: Fonts.Bold, letterSpacing: 0.3,
   },
   emailBtn: {
     backgroundColor: Colors.white,
-    borderWidth: 1.5, borderColor: Colors.border,
+    borderWidth: 1.5, borderColor: Colors.input_border,
     paddingVertical: S(15),
     borderRadius: S(14),
     flexDirection: "row",
@@ -471,7 +471,7 @@ const st = StyleSheet.create({
     gap: S(9),
   },
   emailTxt: {
-    color: Colors.heading, fontSize: S(15),
+    color: Colors.black, fontSize: S(15),
     fontFamily: Fonts.Bold, letterSpacing: 0.3,
   },
 });

@@ -56,14 +56,14 @@ const otpStyles = StyleSheet.create({
     width: rs(44),
     height: rs(52),
     borderRadius: rs(13),
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.beige,
     borderWidth: 1.5,
     borderColor: 'rgba(212,176,106,0.32)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   boxFilled: {
-    backgroundColor: '#fff',
+    backgroundColor: 'rgb(255, 255, 255)',
   },
   digit: { fontSize: rs(20), fontWeight: '700', color: Colors.black },
 });
@@ -234,7 +234,7 @@ export default function AEPSAadhaarOTPScreen({ navigation }) {
                     value={aadhaar}
                     onChangeText={handleAadhaarChange}
                     placeholder="Enter 12-digit Aadhaar"
-                    placeholderTextColor={Colors.text_placeholder}
+                    placeholderTextColor={Colors.gray}
                     keyboardType="numeric"
                     maxLength={14}
                   />
@@ -253,7 +253,7 @@ export default function AEPSAadhaarOTPScreen({ navigation }) {
                   {loading ? (
                     <ActivityIndicator color={Colors.white} />
                   ) : (
-                    <Text style={[styles.sendBtnText, aadhaar.replace(/\s/g, '').length < 12 && { color: Colors.black }]}>
+                    <Text style={[styles.sendBtnText, aadhaar.replace(/\s/g, '').length < 12 && { color: Colors.slate_500 }]}>
                       Send OTP
                     </Text>
                   )}
@@ -289,7 +289,7 @@ export default function AEPSAadhaarOTPScreen({ navigation }) {
                   {loading ? (
                     <ActivityIndicator color={Colors.white} />
                   ) : (
-                    <Text style={[styles.sendBtnText, otp.length < 6 && { color: Colors.black }]}>Verify OTP</Text>
+                    <Text style={[styles.sendBtnText, otp.length < 6 && { color: Colors.slate_500 }]}>Verify OTP</Text>
                   )}
                 </TouchableOpacity>
 
@@ -324,17 +324,16 @@ export default function AEPSAadhaarOTPScreen({ navigation }) {
 
 // ─── Styles ───────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
+  safe: { flex: 1, backgroundColor: Colors.beige },
   scroll: { paddingHorizontal: rs(16), paddingBottom: rs(40) },
 
   card: {
-    backgroundColor: Colors.homebg,
+    backgroundColor: Colors.beige,
     borderRadius: rs(24),
     padding: rs(24),
     marginTop: rs(8),
-    borderWidth: 0.5,
-    borderColor: Colors.border,
-
+    borderWidth: 1,
+    borderColor: "rgba(245,158,11,0.30)",
   },
 
   badge: {
@@ -398,7 +397,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: rs(16),
   },
-  sendBtnDisabled: { backgroundColor: Colors.gray_F0 },
+  sendBtnDisabled: { backgroundColor: Colors.gold },
   sendBtnText: { fontSize: rs(15), fontWeight: '700', color: Colors.white, letterSpacing: 0.5 },
 
   hiddenInput: {
@@ -416,16 +415,16 @@ const styles = StyleSheet.create({
   changeAadhaar: { fontSize: rs(12), color: Colors.text_secondary, textAlign: 'center', marginBottom: rs(16) },
 
   helpBox: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.beige,
     borderRadius: rs(14),
     padding: rs(14),
     marginTop: rs(4),
     borderWidth: 0.5,
-    borderColor: 'rgba(212,176,106,0.2)',
+    borderColor: Colors.finance_accent + "33",
   },
   errorText: {
     fontSize: rs(10),
-    color: '#ef4444',
+    color: Colors.red,
     marginTop: -rs(10),
     marginBottom: rs(10),
     fontWeight: '600',

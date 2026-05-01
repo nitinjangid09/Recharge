@@ -24,7 +24,7 @@ import FullScreenLoader from "../../componets/Loader/FullScreenLoader";
    PASSWORD STRENGTH
 ───────────────────────────────────────────── */
 const STRENGTH_LABELS = ["—", "Weak", "Fair", "Strong", "Strong"];
-const STRENGTH_COLORS = ["", Colors.amber2, "#D4A017", Colors.amber, Colors.green];
+const STRENGTH_COLORS = ["", Colors.amber2, "rgb(212, 160, 23)", Colors.amber, Colors.green];
 
 function calcStrength(v) {
   let s = 0;
@@ -54,10 +54,10 @@ const FloatInput = ({ id, label, value, onChangeText, secureTextEntry, onToggleS
 
   const labelTop = labelAnim.interpolate({ inputRange: [0, 1], outputRange: [18, 9] });
   const labelSize = labelAnim.interpolate({ inputRange: [0, 1], outputRange: [14, 10.5] });
-  const labelColor = labelAnim.interpolate({ inputRange: [0, 1], outputRange: [Colors.ink3, Colors.amber] });
+  const labelColor = labelAnim.interpolate({ inputRange: [0, 1], outputRange: ["rgb(95, 93, 91)", Colors.amber] });
 
   // Custom border color handling for Error vs Success
-  let finalBorderColor = error ? Colors.red : (success ? Colors.green : Colors.ink5);
+  let finalBorderColor = error ? Colors.red : (success ? Colors.green : Colors.kyc_border);
   const borderColor = borderAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [finalBorderColor, success ? Colors.green : Colors.amber]
@@ -71,7 +71,8 @@ const FloatInput = ({ id, label, value, onChangeText, secureTextEntry, onToggleS
         style={[
           styles.fField,
           {
-            borderColor,          },
+            borderColor,
+          },
         ]}
       >
         {/* Floating label */}
@@ -107,7 +108,7 @@ const FloatInput = ({ id, label, value, onChangeText, secureTextEntry, onToggleS
           {success && !error ? (
             <Icon name="check-circle" size={16} color={Colors.green} />
           ) : (
-            <Icon name={showSecure ? "eye-outline" : "eye-off-outline"} size={14} color={focused ? Colors.amber : Colors.ink4} />
+            <Icon name={showSecure ? "eye-outline" : "eye-off-outline"} size={14} color={focused ? Colors.amber : Colors.text_secondary} />
           )}
         </TouchableOpacity>
       </Animated.View>
@@ -123,7 +124,7 @@ const FloatInput = ({ id, label, value, onChangeText, secureTextEntry, onToggleS
 const StrengthBar = ({ value }) => {
   const s = value ? calcStrength(value) : 0;
   const label = value ? STRENGTH_LABELS[s] : "—";
-  const color = value && s > 0 ? STRENGTH_COLORS[s] : Colors.ink4;
+  const color = value && s > 0 ? STRENGTH_COLORS[s] : Colors.text_secondary;
 
   return (
     <View style={styles.strength}>
@@ -306,7 +307,7 @@ const ChangePasswordScreen = ({ navigation }) => {
 
             {/* Tip box */}
             <View style={styles.tipBox}>
-              <Icon name="shield-outline" size={14} color={Colors.ink4} style={{ marginTop: 1 }} />
+              <Icon name="shield-outline" size={14} color={Colors.text_secondary} style={{ marginTop: 1 }} />
               <Text style={styles.tipText}>
                 Use 8-15 characters with a mix of uppercase letters, numbers, and symbols for maximum security.
               </Text>
@@ -354,11 +355,11 @@ export default ChangePasswordScreen;
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.bg,
+    backgroundColor: Colors.beige,
   },
   scroll: {
     flex: 1,
-    backgroundColor: Colors.bg,
+    backgroundColor: Colors.beige,
   },
   scrollContent: {
     paddingBottom: 48,
@@ -371,14 +372,14 @@ const styles = StyleSheet.create({
     paddingTop: 28,
     paddingBottom: 24,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.ink5,
-    backgroundColor: Colors.bg,
+    borderBottomColor: Colors.kyc_border,
+    backgroundColor: Colors.beige,
   },
   pwHeadIc: {
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: Colors.amberBg,
+    backgroundColor: Colors.warning_light,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 14,
@@ -393,7 +394,7 @@ const styles = StyleSheet.create({
   pwHeadSub: {
     fontFamily: Fonts.Regular,
     fontSize: 13,
-    color: Colors.ink3,
+    color: "rgb(95, 93, 91)",
     lineHeight: 19.5,
   },
 
@@ -412,7 +413,7 @@ const styles = StyleSheet.create({
     height: 56,
     backgroundColor: Colors.white,
     borderWidth: 1.5,
-    borderColor: Colors.ink5,
+    borderColor: Colors.kyc_border,
     borderRadius: 14,
     flexDirection: "row",
     alignItems: "center",
@@ -421,7 +422,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 14,
     fontFamily: Fonts.Regular,
-    color: Colors.ink3,
+    color: "rgb(95, 93, 91)",
     pointerEvents: "none",
   },
   fError: {
@@ -468,7 +469,7 @@ const styles = StyleSheet.create({
   strengthLabelTxt: {
     fontFamily: Fonts.SemiBold,
     fontSize: 11,
-    color: Colors.ink3,
+    color: "rgb(95, 93, 91)",
   },
   strengthVal: {
     fontFamily: Fonts.SemiBold,
@@ -482,7 +483,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 3,
     borderRadius: 2,
-    backgroundColor: Colors.surface3,
+    backgroundColor: Colors.white,
   },
 
   /* ── Tip box ── */
@@ -495,13 +496,13 @@ const styles = StyleSheet.create({
     marginTop: 2,
     marginBottom: 0,
     borderWidth: 1,
-    borderColor: Colors.ink5,
+    borderColor: Colors.kyc_border,
   },
   tipText: {
     flex: 1,
     fontFamily: Fonts.Regular,
     fontSize: 12,
-    color: Colors.ink3,
+    color: "rgb(95, 93, 91)",
     lineHeight: 18,
   },
 
@@ -517,17 +518,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 7,  },
+    gap: 7,
+  },
   btnSolidTxt: {
     fontFamily: Fonts.SemiBold,
     fontSize: 14,
-    color: "#fff",
+    color: "rgb(255, 255, 255)",
     letterSpacing: -0.14,
   },
   btnGhost: {
     height: 42,
     borderRadius: 999,
-    backgroundColor: Colors.surface2,
+    backgroundColor: Colors.white,
     alignItems: "center",
     justifyContent: "center",
   },

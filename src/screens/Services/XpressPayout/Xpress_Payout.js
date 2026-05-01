@@ -130,8 +130,8 @@ function DashboardContent({ onTransfer, onAddBank, onHistory, banks, loading, on
             <Text style={styles.bcAmount}>₹{Number(main).toLocaleString('en-IN')}<Text style={styles.bcDecimal}>.{decimal || '00'}</Text></Text>
           </View>
           <TouchableOpacity style={styles.refreshBtn} onPress={onRefresh} disabled={loading}>
-            <ActivityIndicator size="small" color={Colors.whiteOpacity_60} animating={loading} style={{ position: 'absolute' }} />
-            {!loading && <Icon name="refresh" size={rs(20)} color={Colors.whiteOpacity_60} />}
+            <ActivityIndicator size="small" color={"rgba(255,255,255,0.60)"} animating={loading} style={{ position: 'absolute' }} />
+            {!loading && <Icon name="refresh" size={rs(20)} color={"rgba(255,255,255,0.60)"} />}
           </TouchableOpacity>
         </View>
 
@@ -162,10 +162,10 @@ function DashboardContent({ onTransfer, onAddBank, onHistory, banks, loading, on
 
       <View style={styles.managementCard}>
         <View style={styles.manageGrid}>
-          <FeatureCard icon="account-plus" label="Add Bank" color="#10B981" onPress={onAddBank} />
-          <FeatureCard icon="history" label="Txn History" color="#6366F1" onPress={onHistory} />
-          <FeatureCard icon="shield-check" label="Verification" color="#F59E0B" />
-          <FeatureCard icon="bank-transfer" label="Bulk Payout" color="#E11D48" />
+          <FeatureCard icon="account-plus" label="Add Bank" color="rgb(16, 185, 129)" onPress={onAddBank} />
+          <FeatureCard icon="history" label="Txn History" color={Colors.indigo} onPress={onHistory} />
+          <FeatureCard icon="shield-check" label="Verification" color={Colors.warning} />
+          <FeatureCard icon="bank-transfer" label="Bulk Payout" color="rgb(225, 29, 72)" />
         </View>
       </View>
 
@@ -177,7 +177,7 @@ function DashboardContent({ onTransfer, onAddBank, onHistory, banks, loading, on
 
       {displayBanks.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Icon name="bank-off-outline" size={rs(40)} color={Colors.border} />
+          <Icon name="bank-off-outline" size={rs(40)} color={Colors.input_border} />
           <Text style={styles.emptyText}>No beneficiaries found</Text>
         </View>
       ) : displayBanks.slice(0, 5).map(bene => (
@@ -202,7 +202,7 @@ function DashboardContent({ onTransfer, onAddBank, onHistory, banks, loading, on
                 onConfirm: () => onDeleteBank(bene._id)
               })}
             >
-              <Icon name="delete-outline" size={rs(18)} color={Colors.error} />
+              <Icon name="delete-outline" size={rs(18)} color={Colors.red} />
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -223,7 +223,7 @@ const FeatureCard = ({ icon, label, color, onPress }) => (
 );
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
+  safe: { flex: 1, backgroundColor: Colors.beige },
   container: { flex: 1 },
   scrollContent: { paddingHorizontal: rs(16), paddingTop: rs(16) },
   balanceCard: {
@@ -234,44 +234,43 @@ const styles = StyleSheet.create({
 
   },
   bcTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  bcLabel: { fontSize: rs(11), fontFamily: Fonts.Bold, color: Colors.whiteOpacity_60, letterSpacing: 1.5 },
+  bcLabel: { fontSize: rs(11), fontFamily: Fonts.Bold, color: "rgba(255,255,255,0.60)", letterSpacing: 1.5 },
   bcAmount: { fontSize: rs(28), fontFamily: Fonts.Bold, color: Colors.white, marginTop: rs(4) },
-  bcDecimal: { fontSize: rs(16), color: Colors.whiteOpacity_45 },
-  refreshBtn: { padding: rs(8), backgroundColor: Colors.whiteOpacity_10, borderRadius: rs(12) },
-  bcDivider: { height: 1, backgroundColor: Colors.whiteOpacity_10, marginVertical: rs(20) },
+  bcDecimal: { fontSize: rs(16), color: "rgba(255,255,255,0.45)" },
+  refreshBtn: { padding: rs(8), backgroundColor: "rgba(255,255,255,0.1)", borderRadius: rs(12) },
+  bcDivider: { height: 1, backgroundColor: "rgba(255,255,255,0.1)", marginVertical: rs(20) },
   bcStats: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   bcStatItem: { flex: 1 },
-  bcStatLabel: { fontSize: rs(10), fontFamily: Fonts.Medium, color: Colors.whiteOpacity_45 },
+  bcStatLabel: { fontSize: rs(10), fontFamily: Fonts.Medium, color: "rgba(255,255,255,0.45)" },
   bcStatValue: { fontSize: rs(14), fontFamily: Fonts.Bold, color: Colors.white, marginTop: rs(2) },
-  bcStatDivider: { width: 1, height: rs(24), backgroundColor: Colors.whiteOpacity_10, marginHorizontal: rs(10) },
+  bcStatDivider: { width: 1, height: rs(24), backgroundColor: "rgba(255,255,255,0.1)", marginHorizontal: rs(10) },
   topupBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.gold, paddingVertical: rs(8), paddingHorizontal: rs(12), borderRadius: rs(12), gap: rs(6) },
   topupText: { fontSize: rs(11), fontFamily: Fonts.Bold, color: Colors.primary },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: rs(16) },
-  sectionTitle: { fontSize: rs(16), fontFamily: Fonts.Bold, color: Colors.text_primary },
+  sectionTitle: { fontSize: rs(16), fontFamily: Fonts.Bold, color: Colors.black },
   viewMore: { fontSize: rs(13), color: Colors.text_secondary, fontFamily: Fonts.Medium },
   managementCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.beige,
     borderRadius: rs(20),
     paddingVertical: rs(16),
     paddingHorizontal: rs(10),
     marginBottom: rs(28),
     borderWidth: 1,
-    borderColor: Colors.border,
-
+    borderColor: "rgba(245,158,11,0.30)",
   },
   manageGrid: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   fCard: { flex: 1, alignItems: 'center', gap: rs(6) },
   fIconBox: { width: rs(48), height: rs(48), borderRadius: rs(14), alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(0,0,0,0.02)' },
   fLabel: { fontSize: rs(9), fontFamily: Fonts.Bold, color: Colors.text_secondary, textAlign: 'center', letterSpacing: 0.2 },
-  beneCard: { backgroundColor: Colors.white, borderRadius: rs(20), padding: rs(12), flexDirection: 'row', alignItems: 'center', marginBottom: rs(12), borderWidth: 1, borderColor: Colors.border },
+  beneCard: { backgroundColor: Colors.beige, borderRadius: rs(20), padding: rs(12), flexDirection: 'row', alignItems: 'center', marginBottom: rs(12), borderWidth: 1, borderColor: "rgba(245,158,11,0.30)" },
   beneIcon: { width: rs(44), height: rs(44), borderRadius: rs(15), alignItems: 'center', justifyContent: 'center' },
   beneInfo: { flex: 1, paddingHorizontal: rs(12) },
-  beneName: { fontSize: rs(14), fontFamily: Fonts.Bold, color: Colors.text_primary },
+  beneName: { fontSize: rs(14), fontFamily: Fonts.Bold, color: Colors.black },
   beneDetail: { fontSize: rs(11), fontFamily: Fonts.Medium, color: Colors.text_secondary, marginTop: rs(2) },
   statusBadge: { paddingHorizontal: rs(10), paddingVertical: rs(6), borderRadius: rs(10) },
   statusText: { fontSize: rs(10), fontFamily: Fonts.Bold },
   beneRightRow: { flexDirection: 'row', alignItems: 'center' },
   deleteBtn: { width: rs(32), height: rs(32), borderRadius: rs(8), alignItems: 'center', justifyContent: 'center' },
-  emptyContainer: { alignItems: 'center', justifyContent: 'center', paddingVertical: rs(40), backgroundColor: Colors.white, borderRadius: rs(20), borderWidth: 1, borderColor: Colors.border, borderStyle: 'dashed', marginBottom: rs(20) },
+  emptyContainer: { alignItems: 'center', justifyContent: 'center', paddingVertical: rs(40), backgroundColor: Colors.beige, borderRadius: rs(20), borderWidth: 1, borderColor: "rgba(245,158,11,0.30)", borderStyle: 'dashed', marginBottom: rs(20) },
   emptyText: { fontSize: rs(14), fontFamily: Fonts.Medium, color: Colors.text_secondary, marginTop: rs(10) },
 });

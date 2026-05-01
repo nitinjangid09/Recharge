@@ -229,12 +229,12 @@ const styles = StyleSheet.create({
   // Header — identical to service screen
   header: { paddingVertical: 22, alignItems: "center" },
   headerTitle: { fontSize: 22, fontFamily: Fonts.Bold, color: Colors.white, letterSpacing: 0.3 },
-  headerSub: { fontSize: 12, fontFamily: Fonts.Regular, color: Colors.whiteOpacity_60, marginTop: 3 },
+  headerSub: { fontSize: 12, fontFamily: Fonts.Regular, color: "rgba(255,255,255,0.60)", marginTop: 3 },
 
   // Body card — identical to service screen
   body: {
     flex: 1,
-    backgroundColor: Colors.bg || "#F4F6FB",
+    backgroundColor: Colors.beige || "rgb(244, 246, 251)",
     borderTopLeftRadius: 26,
     borderTopRightRadius: 26,
   },
@@ -250,7 +250,8 @@ const styles = StyleSheet.create({
     width: 80, height: 80, borderRadius: 40,
     alignItems: "center", justifyContent: "center",
     marginBottom: 16,
-    borderWidth: 3,  },
+    borderWidth: 3,
+  },
   iconWrapSuccess: { backgroundColor: SUCCESS_BG, borderColor: SUCCESS_RING },
   iconWrapFailed: { backgroundColor: FAILED_BG, borderColor: FAILED_RING },
   iconEmoji: { fontSize: 34, fontFamily: Fonts.Bold },
@@ -270,8 +271,9 @@ const styles = StyleSheet.create({
   // Receipt card
   card: {
     width: "100%",
-    backgroundColor: Colors.white || "#FFF",
-    borderRadius: 20,    marginTop: 22,
+    backgroundColor: Colors.white || "rgb(255, 255, 255)",
+    borderRadius: 20,
+    marginTop: 22,
     overflow: "hidden",
   },
   cardHeader: {
@@ -281,7 +283,7 @@ const styles = StyleSheet.create({
   cardHeaderSuccess: { backgroundColor: SUCCESS_BG },
   cardHeaderFailed: { backgroundColor: FAILED_BG },
   cardHeaderTxt: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.black },
-  cardHeaderSub: { fontSize: 11, fontFamily: Fonts.Regular, color: Colors.slate_400 },
+  cardHeaderSub: { fontSize: 11, fontFamily: Fonts.Regular, color: Colors.gray },
 
   cardBody: { paddingHorizontal: 18, paddingBottom: 10, paddingTop: 6 },
 
@@ -290,7 +292,7 @@ const styles = StyleSheet.create({
     flexDirection: "row", justifyContent: "space-between", alignItems: "center",
     paddingVertical: 11,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.slate_50,
+    borderBottomColor: Colors.bg_F8,
   },
   detailLabel: { fontSize: 13, fontFamily: Fonts.Regular, color: Colors.slate_500, flex: 1 },
   detailValue: {
@@ -313,7 +315,7 @@ const styles = StyleSheet.create({
   // Buttons
   btnGroup: { width: "100%", marginTop: 28, gap: 12 },
   retryBtn: {
-    backgroundColor: Colors.white || "#FFF",
+    backgroundColor: Colors.white || "rgb(255, 255, 255)",
     borderWidth: 1.5, borderColor: FAILED_RED,
     paddingVertical: 16, borderRadius: 16, alignItems: "center",
   },
@@ -324,5 +326,5 @@ const styles = StyleSheet.create({
   },
   doneBtnSuccess: { backgroundColor: Colors.accent || Colors.primary },
   doneBtnNeutral: { backgroundColor: Colors.primary },
-  doneBtnTxt: { color: Colors.white || "#FFF", fontSize: 16, fontFamily: Fonts.Bold, letterSpacing: 0.3 },
+  doneBtnTxt: { color: Colors.white || "rgb(255, 255, 255)", fontSize: 16, fontFamily: Fonts.Bold, letterSpacing: 0.3 },
 });

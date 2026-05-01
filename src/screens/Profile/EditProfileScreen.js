@@ -44,7 +44,7 @@ const InputBox = ({
         value={value}
         keyboardType={keyboardType || "default"}
         placeholder={placeholder}
-        placeholderTextColor="#9BA3AF"
+        placeholderTextColor="rgb(155, 163, 175)"
         editable={editable}
         selectTextOnFocus={editable}
         onChangeText={editable ? setValue : () => { }}
@@ -53,7 +53,7 @@ const InputBox = ({
       <MaterialCommunityIcons
         name={icon}
         size={S(18)}
-        color={editable ? Colors.finance_accent || "#D4B06A" : "#9BA3AF"}
+        color={editable ? Colors.finance_accent || Colors.finance_accent : "rgb(155, 163, 175)"}
         style={styles.inputIcon}
       />
     </View>
@@ -147,7 +147,7 @@ const EditProfileScreen = ({ navigation, route }) => {
                   </View>
                 )}
                 <TouchableOpacity style={styles.cameraBtn} onPress={pickImage}>
-                  <MaterialCommunityIcons name="pencil" size={S(10)} color="#FFF" />
+                  <MaterialCommunityIcons name="pencil" size={S(10)} color="rgb(255, 255, 255)" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -190,7 +190,7 @@ const EditProfileScreen = ({ navigation, route }) => {
             <MaterialCommunityIcons
               name="content-save-outline"
               size={S(18)}
-              color="#FFF"
+              color="rgb(255, 255, 255)"
               style={{ marginRight: S(8) }}
             />
             <Text style={styles.saveBtnText}>Save Changes</Text>
@@ -207,7 +207,7 @@ export default EditProfileScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.white,
   },
   innerContainer: {
     paddingBottom: S(20),
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
     height: S(96),
     borderRadius: S(48),
     borderWidth: 1.5,
-    borderColor: "#D4B06A",
+    borderColor: Colors.finance_accent,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
     width: S(84),
     height: S(84),
     borderRadius: S(42),
-    backgroundColor: "#F7F8F9",
+    backgroundColor: "rgb(247, 248, 249)",
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
@@ -246,31 +246,31 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     borderRadius: S(42),
-    backgroundColor: "#FFF9F0",
+    backgroundColor: "rgb(255, 255, 255)9F0",
     alignItems: "center",
     justifyContent: "center",
   },
   avatarInitial: {
     fontSize: S(28),
     fontFamily: Fonts.Bold,
-    color: "#D4B06A",
+    color: Colors.finance_accent,
   },
   cameraBtn: {
     position: "absolute",
     bottom: S(0),
     right: S(-4),
-    backgroundColor: "#D4B06A",
+    backgroundColor: Colors.finance_accent,
     width: S(20),
     height: S(20),
     borderRadius: S(10),
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2,
-    borderColor: "#FFF",
+    borderColor: "rgb(255, 255, 255)",
   },
   tapToUpdate: {
     fontSize: S(10),
-    color: "#9CA3AF",
+    color: Colors.kyc_textMuted,
     marginTop: S(12),
     fontFamily: Fonts.Medium,
     letterSpacing: 0.2,
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     marginBottom: S(18),
   },
   boxLabel: {
-    color: "#D4B06A",
+    color: Colors.finance_accent,
     fontSize: S(10),
     fontFamily: Fonts.Bold,
     marginBottom: S(6),
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   inputContainer: {
-    backgroundColor: "#F7F8F9",
+    backgroundColor: "rgb(247, 248, 249)",
     borderRadius: S(12),
     flexDirection: "row",
     alignItems: "center",
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   boxInput: {
     flex: 1,
     fontSize: S(14),
-    color: "#111827",
+    color: Colors.kyc_text,
     fontFamily: Fonts.Bold,
   },
   inputIcon: {
@@ -312,27 +312,28 @@ const styles = StyleSheet.create({
   },
   disabledBox: {
     opacity: 0.55,
-    backgroundColor: "#F0F1F3",
+    backgroundColor: "rgb(240, 241, 243)",
   },
   disabledText: {
-    color: "#6B7280",
+    color: Colors.kyc_textSub,
   },
 
   // ── footer ──
   footer: {
     paddingHorizontal: S(20),
     paddingBottom: Platform.OS === "ios" ? S(30) : S(20),
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.white,
   },
   saveBtn: {
-    backgroundColor: "#111827",
+    backgroundColor: Colors.kyc_text,
     height: S(56),
     borderRadius: S(16),
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",  },
+    justifyContent: "center",
+  },
   saveBtnText: {
-    color: "#FFFFFF",
+    color: Colors.white,
     fontSize: S(15),
     fontFamily: Fonts.Bold,
     letterSpacing: 0.3,
