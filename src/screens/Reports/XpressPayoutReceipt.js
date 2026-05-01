@@ -51,10 +51,10 @@ export default function XpressPayoutReceipt({ route, navigation }) {
         {/* Status Banner */}
         <View style={styles.statusSection}>
           <View style={[styles.iconCircle, { backgroundColor: statusColor + '15' }]}>
-            <Icon 
-              name={txn.status === 'SUCCESS' ? 'check-circle' : txn.status === 'PENDING' ? 'clock' : 'close-circle'} 
-              size={60} 
-              color={statusColor} 
+            <Icon
+              name={txn.status === 'SUCCESS' ? 'check-circle' : txn.status === 'PENDING' ? 'clock' : 'close-circle'}
+              size={60}
+              color={statusColor}
             />
           </View>
           <Text style={[styles.statusText, { color: statusColor }]}>{txn.status}</Text>
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   shareBtn: {
-    backgroundColor: '#64748B',
+    backgroundColor: '#d4b06a',
   },
   doneBtn: {
     backgroundColor: Colors.primary,

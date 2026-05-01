@@ -28,6 +28,9 @@ const Colors = {
   amber: base.amber,
   success: base.green,
   error: base.red,
+  indigo: base.indigo,
+  blue: base.blue,
+  orange: "#F97316",
 
   // ─── Theme Foundations ─────────────────────────────────────────────────────
   primary: base.ink_main,
@@ -87,6 +90,8 @@ const Colors = {
   gray_66: "#666",
   gray_F5: "#F5F5F5",
   lightGray: "#e6e6e6",
+  gray_2C: "#2C2C2C",
+  orange: "#F97316",
 
   // ─── Opacity / Overlay ────────────────────────────────────────────────────
   whiteOpacity_10: "rgba(255,255,255,0.1)",
@@ -249,7 +254,16 @@ const Colors = {
   amberOpacity_30: "rgba(212,176,106,0.30)",
   whiteOpacity_38: "rgba(255,255,255,0.38)",
   blackOpacity_35: "rgba(0,0,0,0.35)",
-  successOpacity_10: "rgba(34, 197, 94, 0.10)",
+  successOpacity_10: "rgba(34, 197, 100, 0.10)",
+  indigoOpacity_12: "rgba(99, 102, 241, 0.12)",
+  blueOpacity_12: "rgba(59, 130, 246, 0.12)",
+  orangeOpacity_12: "rgba(232, 160, 32, 0.12)",
+  finance_accentOpacity_10: "rgba(212,176,106,0.1)",
+  finance_accentOpacity_12: "rgba(212,176,106,0.12)",
+  finance_accentOpacity_20: "rgba(212,176,106,0.2)",
+  finance_accentOpacity_30: "rgba(212,176,106,0.3)",
+  finance_accentOpacity_40: "rgba(212,176,106,0.4)",
+  blackOpacity_30: "rgba(0,0,0,0.3)",
 
   // ─── Transaction History specific aliases ────────────────────────────────
   pageBg: "#F2EDE4",

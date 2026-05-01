@@ -60,7 +60,7 @@ const getGreeting = () => {
   const h = new Date().getHours();
   if (h >= 5 && h < 12) return { text: "Good Morning,", icon: "weather-sunny", color: Colors.amber };
   if (h >= 12 && h < 17) return { text: "Good Afternoon,", icon: "weather-partly-cloudy", color: Colors.finance_accent };
-  if (h >= 17 && h < 21) return { text: "Good Evening,", icon: "weather-sunset", color: '#FF5722' };
+  if (h >= 17 && h < 21) return { text: "Good Evening,", icon: "weather-sunset", color: Colors.accent };
   return { text: "Good Night,", icon: "weather-night", color: Colors.primary };
 };
 
@@ -106,7 +106,7 @@ const SERVICE_ICON_MAP = {
   default: "apps",
 };
 
-const KYC_COLOR = { approved: "#22C55E", rejected: "#EF4444", pending: "#F97316" };
+const KYC_COLOR = { approved: Colors.green, rejected: Colors.red, pending: Colors.warning };
 
 const SESSION_KEYS = [
   "header_token", "user_name", "user_first", "user_last",
@@ -408,20 +408,20 @@ export default function FinanceHome({ navigation }) {
 
           if (cat === "REFUND") {
             icon = "refresh";
-            color = "#22C55E";
-            bg = "rgba(34,197,94,0.12)";
+            color = Colors.green;
+            bg = Colors.successOpacity_10;
           } else if (cat === "AEPS") {
             icon = "fingerprint";
-            color = "#6366F1";
-            bg = "rgba(99,102,241,0.12)";
+            color = Colors.indigo;
+            bg = Colors.indigoOpacity_12;
           } else if (srv.includes("JIO") || srv.includes("AIRTEL") || srv.includes("VI") || srv.includes("BSNL")) {
             icon = "cellphone-wireless";
-            color = "#3B82F6";
-            bg = "rgba(59,130,246,0.12)";
+            color = Colors.blue;
+            bg = Colors.blueOpacity_12;
           } else if (cat === "BBPS") {
             icon = "lightning-bolt";
-            color = "#E8A020";
-            bg = "rgba(232,160,32,0.12)";
+            color = Colors.orange;
+            bg = Colors.orangeOpacity_12;
           }
 
           return {
@@ -913,13 +913,13 @@ export default function FinanceHome({ navigation }) {
                   <LinearGradient
                     colors={[Colors.hex_2E2E2E, Colors.black]}
                     start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                    style={[S.walletCard, { borderColor: "rgba(212,176,106,0.3)" }]}
+                    style={[S.walletCard, { borderColor: Colors.finance_accentOpacity_30 }]}
                   >
                     <View style={S.circ1} /><View style={S.circ2} />
                     <View style={S.rowBetween}>
-                      <View style={[S.walletTag, { borderColor: "#d4b06a" }]}>
-                        <Icon name="wallet-membership" size={rs(13)} color="#d4b06a" />
-                        <Text style={[S.walletTagTxt, { color: "#d4b06a" }]}>Main Wallet</Text>
+                      <View style={[S.walletTag, { borderColor: Colors.finance_accent }]}>
+                        <Icon name="wallet-membership" size={rs(13)} color={Colors.finance_accent} />
+                        <Text style={[S.walletTagTxt, { color: Colors.finance_accent }]}>Main Wallet</Text>
                       </View>
                       <TouchableOpacity
                         style={S.swapBtn}
@@ -934,7 +934,7 @@ export default function FinanceHome({ navigation }) {
                     <View style={{ marginTop: rs(8) }}>
                       <Text style={S.balLabel}>Main Balance</Text>
                       <View style={{ flexDirection: "row", alignItems: "center" }}>
-                        {!balanceLoading && <Text style={[S.rupee, { color: "#d4b06a" }]}>₹</Text>}
+                        {!balanceLoading && <Text style={[S.rupee, { color: Colors.finance_accent }]}>₹</Text>}
                         {balanceLoading
                           ? <ActivityIndicator size="small" color={Colors.white} style={{ marginLeft: 4 }} />
                           : <Text style={S.balAmt}>{!showBalance ? "••••••" : formatBalance(mainBalance)}</Text>
@@ -961,7 +961,7 @@ export default function FinanceHome({ navigation }) {
                       </TouchableOpacity>
 
                       <TouchableOpacity
-                        style={[S.miniBtn, { backgroundColor: "rgba(255,255,255,0.1)", borderWidth: 1, borderColor: "rgba(212,176,106,0.4)" }]}
+                        style={[S.miniBtn, { backgroundColor: Colors.whiteOpacity_10, borderWidth: 1, borderColor: Colors.finance_accentOpacity_40 }]}
                         onPress={(e) => { e.stopPropagation(); navigation.navigate("WalletTransfer"); }}
                       >
                         <Icon name="swap-horizontal" size={rs(12)} color={Colors.finance_accent} />
@@ -1000,14 +1000,14 @@ export default function FinanceHome({ navigation }) {
               >
                 <View style={{ flex: 1 }}>
                   <LinearGradient
-                    colors={["#2C2C2C", "#111111"]}
+                    colors={[Colors.gray_2C, Colors.black]}
                     start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                    style={[S.walletCard, { borderColor: "rgba(212,176,106,0.3)" }]}
+                    style={[S.walletCard, { borderColor: Colors.finance_accentOpacity_30 }]}
                   >
                     <View style={S.circ1} /><View style={S.circ2} />
                     <View style={S.rowBetween}>
                       <View style={S.walletTag}>
-                        <Icon name="wallet-outline" size={rs(13)} color="#d4b06a" />
+                        <Icon name="wallet-outline" size={rs(13)} color={Colors.finance_accent} />
                         <Text style={S.walletTagTxt}>AEPS Wallet</Text>
                       </View>
                       <TouchableOpacity
@@ -1016,7 +1016,7 @@ export default function FinanceHome({ navigation }) {
                         activeOpacity={0.7}
                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                       >
-                        <Icon name="swap-horizontal" size={rs(18)} color="#d4b06a" />
+                        <Icon name="swap-horizontal" size={rs(18)} color={Colors.finance_accent} />
                       </TouchableOpacity>
                     </View>
 
@@ -1025,7 +1025,7 @@ export default function FinanceHome({ navigation }) {
                       <View style={{ flexDirection: "row", alignItems: "center" }}>
                         {!balanceLoading && <Text style={S.rupee}>₹</Text>}
                         {balanceLoading
-                          ? <ActivityIndicator size="small" color="#FFF" style={{ marginLeft: 4 }} />
+                          ? <ActivityIndicator size="small" color={Colors.white} style={{ marginLeft: 4 }} />
                           : <Text style={S.balAmt}>{!showBalance ? "••••••" : formatBalance(aepsBalance)}</Text>
                         }
                         {!balanceLoading && (
@@ -1034,7 +1034,7 @@ export default function FinanceHome({ navigation }) {
                             style={{ marginLeft: rs(8) }}
                             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                           >
-                            <Icon name={!showBalance ? "eye-off" : "eye"} size={rs(18)} color="rgba(255,255,255,0.45)" />
+                            <Icon name={!showBalance ? "eye-off" : "eye"} size={rs(18)} color={Colors.whiteOpacity_45} />
                           </TouchableOpacity>
                         )}
                       </View>
@@ -1076,7 +1076,7 @@ export default function FinanceHome({ navigation }) {
           >
             {searchResults.length === 0 ? (
               <View style={S.emptyRow}>
-                <Icon name="magnify-close" size={rs(16)} color="#666" />
+                <Icon name="magnify-close" size={rs(16)} color={Colors.gray_66} />
                 <Text style={S.emptyTxt}>No results for "{searchQuery}"</Text>
               </View>
             ) : (
@@ -1096,7 +1096,7 @@ export default function FinanceHome({ navigation }) {
                         <Icon name={item.icon} size={rs(15)} color={Colors.finance_accent} />
                       </View>
                       <Text style={S.resultLabel}>{item.label}</Text>
-                      <Icon name="arrow-top-left" size={rs(12)} color="#555" />
+                      <Icon name="arrow-top-left" size={rs(12)} color={Colors.gray_66} />
                     </TouchableOpacity>
                   )}
                 />
@@ -1130,7 +1130,7 @@ export default function FinanceHome({ navigation }) {
               progressViewOffset={HEADER_MAX}
               tintColor={Colors.finance_accent}
               colors={[Colors.finance_accent]}
-              progressBackgroundColor="#2C2C2C"
+              progressBackgroundColor={Colors.hex_2E2E2E}
             />
           }
         >
@@ -1214,8 +1214,8 @@ export default function FinanceHome({ navigation }) {
                 <ActivityIndicator size="small" color={Colors.finance_accent} style={{ marginVertical: rs(20) }} />
               ) : recentTransactions.length === 0 ? (
                 <View style={[S.statCard, { alignItems: 'center', paddingVertical: rs(24) }]}>
-                  <Icon name="history" size={rs(32)} color="rgba(0,0,0,0.1)" />
-                  <Text style={{ color: '#9BA5B8', fontSize: rs(12), marginTop: rs(8), fontFamily: Fonts.Medium }}>No recent transactions</Text>
+                  <Icon name="history" size={rs(32)} color={Colors.blackOpacity_08} />
+                  <Text style={{ color: Colors.slate_400, fontSize: rs(12), marginTop: rs(8), fontFamily: Fonts.Medium }}>No recent transactions</Text>
                 </View>
               ) : (
                 recentTransactions.map((txn, i) => (
@@ -1256,7 +1256,7 @@ export default function FinanceHome({ navigation }) {
           <View style={S.navBar}>
             <TouchableOpacity style={S.tabItem} activeOpacity={0.8}>
               <View style={{ alignItems: "center" }}>
-                <LinearGradient colors={["#F5E7C6", "#d4b06a"]} style={S.activeTab} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+                <LinearGradient colors={[Colors.gold, Colors.finance_accent]} style={S.activeTab} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
                   <Icon name="home" size={rs(22)} color={Colors.black} />
                 </LinearGradient>
                 <Text style={S.navLabelActive}>Home</Text>
@@ -1270,7 +1270,7 @@ export default function FinanceHome({ navigation }) {
             ].map((tab, i) => (
               <TouchableOpacity key={i} style={S.tabItem} onPress={() => navigation.navigate(tab.screen)}>
                 <View style={{ alignItems: "center" }}>
-                  <Icon name={tab.icon} size={rs(22)} color="#888" />
+                  <Icon name={tab.icon} size={rs(22)} color={Colors.gray} />
                   <Text style={S.navLabel}>{tab.label}</Text>
                 </View>
               </TouchableOpacity>
@@ -1307,7 +1307,7 @@ function OverviewStats({ navigation, kycStatus, assignedServices, statusMessage,
         <View style={S.statsRow}>
           {/* KYC Alert Card */}
           <View style={[S.statCard, { flex: 1, borderLeftWidth: 3, borderLeftColor: kyc }]}>
-            <View style={[S.statIconBox, { backgroundColor: `${kyc}18` }]}>
+            <View style={[S.statIconBox, { backgroundColor: `${kyc}20` }]}>
               <Icon name="shield-lock-outline" size={rs(18)} color={kyc} />
             </View>
             <Text style={S.statValue}>{(kycStatus || "pending").toUpperCase()}</Text>
@@ -1380,12 +1380,12 @@ function SectionHeader({ title, subtitle, linkLabel = "See all", onLink }) {
 // STYLES
 // ─────────────────────────────────────────────────────────────────────────────
 const S = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#F3F4F6" },
-  root: { flex: 1, backgroundColor: "#F3F4F6" },
+  safe: { flex: 1, backgroundColor: Colors.hex_F3F4F6 },
+  root: { flex: 1, backgroundColor: Colors.hex_F3F4F6 },
   rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
 
   splash: { flex: 1, justifyContent: "center", alignItems: "center" },
-  splashTxt: { marginTop: rs(12), color: "#888", fontFamily: Fonts.Medium, fontSize: rs(14) },
+  splashTxt: { marginTop: rs(12), color: Colors.gray, fontFamily: Fonts.Medium, fontSize: rs(14) },
 
   searchOverlay: { position: "absolute", zIndex: 90, top: 0, left: 0, right: 0, bottom: 0 },
 
@@ -1393,7 +1393,7 @@ const S = StyleSheet.create({
   headerWrap: {
     position: "absolute", top: 0, left: 0, right: 0, zIndex: 100,
     overflow: "visible",
-    backgroundColor: "#161616",
+    backgroundColor: Colors.hex_1A1A1A,
     borderBottomLeftRadius: rs(32),
     borderBottomRightRadius: rs(32),
   },
@@ -1413,30 +1413,30 @@ const S = StyleSheet.create({
   avatarGrad: {
     width: rs(44), height: rs(44), borderRadius: rs(22),
     alignItems: "center", justifyContent: "center",
-    borderWidth: 1.5, borderColor: "rgba(255,255,255,0.2)",
+    borderWidth: 1.5, borderColor: Colors.whiteOpacity_20,
   },
-  avatarTxt: { color: "#000", fontSize: rs(17), fontFamily: Fonts.Bold },
+  avatarTxt: { color: Colors.black, fontSize: rs(17), fontFamily: Fonts.Bold },
   kycDot: {
     position: "absolute", bottom: 0, right: 0,
     width: rs(10), height: rs(10), borderRadius: rs(5),
-    borderWidth: 1.5, borderColor: "#161616",
+    borderWidth: 1.5, borderColor: Colors.hex_1A1A1A,
   },
   userInfo: { flex: 1, minWidth: 0 },
   greetRow: { flexDirection: "row", alignItems: "center", marginBottom: rs(1) },
   greetTxt: { fontSize: rs(12), fontFamily: Fonts.Medium },
-  nameTxt: { color: "#FFF", fontSize: rs(16), fontFamily: Fonts.Bold, letterSpacing: 0.3, flexShrink: 1 },
+  nameTxt: { color: Colors.white, fontSize: rs(16), fontFamily: Fonts.Bold, letterSpacing: 0.3, flexShrink: 1 },
   usernameTxt: { color: Colors.finance_accent, fontSize: rs(9), fontFamily: Fonts.Medium, marginTop: 1, flexShrink: 1 },
   actions: { flexDirection: "row", flexShrink: 0, marginLeft: rs(6) },
   glassBtn: {
     width: rs(38), height: rs(38), borderRadius: rs(19),
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: Colors.whiteOpacity_10,
     alignItems: "center", justifyContent: "center",
-    marginLeft: rs(7), borderWidth: 1, borderColor: "rgba(255,255,255,0.14)",
+    marginLeft: rs(7), borderWidth: 1, borderColor: Colors.whiteOpacity_15,
   },
   notifDot: {
     position: "absolute", top: rs(8), right: rs(8),
     width: rs(7), height: rs(7), borderRadius: rs(4),
-    backgroundColor: "#FF3B30", zIndex: 1, borderWidth: 1.5, borderColor: "#333",
+    backgroundColor: Colors.red, zIndex: 1, borderWidth: 1.5, borderColor: Colors.slate_700,
   },
   layerB: {
     position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
@@ -1445,21 +1445,21 @@ const S = StyleSheet.create({
   searchBack: { marginRight: rs(8), padding: rs(4) },
   searchInputWrap: {
     flex: 1, flexDirection: "row", alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.09)",
+    backgroundColor: Colors.whiteOpacity_08,
     borderRadius: rs(13),
     paddingHorizontal: rs(12), paddingVertical: rs(10),
-    borderWidth: 1, borderColor: "rgba(212,176,106,0.28)",
+    borderWidth: 1, borderColor: Colors.finance_accentOpacity_30,
   },
   searchInput: {
-    flex: 1, color: "#FFF",
+    flex: 1, color: Colors.white,
     fontSize: rs(14), fontFamily: Fonts.Medium,
     paddingVertical: 0, includeFontPadding: false,
   },
   resultsOverlay: {
     position: "absolute", left: rs(16), right: rs(16),
-    zIndex: 200, backgroundColor: "#1C1C1C",
+    zIndex: 200, backgroundColor: Colors.hex_1A1A1A,
     borderRadius: rs(16), borderWidth: 1,
-    borderColor: "rgba(212,176,106,0.22)", overflow: "hidden",
+    borderColor: Colors.finance_accentOpacity_20, overflow: "hidden",
   },
   flipCard: {
     position: "absolute", top: 0, left: 0, width: "100%",
@@ -1469,46 +1469,46 @@ const S = StyleSheet.create({
   resultRow: {
     flexDirection: "row", alignItems: "center",
     height: rs(46), paddingHorizontal: rs(14),
-    borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.045)",
+    borderBottomWidth: 1, borderBottomColor: Colors.whiteOpacity_04,
   },
   resultIconBox: {
     width: rs(30), height: rs(30), borderRadius: rs(9),
     backgroundColor: "rgba(212,176,106,0.09)",
     alignItems: "center", justifyContent: "center",
-    marginRight: rs(10), borderWidth: 1, borderColor: "rgba(212,176,106,0.12)",
+    marginRight: rs(10), borderWidth: 1, borderColor: Colors.finance_accentOpacity_12,
   },
-  resultLabel: { flex: 1, color: "#DDD", fontSize: rs(13), fontFamily: Fonts.Medium },
-  moreHint: { textAlign: "center", color: "#666", fontSize: rs(10), fontFamily: Fonts.Medium, paddingVertical: rs(7) },
+  resultLabel: { flex: 1, color: Colors.gray_EB, fontSize: rs(13), fontFamily: Fonts.Medium },
+  moreHint: { textAlign: "center", color: Colors.gray_66, fontSize: rs(10), fontFamily: Fonts.Medium, paddingVertical: rs(7) },
   emptyRow: { flexDirection: "row", alignItems: "center", height: rs(48), paddingHorizontal: rs(14) },
-  emptyTxt: { color: "#666", fontFamily: Fonts.Medium, fontSize: rs(12), marginLeft: rs(8) },
+  emptyTxt: { color: Colors.gray_66, fontFamily: Fonts.Medium, fontSize: rs(12), marginLeft: rs(8) },
 
   // ── WALLET CARD — unchanged ──
   walletCard: {
     borderRadius: rs(22), padding: rs(15),
-    borderWidth: 1, borderColor: "rgba(255,255,255,0.09)", overflow: "hidden",
+    borderWidth: 1, borderColor: Colors.whiteOpacity_08, overflow: "hidden",
   },
-  circ1: { position: "absolute", top: -28, right: -28, width: rs(90), height: rs(90), borderRadius: rs(45), backgroundColor: "rgba(212,176,106,0.09)" },
-  circ2: { position: "absolute", bottom: -36, left: -18, width: rs(110), height: rs(110), borderRadius: rs(55), backgroundColor: "rgba(255,255,255,0.04)" },
-  walletTag: { flexDirection: "row", alignItems: "center", backgroundColor: "rgba(0,0,0,0.3)", paddingHorizontal: rs(10), paddingVertical: rs(5), borderRadius: rs(20), borderWidth: 1, borderColor: "rgba(212,176,106,0.3)" },
-  walletTagTxt: { color: "#d4b06a", fontSize: rs(11), fontFamily: Fonts.Bold, marginLeft: rs(5), letterSpacing: 0.4 },
-  swapBtn: { width: rs(34), height: rs(34), borderRadius: rs(17), backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
-  balLabel: { color: "rgba(255,255,255,0.55)", fontSize: rs(10), fontFamily: Fonts.Medium, letterSpacing: 1, textTransform: "uppercase" },
-  rupee: { color: "#d4b06a", fontSize: rs(21), fontFamily: Fonts.Light, marginRight: rs(3), marginTop: rs(2) },
-  balAmt: { color: "#FFF", fontSize: rs(25), fontFamily: Fonts.Bold, letterSpacing: 1 },
+  circ1: { position: "absolute", top: -28, right: -28, width: rs(90), height: rs(90), borderRadius: rs(45), backgroundColor: Colors.finance_accentOpacity_10 },
+  circ2: { position: "absolute", bottom: -36, left: -18, width: rs(110), height: rs(110), borderRadius: rs(55), backgroundColor: Colors.whiteOpacity_04 },
+  walletTag: { flexDirection: "row", alignItems: "center", backgroundColor: Colors.blackOpacity_30, paddingHorizontal: rs(10), paddingVertical: rs(5), borderRadius: rs(20), borderWidth: 1, borderColor: Colors.finance_accentOpacity_30 },
+  walletTagTxt: { color: Colors.finance_accent, fontSize: rs(11), fontFamily: Fonts.Bold, marginLeft: rs(5), letterSpacing: 0.4 },
+  swapBtn: { width: rs(34), height: rs(34), borderRadius: rs(17), backgroundColor: Colors.whiteOpacity_10, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: Colors.whiteOpacity_10 },
+  balLabel: { color: Colors.whiteOpacity_60, fontSize: rs(10), fontFamily: Fonts.Medium, letterSpacing: 1, textTransform: "uppercase" },
+  rupee: { color: Colors.finance_accent, fontSize: rs(21), fontFamily: Fonts.Light, marginRight: rs(3), marginTop: rs(2) },
+  balAmt: { color: Colors.white, fontSize: rs(25), fontFamily: Fonts.Bold, letterSpacing: 1 },
   addBtnRow: { position: "absolute", right: rs(14), top: rs(64), flexDirection: "row", gap: rs(8) },
   miniBtn: { flexDirection: "row", alignItems: "center", paddingHorizontal: rs(10), paddingVertical: rs(6), borderRadius: rs(14) },
   miniBtnTxt: { fontSize: rs(10), fontFamily: Fonts.Bold, marginLeft: rs(3) },
-  addBtnTxt: { color: "#000", fontSize: rs(10), fontFamily: Fonts.Bold, marginLeft: rs(3) },
+  addBtnTxt: { color: Colors.black, fontSize: rs(10), fontFamily: Fonts.Bold, marginLeft: rs(3) },
   cardFooter: { marginTop: rs(9), flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   kycBadge: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderRadius: rs(10), paddingHorizontal: rs(7), paddingVertical: rs(3) },
   kycDotSm: { width: rs(5), height: rs(5), borderRadius: rs(3), marginRight: rs(4) },
   kycBadgeTxt: { fontSize: rs(9), fontFamily: Fonts.Bold, letterSpacing: 0.5 },
 
   // ── BODY ──
-  body: { paddingHorizontal: rs(10), paddingTop: rs(10), backgroundColor: "#F3F4F6" },
+  body: { paddingHorizontal: rs(10), paddingTop: rs(10), backgroundColor: Colors.hex_F3F4F6 },
 
   loadingWrap: { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: rs(32) },
-  loadingTxt: { color: "#888", fontFamily: Fonts.Medium, fontSize: rs(13), marginLeft: rs(8) },
+  loadingTxt: { color: Colors.gray, fontFamily: Fonts.Medium, fontSize: rs(13), marginLeft: rs(8) },
 
   // ── SECTION HEADER ──
   secHeaderRow: {
@@ -1521,50 +1521,50 @@ const S = StyleSheet.create({
   secTitle: {
     fontSize: rs(15),
     fontFamily: Fonts.Bold,
-    color: "#1F2937",
+    color: Colors.kyc_text,
     letterSpacing: -0.2,
   },
   secLink: {
     fontSize: rs(13),
     fontFamily: Fonts.Bold,
-    color: "#007185", // Amazon Link Color
+    color: Colors.blue, // Amazon Link Color
   },
 
   // ── OVERVIEW STATS ──
   statsRow: { flexDirection: "row", gap: rs(12) },
   statCard: {
     flex: 1,
-    backgroundColor: "#FFF",
+    backgroundColor: Colors.white,
     borderRadius: rs(16),
     padding: rs(16),
     borderWidth: 1,
-    borderColor: "rgba(11,15,26,0.07)",
+    borderColor: Colors.blackOpacity_05,
   },
   statIconBox: {
     width: rs(36), height: rs(36),
     borderRadius: rs(10),
-    backgroundColor: "rgba(232,160,32,0.10)",
+    backgroundColor: Colors.warningOpacity_10,
     alignItems: "center", justifyContent: "center",
     marginBottom: rs(10),
   },
   statValue: {
-    fontFamily: Fonts.Bold, fontSize: rs(22), color: "#0B0F1A",
+    fontFamily: Fonts.Bold, fontSize: rs(22), color: Colors.black,
     letterSpacing: -0.5, lineHeight: rs(26), marginBottom: rs(3),
   },
   statLabel: {
-    fontSize: rs(10), color: "#9BA5B8", fontFamily: Fonts.Medium,
+    fontSize: rs(10), color: Colors.slate_400, fontFamily: Fonts.Medium,
     textTransform: "uppercase", letterSpacing: 0.6,
   },
 
   // ── SERVICES GRID ──
   sectionCard: {
-    backgroundColor: "#FFF",
+    backgroundColor: Colors.white,
     borderRadius: rs(12),
     paddingTop: rs(8),
     paddingBottom: rs(4),
     marginBottom: rs(6),
     borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.04)",
+    borderColor: Colors.blackOpacity_03,
   },
   svcGrid: {
     flexDirection: "row",
@@ -1588,7 +1588,7 @@ const S = StyleSheet.create({
   svcGridLabel: {
     fontSize: rs(9),
     fontFamily: Fonts.Medium,
-    color: "#374151",
+    color: Colors.hex_374151,
     textAlign: "center",
   },
 
@@ -1596,41 +1596,41 @@ const S = StyleSheet.create({
   aepsGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginBottom: rs(4) },
   aepsCard: {
     width: "23%",
-    backgroundColor: "#FFF",
+    backgroundColor: Colors.white,
     alignItems: "center",
     paddingVertical: rs(12),
     paddingHorizontal: rs(4),
     borderRadius: rs(16),
     marginVertical: rs(4),
-    borderWidth: 1, borderColor: "rgba(11,15,26,0.07)",
+    borderWidth: 1, borderColor: Colors.blackOpacity_05,
   },
-  aepsCardLocked: { backgroundColor: "#FFF8F8", borderColor: "rgba(249,115,22,0.25)", opacity: 0.88 },
+  aepsCardLocked: { backgroundColor: Colors.gray_FA, borderColor: Colors.warningOpacity_30, opacity: 0.88 },
   aepsIconWrap: { position: "relative", marginBottom: rs(6) },
-  aepsCardTxt: { color: "#444", fontSize: rs(9), textAlign: "center", fontFamily: Fonts.Medium, lineHeight: rs(13) },
+  aepsCardTxt: { color: Colors.gray_21, fontSize: rs(9), textAlign: "center", fontFamily: Fonts.Medium, lineHeight: rs(13) },
   lockBadge: {
     position: "absolute", bottom: -2, right: -5,
     width: rs(11), height: rs(11), borderRadius: rs(6),
-    backgroundColor: "#F97316", alignItems: "center", justifyContent: "center",
+    backgroundColor: Colors.warning, alignItems: "center", justifyContent: "center",
   },
   liveDot: {
     position: "absolute", top: rs(-1), right: rs(-1),
     width: rs(10), height: rs(10), borderRadius: rs(5),
-    backgroundColor: "#22C55E",
-    borderWidth: 1.5, borderColor: "#FFF",
+    backgroundColor: Colors.success,
+    borderWidth: 1.5, borderColor: Colors.white,
   },
-  kycNeedTxt: { color: "#F97316", fontSize: rs(7), textAlign: "center", marginTop: rs(2), fontFamily: Fonts.Medium },
+  kycNeedTxt: { color: Colors.warning, fontSize: rs(7), textAlign: "center", marginTop: rs(2), fontFamily: Fonts.Medium },
 
 
   // ── NEWS MARQUEE ──
   newsMarqueeContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(212,176,106,0.1)",
+    backgroundColor: Colors.amberOpacity_15,
     paddingVertical: rs(8),
     paddingHorizontal: rs(14),
     borderRadius: rs(8),
     borderWidth: 1,
-    borderColor: "rgba(212,176,106,0.3)",
+    borderColor: Colors.amberOpacity_30,
     overflow: "hidden",
     marginBottom: rs(12),
   },
@@ -1643,18 +1643,18 @@ const S = StyleSheet.create({
 
   // ── BANNERS (dynamic) ──
   bannerWrap: { height: vscale(110), borderRadius: rs(12), overflow: "hidden", justifyContent: "center", alignItems: "center" },
-  bannerImg: { width: SW - rs(36), height: vscale(110), resizeMode: "cover", borderRadius: rs(12), backgroundColor: "#fff", marginRight: rs(10) },
+  bannerImg: { width: SW - rs(36), height: vscale(110), resizeMode: "cover", borderRadius: rs(12), backgroundColor: Colors.white, marginRight: rs(10) },
   paginRow: { position: "absolute", bottom: rs(7), flexDirection: "row", alignSelf: "center" },
   paginDot: { height: rs(5), borderRadius: rs(3), backgroundColor: Colors.finance_accent, marginHorizontal: rs(3) },
 
   // ── RECENT TRANSACTIONS ──
   txnList: { gap: rs(6), marginBottom: rs(4) },
   txnItem: {
-    backgroundColor: "#FFF",
+    backgroundColor: Colors.white,
     borderRadius: rs(16),
     padding: rs(14),
     flexDirection: "row", alignItems: "center", gap: rs(12),
-    borderWidth: 1, borderColor: "rgba(11,15,26,0.07)",
+    borderWidth: 1, borderColor: Colors.blackOpacity_05,
   },
   txnIcon: {
     width: rs(42), height: rs(42), borderRadius: rs(12),
@@ -1662,43 +1662,43 @@ const S = StyleSheet.create({
   },
   txnInfo: { flex: 1, minWidth: 0 },
   txnName: {
-    fontSize: rs(13), fontFamily: Fonts.Bold, color: "#0B0F1A",
+    fontSize: rs(13), fontFamily: Fonts.Bold, color: Colors.black,
     marginBottom: rs(3),
   },
-  txnMeta: { fontSize: rs(11), color: "#9BA5B8", fontFamily: Fonts.Regular },
+  txnMeta: { fontSize: rs(11), color: Colors.slate_400, fontFamily: Fonts.Regular },
   txnAmount: { fontSize: rs(14), fontFamily: Fonts.Bold, textAlign: "right" },
-  txnDebit: { color: "#EF4444" },
-  txnCredit: { color: "#22C55E" },
-  txnTime: { fontSize: rs(10), color: "#9BA5B8", textAlign: "right", marginTop: rs(3) },
+  txnDebit: { color: Colors.red },
+  txnCredit: { color: Colors.green },
+  txnTime: { fontSize: rs(10), color: Colors.slate_400, textAlign: "right", marginTop: rs(3) },
 
   refundBadge: {
     marginLeft: rs(6),
-    backgroundColor: "rgba(34,197,94,0.12)",
+    backgroundColor: Colors.successOpacity_10,
     paddingHorizontal: rs(6),
     paddingVertical: rs(2),
     borderRadius: rs(4),
     borderWidth: 0.5,
-    borderColor: "rgba(34,197,94,0.3)",
+    borderColor: Colors.successOpacity_30,
   },
   refundBadgeTxt: {
     fontSize: rs(8),
     fontFamily: Fonts.Bold,
-    color: "#22C55E",
+    color: Colors.green,
     letterSpacing: 0.5,
   },
 
   // ── BOTTOM NAV — unchanged ──
   navWrap: { position: "absolute", width: "100%", alignItems: "center" },
   navBar: {
-    backgroundColor: "#1A1A1A", width: "92%", height: rs(58),
+    backgroundColor: Colors.hex_1A1A1A, width: "92%", height: rs(58),
     borderRadius: rs(29), flexDirection: "row", justifyContent: "space-between",
     alignItems: "center", paddingHorizontal: rs(7),
-    borderWidth: 1, borderColor: "#333",
+    borderWidth: 1, borderColor: Colors.slate_700,
   },
   tabItem: { flex: 1, height: "100%", justifyContent: "center", alignItems: "center" },
   activeTab: {
     flexDirection: "row", alignItems: "center", padding: rs(6), borderRadius: rs(15),
   },
-  navLabel: { color: "#888", fontSize: rs(9), fontFamily: Fonts.Medium, marginTop: rs(3) },
+  navLabel: { color: Colors.gray, fontSize: rs(9), fontFamily: Fonts.Medium, marginTop: rs(3) },
   navLabelActive: { color: Colors.finance_accent, fontSize: rs(9), fontFamily: Fonts.Bold, marginTop: rs(3) },
 });
