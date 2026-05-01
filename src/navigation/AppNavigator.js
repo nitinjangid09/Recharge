@@ -23,6 +23,8 @@ import CreateUser from '../screens/UserDownline/CreateUser';
 import FinanceIntro from '../screens/UserLogin/Splash';
 import TopUpScreen from '../screens/Services/Recharge/Recharge';
 
+import ReportsDashboard from '../screens/Reports/ReportsDashboard';
+
 import UserListScreen from '../screens/UserDownline/UserListScreen';
 
 import WalletTransactionScreen from '../screens/Reports/WalletLedger'
@@ -184,6 +186,7 @@ const AppNavigator = () => {
       <Stack.Screen name="PaymentsScreen" component={PaymentsScreen} />
       <Stack.Screen name="StorePlans" component={StorePlans} />
       <Stack.Screen name="InvoiceScreen" component={InvoiceScreen} />
+      <Stack.Screen name="ReportsDashboard" component={ReportsDashboard} />
       <Stack.Screen name="FinanceIntro" component={FinanceIntro} />
       <Stack.Screen name="TopUpScreen" component={TopUpScreen} />
 

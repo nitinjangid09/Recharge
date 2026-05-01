@@ -959,7 +959,6 @@ export default function FinanceHome({ navigation }) {
                         <Icon name="plus" size={rs(12)} color={Colors.black} />
                         <Text style={[S.miniBtnTxt, { color: Colors.black }]}>Top Up</Text>
                       </TouchableOpacity>
-
                       <TouchableOpacity
                         style={[S.miniBtn, { backgroundColor: Colors.whiteOpacity_10, borderWidth: 1, borderColor: Colors.finance_accentOpacity_40 }]}
                         onPress={(e) => { e.stopPropagation(); navigation.navigate("WalletTransfer"); }}
@@ -1263,9 +1262,8 @@ export default function FinanceHome({ navigation }) {
               </View>
             </TouchableOpacity>
             {[
-              { icon: "file-document-outline", label: "Wallet Ledger", screen: "WalletTransactionScreen" },
-
-              { icon: "history", label: "Reports", screen: "InvoiceScreen" },
+              { icon: "shopping-outline", label: "Shopping", screen: "ShoppingScreen" },
+              { icon: "history", label: "Reports", screen: "ReportsDashboard" },
               { icon: "account-outline", label: "Profile", screen: "ProfileScreen" },
             ].map((tab, i) => (
               <TouchableOpacity key={i} style={S.tabItem} onPress={() => navigation.navigate(tab.screen)}>

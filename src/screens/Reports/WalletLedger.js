@@ -323,17 +323,17 @@ const FST = StyleSheet.create({
   body: { flexDirection: 'row', flex: 1, maxHeight: SH * 0.52 },
   navCol: { width: sc(82), borderRightWidth: 1, borderRightColor: Colors.border, paddingTop: vs(10) },
   navItem: { paddingVertical: vs(18), alignItems: 'center', paddingHorizontal: sc(6) },
-  navItemActive: { backgroundColor: Colors.cardBg },
+  navItemActive: { backgroundColor: Colors.surfaceMid },
   navIconBox: { width: sc(34), height: sc(34), borderRadius: sc(10), backgroundColor: Colors.surfaceMid, alignItems: 'center', justifyContent: 'center', marginBottom: vs(5) },
-  navTxt: { fontSize: rs(9), fontFamily: Fonts.Medium, color: Colors.textMuted, textAlign: 'center', letterSpacing: 0.3 },
+  navTxt: { fontSize: rs(9), fontFamily: Fonts.Medium, color: Colors.text_placeholder, textAlign: 'center', letterSpacing: 0.3 },
   navTxtActive: { color: Colors.kyc_accent, fontFamily: Fonts.Bold },
   navDot: { position: 'absolute', top: vs(12), right: sc(10), width: sc(6), height: sc(6), borderRadius: sc(3), backgroundColor: Colors.gold },
   optCol: { flex: 1, paddingHorizontal: sc(14) },
-  optSectionLabel: { fontSize: rs(9), fontFamily: Fonts.Bold, color: Colors.textMuted, letterSpacing: 1.2, marginBottom: vs(10), textTransform: 'uppercase' },
+  optSectionLabel: { fontSize: rs(9), fontFamily: Fonts.Bold, color: Colors.text_placeholder, letterSpacing: 1.2, marginBottom: vs(10), textTransform: 'uppercase' },
   optRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: vs(12), gap: sc(10), borderRadius: sc(10), paddingHorizontal: sc(4) },
   optRowActive: { backgroundColor: Colors.goldDim, marginHorizontal: -sc(4), paddingHorizontal: sc(8) },
   optIconBox: { width: sc(32), height: sc(32), borderRadius: sc(9), backgroundColor: Colors.surfaceMid, alignItems: 'center', justifyContent: 'center' },
-  optTxt: { flex: 1, fontSize: rs(13), fontFamily: Fonts.Medium, color: Colors.textSec },
+  optTxt: { flex: 1, fontSize: rs(13), fontFamily: Fonts.Medium, color: Colors.text_secondary },
   optTxtActive: { color: Colors.kyc_accent, fontFamily: Fonts.Bold },
   radioOff: { width: sc(18), height: sc(18), borderRadius: sc(9), borderWidth: 1.5, borderColor: Colors.border },
   radioOn: { width: sc(18), height: sc(18), borderRadius: sc(9), borderWidth: 2, borderColor: Colors.gold, alignItems: 'center', justifyContent: 'center' },
@@ -369,12 +369,12 @@ const FilterPills = ({ filters, onRemove }) => {
   const dateOpt = DATE_OPTIONS.find(o => o.key === filters.date);
   const serviceOpt = SERVICE_TYPES.find(o => o.key === filters.service);
   const txnOpt = TXN_TYPES.find(o => o.key === filters.txnType);
-  if (filters.date !== 'this_month' && dateOpt) pills.push({ key: 'date', label: dateOpt.label, icon: 'calendar-range', color: Colors.gold });
+  if (filters.date !== 'this_month' && dateOpt) pills.push({ key: 'date', label: dateOpt.label, icon: 'calendar-range', color: Colors.finance_accent });
   if (filters.userId !== 'all') pills.push({ key: 'userId', label: 'Specified User', icon: 'account-outline', color: Colors.amber });
   if (filters.service !== 'all' && serviceOpt) pills.push({ key: 'service', label: serviceOpt.label, icon: serviceOpt.icon, color: Colors.indigo });
   if (filters.txnType !== 'all' && txnOpt) pills.push({
     key: 'txnType', label: txnOpt.label, icon: txnOpt.icon,
-    color: filters.txnType === 'credit' ? Colors.green : filters.txnType === 'debit' ? Colors.debit : Colors.gold
+    color: filters.txnType === 'credit' ? Colors.success : filters.txnType === 'debit' ? Colors.error : Colors.finance_accent
   });
   if (!pills.length) return null;
   return (
@@ -585,7 +585,7 @@ function TransactionCard({ txn, onPressReceipt }) {
 }
 
 // ─── MAIN SCREEN ─────────────────────────────────────────────────────────────
-const WalletTransactionScreen = ({ navigation }) => {
+const WalletTransactionScreen = ({ navigation, route, isInnerTab }) => {
   const today = new Date();
   const defaultFrom = new Date(today.getFullYear(), today.getMonth(), 1);
   const defaultTo = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -748,9 +748,9 @@ const WalletTransactionScreen = ({ navigation }) => {
 
 
   return (
-    <SafeAreaView style={S.safe} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.headerBg} />
-      <HeaderBar title="Wallet Ledger" onBack={() => navigation?.goBack()} />
+    <SafeAreaView style={S.safe} edges={isInnerTab ? [] : ['top']}>
+      {!isInnerTab && <StatusBar barStyle="light-content" backgroundColor={Colors.headerBg} />}
+      {!isInnerTab && <HeaderBar title="Wallet Ledger" onBack={() => navigation?.goBack()} />}
       {!!error && (
         <View style={S.errorBanner}>
           <Icon name="alert-circle-outline" size={rs(15)} color="#DC2626" style={{ marginRight: sc(8) }} />
@@ -789,7 +789,7 @@ const WalletTransactionScreen = ({ navigation }) => {
             </View>
           ) : searched && !error ? (
             <View style={S.emptyWrap}>
-              <Icon name="file-search-outline" size={rs(52)} color={`${Colors.gold}55`} />
+              <Icon name="file-search-outline" size={rs(52)} color={Colors.finance_accent} />
               <Text style={S.emptyTitle}>No transactions found</Text>
               <Text style={S.emptySub}>Try adjusting your filters</Text>
             </View>
@@ -873,48 +873,48 @@ const ListHeader = ({
 
 const MONO = Platform.select({ ios: 'Courier New', android: 'monospace' });
 const CARD_S = StyleSheet.create({
-  card: { backgroundColor: Colors.white, borderRadius: 18, borderWidth: 1, borderColor: Colors.blackOpacity_08, overflow: 'hidden', marginBottom: 14, marginHorizontal: 16 },
-  cardHeader: { backgroundColor: Colors.primary, paddingHorizontal: 18, paddingVertical: 14, paddingBottom: 16 },
+  card: { backgroundColor: Colors.white, borderRadius: 18, borderWidth: 1, borderColor: Colors.blackOpacity_05, overflow: 'hidden', marginBottom: 14, marginHorizontal: 16, elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4 },
+  cardHeader: { backgroundColor: Colors.white, paddingHorizontal: 18, paddingVertical: 14, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: Colors.blackOpacity_05 },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  logoPill: { width: 40, height: 40, borderRadius: 10, backgroundColor: Colors.whiteOpacity_12, borderWidth: 1, borderColor: Colors.whiteOpacity_18, alignItems: 'center', justifyContent: 'center' },
-  logoText: { fontSize: 10, fontWeight: '700', color: Colors.beige, letterSpacing: 0.5 },
+  logoPill: { width: 40, height: 40, borderRadius: 12, backgroundColor: Colors.bg, borderWidth: 1, borderColor: Colors.finance_accent + '30', alignItems: 'center', justifyContent: 'center' },
+  logoText: { fontSize: 12, fontWeight: '800', color: Colors.finance_accent, letterSpacing: 0.5 },
   typeCol: { flexDirection: 'column', gap: 3 },
-  typeLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 0.8 },
-  typeLabelCredit: { color: '#4ade80' },
-  typeLabelDebit: { color: Colors.red },
-  txnRef: { fontSize: 11, color: Colors.whiteOpacity_45, fontFamily: MONO },
+  typeLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 0.8 },
+  typeLabelCredit: { color: Colors.success },
+  typeLabelDebit: { color: Colors.error },
+  txnRef: { fontSize: 11, color: Colors.text_secondary, fontFamily: MONO },
   amountCol: { marginLeft: 'auto', alignItems: 'flex-end' },
-  amountVal: { fontSize: 20, fontWeight: '700', letterSpacing: -0.5 },
-  amountCredit: { color: '#4ade80' },
-  amountDebit: { color: Colors.red },
-  amountDate: { fontSize: 10, color: Colors.whiteOpacity_45, marginTop: 1 },
-  body: { paddingHorizontal: 18 },
+  amountVal: { fontSize: 20, fontWeight: '800', letterSpacing: -0.5 },
+  amountCredit: { color: Colors.success },
+  amountDebit: { color: Colors.error },
+  amountDate: { fontSize: 11, color: Colors.text_secondary, marginTop: 1 },
+  body: { paddingHorizontal: 18, paddingVertical: 4 },
   section: { paddingVertical: 11 },
   sectionRow: { flexDirection: 'row', gap: 12 },
   infoCell: { flex: 1 },
   field: { gap: 3 },
-  fieldLabel: { fontSize: 10, fontWeight: '500', color: Colors.gray_9E, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 2 },
-  fieldValue: { fontSize: 12.5, fontWeight: '600', color: Colors.ink_main },
-  fieldMono: { fontFamily: MONO, fontSize: 11.5, fontWeight: '500', color: Colors.hex_374151 },
-  badge: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20, marginTop: 2 },
-  badgeCredit: { backgroundColor: Colors.success_light },
-  badgeDebit: { backgroundColor: Colors.error_light },
-  badgeText: { fontSize: 10, fontWeight: '700' },
+  fieldLabel: { fontSize: 10, fontWeight: '600', color: Colors.text_placeholder, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 2 },
+  fieldValue: { fontSize: 13, fontWeight: '700', color: Colors.ink_main },
+  fieldMono: { fontFamily: MONO, fontSize: 12, fontWeight: '600', color: Colors.hex_374151 },
+  badge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, marginTop: 2 },
+  badgeCredit: { backgroundColor: Colors.successOpacity_10 },
+  badgeDebit: { backgroundColor: Colors.redOpacity_10 },
+  badgeText: { fontSize: 10, fontWeight: '800' },
   badgeCreditText: { color: Colors.success_dark },
   badgeDebitText: { color: Colors.error_dark },
-  statStrip: { flexDirection: 'row', gap: 8, padding: 12, paddingHorizontal: 18, borderTopWidth: 0, borderTopColor: Colors.blackOpacity_05 },
-  statCard: { flex: 1, backgroundColor: Colors.surfaceMid, borderRadius: 10, padding: 10, borderWidth: 1, borderColor: Colors.blackOpacity_05 },
-  statLabel: { fontSize: 10, color: Colors.gray_9E, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 3 },
-  statValue: { fontSize: 14, fontWeight: '700', color: Colors.ink_main },
+  statStrip: { flexDirection: 'row', gap: 8, padding: 12, paddingHorizontal: 18, borderTopWidth: 1, borderTopColor: Colors.blackOpacity_05, backgroundColor: Colors.surfaceMid },
+  statCard: { flex: 1, backgroundColor: Colors.white, borderRadius: 10, padding: 10, borderWidth: 1, borderColor: Colors.blackOpacity_05 },
+  statLabel: { fontSize: 10, color: Colors.text_placeholder, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 3 },
+  statValue: { fontSize: 14, fontWeight: '800', color: Colors.ink_main },
   greenText: { color: Colors.success_dark },
   redText: { color: Colors.error_dark },
-  actionRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 18, paddingBottom: 14, paddingTop: 2 },
-  btnView: { flex: 1, flexDirection: 'row', paddingVertical: 12, borderRadius: 12, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
-  btnViewText: { fontSize: 13, fontWeight: '700', color: Colors.white, letterSpacing: 0.3 },
+  actionRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 18, paddingBottom: 14, paddingTop: 6, backgroundColor: Colors.surfaceMid },
+  btnView: { flex: 1, flexDirection: 'row', paddingVertical: 12, borderRadius: 12, backgroundColor: Colors.finance_accent, alignItems: 'center', justifyContent: 'center' },
+  btnViewText: { fontSize: 13, fontWeight: '800', color: Colors.white, letterSpacing: 0.3 },
 });
 
 const S = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.pageBg },
+  safe: { flex: 1, backgroundColor: Colors.bg },
   sfRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: sc(14), marginTop: vs(14), marginBottom: vs(12), gap: sc(10) },
   sfSearchBox: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: sc(12), paddingHorizontal: sc(14), borderWidth: 1, borderColor: Colors.border },
   sfInput: { flex: 1, height: vs(46), fontSize: rs(13), color: Colors.text_primary, padding: 0, fontFamily: Fonts.Medium },
@@ -932,6 +932,6 @@ const S = StyleSheet.create({
   retryBtn: { marginLeft: sc(8) },
   retryTxt: { color: Colors.primary, fontSize: rs(12), fontFamily: Fonts.Bold },
   emptyWrap: { alignItems: 'center', paddingTop: vs(40), paddingBottom: vs(20) },
-  emptyTitle: { color: Colors.textPri, fontSize: rs(15), fontFamily: Fonts.Bold, marginTop: vs(12), marginBottom: vs(4) },
-  emptySub: { color: Colors.textMuted, fontSize: rs(12), fontFamily: Fonts.Medium, textAlign: 'center', paddingHorizontal: sc(20) },
+  emptyTitle: { color: Colors.text_primary, fontSize: rs(15), fontFamily: Fonts.Bold, marginTop: vs(12), marginBottom: vs(4) },
+  emptySub: { color: Colors.text_secondary, fontSize: rs(12), fontFamily: Fonts.Medium, textAlign: 'center', paddingHorizontal: sc(20) },
 });
