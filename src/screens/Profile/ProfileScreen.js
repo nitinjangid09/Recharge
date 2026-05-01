@@ -378,7 +378,7 @@ export default function ProfileScreen({ navigation }) {
             <Tile icon="bank-transfer" label="Wallet Transfer" onPress={() => { navigation.navigate("WalletTransfer") }} />
           </Animated.View>
           <Animated.View style={{ flex: 1, transform: [{ translateY: tile3 }], opacity: tile3Op }}>
-            <Tile icon="file-document-outline" label="Wallet Ledger" onPress={() => navigation.navigate("WalletTransactionScreen")} />
+            <Tile icon="shopping-outline" label="Shopping" onPress={() => navigation.navigate("ShoppingScreen")} />
           </Animated.View>
         </View>
 
