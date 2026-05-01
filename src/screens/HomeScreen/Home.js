@@ -908,6 +908,7 @@ export default function FinanceHome({ navigation }) {
                   }
                 ]}
               >
+
                 <View style={{ flex: 1 }}>
                   <LinearGradient
                     colors={[Colors.hex_2E2E2E, Colors.black]}
@@ -950,13 +951,23 @@ export default function FinanceHome({ navigation }) {
                       </View>
                     </View>
 
-                    <TouchableOpacity
-                      style={[S.addBtn, { backgroundColor: Colors.finance_accent }]}
-                      onPress={(e) => { e.stopPropagation(); navigation.navigate("OfflineTopup"); }}
-                    >
-                      <Icon name="plus" size={rs(12)} color={Colors.black} />
-                      <Text style={[S.addBtnTxt, { color: Colors.black }]}>Top Up</Text>
-                    </TouchableOpacity>
+                    <View style={S.addBtnRow}>
+                      <TouchableOpacity
+                        style={[S.miniBtn, { backgroundColor: Colors.finance_accent }]}
+                        onPress={(e) => { e.stopPropagation(); navigation.navigate("OfflineTopup"); }}
+                      >
+                        <Icon name="plus" size={rs(12)} color={Colors.black} />
+                        <Text style={[S.miniBtnTxt, { color: Colors.black }]}>Top Up</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[S.miniBtn, { backgroundColor: "rgba(255,255,255,0.1)", borderWidth: 1, borderColor: "rgba(212,176,106,0.4)" }]}
+                        onPress={(e) => { e.stopPropagation(); navigation.navigate("WalletTransfer"); }}
+                      >
+                        <Icon name="swap-horizontal" size={rs(12)} color={Colors.finance_accent} />
+                        <Text style={[S.miniBtnTxt, { color: Colors.finance_accent }]}>Transfer</Text>
+                      </TouchableOpacity>
+                    </View>
 
                     <View style={S.cardFooter}>
                       <TouchableOpacity
@@ -1028,6 +1039,14 @@ export default function FinanceHome({ navigation }) {
                         )}
                       </View>
                     </View>
+
+                    <TouchableOpacity
+                      style={[S.miniBtn, { position: 'absolute', right: rs(14), top: rs(64), backgroundColor: Colors.finance_accent }]}
+                      onPress={(e) => { e.stopPropagation(); navigation.navigate("WalletTransfer"); }}
+                    >
+                      <Icon name="swap-horizontal" size={rs(12)} color={Colors.black} />
+                      <Text style={[S.miniBtnTxt, { color: Colors.black }]}>Transfer</Text>
+                    </TouchableOpacity>
 
                     <View style={S.cardFooter}>
                       <TouchableOpacity
@@ -1475,7 +1494,9 @@ const S = StyleSheet.create({
   balLabel: { color: "rgba(255,255,255,0.55)", fontSize: rs(10), fontFamily: Fonts.Medium, letterSpacing: 1, textTransform: "uppercase" },
   rupee: { color: "#d4b06a", fontSize: rs(21), fontFamily: Fonts.Light, marginRight: rs(3), marginTop: rs(2) },
   balAmt: { color: "#FFF", fontSize: rs(25), fontFamily: Fonts.Bold, letterSpacing: 1 },
-  addBtn: { position: "absolute", right: rs(14), top: rs(64), backgroundColor: Colors.finance_accent, flexDirection: "row", alignItems: "center", paddingHorizontal: rs(9), paddingVertical: rs(5), borderRadius: rs(14) },
+  addBtnRow: { position: "absolute", right: rs(14), top: rs(64), flexDirection: "row", gap: rs(8) },
+  miniBtn: { flexDirection: "row", alignItems: "center", paddingHorizontal: rs(10), paddingVertical: rs(6), borderRadius: rs(14) },
+  miniBtnTxt: { fontSize: rs(10), fontFamily: Fonts.Bold, marginLeft: rs(3) },
   addBtnTxt: { color: "#000", fontSize: rs(10), fontFamily: Fonts.Bold, marginLeft: rs(3) },
   cardFooter: { marginTop: rs(9), flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   kycBadge: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderRadius: rs(10), paddingHorizontal: rs(7), paddingVertical: rs(3) },
