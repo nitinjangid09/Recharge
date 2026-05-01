@@ -959,14 +959,6 @@ export default function FinanceHome({ navigation }) {
                         <Icon name="plus" size={rs(12)} color={Colors.black} />
                         <Text style={[S.miniBtnTxt, { color: Colors.black }]}>Top Up</Text>
                       </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={[S.miniBtn, { backgroundColor: "rgba(255,255,255,0.1)", borderWidth: 1, borderColor: "rgba(212,176,106,0.4)" }]}
-                        onPress={(e) => { e.stopPropagation(); navigation.navigate("WalletTransfer"); }}
-                      >
-                        <Icon name="swap-horizontal" size={rs(12)} color={Colors.finance_accent} />
-                        <Text style={[S.miniBtnTxt, { color: Colors.finance_accent }]}>Transfer</Text>
-                      </TouchableOpacity>
                     </View>
 
                     <View style={S.cardFooter}>
@@ -1263,9 +1255,8 @@ export default function FinanceHome({ navigation }) {
               </View>
             </TouchableOpacity>
             {[
-              { icon: "file-document-outline", label: "Wallet Ledger", screen: "WalletTransactionScreen" },
-
-              { icon: "history", label: "Reports", screen: "InvoiceScreen" },
+              { icon: "shopping-outline", label: "Shopping", screen: "ShoppingScreen" },
+              { icon: "history", label: "Reports", screen: "ReportsDashboard" },
               { icon: "account-outline", label: "Profile", screen: "ProfileScreen" },
             ].map((tab, i) => (
               <TouchableOpacity key={i} style={S.tabItem} onPress={() => navigation.navigate(tab.screen)}>

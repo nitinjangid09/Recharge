@@ -646,7 +646,7 @@ const FilterSheet = ({ visible, onClose, onApply, activeFilters, startDate, endD
 // ══════════════════════════════════════════════════════════════════════════════
 //  MAIN SCREEN
 // ══════════════════════════════════════════════════════════════════════════════
-export default function InvoiceScreen({ navigation }) {
+export default function InvoiceScreen({ navigation, route, isInnerTab }) {
   const [activeTab, setActiveTab] = useState(TABS[0].value);
   const [statusFilter, setStatusFilter] = useState('All');
   const [dateFilter, setDateFilter] = useState('Last 30 Days');
@@ -784,12 +784,14 @@ export default function InvoiceScreen({ navigation }) {
   const tabHasApi = !!activeTabCfg?.fetchFn;
 
   return (
-    <SafeAreaView style={S.safe} edges={['top']}>
+    <SafeAreaView style={S.safe} edges={isInnerTab ? [] : ['top']}>
 
-      <HeaderBar
-        title="Transactions"
-        onBack={() => navigation?.goBack()}
-      />
+      {!isInnerTab && (
+        <HeaderBar
+          title="Transactions"
+          onBack={() => navigation?.goBack()}
+        />
+      )}
 
       {/* ── Tab bar ────────────────────────────────────────────────────────── */}
       <View style={S.tabBar}>
