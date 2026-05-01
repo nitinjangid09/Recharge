@@ -490,7 +490,8 @@ const CashWithdraw = () => {
                   keyboardType="number-pad"
                   value={amount}
                   onChangeText={(t) => {
-                    const val = t.replace(/[^0-9]/g, "");
+                    let val = t.replace(/[^0-9]/g, "");
+                    if (val.startsWith("0")) val = val.replace(/^0+/, "");
                     if (val !== "" && Number(val) > 1000000) {
                       setErrors(prev => ({ ...prev, amount: "Max amount allowed is ₹10,00,000" }));
                       return;

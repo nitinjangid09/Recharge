@@ -313,7 +313,9 @@ const MoneyTransferScreen = ({ route, navigation }) => {
                 keyboardType="numeric"
                 value={amount}
                 onChangeText={(t) => {
-                  setAmount(t.replace(/[^0-9.]/g, ""));
+                  let v = t.replace(/[^0-9]/g, "");
+                  if (v.startsWith("0")) v = v.replace(/^0+/, "");
+                  setAmount(v);
                   if (error) setError("");
                 }}
                 maxLength={10}

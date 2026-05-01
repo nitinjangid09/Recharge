@@ -323,7 +323,12 @@ export default function AePSDashboardScreen({ navigation }) {
   };
 
   const updateForm = (key, val) => {
-    setForm(f => ({ ...f, [key]: val }));
+    let sanitized = val;
+    if (key === 'amount') {
+      sanitized = val.replace(/[^0-9]/g, '');
+      if (sanitized.startsWith("0")) sanitized = sanitized.replace(/^0+/, "");
+    }
+    setForm(f => ({ ...f, [key]: sanitized }));
     if (errors[key]) setErrors(prev => ({ ...prev, [key]: null }));
   };
 
