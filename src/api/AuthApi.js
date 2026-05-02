@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as NavigationService from "../utils/NavigationService";
 import { AlertService } from "../componets/Alerts/CustomAlert";
 
-export const BASE_URL = "http://192.168.1.16:8000";
+export const BASE_URL = "http://192.168.1.26:8000";
 
 // ─── Auto Logout Helper ───────────────────────────────────────────────────────
 const performAutoLogout = async (reason = "Session expired. Please login again.") => {
@@ -505,7 +505,7 @@ export const createOrder = async ({ headerToken, product, shippingAddress, shipp
   try {
     const payload = { product, shippingAddress, shippingCharge, gst };
     const response = await axios.post(`${BASE_URL}/user/order/create-order`, payload, {
-      headers: { 
+      headers: {
         Authorization: `Bearer ${headerToken}`,
         'idempotency-key': idempotencyKey,
         'Content-Type': 'application/json'

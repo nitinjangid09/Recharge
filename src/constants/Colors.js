@@ -1,5 +1,4 @@
-const Colors = {
-  // ─── Core Colors ──────────────────────────────────────────────────────────
+const base = {
   white: "#FFFFFF",
   black: "#000000",
   beige: "#FAF3E1",
@@ -12,13 +11,18 @@ const Colors = {
   indigo: "#6366F1",
   blue: "#2563EB",
   orange: "#F97316",
-<<<<<<< HEAD
+  emerald: "#10B981",
+  slate: "#4B5563",
+  ink_main: "#0F0E0D",
+
   // Standard Shades
   slate_900: "#0F172A",
+  slate_700: "#334155",
   slate_500: "#64748B",
   slate_400: "#94A3B8",
   slate_100: "#F1F5F9",
   slate_50: "#F8FAFC",
+
   gray_77: "#777777",
   gray_FA: "#FAFAFA",
   gray_F4: "#F4F4F4",
@@ -27,6 +31,7 @@ const Colors = {
   gray_11: "#111827",
   gray_E5: "#E5E7EB",
   gray_D1: "#D1D5DB",
+
   red_FE: "#FEF2F2",
   red_DC: "#DC2626",
   green_05: "#059669",
@@ -34,35 +39,36 @@ const Colors = {
   amber_F5: "#F59E0B",
   amber_FE: "#FEF3C7",
   transparent_black_10: "rgba(0,0,0,0.1)",
+  successOpacity_10: "rgba(5, 150, 105, 0.1)",
+  warningOpacity_10: "rgba(245, 158, 11, 0.1)",
+  redOpacity_10: "rgba(220, 38, 38, 0.1)",
+  blackOpacity_05: "rgba(0,0,0,0.05)",
+  blackOpacity_50: "rgba(0,0,0,0.5)",
+  text_placeholder: "#94A3B8",
 };
-=======
->>>>>>> 2e6d02c631a2a639d52b3ddcf61e0f722001e059
+
+const Colors = {
+  ...base,
 
   // ─── Theme Foundations ────────────────────────────────────────────────────
   primary: "#1A1A2E",
   accent: "#FF6D1F",
 
   // ─── Backgrounds ──────────────────────────────────────────────────────────
-<<<<<<< HEAD
   background_gradient: [base.gold, base.gold],
   homebg: base.gold,
-  homeSecondry: "#ffebbcf6",
+  homeSecondary: "#FFEBBC",
   bg: base.beige,
   bg_F8: base.slate_50,
   surface: base.white,
-=======
-  background_gradient: ["#F5E7C6", "#F5E7C6"],
-  homeSecondary: "#FFEBBC",
->>>>>>> 2e6d02c631a2a639d52b3ddcf61e0f722001e059
   pageBg: "#F2EDE4",
-  bg_F8: "#F8F9FC",
 
   // ─── Typography ───────────────────────────────────────────────────────────
-  text_secondary: "#777777",
+  text_secondary: base.gray_77,
 
   // ─── Buttons & Inputs ─────────────────────────────────────────────────────
   input_bg: "#FCECC8",
-  input_border: "rgba(0,0,0,0.1)",
+  input_border: base.transparent_black_10,
 
   // ─── Elements ─────────────────────────────────────────────────────────────
   circle_bg: "rgba(255,255,255,0.29)",
@@ -75,18 +81,18 @@ const Colors = {
 
   // ─── Status ───────────────────────────────────────────────────────────────
   success_light: "#D1FAE5",
-  success_dark: "#059669",
+  success_dark: base.green_05,
   success_ring: "#BBF7D0",
-  warning_light: "#FEF3C7",
+  warning_light: base.amber_FE,
   warning_dark: "#B45309",
   info_light: "#DBEAFE",
   info_dark: "#1D4ED8",
-  error_light: "#FEE2E2",
-  error_dark: "#DC2626",
+  error_light: base.red_FE,
+  error_dark: base.red_DC,
   error_ring: "#FECACA",
 
   // ─── Account & Profile ────────────────────────────────────────────────────
-  ink: "#0F0E0D",
+  ink: base.ink_main,
   ink2: "#3A3835",
   ink3: "#7A756E",
   surface2: "#F4F2EE",
@@ -97,7 +103,7 @@ const Colors = {
   heroEnd: "#211F1C",
 
   // ─── Hub / Activation ─────────────────────────────────────────────────────
-  hub_orange: "#F4722B",
+  hub_orange: base.orange,
   hub_orangeSoft: "#FFF1E8",
   hub_orangeBorder: "rgba(244,114,43,0.25)",
   hub_greenSoft: "#F0FDF4",
@@ -108,31 +114,22 @@ const Colors = {
   hub_redSoft: "#FFF5F5",
   hub_heroFrom: "#1A0A02",
   hub_heroTo: "#2D1000",
-  hub_hubIndigo: "#4F46E5",
+  hub_hubIndigo: base.indigo,
   hub_hubSky: "#0EA5E9",
 
   // ─── Offline KYC ──────────────────────────────────────────────────────────
   kyc_accent: "#C9A84C",
   kyc_accentDark: "#7A6020",
-  kyc_success: "#16A34A",
-  kyc_error: "#DC2626",
-  kyc_warning: "#D97706",
-  kyc_text: "#111827",
-  kyc_textSub: "#6B7280",
+  kyc_success: base.green_05,
+  kyc_error: base.red_DC,
+  kyc_warning: base.amber_D9,
+  kyc_text: base.gray_11,
+  kyc_textSub: base.gray_6B,
   kyc_textMuted: "#9CA3AF",
   kyc_bg: "#F4F5F7",
-  kyc_border: "#E5E7EB",
-  kyc_lockedBg: "#F3F4F6",
-  kyc_lockedBorder: "#D1D5DB",
-
-  // ─── Slate Scale ──────────────────────────────────────────────────────────
-  slate_900: "#0F172A",
-  slate_700: "#334155",
-<<<<<<< HEAD
-  slate_500: base.slate_500,
-  slate_400: base.slate_400,
-  slate_100: base.slate_100,
-  slate_50: base.slate_50,
+  kyc_border: base.gray_E5,
+  kyc_lockedBg: base.gray_F3,
+  kyc_lockedBorder: base.gray_D1,
 
   // ─── Direct Hex Mapping for Consistency ────────────────────────────────────
   hex_E53935: "#E53935",
@@ -177,10 +174,6 @@ const Colors = {
   amberDim: "rgba(217, 119, 6, 0.13)",
   amberSoft: "#FFFBEB",
   amber_dark: base.amber_D9,
-=======
-  slate_500: "#64748B",
-  slate_100: "#F1F5F9",
->>>>>>> 2e6d02c631a2a639d52b3ddcf61e0f722001e059
 };
 
 export default Colors;
