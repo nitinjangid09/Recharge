@@ -32,13 +32,13 @@ const formatDisplay = (d) => `${pad(d.getDate())} ${MONTHS_SHORT[d.getMonth()]} 
 // ─── Design tokens — local aliasing ───────────────────────────────
 const D = {
   cardBg: Colors.white,
-  surfaceMid: Colors.slate_50 || '#F8FAFC',
-  textPri: Colors.text_primary || '#000000',
-  textSec: Colors.text_secondary || '#777777',
-  textMuted: Colors.text_placeholder || '#888888',
-  gold: Colors.finance_accent || '#C96A00',
-  border: Colors.border || 'rgba(0,0,0,0.1)',
-  heroBg: Colors.slate_900 || '#0F172A',
+  surfaceMid: Colors.bg_F8 || 'rgb(248, 250, 252)',
+  textPri: Colors.black || 'rgb(0, 0, 0)',
+  textSec: Colors.text_secondary || 'rgb(119, 119, 119)',
+  textMuted: Colors.gray || 'rgb(136, 136, 136)',
+  gold: Colors.finance_accent || 'rgb(201, 106, 0)',
+  border: Colors.input_border || 'rgba(0,0,0,0.1)',
+  heroBg: Colors.primary || 'rgb(15, 23, 42)',
 };
 
 const CalendarModal = ({ visible, initialDate, title, onConfirm, onCancel, minDate, maxDate }) => {
@@ -162,7 +162,7 @@ const CalendarModal = ({ visible, initialDate, title, onConfirm, onCancel, minDa
                         <Text style={[
                           cal.dayTxt,
                           !valid && { color: 'transparent' },
-                          !selectable && valid && { color: Colors.ink4 || '#B5AFA7', opacity: 0.4 },
+                          !selectable && valid && { color: Colors.text_secondary || 'rgb(181, 175, 167)', opacity: 0.4 },
                           isWE && !sel && selectable && { color: D.gold },
                           sel && { color: Colors.white, fontFamily: Fonts.Bold },
                           tod && !sel && { color: D.gold, fontFamily: Fonts.Bold }
@@ -215,7 +215,7 @@ export default CalendarModal;
 
 // Calendar styles
 const cal = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: Colors.blackOpacity_60, justifyContent: 'center', alignItems: 'center', paddingHorizontal: CAL_H_PAD },
+  backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.60)", justifyContent: 'center', alignItems: 'center', paddingHorizontal: CAL_H_PAD },
   sheet: { backgroundColor: D.cardBg, borderRadius: sc(24), width: '100%', overflow: 'hidden', elevation: 14, shadowColor: Colors.black, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.22, shadowRadius: 18 },
   header: { backgroundColor: D.cardBg, paddingHorizontal: sc(16), paddingTop: vs(18), paddingBottom: vs(14), borderBottomWidth: 1, borderBottomColor: D.border },
   headerRow1: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: vs(6) },

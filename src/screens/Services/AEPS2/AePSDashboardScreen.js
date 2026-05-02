@@ -46,18 +46,17 @@ const rs = (n, lo = n * 0.82, hi = n * 1.28) =>
 
 // ─── Section Card ─────────────────────────────────────────────────
 const SectionCard = ({ children, style }) => (
-  <View style={[cardStyles.card, { backgroundColor: Colors.homebg }, style]}>{children}</View>
+  <View style={[cardStyles.card, { backgroundColor: Colors.beige }, style]}>{children}</View>
 );
 
 const cardStyles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.beige,
     borderRadius: rs(20),
     padding: rs(18),
     marginBottom: rs(14),
-    borderWidth: 0.5,
-    borderColor: Colors.border,
-
+    borderWidth: 1,
+    borderColor: "rgba(245,158,11,0.30)",
   },
 });
 
@@ -65,12 +64,12 @@ const cardStyles = StyleSheet.create({
 const FormField = ({ label, placeholder, value, onChangeText, keyboardType, icon, editable = true, error, maxLength }) => (
   <View style={fieldStyles.wrap}>
     <Text style={fieldStyles.label}>{label}</Text>
-    <View style={[fieldStyles.inputWrap, error && { borderColor: '#ef4444' }]}>
+    <View style={[fieldStyles.inputWrap, error && { borderColor: Colors.red }]}>
       {icon ? <Text style={fieldStyles.icon}>{icon}</Text> : null}
       <TextInput
         style={[fieldStyles.input, !editable && fieldStyles.disabled]}
         placeholder={placeholder}
-        placeholderTextColor={'#9BA5B8'}
+        placeholderTextColor={Colors.slate_400}
         value={value}
         onChangeText={onChangeText}
         keyboardType={keyboardType || 'default'}
@@ -91,13 +90,13 @@ const fieldStyles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: rs(18),
     borderWidth: 1,
-    borderColor: 'rgba(212,176,106,0.32)',
+    borderColor: Colors.finance_accent + "40",
     paddingHorizontal: rs(18),
     paddingVertical: rs(14),
     gap: rs(12),
   },
   icon: { fontSize: rs(14), opacity: 0.55 },
-  input: { flex: 1, fontSize: rs(14), color: '#0B0F1A', padding: 0 },
+  input: { flex: 1, fontSize: rs(14), color: Colors.ink1, padding: 0 },
   disabled: { opacity: 0.5 },
 });
 
@@ -108,9 +107,9 @@ const DropdownField = ({ label, placeholder, value, onPress, error }) => (
     <TouchableOpacity
       activeOpacity={0.7}
       onPress={onPress}
-      style={[dropStyles.row, error && { borderColor: '#ef4444' }]}
+      style={[dropStyles.row, error && { borderColor: Colors.red }]}
     >
-      <Text style={[dropStyles.text, value && { color: '#0B0F1A' }]}>
+      <Text style={[dropStyles.text, value && { color: Colors.ink1 }]}>
         {value || placeholder}
       </Text>
       <Text style={dropStyles.arrow}>▾</Text>
@@ -127,11 +126,11 @@ const dropStyles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: rs(18),
     borderWidth: 1,
-    borderColor: 'rgba(212,176,106,0.32)',
+    borderColor: Colors.finance_accent + "40",
     paddingHorizontal: rs(18),
     paddingVertical: rs(14),
   },
-  text: { fontSize: rs(14), color: '#9BA5B8' },
+  text: { fontSize: rs(14), color: Colors.slate_400 },
   arrow: { fontSize: rs(12), color: Colors.text_secondary },
 });
 
@@ -195,15 +194,15 @@ const RECENT_TXNS = [
 
 const TxnRow = ({ item }) => (
   <View style={txnStyles.row}>
-    <View style={[txnStyles.dot, { backgroundColor: item.status === 'success' ? Colors.finance_success : Colors.finance_error }]} />
+    <View style={[txnStyles.dot, { backgroundColor: item.status === 'success' ? Colors.green : Colors.red }]} />
     <View style={txnStyles.info}>
       <Text style={txnStyles.type}>{item.type}</Text>
       <Text style={txnStyles.meta}>{item.bank}  ·  {item.mobile}  ·  {item.time}</Text>
     </View>
     <View style={{ alignItems: 'flex-end' }}>
       {item.amount ? <Text style={txnStyles.amount}>{item.amount}</Text> : null}
-      <View style={[txnStyles.badge, { backgroundColor: item.status === 'success' ? '#E6FAF0' : '#FFF0F0' }]}>
-        <Text style={[txnStyles.badgeText, { color: item.status === 'success' ? Colors.finance_success : Colors.finance_error }]}>
+      <View style={[txnStyles.badge, { backgroundColor: item.status === 'success' ? Colors.green + "15" : Colors.red + "15" }]}>
+        <Text style={[txnStyles.badgeText, { color: item.status === 'success' ? Colors.green : Colors.red }]}>
           {item.status === 'success' ? 'Success' : 'Failed'}
         </Text>
       </View>
@@ -212,7 +211,7 @@ const TxnRow = ({ item }) => (
 );
 
 const txnStyles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: rs(12), paddingVertical: rs(10), borderBottomWidth: 0.5, borderBottomColor: Colors.divider },
+  row: { flexDirection: 'row', alignItems: 'center', gap: rs(12), paddingVertical: rs(10), borderBottomWidth: 0.5, borderBottomColor: Colors.input_border },
   dot: { width: rs(8), height: rs(8), borderRadius: rs(4), marginTop: rs(2) },
   info: { flex: 1 },
   type: { fontSize: rs(13), fontWeight: '600', color: Colors.black },
@@ -241,13 +240,13 @@ const SelectorModal = ({ visible, title, items, onSelect, onClose }) => {
       <View style={selStyles.sheet}>
         <View style={selStyles.header}>
           <Text style={selStyles.title}>{title}</Text>
-          <TouchableOpacity onPress={onClose}><Icon name="close" size={rs(20)} color="#94A3B8" /></TouchableOpacity>
+          <TouchableOpacity onPress={onClose}><Icon name="close" size={rs(20)} color={Colors.gray} /></TouchableOpacity>
         </View>
         <View style={selStyles.searchWrap}>
           <TextInput
             style={selStyles.searchInput}
             placeholder="Search here..."
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={Colors.gray}
             value={search}
             onChangeText={setSearch}
           />
@@ -282,13 +281,13 @@ const SelectorModal = ({ visible, title, items, onSelect, onClose }) => {
 const selStyles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' },
   sheet: { position: 'absolute', bottom: 0, width: '100%', backgroundColor: Colors.white, borderTopLeftRadius: rs(25), borderTopRightRadius: rs(25), maxHeight: '80%', paddingBottom: rs(30) },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: rs(20), borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: rs(20), borderBottomWidth: 1, borderBottomColor: Colors.input_border },
   title: { fontSize: rs(16), fontWeight: '800', color: Colors.black },
-  searchWrap: { paddingHorizontal: rs(20), paddingVertical: rs(10), borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
-  searchInput: { backgroundColor: '#f8fafc', borderRadius: rs(10), paddingHorizontal: rs(16), paddingVertical: rs(12), fontSize: rs(14), color: Colors.black },
-  item: { padding: rs(18), borderBottomWidth: 1, borderBottomColor: '#f8fafc' },
-  itemText: { fontSize: rs(14), color: '#334155', fontWeight: '500' },
-  empty: { textAlign: 'center', padding: rs(40), color: '#94A3B8' }
+  searchWrap: { paddingHorizontal: rs(20), paddingVertical: rs(10), borderBottomWidth: 1, borderBottomColor: Colors.input_border },
+  searchInput: { backgroundColor: Colors.bg_F8, borderRadius: rs(10), paddingHorizontal: rs(16), paddingVertical: rs(12), fontSize: rs(14), color: Colors.black },
+  item: { padding: rs(18), borderBottomWidth: 1, borderBottomColor: 'rgb(248, 250, 252)' },
+  itemText: { fontSize: rs(14), color: 'rgb(51, 65, 85)', fontWeight: '500' },
+  empty: { textAlign: 'center', padding: rs(40), color: 'rgb(148, 163, 184)' }
 });
 
 // ─── Screen Component ─────────────────────────────────────────────
@@ -591,14 +590,14 @@ export default function AePSDashboardScreen({ navigation }) {
             activeOpacity={0.88}
             onPress={handleProceed}
             style={[styles.scanBtn, (submitting || !form.bank || !form.aadhaar || !form.mobile) && styles.disabledBtn]}
-            disabled={submitting}
+            disabled={submitting || !form.bank || !form.aadhaar || !form.mobile}
           >
             {submitting ? (
               <ActivityIndicator color={Colors.white} />
             ) : (
               <>
-                <Icon name="fingerprint" size={rs(20)} color={Colors.white} />
-                <Text style={styles.scanBtnText}>PROCEED TO SCAN</Text>
+                <Icon name="fingerprint" size={rs(20)} color={(submitting || !form.bank || !form.aadhaar || !form.mobile) ? Colors.slate_500 : Colors.white} />
+                <Text style={[styles.scanBtnText, (submitting || !form.bank || !form.aadhaar || !form.mobile) && { color: Colors.slate_500 }]}>PROCEED TO SCAN</Text>
               </>
             )}
           </TouchableOpacity>
@@ -662,7 +661,7 @@ export default function AePSDashboardScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
+  safe: { flex: 1, backgroundColor: Colors.beige },
   scroll: { flex: 1 },
   content: { paddingHorizontal: rs(16), paddingBottom: rs(10), paddingTop: rs(12) },
 
@@ -689,7 +688,7 @@ const styles = StyleSheet.create({
 
   errorText: {
     fontSize: rs(10),
-    color: '#ef4444',
+    color: 'rgb(239, 68, 68)',
     marginTop: rs(4),
     marginBottom: rs(4),
     marginLeft: rs(2),
@@ -712,5 +711,5 @@ const styles = StyleSheet.create({
   },
   chipText: { fontSize: rs(11), fontWeight: '700', color: Colors.text_secondary },
   chipTextActive: { color: Colors.white },
-  disabledBtn: { opacity: 0.6 }
+  disabledBtn: { backgroundColor: Colors.gold }
 });

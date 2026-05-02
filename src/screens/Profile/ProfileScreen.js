@@ -8,6 +8,7 @@ import {
   Animated,
   ActivityIndicator,
   RefreshControl,
+  StatusBar,
 } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -64,11 +65,11 @@ const AvatarRing = ({ initials, size = 80, onEditPress }) => {
           width: innerSize,
           height: innerSize,
           borderRadius: innerSize / 2,
-          backgroundColor: Colors.hex_2E2E2E || "#2A2825",
+          backgroundColor: "#2E2E2E" || "#2A2825",
           alignItems: "center",
           justifyContent: "center",
           borderWidth: 2.5,
-          borderColor: Colors.heroStart,
+          borderColor: Colors.primary,
         }}
       >
         <Text
@@ -137,7 +138,7 @@ const Tile = ({ icon, label, onPress }) => {
 ───────────────────────────────────────────── */
 const Row = ({ icon, label, sub, badge, isDanger, isFirst, isLast, onPress }) => {
   const bg = useRef(new Animated.Value(0)).current;
-  const iconBg = bg.interpolate({ inputRange: [0, 1], outputRange: [Colors.surface2, isDanger ? Colors.redBg : Colors.amberBg] });
+  const iconBg = bg.interpolate({ inputRange: [0, 1], outputRange: [Colors.white, isDanger ? Colors.error_light : Colors.warning_light] });
   const iconColor = bg.interpolate({ inputRange: [0, 1], outputRange: [Colors.ink2, isDanger ? Colors.red : Colors.amber] });
 
   const onIn = () => Animated.timing(bg, { toValue: 1, duration: 120, useNativeDriver: false }).start();
@@ -178,7 +179,7 @@ const Row = ({ icon, label, sub, badge, isDanger, isFirst, isLast, onPress }) =>
           <MaterialCommunityIcons
             name="chevron-right"
             size={14}
-            color={isDanger ? Colors.red : Colors.ink4}
+            color={isDanger ? Colors.red : Colors.text_secondary}
             style={{ opacity: isDanger ? 0.4 : 1 }}
           />
         </View>
@@ -309,6 +310,7 @@ export default function ProfileScreen({ navigation }) {
   /* ─── UI ─── */
   return (
     <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="light-content" backgroundColor={Colors.black} />
       <ScrollView
         style={styles.scroll}
         showsVerticalScrollIndicator={false}
@@ -323,6 +325,9 @@ export default function ProfileScreen({ navigation }) {
           />
         }
       >
+        {/* Top overscroll fix: matches hero background when pulling down */}
+        <View style={{ backgroundColor: Colors.black, height: 500, position: 'absolute', top: -500, left: 0, right: 0 }} />
+
         {/* ── HERO ZONE ── */}
         <Animated.View
           style={[
@@ -360,9 +365,9 @@ export default function ProfileScreen({ navigation }) {
                 </View>
               )}
               {roleName && (
-                <View style={[styles.userBadge, { backgroundColor: Colors.ink2, borderColor: Colors.ink3 }]}>
-                  <MaterialCommunityIcons name="shield-account-outline" size={9} color={Colors.secondary} style={{ marginRight: 5 }} />
-                  <Text style={[styles.userBadgeTxt, { color: Colors.secondary }]}>{roleName}</Text>
+                <View style={[styles.userBadge, { backgroundColor: Colors.ink2, borderColor: "#5F5D5B" }]}>
+                  <MaterialCommunityIcons name="shield-account-outline" size={9} color={Colors.white} style={{ marginRight: 5 }} />
+                  <Text style={[styles.userBadgeTxt, { color: Colors.white }]}>{roleName}</Text>
                 </View>
               )}
             </View>
@@ -489,16 +494,16 @@ export default function ProfileScreen({ navigation }) {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.surface2,
+    backgroundColor: Colors.black,
   },
   scroll: {
     flex: 1,
-    backgroundColor: Colors.bg,
+    backgroundColor: Colors.beige,
   },
 
   /* ── Hero ── */
   hero: {
-    backgroundColor: Colors.heroStart,
+    backgroundColor: Colors.black,
     paddingHorizontal: 22,
     paddingTop: 18,
     paddingBottom: 32,
@@ -510,7 +515,7 @@ const styles = StyleSheet.create({
     width: 280,
     height: 280,
     borderRadius: 140,
-    backgroundColor: Colors.amberOpacity_18,
+    backgroundColor: "rgba(245,158,11,0.18)",
     top: -60,
     right: -40,
   },
@@ -551,7 +556,7 @@ const styles = StyleSheet.create({
     borderRadius: 11,
     backgroundColor: Colors.amber,
     borderWidth: 2.5,
-    borderColor: Colors.heroStart,
+    borderColor: Colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -566,7 +571,7 @@ const styles = StyleSheet.create({
   heroEmail: {
     fontFamily: Fonts.Regular,
     fontSize: 12,
-    color: Colors.whiteOpacity_38,
+    color: "rgba(255,255,255,0.38)",
     textAlign: "center",
     marginTop: 2,
   },
@@ -581,17 +586,17 @@ const styles = StyleSheet.create({
   userBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.amberBg,
+    backgroundColor: Colors.primary,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: Colors.amberRing,
+    borderColor: Colors.primary,
   },
   userBadgeTxt: {
     fontFamily: Fonts.Bold,
     fontSize: 10.5,
-    color: Colors.amber,
+    color: Colors.amber2,
     letterSpacing: 0.3,
   },
   hstatVal: {
@@ -603,14 +608,14 @@ const styles = StyleSheet.create({
   hstatKey: {
     fontFamily: Fonts.Bold,
     fontSize: 9,
-    color: Colors.whiteOpacity_38,
+    color: "rgba(255,255,255,0.38)",
     letterSpacing: 0.8,
     textTransform: "uppercase",
     marginTop: 2,
   },
   hstatDiv: {
     width: 1,
-    backgroundColor: Colors.whiteOpacity_08,
+    backgroundColor: "rgba(255,255,255,0.08)",
   },
 
   /* ── Tiles ── */
@@ -631,20 +636,20 @@ const styles = StyleSheet.create({
     gap: 5,
     height: 82, // Fixed height to keep all tiles uniform
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.input_border,
   },
   tileIc: {
     width: 30,
     height: 30,
     borderRadius: 9,
-    backgroundColor: Colors.surface2,
+    backgroundColor: Colors.white,
     alignItems: "center",
     justifyContent: "center",
   },
   tileLbl: {
     fontFamily: Fonts.Bold,
     fontSize: 9.5, // Slightly smaller to help fit
-    color: Colors.ink3,
+    color: "#5F5D5B",
     letterSpacing: 0.2,
     textTransform: "uppercase",
     textAlign: "center",
@@ -683,7 +688,7 @@ const styles = StyleSheet.create({
   },
   rowDivider: {
     borderTopWidth: 0.5,
-    borderTopColor: Colors.ink5,
+    borderTopColor: Colors.kyc_border,
   },
   rowIcon: {
     width: 34,
@@ -703,7 +708,7 @@ const styles = StyleSheet.create({
   rowSub: {
     fontFamily: Fonts.Regular,
     fontSize: 11,
-    color: Colors.ink3,
+    color: "#5F5D5B",
     marginTop: 1,
   },
   rowRight: {
@@ -712,7 +717,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   openBadge: {
-    backgroundColor: Colors.amberBg,
+    backgroundColor: Colors.warning_light,
     borderRadius: 999,
     paddingHorizontal: 7,
     paddingVertical: 2,

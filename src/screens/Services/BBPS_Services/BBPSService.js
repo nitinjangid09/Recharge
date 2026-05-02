@@ -99,7 +99,7 @@ const ITEM_W = Math.floor(
   (SCREEN_W - SCREEN_PAD - CARD_H_PAD - ITEM_GAP * (COLS - 1)) / COLS
 );
 
-const ACCENT = Colors.finance_accent || "#D4A843";
+const ACCENT = Colors.finance_accent || "rgb(212, 168, 67)";
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  Service tile — EXACT width = ITEM_W, no extra margin
@@ -143,7 +143,7 @@ const tileStyles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 14,
-    backgroundColor: Colors.bg || "#F7F4EF",
+    backgroundColor: Colors.beige || "rgb(247, 244, 239)",
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
@@ -461,12 +461,13 @@ export default function PaymentsScreen({ navigation }) {
 // STYLES
 // ─────────────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.bg || "#F7F4EF" },
+  container: { flex: 1, backgroundColor: Colors.beige || "rgb(247, 244, 239)" },
 
   headerGradient: {
     paddingBottom: 35,
     borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,  },
+    borderBottomRightRadius: 24,
+  },
   header: {
     paddingHorizontal: 16,
     flexDirection: "row",
@@ -479,17 +480,18 @@ const styles = StyleSheet.create({
 
   reminderCard: {
     marginTop: -20,
-    backgroundColor: Colors.homebg || "#fff",
+    backgroundColor: Colors.beige || "rgb(255, 255, 255)",
     borderRadius: 16,
     padding: 15,
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",    borderWidth: 1,
+    alignItems: "center",
+    borderWidth: 1,
     borderColor: "rgba(0,0,0,0.02)",
   },
-  smallText: { color: Colors.gray_66, fontSize: 11, fontFamily: Fonts.Medium },
-  mainText: { color: Colors.slate_900, fontSize: 14, fontFamily: Fonts.Bold, marginTop: 4 },
-  payNowBtn: { backgroundColor: Colors.bg, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 7, borderWidth: 1, borderColor: ACCENT + "40" },
+  smallText: { color: "rgb(102, 102, 102)", fontSize: 11, fontFamily: Fonts.Medium },
+  mainText: { color: Colors.primary, fontSize: 14, fontFamily: Fonts.Bold, marginTop: 4 },
+  payNowBtn: { backgroundColor: Colors.beige, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 7, borderWidth: 1, borderColor: ACCENT + "40" },
   payNowTxt: { color: ACCENT, fontFamily: Fonts.Bold, fontSize: 13 },
 
   banner: {
@@ -500,7 +502,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "rgba(212,176,106,0.12)",  },
+    borderColor: "rgba(212,176,106,0.12)",
+  },
   bannerText: { fontSize: 12, color: Colors.slate_700, fontFamily: Fonts.Medium, lineHeight: 18 },
   postpe: { fontSize: 18, fontFamily: Fonts.Bold, color: ACCENT, marginTop: 4 },
   bannerImage: { width: 70, height: 70, resizeMode: "contain" },
@@ -508,22 +511,23 @@ const styles = StyleSheet.create({
   bigCard: {
     marginTop: 15,
     marginBottom: 40,
-    backgroundColor: Colors.homebg || "#fff",
+    backgroundColor: Colors.beige || "rgb(255, 255, 255)",
     borderRadius: 20,
     paddingTop: 16,
     paddingBottom: 8,
-    paddingHorizontal: 12,   // = CARD_H_PAD / 2 each side    borderWidth: 1,
+    paddingHorizontal: 12,   // = CARD_H_PAD / 2 each side
+    borderWidth: 1,
     borderColor: "rgba(0,0,0,0.03)",
   },
 
   cardHeaderRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 2 },
   cardHeaderLeft: { flexDirection: "row", alignItems: "center", gap: 6 },
   cardHeaderDot: { width: 4, height: 16, borderRadius: 2, backgroundColor: ACCENT },
-  sectionTitle: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.slate_900, letterSpacing: 0.6 },
+  sectionTitle: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.primary, letterSpacing: 0.6 },
 
 
   loaderBox: { paddingVertical: 40, alignItems: "center", justifyContent: "center", gap: 10 },
-  loaderTxt: { color: Colors.gray_66, fontSize: 13, fontFamily: Fonts.Medium },
+  loaderTxt: { color: "rgb(102, 102, 102)", fontSize: 13, fontFamily: Fonts.Medium },
   emptyBox: { paddingVertical: 40, alignItems: "center", gap: 10 },
-  emptyTxt: { color: Colors.gray_BD, fontSize: 13, fontFamily: Fonts.Medium },
+  emptyTxt: { color: Colors.gray, fontSize: 13, fontFamily: Fonts.Medium },
 });

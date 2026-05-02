@@ -157,12 +157,12 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
     >
       {!data ? <View /> : (
         <View style={styles.overlay}>
-          <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.blackOpacity_52, opacity: backdropOpacity }]}>
+          <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.52)", opacity: backdropOpacity }]}>
             <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={handleClose} />
           </Animated.View>
 
           <Animated.View
-            style={[styles.sheet, { backgroundColor: Colors.finance_bg_1 || Colors.white, transform: [{ translateY }] }]}
+            style={[styles.sheet, { backgroundColor: Colors.beige || Colors.white, transform: [{ translateY }] }]}
             {...panResponder.panHandlers}
           >
             {/* Drag handle */}
@@ -177,15 +177,15 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
               <ViewShot
                 ref={receiptCardRef}
                 options={{ format: "png", quality: 1 }}
-                style={{ backgroundColor: Colors.finance_bg_1 }}
+                style={{ backgroundColor: Colors.beige }}
               >
                 {/* Banner */}
                 <LinearGradient
                   colors={isSuccess
-                    ? [Colors.success || "#22C55E", Colors.success_dark || "#059669"]
+                    ? [Colors.green || Colors.green, Colors.success_dark || Colors.success_dark]
                     : isPending
-                      ? [Colors.amber || "#F59E0B", Colors.amber_dark || "#D97706"]
-                      : [Colors.error || "#EF4444", Colors.error_dark || "#DC2626"]}
+                      ? [Colors.amber || Colors.warning, Colors.warning_dark || Colors.kyc_warning]
+                      : [Colors.red || Colors.red, Colors.error_dark || Colors.error_dark]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={styles.banner}
@@ -208,12 +208,12 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
                 {/* Amount Section */}
                 <View style={[styles.amountCard, { backgroundColor: Colors.white }]}>
                   <View>
-                    <Text style={[styles.amountLbl, { color: Colors.finance_text_light }]}>AMOUNT</Text>
+                    <Text style={[styles.amountLbl, { color: Colors.text_secondary }]}>AMOUNT</Text>
                     <Text style={[styles.amountVal, { color: Colors.finance_text }]}>₹{data.amount}</Text>
                   </View>
                   {data.operator && (
-                    <View style={[styles.opBadge, { backgroundColor: (Colors.finance_accent || "#d4b06a") + "18", borderColor: (Colors.finance_accent || "#d4b06a") + "45" }]}>
-                      <View style={[styles.opCircle, { backgroundColor: Colors.finance_accent || "#d4b06a" }]}>
+                    <View style={[styles.opBadge, { backgroundColor: (Colors.finance_accent || Colors.finance_accent) + "18", borderColor: (Colors.finance_accent || Colors.finance_accent) + "45" }]}>
+                      <View style={[styles.opCircle, { backgroundColor: Colors.finance_accent || Colors.finance_accent }]}>
                         <Text style={styles.opInitial}>{opInitial}</Text>
                       </View>
                       <Text style={[styles.opName, { color: Colors.finance_text }]}>{data.operator}</Text>
@@ -232,7 +232,7 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
                 <View style={[styles.detailCard, { backgroundColor: Colors.white }]}>
                   {data.details && data.details.map((row, i) => (
                     <View key={i} style={[styles.row, i < data.details.length - 1 && styles.rowBorder]}>
-                      <Text style={[styles.rowLbl, { color: Colors.finance_text_light }]}>{row.label}</Text>
+                      <Text style={[styles.rowLbl, { color: Colors.text_secondary }]}>{row.label}</Text>
                       {row.isStatusPill ? (
                         <View style={[styles.statusPill, { backgroundColor: row.color || Colors.primary }]}>
                           <Text style={styles.statusPillTxt}>{String(row.value).toUpperCase()}</Text>
@@ -260,19 +260,19 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
                 {data?.note && (
                   <View style={[
                     styles.note,
-                    isSuccess ? { backgroundColor: Colors.successOpacity_10, borderColor: Colors.success_ring } :
-                      isPending ? { backgroundColor: Colors.amberOpacity_15, borderColor: Colors.amberOpacity_30 } :
-                        { backgroundColor: Colors.warningOpacity_10, borderColor: Colors.warningOpacity_30 }
+                    isSuccess ? { backgroundColor: "rgba(34,197,94,0.10)", borderColor: Colors.success_ring } :
+                      isPending ? { backgroundColor: "rgba(245,158,11,0.15)", borderColor: "rgba(245,158,11,0.30)" } :
+                        { backgroundColor: "rgba(245,158,11,0.10)", borderColor: "rgba(245,158,11,0.30)" }
                   ]}>
                     <View style={[
                       styles.noteDot,
-                      { backgroundColor: isSuccess ? Colors.success : isPending ? Colors.amber : Colors.error }
+                      { backgroundColor: isSuccess ? Colors.green : isPending ? Colors.amber : Colors.red }
                     ]} />
                     <Text style={[styles.noteTxt, { color: Colors.finance_text }]} numberOfLines={2}>{data.note}</Text>
                   </View>
                 )}
 
-                <View style={{ height: 14, backgroundColor: Colors.finance_bg_1 }} />
+                <View style={{ height: 14, backgroundColor: Colors.beige }} />
               </ViewShot>
             </ScrollView>
 
@@ -281,7 +281,7 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
             {/* Share/Action Buttons */}
             <View style={styles.btnRow}>
               <TouchableOpacity
-                style={[styles.shareBtn, { backgroundColor: Colors.finance_accent || "#d4b06a" }]}
+                style={[styles.shareBtn, { backgroundColor: Colors.finance_accent || Colors.finance_accent }]}
                 activeOpacity={0.85}
                 onPress={handleShare}
                 disabled={sharing}
@@ -297,12 +297,12 @@ const ReceiptModal = ({ visible, onClose, navigation, data }) => {
 
               {!isSuccess && (
                 <TouchableOpacity
-                  style={[styles.complBtn, { borderColor: (Colors.finance_accent || "#d4b06a") + "60", backgroundColor: Colors.white, marginTop: 10 }]}
+                  style={[styles.complBtn, { borderColor: (Colors.finance_accent || Colors.finance_accent) + "60", backgroundColor: Colors.white, marginTop: 10 }]}
                   activeOpacity={0.85}
                   onPress={handleHelp}
                 >
-                  <Icon name="message-alert-outline" size={15} color={Colors.finance_accent || "#d4b06a"} style={{ marginRight: 7 }} />
-                  <Text style={[styles.complTxt, { color: Colors.finance_accent || "#d4b06a" }]}>Need Help?</Text>
+                  <Icon name="message-alert-outline" size={15} color={Colors.finance_accent || Colors.finance_accent} style={{ marginRight: 7 }} />
+                  <Text style={[styles.complTxt, { color: Colors.finance_accent || Colors.finance_accent }]}>Need Help?</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -337,10 +337,10 @@ const styles = StyleSheet.create({
   opInitial: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.white },
   opName: { fontSize: 12, fontFamily: Fonts.Bold },
   subTitleCard: { marginHorizontal: 14, marginTop: 10, padding: 12, borderRadius: 10, alignItems: 'center' },
-  subTitleTxt: { fontSize: 13, fontFamily: Fonts.Medium, color: Colors.finance_text_light },
+  subTitleTxt: { fontSize: 13, fontFamily: Fonts.Medium, color: Colors.text_secondary },
   detailCard: { marginHorizontal: 14, marginTop: 10, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 2, elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4 },
   row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 9 },
-  rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.slate_50 },
+  rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.bg_F8 },
   rowLbl: { fontSize: 12, fontFamily: Fonts.Medium, flex: 1 },
   rowVal: { fontSize: 13, fontFamily: Fonts.Bold, textAlign: "right", flex: 1 },
   statusPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },

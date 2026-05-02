@@ -137,8 +137,8 @@ const WalletTransfer = ({ navigation }) => {
   // ── history item ──────────────────────────────────────────────────────────
   const HistoryItem = ({ item, index }) => {
     const isCredit = item.type === 'credit';
-    const color = isCredit ? Colors.finance_success : Colors.red;
-    const bgColor = isCredit ? Colors.successOpacity_08 : Colors.redOpacity_10;
+    const color = isCredit ? Colors.green : Colors.red;
+    const bgColor = isCredit ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.10)";
 
     return (
       <View style={styles.historyCard}>
@@ -178,7 +178,7 @@ const WalletTransfer = ({ navigation }) => {
   // ── render ────────────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.slate_900} />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
 
       {/* ── HEADER ── */}
       <HeaderBar
@@ -207,7 +207,7 @@ const WalletTransfer = ({ navigation }) => {
             CARD 1 – TRANSFER FLOW  (unchanged)
         ══════════════════════════════════════════════════════════ */}
         <LinearGradient
-          colors={[Colors.hex_2E2E2E, Colors.black]}
+          colors={["rgb(46, 46, 46)", Colors.black]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.cardWrapper}
@@ -215,15 +215,15 @@ const WalletTransfer = ({ navigation }) => {
           <View style={styles.flowCardHeader}>
             <Text style={styles.cardTitle}>Transfer Flow</Text>
             <View style={styles.activeBadge}>
-              <View style={[styles.activeDot, { backgroundColor: Colors.finance_success }]} />
-              <Text style={[styles.activeBadgeText, { color: Colors.finance_success }]}>ACTIVE</Text>
+              <View style={[styles.activeDot, { backgroundColor: Colors.green }]} />
+              <Text style={[styles.activeBadgeText, { color: Colors.green }]}>ACTIVE</Text>
             </View>
           </View>
 
           <View style={styles.walletsRow}>
             {/* AEPS Wallet */}
             <LinearGradient
-              colors={[Colors.hex_232323, Colors.black]}
+              colors={["rgb(35, 35, 35)", Colors.black]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.walletBox}
@@ -254,12 +254,12 @@ const WalletTransfer = ({ navigation }) => {
 
             {/* Main Wallet */}
             <LinearGradient
-              colors={[Colors.hex_232323, Colors.black]}
+              colors={["rgb(35, 35, 35)", Colors.black]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.walletBox}
             >
-              <View style={[styles.walletTagPill, { backgroundColor: Colors.amberOpacity_15 }]}>
+              <View style={[styles.walletTagPill, { backgroundColor: "rgba(245,158,11,0.15)" }]}>
                 <Icon name="wallet-outline" size={12} color={Colors.finance_accent} />
                 <Text style={[styles.walletTagPillTxt, { color: Colors.finance_accent }]}>MAIN WALLET</Text>
               </View>
@@ -281,7 +281,7 @@ const WalletTransfer = ({ navigation }) => {
               <Text style={styles.footerText}>INSTANT SETTLEMENT</Text>
             </View>
             <View style={styles.footerItem}>
-              <View style={[styles.footerDot, { backgroundColor: Colors.finance_success }]} />
+              <View style={[styles.footerDot, { backgroundColor: Colors.green }]} />
               <Text style={styles.footerText}>ZERO CHARGES</Text>
             </View>
           </View>
@@ -291,7 +291,7 @@ const WalletTransfer = ({ navigation }) => {
             CARD 2 – TRANSFER FUNDS  (unchanged)
         ══════════════════════════════════════════════════════════ */}
         <LinearGradient
-          colors={[Colors.hex_2E2E2E, Colors.black]}
+          colors={["rgb(46, 46, 46)", Colors.black]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={[styles.cardWrapper, { marginTop: 20 }]}
@@ -331,15 +331,15 @@ const WalletTransfer = ({ navigation }) => {
             disabled={isTransferring}
           >
             <LinearGradient
-              colors={isTransferring ? [Colors.text_placeholder, Colors.hex_6B7280] : [Colors.hex_E5C37A, Colors.hex_C79A3F]}
+              colors={isTransferring ? [Colors.gray, Colors.kyc_textSub] : [Colors.finance_accent, Colors.finance_accent]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.executeButton}
             >
               {isTransferring ? (
-                <ActivityIndicator color={Colors.slate_900} size="small" style={styles.boltIcon} />
+                <ActivityIndicator color={Colors.primary} size="small" style={styles.boltIcon} />
               ) : (
-                <Icon name="lightning-bolt" size={16} color={Colors.slate_900} style={styles.boltIcon} />
+                <Icon name="lightning-bolt" size={16} color={Colors.primary} style={styles.boltIcon} />
               )}
               <Text style={styles.executeButtonText}>
                 {isTransferring ? 'PROCESSING...' : 'EXECUTE TRANSFER'}
@@ -375,7 +375,7 @@ const WalletTransfer = ({ navigation }) => {
             </View>
           ) : history.length === 0 ? (
             <View style={styles.emptyBox}>
-              <Icon name="text-box-search-outline" size={scale(40)} color={Colors.text_placeholder} />
+              <Icon name="text-box-search-outline" size={scale(40)} color={Colors.gray} />
               <Text style={styles.emptyTitle}>No transactions found</Text>
               <Text style={styles.emptyDesc}>Your transfer history will appear here.</Text>
             </View>
@@ -405,7 +405,7 @@ const WalletTransfer = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.bg,
+    backgroundColor: Colors.beige,
   },
 
   // ── Scroll ────────────────────────────────────────────────────────────────
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
   },
   subTitle: {
     fontSize: scale(13),
-    color: Colors.hex_6B7280,
+    color: Colors.kyc_textSub,
     fontFamily: Fonts.Medium,
     marginBottom: scale(20),
     lineHeight: scale(20),
@@ -426,7 +426,8 @@ const styles = StyleSheet.create({
     borderRadius: scale(20),
     padding: scale(20),
     borderWidth: 1.5,
-    borderColor: Colors.amberOpacity_30,  },
+    borderColor: "rgba(245,158,11,0.30)",
+  },
 
   // ── Flow card (unchanged) ─────────────────────────────────────────────────
   flowCardHeader: {
@@ -458,26 +459,27 @@ const styles = StyleSheet.create({
     borderRadius: scale(16),
     padding: scale(14),
     borderWidth: 1,
-    borderColor: Colors.amberOpacity_30,  },
+    borderColor: "rgba(245,158,11,0.30)",
+  },
   walletTagPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.whiteOpacity_08,
+    backgroundColor: "rgba(255,255,255,0.08)",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
     alignSelf: 'center',
     gap: 4,
   },
-  walletTagPillTxt: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.hex_E5E7EB, letterSpacing: 0.5 },
-  balLabel: { fontSize: 10, fontFamily: Fonts.Medium, color: Colors.text_placeholder },
+  walletTagPillTxt: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.kyc_border, letterSpacing: 0.5 },
+  balLabel: { fontSize: 10, fontFamily: Fonts.Medium, color: Colors.gray },
   rupeeSymbol: { fontSize: scale(15), fontFamily: Fonts.Bold, color: Colors.finance_accent, marginRight: 2, marginTop: 2 },
   walletAmount: { fontSize: scale(20), fontFamily: Fonts.Bold, color: Colors.white },
   swapSeparator: { width: scale(30), alignItems: 'center', justifyContent: 'center' },
-  swapSeparatorLine: { width: 1, height: 8, backgroundColor: Colors.amberOpacity_30 },
+  swapSeparatorLine: { width: 1, height: 8, backgroundColor: "rgba(245,158,11,0.30)" },
   swapSeparatorIconWrap: {
     width: 24, height: 24, borderRadius: 12,
-    backgroundColor: Colors.amberOpacity_15,
+    backgroundColor: "rgba(245,158,11,0.15)",
     justifyContent: 'center', alignItems: 'center', marginVertical: 4,
   },
   flowCardFooter: {
@@ -491,14 +493,14 @@ const styles = StyleSheet.create({
   },
   footerItem: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   footerDot: { width: 6, height: 6, borderRadius: 3 },
-  footerText: { fontSize: 10, fontFamily: Fonts.Bold, color: Colors.slate_400, letterSpacing: 0.5 },
+  footerText: { fontSize: 10, fontFamily: Fonts.Bold, color: Colors.gray, letterSpacing: 0.5 },
 
   // ── Transfer funds card (unchanged) ──────────────────────────────────────
   cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: scale(20) },
   cardTitle: { fontSize: scale(17), fontFamily: Fonts.Bold, color: Colors.white, marginBottom: 4 },
   cardSubtitle: { fontSize: 10, fontFamily: Fonts.Bold, color: Colors.finance_accent, letterSpacing: 1, textTransform: 'uppercase' },
   inputSection: { marginBottom: scale(16) },
-  inputLabel: { fontSize: 12, fontFamily: Fonts.Bold, color: Colors.text_placeholder, marginBottom: 8, letterSpacing: 0.5 },
+  inputLabel: { fontSize: 12, fontFamily: Fonts.Bold, color: Colors.gray, marginBottom: 8, letterSpacing: 0.5 },
   inputWrapper: {
     flexDirection: 'row', alignItems: 'center',
     height: scale(48), borderRadius: scale(12),
@@ -514,14 +516,15 @@ const styles = StyleSheet.create({
   currencySymbol: { fontSize: scale(18), fontFamily: Fonts.Bold, color: Colors.finance_accent },
   amountInput: { flex: 1, height: '100%', paddingHorizontal: scale(16), fontSize: scale(18), fontFamily: Fonts.Bold, color: Colors.white },
   executeBtnWrap: {
-    marginTop: 4, borderRadius: scale(14),  },
+    marginTop: 4, borderRadius: scale(14),
+  },
   executeButton: {
     height: scale(48), borderRadius: scale(14),
     flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)',
   },
   boltIcon: { marginRight: 6 },
-  executeButtonText: { color: Colors.hex_111827, fontSize: scale(12), fontFamily: Fonts.Bold, letterSpacing: 1.1 },
+  executeButtonText: { color: Colors.kyc_text, fontSize: scale(12), fontFamily: Fonts.Bold, letterSpacing: 1.1 },
 
   // ── History section (responsive rewrite) ──────────────────────────────────
   historySection: {
@@ -536,12 +539,12 @@ const styles = StyleSheet.create({
   historyTitle: {
     fontSize: scale(17),
     fontFamily: Fonts.Bold,
-    color: Colors.hex_111827,
+    color: Colors.kyc_text,
   },
   historyMeta: {
     fontSize: scale(11),
     fontFamily: Fonts.Medium,
-    color: Colors.text_placeholder,
+    color: Colors.gray,
     marginTop: 2,
   },
   refreshBtn: {
@@ -562,7 +565,7 @@ const styles = StyleSheet.create({
   stateText: {
     fontSize: scale(13),
     fontFamily: Fonts.Medium,
-    color: Colors.text_placeholder,
+    color: Colors.gray,
   },
   emptyBox: {
     paddingVertical: scale(36),
@@ -571,18 +574,19 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: scale(18),
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.06)',  },
+    borderColor: 'rgba(0,0,0,0.06)',
+  },
   emptyTitle: {
     marginTop: scale(14),
     fontSize: scale(15),
     fontFamily: Fonts.Bold,
-    color: Colors.hex_374151,
+    color: "rgb(55, 65, 81)",
   },
   emptyDesc: {
     marginTop: scale(6),
     fontSize: scale(12),
     fontFamily: Fonts.Medium,
-    color: Colors.text_placeholder,
+    color: Colors.gray,
     textAlign: 'center',
   },
 
@@ -593,8 +597,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     padding: scale(14),
     borderRadius: scale(16),
-    marginBottom: scale(10),    borderWidth: 1,
-    borderColor: Colors.amberOpacity_15,
+    marginBottom: scale(10),
+    borderWidth: 1,
+    borderColor: "rgba(245,158,11,0.15)",
     minHeight: scale(72),
   },
   historyIconCircle: {
@@ -613,19 +618,19 @@ const styles = StyleSheet.create({
   historyDesc: {
     fontSize: scale(13),
     fontFamily: Fonts.Bold,
-    color: Colors.hex_111827,
+    color: Colors.kyc_text,
     marginBottom: scale(2),
   },
   historyRef: {
     fontSize: scale(10),
     fontFamily: Fonts.Medium,
-    color: Colors.hex_6B7280,
+    color: Colors.kyc_textSub,
     marginBottom: scale(2),
   },
   historyDate: {
     fontSize: scale(10),
     fontFamily: Fonts.Medium,
-    color: Colors.text_placeholder,
+    color: Colors.gray,
   },
   historyRight: {
     alignItems: 'flex-end',
@@ -639,7 +644,7 @@ const styles = StyleSheet.create({
   historyClosingBal: {
     fontSize: scale(10),
     fontFamily: Fonts.Bold,
-    color: Colors.text_placeholder,
+    color: Colors.gray,
   },
 });
 

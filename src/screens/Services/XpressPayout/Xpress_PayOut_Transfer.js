@@ -111,7 +111,7 @@ export default function Xpress_PayOut_Transfer({ navigation, route }) {
                 { label: "Bank Name", value: selectedBank?.bankName || "N/A" },
                 { label: "Account No", value: selectedBank?.accountNumber || "N/A" },
                 { label: "Transaction ID", value: res.data?.transactionId || "N/A", small: true },
-                { label: "Status", value: res.message || "Under Process", isStatusPill: true, color: res.message?.toLowerCase().includes("process") ? Colors.amber : Colors.success },
+                { label: "Status", value: res.message || "Under Process", isStatusPill: true, color: res.message?.toLowerCase().includes("process") ? Colors.amber : Colors.green },
               ],
               txn_ref: res.data?.transactionId,
             });
@@ -126,7 +126,7 @@ export default function Xpress_PayOut_Transfer({ navigation, route }) {
               details: [
                 { label: "Bank Name", value: selectedBank?.bankName || "N/A" },
                 { label: "Account No", value: selectedBank?.accountNumber || "N/A" },
-                { label: "Error", value: res.message || "Transaction Failed", valueColor: Colors.error },
+                { label: "Error", value: res.message || "Transaction Failed", valueColor: Colors.red },
               ],
             });
             setReceiptVisible(true);
@@ -162,21 +162,21 @@ export default function Xpress_PayOut_Transfer({ navigation, route }) {
           <View style={styles.inputWrapper}>
             <Text style={styles.inputLabel}>Select Beneficiary Account</Text>
             <TouchableOpacity
-              style={[styles.selector, errors.bank && { borderColor: Colors.error }]}
+              style={[styles.selector, errors.bank && { borderColor: Colors.red }]}
               onPress={() => {
                 setIsModalVisible(true);
                 setErrors(prev => ({ ...prev, bank: null }));
               }}
             >
-              <Icon name="bank" size={rs(18)} color={errors.bank ? Colors.error : Colors.text_secondary} />
-              <Text style={[styles.selectorText, selectedBank && { color: Colors.text_primary }, errors.bank && { color: Colors.error }]}>
+              <Icon name="bank" size={rs(18)} color={errors.bank ? Colors.red : Colors.text_secondary} />
+              <Text style={[styles.selectorText, selectedBank && { color: Colors.black }, errors.bank && { color: Colors.red }]}>
                 {selectedBank ? `${selectedBank?.bankName} (${selectedBank?.accountNumber?.slice(-4) || '....'})` : "Choose destination bank"}
               </Text>
-              <Icon name="chevron-down" size={rs(20)} color={errors.bank ? Colors.error : Colors.text_secondary} />
+              <Icon name="chevron-down" size={rs(20)} color={errors.bank ? Colors.red : Colors.text_secondary} />
             </TouchableOpacity>
             {!!errors.bank && <Text style={styles.errorText}>{errors.bank}</Text>}
             {approved.length === 0 && (
-              <Text style={{ fontSize: rs(10), color: Colors.error, marginTop: rs(4), marginLeft: rs(4) }}>
+              <Text style={{ fontSize: rs(10), color: Colors.red, marginTop: rs(4), marginLeft: rs(4) }}>
                 No payout banks available.
               </Text>
             )}
@@ -184,10 +184,10 @@ export default function Xpress_PayOut_Transfer({ navigation, route }) {
 
           <View style={styles.inputWrapper}>
             <Text style={styles.inputLabel}>Payout Amount</Text>
-            <View style={[styles.amountInput, errors.amount && { borderColor: Colors.error }]}>
-              <Text style={[styles.currencySymbol, errors.amount && { color: Colors.error }]}>₹</Text>
+            <View style={[styles.amountInput, errors.amount && { borderColor: Colors.red }]}>
+              <Text style={[styles.currencySymbol, errors.amount && { color: Colors.red }]}>₹</Text>
               <TextInput
-                style={[styles.field, errors.amount && { color: Colors.error }]}
+                style={[styles.field, errors.amount && { color: Colors.red }]}
                 placeholder="0.00"
                 keyboardType="numeric"
                 value={amount}
@@ -197,7 +197,7 @@ export default function Xpress_PayOut_Transfer({ navigation, route }) {
                   setAmount(cleaned);
                   setErrors(prev => ({ ...prev, amount: null }));
                 }}
-                placeholderTextColor={Colors.gray_BD}
+                placeholderTextColor={Colors.gray}
               />
             </View>
             {!!errors.amount && <Text style={styles.errorText}>{errors.amount}</Text>}
@@ -205,35 +205,40 @@ export default function Xpress_PayOut_Transfer({ navigation, route }) {
 
           <View style={styles.inputWrapper}>
             <Text style={styles.inputLabel}>Remarks / Purpose</Text>
-            <View style={[styles.remarkBox, errors.purpose && { borderColor: Colors.error }]}>
+            <View style={[styles.remarkBox, errors.purpose && { borderColor: Colors.red }]}>
               <TextInput
-                style={[styles.remarkField, errors.purpose && { color: Colors.error }]}
+                style={[styles.remarkField, errors.purpose && { color: Colors.red }]}
                 placeholder="e.g. Xpress Payout"
                 value={purpose}
                 onChangeText={(val) => {
                   setPurpose(val);
                   setErrors(prev => ({ ...prev, purpose: null }));
                 }}
-                placeholderTextColor={Colors.gray_BD}
+                placeholderTextColor={Colors.gray}
               />
             </View>
             {!!errors.purpose && <Text style={styles.errorText}>{errors.purpose}</Text>}
           </View>
 
-          <TouchableOpacity
-            style={[styles.transferBtn, loading && { opacity: 0.8 }]}
-            onPress={handleTransfer}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color={Colors.white} />
-            ) : (
-              <>
-                <Text style={styles.transferBtnText}>Transfer Now</Text>
-                <Icon name="arrow-right" size={rs(18)} color={Colors.white} />
-              </>
-            )}
-          </TouchableOpacity>
+          {(() => {
+            const isReady = !!selectedBank && !!amount && Number(amount) > 0 && !!purpose.trim() && !loading;
+            return (
+              <TouchableOpacity
+                style={[styles.transferBtn, { backgroundColor: isReady ? Colors.primary : Colors.gold }]}
+                onPress={handleTransfer}
+                disabled={!isReady}
+              >
+                {loading ? (
+                  <ActivityIndicator color={Colors.white} />
+                ) : (
+                  <>
+                    <Text style={[styles.transferBtnText, { color: isReady ? Colors.white : Colors.slate_500 }]}>Transfer Now</Text>
+                    <Icon name="arrow-right" size={rs(18)} color={isReady ? Colors.white : Colors.slate_500} />
+                  </>
+                )}
+              </TouchableOpacity>
+            );
+          })()}
 
           <View style={styles.securityNote}>
             <Icon name="lock-outline" size={rs(14)} color={Colors.text_secondary} />
@@ -281,12 +286,12 @@ export default function Xpress_PayOut_Transfer({ navigation, route }) {
                       <Text style={styles.bankItemName}>{item?.bankName}</Text>
                       <Text style={styles.bankItemSub}>{item?.accountHolderName} • {item?.accountNumber}</Text>
                     </View>
-                    <Icon name="chevron-right" size={rs(18)} color={Colors.border} />
+                    <Icon name="chevron-right" size={rs(18)} color={Colors.input_border} />
                   </TouchableOpacity>
                 )}
                 ListEmptyComponent={
                   <View style={styles.emptyWrap}>
-                    <Icon name="bank-off-outline" size={rs(48)} color={Colors.border} />
+                    <Icon name="bank-off-outline" size={rs(48)} color={Colors.input_border} />
                     <Text style={styles.emptyTxt}>No payout banks found</Text>
                   </View>
                 }
@@ -310,27 +315,25 @@ export default function Xpress_PayOut_Transfer({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
+  safe: { flex: 1, backgroundColor: Colors.beige },
   scrollContent: { paddingHorizontal: rs(16), paddingTop: rs(16) },
   formCard: {
-    backgroundColor: Colors.homebg,
+    backgroundColor: Colors.beige,
     borderRadius: rs(28),
     padding: rs(28),
     borderWidth: 1,
-    borderColor: Colors.border,
-
+    borderColor: "rgba(245,158,11,0.30)",
   },
-  formTitle: { fontSize: rs(20), fontFamily: Fonts.Bold, color: Colors.text_primary },
+  formTitle: { fontSize: rs(20), fontFamily: Fonts.Bold, color: Colors.black },
   formSub: { fontSize: rs(13), fontFamily: Fonts.Medium, color: Colors.text_secondary, marginTop: rs(4), marginBottom: rs(28) },
   inputWrapper: { marginBottom: rs(20) },
-  inputLabel: { fontSize: rs(12), fontFamily: Fonts.Bold, color: Colors.text_primary, marginBottom: rs(10), marginLeft: rs(4) },
-  selector: { height: rs(58), backgroundColor: Colors.white, borderRadius: rs(18), borderWidth: 1, borderColor: Colors.border, flexDirection: 'row', alignItems: 'center', paddingHorizontal: rs(16), gap: rs(12) },
+  inputLabel: { fontSize: rs(12), fontFamily: Fonts.Bold, color: Colors.black, marginBottom: rs(10), marginLeft: rs(4) },
+  selector: { height: rs(58), backgroundColor: Colors.white, borderRadius: rs(18), borderWidth: 1, borderColor: Colors.input_border, flexDirection: 'row', alignItems: 'center', paddingHorizontal: rs(16), gap: rs(12) },
   selectorText: { flex: 1, fontSize: rs(14), fontFamily: Fonts.Medium, color: Colors.text_secondary },
-  amountInput: { height: rs(64), backgroundColor: Colors.white, borderRadius: rs(18), flexDirection: 'row', alignItems: 'center', paddingHorizontal: rs(20), borderWidth: 1, borderColor: Colors.amberOpacity_30 },
-  currencySymbol: { fontSize: rs(24), fontFamily: Fonts.Bold, color: Colors.text_primary, marginRight: rs(8) },
-  field: { flex: 1, fontSize: rs(24), fontFamily: Fonts.Bold, color: Colors.text_primary, padding: 0 },
+  amountInput: { height: rs(64), backgroundColor: Colors.white, borderRadius: rs(18), flexDirection: 'row', alignItems: 'center', paddingHorizontal: rs(20), borderWidth: 1, borderColor: "rgba(245,158,11,0.30)" },
+  currencySymbol: { fontSize: rs(24), fontFamily: Fonts.Bold, color: Colors.black, marginRight: rs(8) },
+  field: { flex: 1, fontSize: rs(24), fontFamily: Fonts.Bold, color: Colors.black, padding: 0 },
   transferBtn: {
-    backgroundColor: Colors.primary,
     height: rs(60),
     borderRadius: rs(20),
     flexDirection: 'row',
@@ -338,21 +341,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: rs(10),
     marginTop: rs(12),
-
   },
   transferBtnText: { fontSize: rs(16), fontFamily: Fonts.Bold, color: Colors.white },
   securityNote: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: rs(6), marginTop: rs(20) },
   securityText: { fontSize: rs(11), fontFamily: Fonts.Medium, color: Colors.text_secondary },
-  errorText: { color: Colors.error, fontSize: rs(10), fontFamily: Fonts.Medium, marginTop: rs(4), marginLeft: rs(4) },
-  remarkBox: { height: rs(54), backgroundColor: Colors.white, borderRadius: rs(15), borderWidth: 1, borderColor: Colors.border, paddingHorizontal: rs(15), justifyContent: 'center' },
-  remarkField: { fontSize: rs(14), fontFamily: Fonts.Medium, color: Colors.text_primary, padding: 0 },
+  errorText: { color: Colors.red, fontSize: rs(10), fontFamily: Fonts.Medium, marginTop: rs(4), marginLeft: rs(4) },
+  remarkBox: { height: rs(54), backgroundColor: Colors.white, borderRadius: rs(15), borderWidth: 1, borderColor: Colors.input_border, paddingHorizontal: rs(15), justifyContent: 'center' },
+  remarkField: { fontSize: rs(14), fontFamily: Fonts.Medium, color: Colors.black, padding: 0 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalContent: { backgroundColor: Colors.white, borderTopLeftRadius: rs(30), borderTopRightRadius: rs(30), height: '60%', padding: rs(20) },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: rs(20) },
-  modalTitle: { fontSize: rs(20), fontFamily: Fonts.Bold, color: Colors.text_primary },
-  bankItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: rs(16), borderBottomWidth: 1, borderBottomColor: Colors.border, gap: rs(15) },
-  bankIconWrap: { width: rs(40), height: rs(40), backgroundColor: Colors.primaryOpacity_10, borderRadius: rs(10), alignItems: 'center', justifyContent: 'center' },
-  bankItemName: { fontSize: rs(14), fontFamily: Fonts.Bold, color: Colors.text_primary },
+  modalTitle: { fontSize: rs(20), fontFamily: Fonts.Bold, color: Colors.black },
+  bankItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: rs(16), borderBottomWidth: 1, borderBottomColor: Colors.input_border, gap: rs(15) },
+  bankIconWrap: { width: rs(40), height: rs(40), backgroundColor: "rgba(26,26,46,0.10)", borderRadius: rs(10), alignItems: 'center', justifyContent: 'center' },
+  bankItemName: { fontSize: rs(14), fontFamily: Fonts.Bold, color: Colors.black },
   bankItemSub: { fontSize: rs(12), fontFamily: Fonts.Medium, color: Colors.text_secondary, marginTop: rs(2) },
   emptyWrap: { alignItems: 'center', justifyContent: 'center', marginTop: rs(50), gap: rs(10) },
   emptyTxt: { fontSize: rs(14), fontFamily: Fonts.Medium, color: Colors.text_secondary },

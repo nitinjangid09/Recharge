@@ -92,21 +92,21 @@ function BottomSheetModal({
                         <View style={bs.sheetTitleRow}>
                             <Text style={bs.sheetTitle}>{title}</Text>
                             <TouchableOpacity onPress={onClose} style={bs.closeBtn}>
-                                <Icon name="close" size={18} color={Colors.gray_66} />
+                                <Icon name="close" size={18} color={"rgb(102, 102, 102)"} />
                             </TouchableOpacity>
                         </View>
                         <View style={bs.sheetSearchRow}>
-                            <Icon name="magnify" size={20} color={Colors.gray_66} style={{ marginRight: 8 }} />
+                            <Icon name="magnify" size={20} color={"rgb(102, 102, 102)"} style={{ marginRight: 8 }} />
                             <TextInput
                                 style={bs.sheetSearchInput}
                                 placeholder={searchPlaceholder}
-                                placeholderTextColor={Colors.text_placeholder}
+                                placeholderTextColor={Colors.gray}
                                 value={searchText}
                                 onChangeText={onSearch}
                             />
                             {searchText.length > 0 && (
                                 <TouchableOpacity onPress={() => onSearch("")}>
-                                    <Icon name="close-circle" size={18} color={Colors.text_placeholder} />
+                                    <Icon name="close-circle" size={18} color={Colors.gray} />
                                 </TouchableOpacity>
                             )}
                         </View>
@@ -336,7 +336,7 @@ const AepsRegistration = () => {
                     value={value}
                     onChangeText={onChangeText}
                     placeholder={placeholder}
-                    placeholderTextColor={Colors.gray_BD}
+                    placeholderTextColor={Colors.gray}
                     keyboardType={keyboardType}
                     maxLength={maxLength}
                 />
@@ -397,10 +397,10 @@ const AepsRegistration = () => {
                                     onPress={() => setGenderModal(true)}
                                 >
                                     <Icon name="account-group-outline" size={18 * S} color={Colors.primary} style={styles.inputIcon} />
-                                    <Text style={[styles.input, !formData.gender && { color: Colors.gray_BD }]} numberOfLines={1} ellipsizeMode="tail">
+                                    <Text style={[styles.input, !formData.gender && { color: Colors.gray }]} numberOfLines={1} ellipsizeMode="tail">
                                         {selectedGender ? selectedGender.label : "Select Gender"}
                                     </Text>
-                                    <Icon name="chevron-down" size={16} color={Colors.gray_BD} />
+                                    <Icon name="chevron-down" size={16} color={Colors.gray} />
                                 </TouchableOpacity>
                                 {errors.gender && <Text style={styles.errorText}>{errors.gender}</Text>}
                             </View>
@@ -411,7 +411,7 @@ const AepsRegistration = () => {
                                     onPress={() => setShowCalendar(true)}
                                 >
                                     <Icon name="calendar-outline" size={18 * S} color={Colors.primary} style={styles.inputIcon} />
-                                    <Text style={[styles.input, !formData.dateOfBirth && { color: Colors.gray_BD }]} numberOfLines={1} ellipsizeMode="tail">
+                                    <Text style={[styles.input, !formData.dateOfBirth && { color: Colors.gray }]} numberOfLines={1} ellipsizeMode="tail">
                                         {formData.dateOfBirth || "YYYY-MM-DD"}
                                     </Text>
                                 </TouchableOpacity>
@@ -430,10 +430,10 @@ const AepsRegistration = () => {
                                 onPress={() => setBankModal(true)}
                             >
                                 <Icon name="bank-outline" size={20 * S} color={Colors.primary} style={styles.inputIcon} />
-                                <Text style={[styles.input, !formData.bankCode && { color: Colors.gray_BD }]} numberOfLines={1}>
+                                <Text style={[styles.input, !formData.bankCode && { color: Colors.gray }]} numberOfLines={1}>
                                     {selectedBank ? selectedBank.name : "Choose your bank"}
                                 </Text>
-                                <Icon name="chevron-down" size={20} color={Colors.gray_BD} />
+                                <Icon name="chevron-down" size={20} color={Colors.gray} />
                             </TouchableOpacity>
                             {errors.bank && <Text style={styles.errorText}>{errors.bank}</Text>}
                         </View>
@@ -471,16 +471,27 @@ const AepsRegistration = () => {
                     </View>
 
                     <TouchableOpacity
-                        style={styles.submitBtn}
+                        style={[
+                            styles.submitBtn, 
+                            (!formData.merchantName || !formData.mobile || !formData.email || !formData.aadhaar || !formData.pan || !formData.bankCode || !formData.address.full || !formData.address.city || !formData.address.pincode) && styles.submitBtnDisabled
+                        ]}
                         onPress={handleSubmit}
-                        disabled={loading}
+                        disabled={loading || (!formData.merchantName || !formData.mobile || !formData.email || !formData.aadhaar || !formData.pan || !formData.bankCode || !formData.address.full || !formData.address.city || !formData.address.pincode)}
                     >
                         {loading ? (
                             <ActivityIndicator color={Colors.white} />
                         ) : (
                             <>
-                                <Text style={styles.submitBtnTxt}>Register To AEPS</Text>
-                                <Icon name="arrow-right" size={20 * S} color={Colors.white} style={{ marginLeft: 8 * S }} />
+                                <Text style={[
+                                    styles.submitBtnTxt, 
+                                    (!formData.merchantName || !formData.mobile || !formData.email || !formData.aadhaar || !formData.pan || !formData.bankCode || !formData.address.full || !formData.address.city || !formData.address.pincode) && { color: Colors.slate_500 }
+                                ]}>Register To AEPS</Text>
+                                <Icon 
+                                    name="arrow-right" 
+                                    size={20 * S} 
+                                    color={(!formData.merchantName || !formData.mobile || !formData.email || !formData.aadhaar || !formData.pan || !formData.bankCode || !formData.address.full || !formData.address.city || !formData.address.pincode) ? Colors.slate_500 : Colors.white} 
+                                    style={{ marginLeft: 8 * S }} 
+                                />
                             </>
                         )}
                     </TouchableOpacity>
@@ -545,52 +556,53 @@ const AepsRegistration = () => {
 export default AepsRegistration;
 
 const bs = StyleSheet.create({
-    sheetBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: Colors.blackOpacity_45 },
+    sheetBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.45)" },
     bottomSheet: {
         position: "absolute", bottom: 0, left: 0, right: 0,
         backgroundColor: Colors.white,
         borderTopLeftRadius: 30, borderTopRightRadius: 30,
-        maxHeight: "85%",    },
+        maxHeight: "85%",
+    },
     sheetHeader: {
         paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: Colors.slate_100,
         paddingTop: 8, paddingBottom: 16,
     },
     handleBar: { width: 40, height: 4, borderRadius: 2, backgroundColor: Colors.slate_100, alignSelf: "center", marginTop: 8, marginBottom: 12 },
     sheetTitleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 },
-    sheetTitle: { fontSize: 18, fontFamily: Fonts.Bold, color: Colors.slate_900, letterSpacing: -0.2 },
-    closeBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: Colors.slate_50, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: Colors.slate_100 },
+    sheetTitle: { fontSize: 18, fontFamily: Fonts.Bold, color: Colors.primary, letterSpacing: -0.2 },
+    closeBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: Colors.bg_F8, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: Colors.slate_100 },
     sheetSearchRow: {
         flexDirection: "row", alignItems: "center",
-        backgroundColor: Colors.slate_50,
+        backgroundColor: Colors.bg_F8,
         borderRadius: 12, paddingHorizontal: 12,
         marginBottom: 4, height: 48,
         borderWidth: 1, borderColor: Colors.slate_100,
     },
-    sheetSearchInput: { flex: 1, fontSize: 14, fontFamily: Fonts.Medium, color: Colors.slate_900, padding: 0 },
+    sheetSearchInput: { flex: 1, fontSize: 14, fontFamily: Fonts.Medium, color: Colors.primary, padding: 0 },
     sheetListItem: {
         flexDirection: "row", alignItems: "center",
         paddingHorizontal: 20, paddingVertical: 15,
-        borderBottomWidth: 1, borderBottomColor: Colors.slate_50,
+        borderBottomWidth: 1, borderBottomColor: Colors.bg_F8,
     },
-    sheetListItemSel: { backgroundColor: Colors.slate_50 },
+    sheetListItemSel: { backgroundColor: Colors.bg_F8 },
     sheetListIconBox: {
         width: 40, height: 40, borderRadius: 12,
-        backgroundColor: Colors.slate_50,
+        backgroundColor: Colors.bg_F8,
         alignItems: "center", justifyContent: "center", marginRight: 16,
         borderWidth: 1, borderColor: Colors.slate_100,
     },
-    sheetListIconBoxSel: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+    sheetListIconBoxSel: { backgroundColor: Colors.finance_accent, borderColor: Colors.finance_accent },
     sheetListTxt: { flex: 1, fontSize: 15, fontFamily: Fonts.Medium, color: Colors.slate_700 },
-    sheetListTxtSel: { color: Colors.primary, fontFamily: Fonts.Bold },
+    sheetListTxtSel: { color: Colors.finance_accent, fontFamily: Fonts.Bold },
     checkCircle: { width: 22, height: 22, borderRadius: 11, backgroundColor: Colors.finance_accent, alignItems: "center", justifyContent: "center" },
     emptyWrap: { alignItems: "center", paddingVertical: 40 },
-    emptyTxt: { color: Colors.slate_400, fontSize: 14, fontFamily: Fonts.Medium, textAlign: "center" },
+    emptyTxt: { color: Colors.gray, fontSize: 14, fontFamily: Fonts.Medium, textAlign: "center" },
 });
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.bg,
+        backgroundColor: Colors.beige,
     },
     scrollContent: {
         padding: 20 * S,
@@ -603,7 +615,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         alignSelf: "flex-start",
-        backgroundColor: Colors.homebg,
+        backgroundColor: Colors.beige,
         borderRadius: 999,
         paddingVertical: 6,
         paddingHorizontal: 14,
@@ -613,7 +625,7 @@ const styles = StyleSheet.create({
     },
     heroBadgeDot: {
         width: 6, height: 6, borderRadius: 3,
-        backgroundColor: Colors.success,
+        backgroundColor: Colors.green,
         marginRight: 8,
     },
     heroBadgeTxt: {
@@ -626,7 +638,7 @@ const styles = StyleSheet.create({
     heroTitle: {
         fontSize: 26 * S,
         fontFamily: Fonts.Bold,
-        color: Colors.slate_900,
+        color: Colors.primary,
         letterSpacing: -0.5,
         lineHeight: 30 * S,
         marginBottom: 6,
@@ -638,10 +650,13 @@ const styles = StyleSheet.create({
         lineHeight: 18,
     },
     card: {
-        backgroundColor: Colors.homebg,
+        backgroundColor: Colors.beige,
         borderRadius: 20 * S,
         padding: 18 * S,
-        marginBottom: 20 * S,    },
+        marginBottom: 20 * S,
+        borderWidth: 1,
+        borderColor: "rgba(245,158,11,0.30)",
+    },
     sectionTitle: {
         fontFamily: Fonts.Bold,
         fontSize: 16 * S,
@@ -656,7 +671,7 @@ const styles = StyleSheet.create({
     label: {
         fontFamily: Fonts.Bold,
         fontSize: 11 * S,
-        color: Colors.gray_75,
+        color: "rgb(117, 117, 117)",
         marginBottom: 6 * S,
         marginLeft: 4 * S,
     },
@@ -699,7 +714,11 @@ const styles = StyleSheet.create({
         height: 58 * S,
         flexDirection: "row",
         justifyContent: "center",
-        alignItems: "center",    },
+        alignItems: "center",
+    },
+    submitBtnDisabled: {
+        backgroundColor: Colors.gold,
+    },
     submitBtnTxt: {
         fontFamily: Fonts.Bold,
         fontSize: 17 * S,

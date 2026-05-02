@@ -106,7 +106,7 @@ const fpStyles = StyleSheet.create({
     width: rs(64),
     height: rs(64),
     borderRadius: rs(32),
-    backgroundColor: Colors.input_bg,
+    backgroundColor: Colors.white,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
@@ -261,7 +261,7 @@ export default function AEPSPortalAccessScreen({ navigation }) {
                 keyboardType="numeric"
                 maxLength={12}
                 placeholder="0000 0000 0000"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={Colors.gray}
               />
             </View>
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -305,7 +305,7 @@ export default function AEPSPortalAccessScreen({ navigation }) {
               <Text
                 numberOfLines={1}
                 adjustsFontSizeToFit
-                style={[styles.dailyBtnText, aadhaar.replace(/\D/g, '').length !== 12 && { color: Colors.black }]}
+                style={[styles.dailyBtnText, aadhaar.replace(/\D/g, '').length !== 12 && { color: Colors.slate_500 }]}
               >
                 {scanning ? 'SCANNING...' : 'AUTHENTICATE'}
               </Text>
@@ -327,19 +327,17 @@ export default function AEPSPortalAccessScreen({ navigation }) {
 
 // ─── Styles ───────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
+  safe: { flex: 1, backgroundColor: Colors.beige },
 
 
   card: {
-    backgroundColor: Colors.homebg,
+    backgroundColor: Colors.beige,
     borderRadius: rs(28),
     marginHorizontal: rs(20),
     marginTop: rs(12),
     padding: rs(28),
-    borderWidth: 0.5,
-    borderColor: Colors.border,
-    alignItems: 'center',
-
+    borderWidth: 1,
+    borderColor: "rgba(245,158,11,0.30)",
   },
 
   cardTitle: {
@@ -358,7 +356,7 @@ const styles = StyleSheet.create({
     marginBottom: rs(20),
     textAlign: 'center',
   },
-  divider: { width: '100%', height: 0.5, backgroundColor: Colors.divider, marginBottom: rs(20) },
+  divider: { width: '100%', height: 0.5, backgroundColor: Colors.input_border, marginBottom: rs(20) },
 
   fieldLabel: {
     fontSize: rs(10),
@@ -371,14 +369,14 @@ const styles = StyleSheet.create({
   },
 
   aadhaarBox: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.beige,
     borderRadius: rs(20),
     paddingVertical: rs(22),
     paddingHorizontal: rs(10),
     width: '100%',
     marginBottom: rs(24),
     borderWidth: 1.5,
-    borderColor: 'rgba(212,176,106,0.32)',
+    borderColor: Colors.finance_accent + "40",
     position: 'relative',
     flexDirection: 'row',
     alignItems: 'center',
@@ -412,7 +410,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: rs(10),
     marginBottom: rs(4),
   },
-  btnDisabled: { backgroundColor: Colors.gray_F0 },
+  btnDisabled: { backgroundColor: Colors.gold },
   dailyBtnText: {
     fontSize: rs(13),
     fontWeight: '800',
@@ -432,7 +430,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: rs(10),
-    color: '#ef4444',
+    color: Colors.red,
     marginTop: -rs(15),
     marginBottom: rs(15),
     fontWeight: '600',
@@ -445,7 +443,7 @@ const styles = StyleSheet.create({
     borderRadius: rs(12),
     backgroundColor: Colors.white,
     borderWidth: 1,
-    borderColor: 'rgba(212,176,106,0.2)',
+    borderColor: Colors.finance_accent + "33",
     alignItems: 'center'
   },
   deviceChipActive: {

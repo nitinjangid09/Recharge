@@ -15,7 +15,7 @@ export default function ReportsDashboard({ navigation, route }) {
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
-            <StatusBar barStyle="light-content" backgroundColor={Colors.headerBg || '#161616'} />
+            <StatusBar barStyle="light-content" backgroundColor={Colors.primary || 'rgb(22, 22, 22)'} />
             
             <View style={styles.tabContainer}>
                 <TouchableOpacity 
@@ -52,15 +52,15 @@ export default function ReportsDashboard({ navigation, route }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.headerBg || '#161616',
+        backgroundColor: Colors.primary || 'rgb(22, 22, 22)',
     },
     tabContainer: {
         flexDirection: 'row',
-        backgroundColor: Colors.headerBg || '#161616',
+        backgroundColor: Colors.primary || 'rgb(22, 22, 22)',
         paddingHorizontal: rs(16),
         paddingTop: rs(10),
         elevation: 2,
-        shadowColor: '#000',
+        shadowColor: 'rgb(0, 0, 0)',
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1,
         shadowRadius: 2,
@@ -74,21 +74,21 @@ const styles = StyleSheet.create({
         borderBottomColor: 'transparent',
     },
     activeTabButton: {
-        borderBottomColor: Colors.finance_accent || '#d4b06a',
+        borderBottomColor: Colors.finance_accent || 'rgb(212, 176, 106)',
     },
     tabText: {
-        color: Colors.whiteOpacity_60 || 'rgba(255,255,255,0.6)',
+        color: "rgba(255,255,255,0.60)" || 'rgba(255,255,255,0.6)',
         fontFamily: Fonts.Medium,
         fontSize: rs(17),
         letterSpacing: 0.5,
     },
     activeTabText: {
-        color: Colors.finance_accent || '#d4b06a',
+        color: Colors.finance_accent || 'rgb(212, 176, 106)',
         fontFamily: Fonts.Bold,
         fontSize: rs(18),
     },
     contentContainer: {
         flex: 1,
-        backgroundColor: Colors.bg || '#F3F4F6',
+        backgroundColor: Colors.beige || 'rgb(243, 244, 246)',
     }
 });

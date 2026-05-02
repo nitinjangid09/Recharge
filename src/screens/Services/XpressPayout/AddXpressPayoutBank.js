@@ -172,12 +172,12 @@ export default function AddXpressPayoutBank({ navigation }) {
             activeOpacity={0.7}
           >
             <Text style={styles.inputLabel}>Bank Name</Text>
-            <View style={[styles.inputBox, errors.bankId && { borderColor: Colors.error }]}>
-              <Icon name="bank" size={rs(18)} color={errors.bankId ? Colors.error : Colors.text_secondary} />
+            <View style={[styles.inputBox, errors.bankId && { borderColor: Colors.red }]}>
+              <Icon name="bank" size={rs(18)} color={errors.bankId ? Colors.red : Colors.text_secondary} />
               <Text
                 style={[
                   styles.field,
-                  { color: form.bankName ? Colors.text_primary : Colors.gray_BD }
+                  { color: form.bankName ? Colors.black : Colors.gray }
                 ]}
                 numberOfLines={1}
               >
@@ -232,16 +232,25 @@ export default function AddXpressPayoutBank({ navigation }) {
           />
 
 
-          <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={loading}>
-            {loading ? (
-              <ActivityIndicator color={Colors.white} />
-            ) : (
-              <>
-                <Text style={styles.submitBtnText}>Submit Xpress Bank</Text>
-                <Icon name="check-circle" size={rs(18)} color={Colors.white} />
-              </>
-            )}
-          </TouchableOpacity>
+          {(() => {
+            const isReady = !!form.bankId && !!form.accountHolderName && !!form.accountNumber && !!form.ifscCode && !loading;
+            return (
+              <TouchableOpacity
+                style={[styles.submitBtn, { backgroundColor: isReady ? Colors.primary : Colors.gold }]}
+                onPress={handleSubmit}
+                disabled={!isReady}
+              >
+                {loading ? (
+                  <ActivityIndicator color={Colors.white} />
+                ) : (
+                  <>
+                    <Text style={[styles.submitBtnText, { color: isReady ? Colors.white : Colors.slate_500 }]}>Submit Xpress Bank</Text>
+                    <Icon name="check-circle" size={rs(18)} color={isReady ? Colors.white : Colors.slate_500} />
+                  </>
+                )}
+              </TouchableOpacity>
+            );
+          })()}
         </View>
         <View style={{ height: rs(40) }} />
       </ScrollView>
@@ -266,7 +275,7 @@ export default function AddXpressPayoutBank({ navigation }) {
               <TextInput
                 style={styles.searchInput}
                 placeholder="Search bank name..."
-                placeholderTextColor={Colors.gray_BD}
+                placeholderTextColor={Colors.gray}
                 value={searchQuery}
                 onChangeText={handleSearch}
               />
@@ -286,12 +295,12 @@ export default function AddXpressPayoutBank({ navigation }) {
                       <Icon name="bank-outline" size={rs(18)} color={Colors.primary} />
                     </View>
                     <Text style={styles.bankItemName}>{item.bankName}</Text>
-                    <Icon name="chevron-right" size={rs(18)} color={Colors.border} />
+                    <Icon name="chevron-right" size={rs(18)} color={Colors.input_border} />
                   </TouchableOpacity>
                 )}
                 ListEmptyComponent={
                   <View style={styles.emptyWrap}>
-                    <Icon name="bank-off-outline" size={rs(48)} color={Colors.border} />
+                    <Icon name="bank-off-outline" size={rs(48)} color={Colors.input_border} />
                     <Text style={styles.emptyTxt}>No banks found</Text>
                   </View>
                 }
@@ -311,14 +320,14 @@ function FormInput({ label, icon, placeholder, value, onChangeText, error, ...pr
   return (
     <View style={styles.inputWrapper}>
       <Text style={styles.inputLabel}>{label}</Text>
-      <View style={[styles.inputBox, error && { borderColor: Colors.error }]}>
-        <Icon name={icon} size={rs(18)} color={error ? Colors.error : Colors.text_secondary} />
+      <View style={[styles.inputBox, error && { borderColor: Colors.red }]}>
+        <Icon name={icon} size={rs(18)} color={error ? Colors.red : Colors.text_secondary} />
         <TextInput
           style={styles.field}
           placeholder={placeholder}
           value={value}
           onChangeText={onChangeText}
-          placeholderTextColor={Colors.gray_BD}
+          placeholderTextColor={Colors.gray}
           {...props}
         />
       </View>
@@ -328,35 +337,35 @@ function FormInput({ label, icon, placeholder, value, onChangeText, error, ...pr
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
+  safe: { flex: 1, backgroundColor: Colors.beige },
   scrollContent: { paddingHorizontal: rs(16), paddingTop: rs(16) },
-  formCard: { backgroundColor: Colors.homebg, borderRadius: rs(28), padding: rs(28), borderWidth: 1, borderColor: Colors.border },
-  formTitle: { fontSize: rs(20), fontFamily: Fonts.Bold, color: Colors.text_primary },
+  formCard: { backgroundColor: Colors.beige, borderRadius: rs(28), padding: rs(28), borderWidth: 1, borderColor: "rgba(245,158,11,0.30)" },
+  formTitle: { fontSize: rs(20), fontFamily: Fonts.Bold, color: Colors.black },
   formSub: { fontSize: rs(13), fontFamily: Fonts.Medium, color: Colors.text_secondary, marginTop: rs(4), marginBottom: rs(28) },
   inputWrapper: { marginBottom: rs(20) },
-  inputLabel: { fontSize: rs(12), fontFamily: Fonts.Bold, color: Colors.text_primary, marginBottom: rs(6), marginLeft: rs(4) },
-  imageHint: { fontSize: rs(10), fontFamily: Fonts.Medium, color: Colors.gray_BD, marginTop: rs(-4), marginBottom: rs(10), marginLeft: rs(4) },
-  errorText: { color: Colors.error, fontSize: rs(10), fontFamily: Fonts.Medium, marginTop: rs(4), marginLeft: rs(4) },
-  inputBox: { height: rs(58), backgroundColor: Colors.white, borderRadius: rs(18), borderWidth: 1, borderColor: Colors.border, flexDirection: 'row', alignItems: 'center', paddingHorizontal: rs(16), gap: rs(12) },
-  field: { flex: 1, fontSize: rs(14), fontFamily: Fonts.Medium, color: Colors.text_primary, padding: 0 },
-  uploadArea: { height: rs(80), backgroundColor: Colors.white, borderRadius: rs(18), borderWidth: 1.5, borderColor: Colors.border, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', gap: rs(5) },
+  inputLabel: { fontSize: rs(12), fontFamily: Fonts.Bold, color: Colors.black, marginBottom: rs(6), marginLeft: rs(4) },
+  imageHint: { fontSize: rs(10), fontFamily: Fonts.Medium, color: Colors.gray, marginTop: rs(-4), marginBottom: rs(10), marginLeft: rs(4) },
+  errorText: { color: Colors.red, fontSize: rs(10), fontFamily: Fonts.Medium, marginTop: rs(4), marginLeft: rs(4) },
+  inputBox: { height: rs(58), backgroundColor: Colors.white, borderRadius: rs(18), borderWidth: 1, borderColor: Colors.input_border, flexDirection: 'row', alignItems: 'center', paddingHorizontal: rs(16), gap: rs(12) },
+  field: { flex: 1, fontSize: rs(14), fontFamily: Fonts.Medium, color: Colors.black, padding: 0 },
+  uploadArea: { height: rs(80), backgroundColor: Colors.white, borderRadius: rs(18), borderWidth: 1.5, borderColor: Colors.input_border, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', gap: rs(5) },
   uploadTxt: { fontSize: rs(12), fontFamily: Fonts.Medium, color: Colors.text_secondary },
-  imagePreviewContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: rs(18), padding: rs(12), borderWidth: 1, borderColor: Colors.border, gap: rs(15) },
-  previewImg: { width: rs(60), height: rs(60), borderRadius: rs(12), backgroundColor: '#F8F9FA' },
+  imagePreviewContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: rs(18), padding: rs(12), borderWidth: 1, borderColor: Colors.input_border, gap: rs(15) },
+  previewImg: { width: rs(60), height: rs(60), borderRadius: rs(12), backgroundColor: 'rgb(248, 249, 250)' },
   imageActions: { flex: 1, gap: rs(8) },
-  imageActionBtn: { flexDirection: 'row', alignItems: 'center', gap: rs(6), paddingVertical: rs(4), paddingHorizontal: rs(8), borderRadius: rs(8), borderWidth: 1, borderColor: Colors.border, alignSelf: 'flex-start' },
+  imageActionBtn: { flexDirection: 'row', alignItems: 'center', gap: rs(6), paddingVertical: rs(4), paddingHorizontal: rs(8), borderRadius: rs(8), borderWidth: 1, borderColor: Colors.input_border, alignSelf: 'flex-start' },
   imageActionTxt: { fontSize: rs(11), fontFamily: Fonts.Bold, color: Colors.primary },
-  submitBtn: { backgroundColor: Colors.primary, height: rs(60), borderRadius: rs(20), flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: rs(10), marginTop: rs(12) },
+  submitBtn: { height: rs(60), borderRadius: rs(20), flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: rs(10), marginTop: rs(12) },
   submitBtnText: { fontSize: rs(16), fontFamily: Fonts.Bold, color: Colors.white },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'flex-end' },
   modalContent: { backgroundColor: Colors.white, borderTopLeftRadius: rs(30), borderTopRightRadius: rs(30), height: '80%', padding: rs(20) },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: rs(20), paddingHorizontal: rs(5) },
-  modalTitle: { fontSize: rs(20), fontFamily: Fonts.Bold, color: Colors.text_primary },
-  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: rs(15), paddingHorizontal: rs(15), height: rs(50), borderWidth: 1, borderColor: Colors.border, marginBottom: rs(20), gap: rs(10) },
-  searchInput: { flex: 1, fontSize: rs(14), fontFamily: Fonts.Medium, color: Colors.text_primary, padding: 0 },
-  bankItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: rs(16), borderBottomWidth: 1, borderBottomColor: Colors.border, gap: rs(15) },
-  bankIconWrap: { width: rs(40), height: rs(40), backgroundColor: Colors.primaryOpacity_10, borderRadius: rs(10), alignItems: 'center', justifyContent: 'center' },
-  bankItemName: { flex: 1, fontSize: rs(14), fontFamily: Fonts.Medium, color: Colors.text_primary },
+  modalTitle: { fontSize: rs(20), fontFamily: Fonts.Bold, color: Colors.black },
+  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: rs(15), paddingHorizontal: rs(15), height: rs(50), borderWidth: 1, borderColor: Colors.input_border, marginBottom: rs(20), gap: rs(10) },
+  searchInput: { flex: 1, fontSize: rs(14), fontFamily: Fonts.Medium, color: Colors.black, padding: 0 },
+  bankItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: rs(16), borderBottomWidth: 1, borderBottomColor: Colors.input_border, gap: rs(15) },
+  bankIconWrap: { width: rs(40), height: rs(40), backgroundColor: "rgba(26,26,46,0.10)", borderRadius: rs(10), alignItems: 'center', justifyContent: 'center' },
+  bankItemName: { flex: 1, fontSize: rs(14), fontFamily: Fonts.Medium, color: Colors.black },
   emptyWrap: { alignItems: 'center', justifyContent: 'center', marginTop: rs(50), gap: rs(10) },
   emptyTxt: { fontSize: rs(14), fontFamily: Fonts.Medium, color: Colors.text_secondary },
 });

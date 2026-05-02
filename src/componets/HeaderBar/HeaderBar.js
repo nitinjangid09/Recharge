@@ -53,7 +53,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",  },
+    justifyContent: "space-between",
+  },
 
   iconBtn: {
     width: 33,
@@ -62,13 +63,13 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white, // Light Beige
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: .5,  },
+    borderWidth: .5,
+  },
 
   title: {
-    color: Colors.finance_text, // Dark Text
-    fontSize: 16,
-    fontWeight: "500",
     color: Colors.white,
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
 

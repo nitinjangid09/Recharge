@@ -36,11 +36,11 @@ const rs = (n, lo = n * 0.82, hi = n * 1.28) =>
 const SCREENS = { BIOMETRIC: 1, CAPTURING: 2 };
 
 // ─── Refined Premium Palette ──────────────────────────────────────────
-const PRIMARY = Colors.primary;    // #1A1A2E (Ink)
-const ACCENT = "#D4A843";         // Gold
-const BG_START = "#FAF3E1";       // Beige
-const BG_END = "#F5E7C6";         // Gold Soft
-const WHITE = "#FFFFFF";
+const PRIMARY = Colors.primary;
+const ACCENT = Colors.finance_accent;
+const BG_START = Colors.beige;
+const BG_END = Colors.gold;
+const WHITE = Colors.white;
 
 const AEPS2BiometricKYCScreen = ({ navigation, route }) => {
     const passedAadhaar = route?.params?.aadhaar || "";
@@ -213,11 +213,11 @@ const AEPS2BiometricKYCScreen = ({ navigation, route }) => {
                             value={aadhaar}
                             onChangeText={(t) => setAadhaar(t.replace(/\D/g, '').slice(0, 12))}
                             placeholder="0000 0000 0000"
-                            placeholderTextColor="#94A3B8"
+                            placeholderTextColor={Colors.gray}
                             keyboardType="numeric"
                             maxLength={12}
                         />
-                        {aadhaar.length === 12 && <Icon name="check-circle" size={rs(18)} color={Colors.success} />}
+                        {aadhaar.length === 12 && <Icon name="check-circle" size={rs(18)} color={Colors.green} />}
                     </View>
 
                     <Text style={[styles.label, { marginTop: rs(24) }]}>RD SERVICE DEVICE</Text>
@@ -234,8 +234,8 @@ const AEPS2BiometricKYCScreen = ({ navigation, route }) => {
                     </View>
 
                     <View style={[styles.statusStrip, rdState.connected ? styles.stripSuccess : styles.stripInfo]}>
-                        <Icon name={rdState.connected ? "check-decagram" : "radar"} size={rs(16)} color={rdState.connected ? Colors.success : ACCENT} />
-                        <Text style={[styles.statusText, { color: rdState.connected ? Colors.success : "#64748B" }]}>
+                        <Icon name={rdState.connected ? "check-decagram" : "radar"} size={rs(16)} color={rdState.connected ? Colors.green : ACCENT} />
+                        <Text style={[styles.statusText, { color: rdState.connected ? Colors.green : Colors.slate_500 }]}>
                             {rdState.connected ? `${rdState.deviceInfo} Active` : rdState.scanning ? "Detecting device..." : rdState.error || "Connect your scanner"}
                         </Text>
                     </View>
@@ -247,15 +247,15 @@ const AEPS2BiometricKYCScreen = ({ navigation, route }) => {
                     >
                         {loading ? <ActivityIndicator color={WHITE} /> : (
                             <>
-                                <Text style={styles.btnActionText}>VERIFY & CONTINUE</Text>
-                                <Icon name="chevron-right" size={rs(20)} color={WHITE} style={{ marginLeft: 8 }} />
+                                <Text style={[styles.btnActionText, (aadhaar.length < 12 || !rdState.connected) && { color: Colors.slate_500 }]}>VERIFY & CONTINUE</Text>
+                                <Icon name="chevron-right" size={rs(20)} color={(aadhaar.length < 12 || !rdState.connected) ? Colors.slate_500 : WHITE} style={{ marginLeft: 8 }} />
                             </>
                         )}
                     </TouchableOpacity>
                 </View>
 
                 <View style={styles.securityBox}>
-                    <Icon name="shield-lock-outline" size={rs(14)} color="#94A3B8" />
+                    <Icon name="shield-lock-outline" size={rs(14)} color={Colors.gray} />
                     <Text style={styles.securityText}>AES-256 Encrypted NPCI Protocol</Text>
                 </View>
             </ScrollView>
@@ -298,15 +298,17 @@ const styles = StyleSheet.create({
     },
     subtitle: {
         fontSize: rs(14),
-        color: '#64748B',
+        color: Colors.slate_500,
         textAlign: 'center',
         lineHeight: rs(20)
     },
 
     glassCard: {
-        backgroundColor: Colors.homebg,
+        backgroundColor: Colors.beige,
         borderRadius: rs(30),
         padding: rs(24),
+        borderWidth: 1,
+        borderColor: "rgba(245,158,11,0.30)",
     },
     label: {
         fontSize: rs(10),
@@ -324,7 +326,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: rs(16),
         height: rs(60),
         borderWidth: 1.5,
-        borderColor: 'rgba(212,168,67,0.2)'
+        borderColor: Colors.finance_accent + "33"
     },
     input: {
         flex: 1,
@@ -353,7 +355,7 @@ const styles = StyleSheet.create({
     chipText: {
         fontSize: rs(11),
         fontWeight: '800',
-        color: '#64748B'
+        color: Colors.slate_500
     },
     chipTextActive: { color: WHITE },
 
@@ -379,7 +381,7 @@ const styles = StyleSheet.create({
         marginTop: rs(32),
     },
     btnActionDisabled: {
-        backgroundColor: '#CBD5E1',
+        backgroundColor: Colors.gold,
     },
     btnActionText: {
         fontSize: rs(15),
@@ -397,7 +399,7 @@ const styles = StyleSheet.create({
     },
     securityText: {
         fontSize: rs(11),
-        color: '#94A3B8',
+        color: Colors.slate_400,
         fontWeight: '600'
     },
 
@@ -419,7 +421,7 @@ const styles = StyleSheet.create({
     },
     capSub: {
         fontSize: rs(16),
-        color: '#64748B',
+        color: Colors.slate_500,
         marginTop: rs(12),
         textAlign: 'center',
         fontWeight: '500'

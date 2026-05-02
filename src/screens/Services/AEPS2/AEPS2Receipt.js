@@ -196,8 +196,8 @@ export default function AEPS2Receipt({
             style={styles.picker}
             dropdownIconColor={Colors.primary}
           >
-            <Picker.Item label="Download PDF" value="pdf" color={Colors.gray_21} />
-            <Picker.Item label="Download Image" value="image" color={Colors.gray_21} />
+            <Picker.Item label="Download PDF" value="pdf" color={Colors.heroEnd} />
+            <Picker.Item label="Download Image" value="image" color={Colors.heroEnd} />
           </Picker>
         </View>
 
@@ -209,7 +209,7 @@ export default function AEPS2Receipt({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.bg,
+    backgroundColor: Colors.beige,
   },
 
   header: {
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Medium,
     fontSize: 18,
     fontWeight: "600",
-    color: Colors.gray_21,
+    color: Colors.heroEnd,
   },
 
   successBanner: {
@@ -233,12 +233,12 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Bold,
     fontSize: 22,
     fontWeight: "700",
-    color: "#2ECC71",
+    color: "rgb(46, 204, 113)",
   },
 
   successSub: {
     fontFamily: Fonts.Regular,
-    color: Colors.gray_75,
+    color: "rgb(117, 117, 117)",
     marginTop: 4,
     fontSize: 13,
   },
@@ -259,13 +259,13 @@ const styles = StyleSheet.create({
 
   amountLabel: {
     fontFamily: Fonts.Medium,
-    color: Colors.gray_BD,
+    color: Colors.gray,
     fontSize: 12,
     letterSpacing: 1,
   },
 
   successBadge: {
-    backgroundColor: "#2ECC71",
+    backgroundColor: "rgb(46, 204, 113)",
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 20,
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
 
   txn: {
     fontFamily: Fonts.Regular,
-    color: Colors.gray_BD,
+    color: Colors.gray,
     marginTop: 8,
     fontSize: 12,
   },
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Medium,
     fontSize: 16,
     fontWeight: "600",
-    color: Colors.gray_21,
+    color: Colors.heroEnd,
   },
 
   txnId: {
@@ -325,19 +325,19 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 12,
     borderBottomWidth: 0.5,
-    borderColor: Colors.gray_E0,
+    borderColor: Colors.kyc_border,
   },
 
   rowLabel: {
     fontFamily: Fonts.Regular,
-    color: Colors.gray_66,
+    color: "rgb(102, 102, 102)",
     fontSize: 14,
   },
 
   rowValue: {
     fontFamily: Fonts.Medium,
     fontWeight: "500",
-    color: Colors.gray_21,
+    color: Colors.heroEnd,
   },
 
   buttonRow: {
@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Regular,
     textAlign: "center",
     marginTop: 20,
-    color: Colors.gray_75,
+    color: "rgb(117, 117, 117)",
   },
 
   pickerContainer: {
@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: Colors.gray_E0,
+    borderColor: Colors.kyc_border,
     overflow: 'hidden',
   },
 
@@ -416,31 +416,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.gray_F0,
+    borderBottomColor: "rgb(240, 240, 240)",
     marginBottom: 5,
   },
   shTxt: {
     fontFamily: Fonts.Bold,
     fontSize: 12,
-    color: Colors.gray_9E,
+    color: Colors.gray,
     textTransform: 'uppercase',
   },
   statementRow: {
     flexDirection: 'row',
     paddingVertical: 12,
     borderBottomWidth: 0.5,
-    borderBottomColor: Colors.gray_F5,
+    borderBottomColor: Colors.bg_F8,
     alignItems: 'center',
   },
   stDate: {
     fontFamily: Fonts.Bold,
     fontSize: 12,
-    color: Colors.gray_66,
+    color: "rgb(102, 102, 102)",
   },
   stNarration: {
     fontFamily: Fonts.Regular,
     fontSize: 10,
-    color: Colors.gray_9E,
+    color: Colors.gray,
     marginTop: 2,
   },
   stType: {
@@ -452,10 +452,10 @@ const styles = StyleSheet.create({
   stAmount: {
     fontFamily: Fonts.Bold,
     fontSize: 13,
-    color: Colors.gray_21,
+    color: Colors.heroEnd,
     flex: 1,
     textAlign: 'right',
   },
-  cr: { color: '#2ECC71' },
-  dr: { color: '#E74C3C' },
+  cr: { color: 'rgb(46, 204, 113)' },
+  dr: { color: 'rgb(231, 76, 60)' },
 });

@@ -41,7 +41,7 @@ export default function XpressPayoutReceipt({ route, navigation }) {
     }
   };
 
-  const statusColor = txn.status === 'SUCCESS' ? '#2ECC71' : txn.status === 'PENDING' ? '#F1C40F' : '#E74C3C';
+  const statusColor = txn.status === 'SUCCESS' ? 'rgb(46, 204, 113)' : txn.status === 'PENDING' ? 'rgb(241, 196, 15)' : 'rgb(231, 76, 60)';
 
   return (
     <SafeAreaView style={styles.container}>
@@ -101,7 +101,7 @@ export default function XpressPayoutReceipt({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.bg,
+    backgroundColor: Colors.beige,
   },
   statusSection: {
     alignItems: 'center',
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
   detailsTitle: {
     fontSize: 16,
     fontFamily: Fonts.Bold,
-    color: Colors.text_primary,
+    color: Colors.black,
     marginBottom: 16,
     borderLeftWidth: 4,
     borderLeftColor: Colors.primary,
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: 'rgb(241, 245, 249)',
   },
   rowLabelContainer: {
     flexDirection: 'row',
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
   rowValue: {
     fontSize: 14,
     fontFamily: Fonts.Bold,
-    color: Colors.text_primary,
+    color: Colors.black,
   },
   buttonRow: {
     flexDirection: 'row',
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   shareBtn: {
-    backgroundColor: '#d4b06a',
+    backgroundColor: 'rgb(212, 176, 106)',
   },
   doneBtn: {
     backgroundColor: Colors.primary,

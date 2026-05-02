@@ -116,21 +116,21 @@ function BottomSheetModal({
           <View style={styles.sheetTitleRow}>
             <Text style={styles.sheetTitle}>{title}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Icon name="close" size={18} color={Colors.gray_66} />
+              <Icon name="close" size={18} color={Colors.ink3} />
             </TouchableOpacity>
           </View>
           <View style={styles.sheetSearchRow}>
-            <Icon name="magnify" size={20} color={Colors.gray_66} style={{ marginRight: 8 }} />
+            <Icon name="magnify" size={20} color={Colors.ink3} style={{ marginRight: 8 }} />
             <TextInput
               style={styles.sheetSearchInput}
               placeholder={searchPlaceholder}
-              placeholderTextColor={Colors.text_placeholder}
+              placeholderTextColor={Colors.gray}
               value={searchText}
               onChangeText={onSearch}
             />
             {searchText.length > 0 && (
               <TouchableOpacity onPress={() => onSearch("")}>
-                <Icon name="close-circle" size={18} color={Colors.text_placeholder} />
+                <Icon name="close-circle" size={18} color={Colors.gray} />
               </TouchableOpacity>
             )}
           </View>
@@ -407,16 +407,9 @@ export default function TopUpScreen({ navigation, route }) {
   };
 
   return (
-    <SafeAreaView
-      style={styles.safeArea}
-
-    >
-      <StatusBar translucent={false} />
+    <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-
-        <View style={[styles.headerWrapper, { paddingTop: insets.top }]}>
-          <HeaderBar title="Mobile Recharge" onBack={() => navigation.navigate("FinanceHome")} />
-        </View>
+        <HeaderBar title="Mobile Recharge" onBack={() => navigation.navigate("FinanceHome")} />
 
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -432,7 +425,7 @@ export default function TopUpScreen({ navigation, route }) {
                 onRefresh={onRefresh}
                 tintColor={Colors.finance_accent}
                 colors={[Colors.finance_accent]}
-                progressBackgroundColor="#2C2C2C"
+                progressBackgroundColor="rgb(44, 44, 44)"
               />
             }
           >
@@ -459,7 +452,7 @@ export default function TopUpScreen({ navigation, route }) {
                       value={mobile}
                       onChangeText={handleMobileChange}
                       placeholder="00000 00000"
-                      placeholderTextColor={Colors.text_placeholder}
+                      placeholderTextColor={Colors.gray}
                       keyboardType="number-pad"
                       maxLength={10}
                       style={styles.bigInput}
@@ -537,7 +530,7 @@ export default function TopUpScreen({ navigation, route }) {
                       }
                     }}
                     placeholder="0"
-                    placeholderTextColor={Colors.amberOpacity_30}
+                    placeholderTextColor={Colors.beige}
                     keyboardType="numeric"
                     style={styles.hugeInput}
                   />
@@ -545,7 +538,7 @@ export default function TopUpScreen({ navigation, route }) {
 
                 {planDesc ? (
                   <View style={styles.selectedPlanWrap}>
-                    <Icon name="check-circle" size={16} color={Colors.success} style={{ marginTop: 2 }} />
+                    <Icon name="check-circle" size={16} color={Colors.green} style={{ marginTop: 2 }} />
                     <View style={{ flex: 1, marginLeft: 8 }}>
                       {!!planValidity && <Text style={styles.selectedPlanValidity}>Validity: {planValidity}</Text>}
                       <Text style={styles.selectedPlanDesc}>{planDesc}</Text>
@@ -618,7 +611,7 @@ export default function TopUpScreen({ navigation, route }) {
                   }}
                 >
                   <LinearGradient
-                    colors={[Colors.finance_accent || "#d4b06a", Colors.hex_E0C38C || "#E0C38C"]}
+                    colors={[Colors.finance_accent || Colors.finance_accent, "rgb(224, 195, 140)" || "rgb(224, 195, 140)"]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={styles.viewPlansGradient}
@@ -661,8 +654,8 @@ export default function TopUpScreen({ navigation, route }) {
                       rechargeHistory.map((item) => {
                         const isSuccess = item.status === "SUCCESS";
                         const isFailed = item.status === "FAILED";
-                        const statusColor = isSuccess ? Colors.success : isFailed ? Colors.error : Colors.warning_dark;
-                        const statusBg = isSuccess ? Colors.successOpacity_10 : isFailed ? Colors.redOpacity_10 : Colors.warningOpacity_10;
+                        const statusColor = isSuccess ? Colors.green : isFailed ? Colors.red : Colors.warning_dark;
+                        const statusBg = isSuccess ? "rgba(34,197,94,0.10)" : isFailed ? "rgba(239,68,68,0.10)" : "rgba(245,158,11,0.10)";
                         const opInitial = (item.operatorName || "?")[0].toUpperCase();
                         const dateStr = item.createdAt
                           ? new Date(item.createdAt).toLocaleDateString("en-IN", {
@@ -739,14 +732,14 @@ export default function TopUpScreen({ navigation, route }) {
                   style={[styles.sliderThumb, { transform: [{ translateX: pan }] }]}
                   {...panResponder.panHandlers}
                 >
-                  <LinearGradient colors={[Colors.finance_accent || "#d4b06a", Colors.hex_B8944D || "#B8944D"]} style={styles.thumbGrad}>
+                  <LinearGradient colors={[Colors.finance_accent, Colors.amber]} style={styles.thumbGrad}>
                     <Icon name="chevron-right" size={28} color={Colors.white} />
                   </LinearGradient>
                 </Animated.View>
               </View>
             ) : (
               <LinearGradient
-                colors={[Colors.finance_accent || "#d4b06a", Colors.hex_B8944D || "#B8944D"]}
+                colors={[Colors.finance_accent, Colors.amber]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.processingBtn}
@@ -824,7 +817,7 @@ export default function TopUpScreen({ navigation, route }) {
               label: "Status",
               isStatusPill: true,
               value: receiptData.status === "success" ? "Success" : "Failed",
-              color: receiptData.status === "success" ? Colors.success : Colors.error,
+              color: receiptData.status === "success" ? Colors.green : Colors.red,
             },
           ],
           note: receiptData.status === "success"
@@ -849,31 +842,45 @@ export default function TopUpScreen({ navigation, route }) {
 //  STYLES
 // ─────────────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: Colors.homebg },
-  container: { flex: 1, backgroundColor: Colors.homebg },
-  headerWrapper: { backgroundColor: Colors.homebg },
+  safeArea: { flex: 1, backgroundColor: Colors.beige },
+  container: { flex: 1, backgroundColor: Colors.beige },
+  headerWrapper: { backgroundColor: Colors.beige },
   mainContent: { paddingHorizontal: 12, paddingBottom: 14 },
 
-  modernCard: { backgroundColor: Colors.bg, borderRadius: 16, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: "rgba(212,176,106,0.15)" },
+  modernCard: {
+    backgroundColor: Colors.beige,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.30)',
+  },
   modernCardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
   modernCardTitle: { fontSize: 12, fontFamily: Fonts.Bold, color: Colors.primary },
-  badge: { backgroundColor: Colors.finance_bg_2, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: Colors.finance_accent },
+  badge: { backgroundColor: Colors.gold, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, borderWidth: 1, borderColor: Colors.finance_accent + "40" },
   badgeText: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.finance_accent },
-  modernInputWrapper: { borderBottomWidth: 1, borderBottomColor: Colors.primary, paddingBottom: 4 },
+  modernInputWrapper: { borderBottomWidth: 1.5, borderBottomColor: Colors.finance_accent + "30", paddingBottom: 6 },
   floatingLabel: { fontSize: 10, color: Colors.primary, fontFamily: Fonts.Medium, marginBottom: 2 },
   rowCenter: { flexDirection: "row", alignItems: "center" },
-  prefixText: { fontSize: 16, fontFamily: Fonts.Medium, color: Colors.text_placeholder, marginRight: 8 },
+  prefixText: { fontSize: 16, fontFamily: Fonts.Medium, color: Colors.gray, marginRight: 8 },
   bigInput: { flex: 1, fontSize: 18, fontFamily: Fonts.Bold, color: Colors.finance_text, padding: 0, height: 34 },
   contactBtnRound: { width: 30, height: 30, borderRadius: 15, backgroundColor: Colors.finance_accent, alignItems: "center", justifyContent: "center" },
 
-  connectionContainer: { backgroundColor: Colors.white, borderRadius: 14, borderWidth: 1, borderColor: Colors.lightGray, marginTop: 5, overflow: "hidden" },
+  connectionContainer: {
+    backgroundColor: Colors.beige,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.30)',
+    marginTop: 8,
+    overflow: "hidden"
+  },
   connectionRow: { flexDirection: "row", alignItems: "center", padding: 10 },
   iconBox: { width: 30, height: 30, borderRadius: 8, backgroundColor: Colors.white, alignItems: "center", justifyContent: "center" },
-  connectionLabel: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.text_muted, textTransform: "uppercase" },
+  connectionLabel: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.gray, textTransform: "uppercase" },
   connectionValues: { fontSize: 12, fontFamily: Fonts.Medium, color: Colors.black, marginTop: 2 },
-  dividerLine: { height: 1, backgroundColor: Colors.ink5, marginHorizontal: 14 },
+  dividerLine: { height: 1, backgroundColor: Colors.gold, marginHorizontal: 14 },
 
-  premiumAmountCard: { backgroundColor: Colors.slate_900, borderRadius: 20, padding: 14, marginBottom: 14, borderWidth: 1.5, borderColor: Colors.finance_accent + "66" },
+  premiumAmountCard: { backgroundColor: Colors.primary, borderRadius: 20, padding: 14, marginBottom: 14, borderWidth: 1.5, borderColor: Colors.finance_accent + "66" },
   amountHeader: { fontSize: 10, color: "rgba(255,255,255,0.6)", fontFamily: Fonts.Medium, textTransform: "uppercase", letterSpacing: 1, textAlign: "center", marginBottom: 8 },
   amountInputRow: { flexDirection: "row", alignItems: "center", marginBottom: 12, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", paddingVertical: 8, paddingHorizontal: 14 },
   currencySymbol: { fontSize: 20, fontFamily: Fonts.Bold, color: Colors.finance_accent, marginRight: 8 },
@@ -902,7 +909,7 @@ const styles = StyleSheet.create({
   },
   sliderWrapper: { height: 60, backgroundColor: Colors.white, borderRadius: 30, borderWidth: 1.5, borderColor: Colors.finance_accent, justifyContent: "center", overflow: "hidden" },
   sliderBackground: { ...StyleSheet.absoluteFillObject, justifyContent: "center", alignItems: "center" },
-  swipeText: { color: Colors.finance_accent, fontSize: 14, fontFamily: Fonts.Bold, letterSpacing: 2 },
+  swipeText: { color: Colors.primary, fontSize: 14, fontFamily: Fonts.Bold, letterSpacing: 2 },
   sliderThumb: { width: 52, height: 52, borderRadius: 26, position: "absolute", left: 4 },
   thumbGrad: { width: 52, height: 52, borderRadius: 26, alignItems: "center", justifyContent: "center" },
   processingBtn: { height: 60, borderRadius: 30, flexDirection: "row", alignItems: "center", justifyContent: "center" },
@@ -913,32 +920,33 @@ const styles = StyleSheet.create({
     position: "absolute", bottom: 0, left: 0, right: 0,
     backgroundColor: Colors.white,
     borderTopLeftRadius: 28, borderTopRightRadius: 28,
-    maxHeight: "80%",  },
+    maxHeight: "80%",
+  },
   sheetHeader: {
-    paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: Colors.blackOpacity_05,
+    paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: "rgba(0,0,0,0.05)",
     paddingTop: 6, paddingBottom: 12,
   },
-  handleBar: { width: 44, height: 4, borderRadius: 2, backgroundColor: Colors.blackOpacity_12, alignSelf: "center", marginTop: 8, marginBottom: 12 },
+  handleBar: { width: 44, height: 4, borderRadius: 2, backgroundColor: "rgba(0,0,0,0.12)", alignSelf: "center", marginTop: 8, marginBottom: 12 },
   sheetTitleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14, paddingHorizontal: 4 },
-  sheetTitle: { fontSize: 17, fontFamily: Fonts.Bold, color: Colors.slate_900, letterSpacing: 0.3 },
-  closeBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.blackOpacity_05, alignItems: "center", justifyContent: "center" },
+  sheetTitle: { fontSize: 17, fontFamily: Fonts.Bold, color: Colors.primary, letterSpacing: 0.3 },
+  closeBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: "rgba(0,0,0,0.05)", alignItems: "center", justifyContent: "center" },
   sheetSearchRow: {
     flexDirection: "row", alignItems: "center",
-    backgroundColor: Colors.slate_50,
+    backgroundColor: Colors.bg_F8,
     borderRadius: 14, paddingHorizontal: 12,
     marginBottom: 4, height: 46,
-    borderWidth: 1, borderColor: Colors.blackOpacity_05,
+    borderWidth: 1, borderColor: "rgba(0,0,0,0.05)",
   },
-  sheetSearchInput: { flex: 1, fontSize: 14, fontFamily: Fonts.Medium, color: Colors.slate_900, padding: 0 },
+  sheetSearchInput: { flex: 1, fontSize: 14, fontFamily: Fonts.Medium, color: Colors.primary, padding: 0 },
   sheetListItem: {
     flexDirection: "row", alignItems: "center",
     paddingHorizontal: 18, paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: Colors.blackOpacity_03,
+    borderBottomWidth: 1, borderBottomColor: "rgba(0,0,0,0.03)",
   },
   sheetListItemSel: { backgroundColor: Colors.finance_accent + "10" },
   sheetListIconBox: {
     width: 36, height: 36, borderRadius: 10,
-    backgroundColor: Colors.blackOpacity_05,
+    backgroundColor: "rgba(0,0,0,0.05)",
     alignItems: "center", justifyContent: "center", marginRight: 14,
   },
   sheetListIconBoxSel: { backgroundColor: Colors.finance_accent + "20" },
@@ -946,27 +954,29 @@ const styles = StyleSheet.create({
   sheetListTxtSel: { color: Colors.finance_accent, fontFamily: Fonts.Bold },
   checkCircle: { width: 22, height: 22, borderRadius: 11, backgroundColor: Colors.finance_accent, alignItems: "center", justifyContent: "center" },
   emptyWrap: { alignItems: "center", paddingVertical: 30 },
-  emptyTxt: { color: Colors.text_placeholder, fontSize: 13, fontFamily: Fonts.Medium },
+  emptyTxt: { color: Colors.gray, fontSize: 13, fontFamily: Fonts.Medium },
 
   customToastBox: { position: "absolute", top: 60, left: 20, right: 20, zIndex: 9999 },
   customToastGrad: { flexDirection: "row", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, gap: 10 },
   customToastText: { color: Colors.white, fontFamily: Fonts.Bold, fontSize: 13, flex: 1 },
-  fullLoader: { ...StyleSheet.absoluteFillObject, backgroundColor: Colors.whiteOpacity_70, justifyContent: "center", alignItems: "center", zIndex: 1000 },
+  fullLoader: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(255,255,255,0.7)", justifyContent: "center", alignItems: "center", zIndex: 1000 },
 
   // ── Recent Recharges History ──
   historyCard_Outer: {
-    backgroundColor: Colors.bg,
+    backgroundColor: Colors.beige,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: "rgba(212,176,106,0.25)",
-    overflow: "hidden",  },
+    borderColor: 'rgba(245,158,11,0.30)',
+    overflow: "hidden",
+    marginBottom: 20,
+  },
   historyHeaderGrad: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 14,
     paddingVertical: 11,
-    backgroundColor: Colors.hex_1A1A1A,
+    backgroundColor: Colors.hub_dark,
   },
   historyHeaderLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
   historyHeaderIconBox: {
@@ -1000,7 +1010,7 @@ const styles = StyleSheet.create({
   historyOpName: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.finance_text },
   historyMobile: { fontSize: 11, fontFamily: Fonts.Medium, color: Colors.slate_500 },
   historyRefId: { fontSize: 10, fontFamily: Fonts.Medium, color: Colors.slate_500, marginTop: 1 },
-  historyDate: { fontSize: 10, fontFamily: Fonts.Medium, color: Colors.text_placeholder, marginTop: 2 },
+  historyDate: { fontSize: 10, fontFamily: Fonts.Medium, color: Colors.gray, marginTop: 2 },
   historyAmount: { fontSize: 15, fontFamily: Fonts.Bold, color: Colors.finance_text, marginBottom: 4 },
   historyStatusPill: {
     flexDirection: "row", alignItems: "center", gap: 4,

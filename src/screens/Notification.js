@@ -17,11 +17,11 @@ import Fonts from '../constants/Fonts';
 
 // Derived / local constants
 const GOLD_DEEP = Colors.finance_accent;
-const GOLD_LIGHT = Colors.homebg;
-const GOLD_MID = Colors.secondary;
-const CARD_BG = '#FFF8EC';
+const GOLD_LIGHT = Colors.beige;
+const GOLD_MID = Colors.white;
+const CARD_BG = 'rgb(255, 248, 236)';
 const BLACK_2 = Colors.black;
-const SUCCESS_COLOR = Colors.finance_success;
+const SUCCESS_COLOR = Colors.green;
 const GRAY_TEXT = Colors.text_secondary;
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -109,11 +109,11 @@ const YESTERDAY_NOTIFICATIONS = [
 
 const NotifIconWrap = ({ bg, icon }) => {
     const bgStyle = {
-        gold: { backgroundColor: '#F5E7C6' },
-        green: { backgroundColor: '#D1FAE5' },
-        orange: { backgroundColor: '#FFEDD5' },
-        blue: { backgroundColor: '#DBEAFE' },
-        red: { backgroundColor: '#FEE2E2' },
+        gold: { backgroundColor: 'rgb(245, 231, 198)' },
+        green: { backgroundColor: 'rgb(209, 250, 229)' },
+        orange: { backgroundColor: 'rgb(255, 237, 213)' },
+        blue: { backgroundColor: 'rgb(219, 234, 254)' },
+        red: { backgroundColor: 'rgb(254, 226, 226)' },
     }[bg] || { backgroundColor: GOLD_LIGHT };
 
     return (
@@ -125,11 +125,11 @@ const NotifIconWrap = ({ bg, icon }) => {
 
 const BadgeChip = ({ type, label }) => {
     const badgeStyles = {
-        success: { bg: '#D1FAE5', color: '#065F46' },
-        warning: { bg: '#FEF3C7', color: '#92400E' },
-        info: { bg: '#DBEAFE', color: '#1E40AF' },
-        error: { bg: '#FEE2E2', color: '#991B1B' },
-    }[type] || { bg: GOLD_LIGHT, color: Colors.text_primary };
+        success: { bg: 'rgb(209, 250, 229)', color: 'rgb(6, 95, 70)' },
+        warning: { bg: 'rgb(254, 243, 199)', color: 'rgb(146, 64, 14)' },
+        info: { bg: 'rgb(219, 234, 254)', color: 'rgb(30, 64, 175)' },
+        error: { bg: 'rgb(254, 226, 226)', color: 'rgb(153, 27, 27)' },
+    }[type] || { bg: GOLD_LIGHT, color: Colors.black };
 
     return (
         <View style={[styles.badge, { backgroundColor: badgeStyles.bg }]}>
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
     },
     pageTitle: {
         fontSize: 26,
-        color: Colors.text_primary,
+        color: Colors.black,
         letterSpacing: -0.7,
         lineHeight: 30,
         marginBottom: 4,
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         backgroundColor: CARD_BG,
         borderWidth: 1,
-        borderColor: Colors.divider,
+        borderColor: Colors.input_border,
         marginRight: 8,
     },
     tabActive: {
@@ -349,14 +349,16 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         padding: 14,
         borderWidth: 1,
-        borderColor: Colors.divider,
+        borderColor: Colors.input_border,
         flexDirection: 'row',
         alignItems: 'flex-start',
         gap: 12,
         marginBottom: 8,
         position: 'relative',
-        overflow: 'hidden',    },
-    notifCardUnread: {    },
+        overflow: 'hidden',
+    },
+    notifCardUnread: {
+    },
     unreadBar: {
         position: 'absolute',
         left: 0,
@@ -390,7 +392,7 @@ const styles = StyleSheet.create({
     },
     notifTitle: {
         fontSize: 13,
-        color: Colors.text_primary,
+        color: Colors.black,
         letterSpacing: -0.1,
         flex: 1,
         fontFamily: Fonts.Bold,

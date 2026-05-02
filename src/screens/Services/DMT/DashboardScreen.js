@@ -25,23 +25,24 @@ const FontSize = { title: rs(22), lg: rs(18), md: rs(16), base: rs(14), sm: rs(1
 const StatCard = ({ label, amount, txnCount, amountColor }) => (
   <View style={{
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.beige,
     borderRadius: Radius.lg,
     padding: Spacing.md,
     borderWidth: 1,
-    borderColor: '#E2E8F0',  }}>
-    <Text style={{ fontSize: rs(10), fontWeight: '700', color: '#64748B', textTransform: 'uppercase', marginBottom: 4 }}>{label}</Text>
-    <Text style={{ fontSize: rs(16), fontWeight: '800', color: amountColor || Colors.black }}>{amount}</Text>
+    borderColor: 'rgba(245,158,11,0.30)',
+  }}>
+    <Text style={{ fontSize: rs(10), fontWeight: '700', color: Colors.slate_500, textTransform: 'uppercase', marginBottom: 4 }}>{label}</Text>
+    <Text style={{ fontSize: rs(16), fontWeight: '800', color: amountColor || Colors.primary }}>{amount}</Text>
     <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-      <Text style={{ fontSize: rs(9), color: '#64748B' }}>TXNS:</Text>
-      <Text style={{ fontSize: rs(9), fontWeight: '700', color: Colors.black, marginLeft: 3 }}>{txnCount}</Text>
+      <Text style={{ fontSize: rs(9), color: Colors.slate_500 }}>TXNS:</Text>
+      <Text style={{ fontSize: rs(9), fontWeight: '700', color: Colors.primary, marginLeft: 3 }}>{txnCount}</Text>
     </View>
   </View>
 );
 
 const Badge = ({ label, type }) => (
   <View style={{
-    backgroundColor: type === 'success' ? '#DCFCE7' : '#FEF3C7',
+    backgroundColor: type === 'success' ? 'rgb(220, 252, 231)' : 'rgb(254, 243, 199)',
     paddingHorizontal: rs(8),
     paddingVertical: rs(3),
     borderRadius: Radius.sm,
@@ -49,7 +50,7 @@ const Badge = ({ label, type }) => (
     <Text style={{
       fontSize: rs(9),
       fontWeight: '700',
-      color: type === 'success' ? '#166534' : '#92400E',
+      color: type === 'success' ? 'rgb(22, 101, 52)' : 'rgb(146, 64, 14)',
       textTransform: 'uppercase'
     }}>
       {label}
@@ -62,18 +63,18 @@ const ActionButton = ({ title, variant, onPress }) => (
     activeOpacity={0.7}
     onPress={onPress}
     style={{
-      backgroundColor: variant === 'dark' ? Colors.black : '#F1F5F9',
+      backgroundColor: variant === 'dark' ? Colors.primary : Colors.beige,
       paddingHorizontal: rs(10),
       paddingVertical: rs(6),
       borderRadius: Radius.sm,
       borderWidth: 1,
-      borderColor: variant === 'dark' ? Colors.black : '#E2E8F0',
+      borderColor: variant === 'dark' ? Colors.primary : 'rgba(245,158,11,0.30)',
     }}
   >
     <Text style={{
       fontSize: rs(10),
       fontWeight: '700',
-      color: variant === 'dark' ? Colors.white : '#475569'
+      color: variant === 'dark' ? Colors.white : Colors.primary
     }}>
       {title}
     </Text>
@@ -85,11 +86,11 @@ const ExportChip = ({ label }) => (
     paddingVertical: rs(7),
     paddingHorizontal: rs(14),
     borderRadius: Radius.xl,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.beige,
     borderWidth: 1,
-    borderColor: '#E2E8F0'
+    borderColor: 'rgba(245,158,11,0.30)'
   }}>
-    <Text style={{ fontSize: rs(10), fontWeight: '700', color: '#475569' }}>{label}</Text>
+    <Text style={{ fontSize: rs(10), fontWeight: '700', color: Colors.primary }}>{label}</Text>
   </TouchableOpacity>
 );
 
@@ -163,7 +164,7 @@ const DashboardScreen = ({ navigation }) => {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.bg || '#F1F5F9' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.beige || 'rgb(241, 245, 249)' }}>
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
@@ -185,8 +186,8 @@ const DashboardScreen = ({ navigation }) => {
         </View>
 
         <View style={styles.statRow}>
-          <StatCard label="Total Limit" amount="₹25k" txnCount={0} amountColor="#22C55E" />
-          <StatCard label="Available" amount="₹25k" txnCount={0} amountColor={Colors.error || '#EF4444'} />
+          <StatCard label="Total Limit" amount="₹25k" txnCount={0} amountColor={Colors.green} />
+          <StatCard label="Available" amount="₹25k" txnCount={0} amountColor={Colors.red || 'rgb(239, 68, 68)'} />
           <StatCard label="Per Txn" amount="₹5k" txnCount={0} amountColor={Colors.black} />
         </View>
 
@@ -201,7 +202,7 @@ const DashboardScreen = ({ navigation }) => {
             <TextInput
               style={styles.searchInput}
               placeholder="Search beneficiary by name..."
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={Colors.gray}
               value={search}
               onChangeText={setSearch}
             />
@@ -239,7 +240,7 @@ const DashboardScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.bg || '#F1F5F9' },
+  container: { flex: 1, backgroundColor: Colors.beige || 'rgb(241, 245, 249)' },
   content: { paddingBottom: 40 },
   header: {
     flexDirection: 'row',
@@ -257,13 +258,13 @@ const styles = StyleSheet.create({
   },
   pageSub: {
     fontSize: FontSize.base,
-    color: '#64748B',
+    color: 'rgb(100, 116, 139)',
     marginTop: 3,
   },
   addBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.black,
+    backgroundColor: Colors.primary,
     paddingVertical: 9,
     paddingHorizontal: 14,
     borderRadius: 24,
@@ -284,7 +285,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: FontSize.sm,
     fontWeight: '800',
-    color: '#64748B',
+    color: Colors.slate_500,
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
@@ -293,8 +294,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.white,
     borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.30)',
     paddingHorizontal: 12,
     marginBottom: 12,
     gap: 8,
@@ -306,39 +307,41 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     paddingHorizontal: 14,
     borderRadius: 20,
-    backgroundColor: Colors.black,
+    backgroundColor: Colors.primary,
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.30)',
   },
   colChipText: { fontSize: 10, fontWeight: '700', color: Colors.white },
   tableCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.beige,
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(245,158,11,0.30)',
   },
   tableRow: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 13,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: 'rgb(241, 245, 249)',
     gap: 10,
   },
   bankIcon: {
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: 'rgb(241, 245, 249)',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
   rowContent: { flex: 1, minWidth: 0 },
   rowTitle: { fontSize: 12, fontWeight: '800', color: Colors.black },
-  rowSub: { fontSize: 10, color: '#64748B', marginTop: 1 },
+  rowSub: { fontSize: 10, color: 'rgb(100, 116, 139)', marginTop: 1 },
   rowActions: { alignItems: 'flex-end' },
   emptyState: { padding: 24, alignItems: 'center' },
-  emptyText: { fontSize: FontSize.base, color: '#64748B' },
+  emptyText: { fontSize: FontSize.base, color: 'rgb(100, 116, 139)' },
 });
 
 export default DashboardScreen;

@@ -35,11 +35,11 @@ const SIZE_LABEL = "10 KB – 200 KB";
 
 const resolveColors = () => ({
   accent: typeof Colors.finance_accent === "string" && Colors.finance_accent.length > 2 ? Colors.finance_accent : Colors.kyc_accent,
-  success: typeof Colors.finance_success === "string" && Colors.finance_success.length > 2 ? Colors.finance_success : Colors.kyc_success,
-  error: typeof Colors.finance_error === "string" && Colors.finance_error.length > 2 ? Colors.finance_error : Colors.kyc_error,
+  success: typeof Colors.green === "string" && Colors.green.length > 2 ? Colors.green : Colors.kyc_success,
+  error: typeof Colors.red === "string" && Colors.red.length > 2 ? Colors.red : Colors.kyc_error,
   text: typeof Colors.finance_text === "string" && Colors.finance_text.length > 2 ? Colors.finance_text : Colors.kyc_text,
-  bg: typeof Colors.finance_bg_1 === "string" && Colors.finance_bg_1.length > 2 ? Colors.finance_bg_1 : Colors.kyc_bg,
-  white: typeof Colors.white === "string" && Colors.white.length > 2 ? Colors.white : Colors.kyc_surface,
+  bg: typeof Colors.beige === "string" && Colors.beige.length > 2 ? Colors.beige : Colors.kyc_bg,
+  white: typeof Colors.white === "string" && Colors.white.length > 2 ? Colors.white : Colors.white,
 });
 
 // ─── Step config ──────────────────────────────────────────────────────────
@@ -784,7 +784,7 @@ export default function Offlinekyc({ navigation, route }) {
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <LinearGradient colors={[Colors.kyc_accent, Colors.kyc_accentDark]} style={styles.headerLogo}>
-            <Icon name="shield-account-outline" size={rs(17)} color={Colors.kyc_surface} />
+            <Icon name="shield-account-outline" size={rs(17)} color={Colors.white} />
           </LinearGradient>
           <View>
             <Text style={[styles.headerTitle, { fontFamily: Fonts.Bold, fontSize: rs(16) }]}>KYC Verification</Text>
@@ -814,7 +814,7 @@ export default function Offlinekyc({ navigation, route }) {
                   colors={done ? [Colors.kyc_success, Colors.success_dark] : active ? [Colors.kyc_accent, Colors.kyc_accentDark] : [Colors.kyc_border, Colors.kyc_border]}
                   style={[styles.stepDotCircle, { width: rs(active ? 36 : 28), height: rs(active ? 36 : 28), borderRadius: rs(active ? 18 : 14) }]}
                 >
-                  <Icon name={done ? "check" : s.icon} size={rs(done ? 14 : active ? 16 : 13)} color={done || active ? Colors.kyc_surface : Colors.kyc_textMuted} />
+                  <Icon name={done ? "check" : s.icon} size={rs(done ? 14 : active ? 16 : 13)} color={done || active ? Colors.white : Colors.kyc_textMuted} />
                 </LinearGradient>
                 <Text style={[styles.stepDotLabel, { fontSize: rs(9), fontFamily: active ? Fonts.Bold : Fonts.Medium },
                 done && { color: Colors.kyc_success }, active && { color: Colors.kyc_accent }]}>
@@ -985,7 +985,7 @@ export default function Offlinekyc({ navigation, route }) {
                   onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.aadharFile = y; fieldCoords.current.panFile = y; fieldCoords.current.shopImage = y; }}>
                   {[
                     { key: "aadharFile", label: "Aadhaar Card", sub: "Front side", icon: "card-account-details", color: Colors.info_dark },
-                    { key: "panFile", label: "PAN Card", sub: "Clear photo", icon: "card-account-details-outline", color: Colors.hub_hubIndigo },
+                    { key: "panFile", label: "PAN Card", sub: "Clear photo", icon: "card-account-details-outline", color: Colors.primary },
                     { key: "shopImage", label: "Shop Photo", sub: "Front view", icon: "store-outline", color: Colors.amber },
                   ].map((slot) => {
                     const img = files[slot.key];
@@ -1204,12 +1204,12 @@ export default function Offlinekyc({ navigation, route }) {
               <TouchableOpacity style={styles.nextBtnOuter} onPress={step < 2 ? handleNext : handleSubmit} activeOpacity={0.85} disabled={loading}>
                 <LinearGradient colors={[Colors.kyc_accent, Colors.kyc_accentDark]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.nextBtnGrad}>
                   {loading
-                    ? <ActivityIndicator color={Colors.kyc_surface} size="small" />
+                    ? <ActivityIndicator color={Colors.white} size="small" />
                     : <>
-                      <Text style={[styles.nextBtnText, { color: Colors.kyc_surface, fontFamily: Fonts.Bold, fontSize: rs(14) }]}>
+                      <Text style={[styles.nextBtnText, { color: Colors.white, fontFamily: Fonts.Bold, fontSize: rs(14) }]}>
                         {step < 2 ? "Next" : "Submit KYC"}
                       </Text>
-                      <Icon name={step < 2 ? "arrow-right" : "check-circle-outline"} size={rs(17)} color={Colors.kyc_surface} style={{ marginLeft: hs(6) }} />
+                      <Icon name={step < 2 ? "arrow-right" : "check-circle-outline"} size={rs(17)} color={Colors.white} style={{ marginLeft: hs(6) }} />
                     </>
                   }
                 </LinearGradient>
@@ -1417,8 +1417,8 @@ function GenderSelect({ value, onChange, error, onLayout, locked = false }) {
         {[{ label: "Male", icon: "gender-male" }, { label: "Female", icon: "gender-female" }, { label: "Other", icon: "gender-non-binary" }].map(opt => (
           <TouchableOpacity key={opt.label} onPress={() => { if (!locked) onChange(opt.label); }} activeOpacity={locked ? 1 : 0.8}
             style={[styles.genderBtn, value === opt.label && { backgroundColor: Colors.kyc_accent + "1C", borderColor: Colors.kyc_accent }, locked && value === opt.label && { borderStyle: "dashed", backgroundColor: Colors.kyc_lockedBg, borderColor: Colors.kyc_lockedBorder }]}>
-            <Icon name={opt.icon} size={rs(12)} color={value === opt.label ? (locked ? Colors.kyc_lockedText : Colors.kyc_accent) : Colors.kyc_textMuted} />
-            <Text style={[styles.genderBtnText, { fontSize: rs(10), fontFamily: Fonts.Medium }, value === opt.label && { color: locked ? Colors.kyc_lockedText : Colors.kyc_accent, fontFamily: Fonts.Bold }]}>{opt.label}</Text>
+            <Icon name={opt.icon} size={rs(12)} color={value === opt.label ? (locked ? Colors.kyc_textMuted : Colors.kyc_accent) : Colors.kyc_textMuted} />
+            <Text style={[styles.genderBtnText, { fontSize: rs(10), fontFamily: Fonts.Medium }, value === opt.label && { color: locked ? Colors.kyc_textMuted : Colors.kyc_accent, fontFamily: Fonts.Bold }]}>{opt.label}</Text>
             {locked && value === opt.label && <Icon name="lock-outline" size={rs(9)} color={Colors.kyc_accent} style={{ marginLeft: hs(2) }} />}
           </TouchableOpacity>
         ))}
@@ -1473,7 +1473,7 @@ function ErrLabel({ msg }) {
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   header: { flexDirection: "row", alignItems: "center", paddingBottom: vs(10) },
-  backBtn: { width: hs(38), height: hs(38), borderRadius: hs(12), backgroundColor: Colors.kyc_surface, alignItems: "center", justifyContent: "center", marginRight: hs(10), elevation: 2, shadowColor: Colors.black, shadowOpacity: 0.07, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } },
+  backBtn: { width: hs(38), height: hs(38), borderRadius: hs(12), backgroundColor: Colors.white, alignItems: "center", justifyContent: "center", marginRight: hs(10), elevation: 2, shadowColor: Colors.black, shadowOpacity: 0.07, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } },
   headerCenter: { flex: 1, flexDirection: "row", alignItems: "center", gap: hs(10) },
   headerLogo: { width: hs(34), height: hs(34), borderRadius: hs(10), alignItems: "center", justifyContent: "center" },
   headerTitle: { color: Colors.kyc_text, lineHeight: rs(20) },
@@ -1488,20 +1488,20 @@ const styles = StyleSheet.create({
   stepDotCircle: { alignItems: "center", justifyContent: "center", marginBottom: vs(4) },
   stepDotLabel: { color: Colors.kyc_textMuted, textAlign: "center", letterSpacing: 0.4 },
   scrollContent: { paddingTop: vs(4) },
-  card: { backgroundColor: Colors.kyc_surface, borderRadius: hs(20), padding: hs(18), marginBottom: vs(14), elevation: 3, shadowColor: Colors.black, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 10 },
+  card: { backgroundColor: Colors.white, borderRadius: hs(20), padding: hs(18), marginBottom: vs(14), elevation: 3, shadowColor: Colors.black, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 10 },
   sectionBanner: { flexDirection: "row", alignItems: "center", gap: hs(12), marginBottom: vs(18), padding: hs(12), backgroundColor: Colors.kyc_accent + "0C", borderRadius: hs(14), borderLeftWidth: 3, borderLeftColor: Colors.kyc_accent },
   sectionBannerIcon: { width: hs(42), height: hs(42), borderRadius: hs(12), alignItems: "center", justifyContent: "center" },
   sectionBannerTitle: { color: Colors.kyc_text },
   sectionBannerSub: { color: Colors.kyc_textSub, marginTop: 2 },
   fieldWrap: { marginBottom: vs(12) },
   fieldLabel: { color: Colors.kyc_textSub, fontFamily: Fonts.Bold, letterSpacing: 0.7, marginBottom: vs(5), textTransform: "uppercase" },
-  inputRow: { flexDirection: "row", alignItems: "center", backgroundColor: Colors.kyc_inputBg, borderWidth: 1.2, borderColor: Colors.kyc_border, borderRadius: hs(10), paddingHorizontal: hs(12) },
+  inputRow: { flexDirection: "row", alignItems: "center", backgroundColor: Colors.input_bg, borderWidth: 1.2, borderColor: Colors.kyc_border, borderRadius: hs(10), paddingHorizontal: hs(12) },
   input: { flex: 1, paddingVertical: vs(10), color: Colors.kyc_text, fontFamily: Fonts.Medium },
   fieldHint: { color: Colors.kyc_textMuted, marginTop: vs(3), fontFamily: Fonts.Regular },
   errRow: { flexDirection: "row", alignItems: "center", marginTop: vs(3) },
   errText: { fontFamily: Fonts.Medium },
   inputRowLocked: { backgroundColor: Colors.kyc_lockedBg, borderColor: Colors.kyc_lockedBorder, borderStyle: "dashed" },
-  inputLocked: { color: Colors.kyc_lockedText },
+  inputLocked: { color: Colors.kyc_textMuted },
   lockedBadge: { flexDirection: "row", alignItems: "center", gap: 3, backgroundColor: Colors.kyc_accent + "18", borderRadius: hs(6), paddingHorizontal: hs(6), paddingVertical: vs(3), marginRight: hs(2) },
   lockedBadgeTxt: { color: Colors.kyc_accent, fontFamily: Fonts.Bold, letterSpacing: 0.2 },
   lockedHintRow: { flexDirection: "row", alignItems: "center", gap: hs(4), marginTop: vs(3) },
@@ -1510,7 +1510,7 @@ const styles = StyleSheet.create({
   accMatchStrip: { flexDirection: "row", alignItems: "center", gap: hs(6), marginTop: vs(5), paddingHorizontal: hs(10), paddingVertical: vs(6), borderRadius: hs(8), borderWidth: 1 },
   accMatchTxt: { fontSize: rs(10), fontFamily: Fonts.Bold, flex: 1, letterSpacing: 0.2, includeFontPadding: false, lineHeight: rs(14) },
   genderRow: { flexDirection: "row", gap: hs(5) },
-  genderBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: vs(9), borderRadius: hs(8), backgroundColor: Colors.kyc_inputBg, borderWidth: 1.2, borderColor: Colors.kyc_border, gap: hs(4) },
+  genderBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: vs(9), borderRadius: hs(8), backgroundColor: Colors.input_bg, borderWidth: 1.2, borderColor: Colors.kyc_border, gap: hs(4) },
   genderBtnText: { color: Colors.kyc_textMuted },
   divider: { flexDirection: "row", alignItems: "center", marginVertical: vs(14), gap: hs(8) },
   dividerLine: { flex: 1, height: 1.2, backgroundColor: Colors.kyc_border },
@@ -1519,7 +1519,7 @@ const styles = StyleSheet.create({
   sizeHintText: { flex: 1, color: Colors.kyc_textSub, fontFamily: Fonts.Regular, lineHeight: rs(16) },
   docGrid: {},
   docSlotWrap: { marginBottom: vs(10) },
-  docBox: { height: vs(90), borderRadius: hs(14), borderWidth: 1.5, borderStyle: "dashed", borderColor: Colors.kyc_border, overflow: "hidden", backgroundColor: Colors.kyc_inputBg },
+  docBox: { height: vs(90), borderRadius: hs(14), borderWidth: 1.5, borderStyle: "dashed", borderColor: Colors.kyc_border, overflow: "hidden", backgroundColor: Colors.input_bg },
   docThumb: { width: "100%", height: "100%", borderRadius: hs(12) },
   docOverlay: { position: "absolute", bottom: 0, left: 0, right: 0, flexDirection: "row", alignItems: "center", paddingHorizontal: hs(10), paddingVertical: vs(6), gap: hs(6) },
   docDoneLabel: { color: Colors.kyc_success, fontFamily: Fonts.Bold, letterSpacing: 0.4 },
@@ -1539,19 +1539,19 @@ const styles = StyleSheet.create({
   reviewBanner: { flexDirection: "row", alignItems: "flex-start", backgroundColor: Colors.info_light, borderRadius: hs(10), borderLeftWidth: 3, borderLeftColor: Colors.info_dark, padding: hs(10), marginTop: vs(10), gap: hs(8) },
   reviewText: { flex: 1, color: Colors.info_dark, lineHeight: rs(16) },
   actionRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: vs(4), marginBottom: vs(8), gap: hs(12) },
-  prevBtn: { flexDirection: "row", alignItems: "center", paddingVertical: vs(12), paddingHorizontal: hs(18), borderRadius: hs(12), borderWidth: 1.2, borderColor: Colors.kyc_border, backgroundColor: Colors.kyc_surface, gap: hs(6), elevation: 1 },
+  prevBtn: { flexDirection: "row", alignItems: "center", paddingVertical: vs(12), paddingHorizontal: hs(18), borderRadius: hs(12), borderWidth: 1.2, borderColor: Colors.kyc_border, backgroundColor: Colors.white, gap: hs(6), elevation: 1 },
   prevBtnText: { color: Colors.kyc_text },
   nextBtnOuter: { borderRadius: hs(14), overflow: "hidden", elevation: 5, shadowColor: Colors.kyc_accent, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
   nextBtnGrad: { flexDirection: "row", alignItems: "center", paddingVertical: vs(14), paddingHorizontal: hs(26) },
   nextBtnText: {},
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", paddingHorizontal: hs(24) },
-  modalCard: { backgroundColor: Colors.kyc_surface, width: "100%", borderRadius: hs(24), padding: hs(24), alignItems: "center", elevation: 10, shadowColor: Colors.black, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12 },
+  modalCard: { backgroundColor: Colors.white, width: "100%", borderRadius: hs(24), padding: hs(24), alignItems: "center", elevation: 10, shadowColor: Colors.black, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12 },
   modalIconWrap: { width: rs(72), height: rs(72), borderRadius: rs(36), backgroundColor: Colors.kyc_success + "15", justifyContent: "center", alignItems: "center", marginBottom: vs(16) },
   modalTitle: { color: Colors.kyc_text, fontSize: rs(18), fontFamily: Fonts.Bold, textAlign: "center", marginBottom: vs(8) },
   modalSub: { color: Colors.kyc_textSub, fontSize: rs(12), fontFamily: Fonts.Regular, textAlign: "center", lineHeight: rs(18), marginBottom: vs(24) },
   modalBtn: { width: "100%", borderRadius: hs(12), overflow: "hidden" },
   modalBtnGrad: { paddingVertical: vs(14), alignItems: "center", justifyContent: "center" },
-  modalBtnText: { color: Colors.kyc_surface, fontFamily: Fonts.Bold, fontSize: rs(14) },
+  modalBtnText: { color: Colors.white, fontFamily: Fonts.Bold, fontSize: rs(14) },
   modalEmpty: { textAlign: "center", marginTop: vs(40), color: Colors.kyc_textMuted, fontFamily: Fonts.Regular, fontSize: rs(13) },
   modalListItem: { paddingVertical: vs(14), borderBottomWidth: 1, borderBottomColor: Colors.kyc_border },
 });

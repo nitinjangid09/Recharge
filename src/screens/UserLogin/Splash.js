@@ -113,7 +113,7 @@ export default function FinanceIntro({ navigation }) {
           <Icon
             name="arrow-right"
             size={26 * scale}
-            color={Colors.button_text}
+            color={Colors.white}
             style={{ transform: [{ rotate: "-45deg" }] }}
           />
         </Animated.View>
@@ -134,7 +134,7 @@ export default function FinanceIntro({ navigation }) {
             <Icon
               name="chevron-right"
               size={26 * scale}
-              color={Colors.button_text}
+              color={Colors.white}
             />
           </TouchableOpacity>
 
@@ -163,25 +163,26 @@ const styles = StyleSheet.create({
     width: 200 * scale,
     marginTop: 50 * scale,
     flexDirection: "row",
-    backgroundColor: Colors.secondary,
+    backgroundColor: Colors.beige,
     paddingVertical: 10 * scale,
     paddingHorizontal: 14 * scale,
     borderRadius: 10 * scale,
     marginBottom: 5 * scale,
     borderWidth: 0.3 * scale,
-    borderColor: Colors.text_primary,
+    borderColor: Colors.black,
   },
 
-  balanceText: { color: Colors.text_primary, fontSize: 12 * scale, fontFamily: Fonts.Medium },
-  balanceAmount: { color: Colors.text_primary, fontSize: 14 * scale, fontFamily: Fonts.Bold },
+  balanceText: { color: Colors.black, fontSize: 12 * scale, fontFamily: Fonts.Medium },
+  balanceAmount: { color: Colors.black, fontSize: 14 * scale, fontFamily: Fonts.Bold },
 
   card: {
     marginLeft: 20 * scale,
-    backgroundColor: Colors.surface,
+    backgroundColor: "rgb(243, 235, 221)",
     paddingHorizontal: 20 * scale,
     paddingVertical: 25 * scale,
     width: "88%",
-    borderRadius: 18 * scale,  },
+    borderRadius: 18 * scale,
+  },
   cardTitle: { fontSize: 16 * scale, fontFamily: Fonts.Bold },
   cardNumber: { fontSize: 18 * scale, marginVertical: 10 * scale, letterSpacing: 2 * scale, fontFamily: Fonts.Medium },
 
@@ -193,7 +194,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20 * scale,
     paddingVertical: 25 * scale,
     borderRadius: 16 * scale,
-    width: "65%",  },
+    width: "65%",
+  },
   transactionTitle: { fontFamily: Fonts.Bold, fontSize: 14 * scale },
   transactionRow: {
     flexDirection: "row",
@@ -208,7 +210,7 @@ const styles = StyleSheet.create({
     fontSize: 28 * scale,
     fontFamily: Fonts.Bold,
     marginTop: 40 * scale,
-    color: Colors.text_primary,
+    color: Colors.black,
     lineHeight: 38 * scale
   },
   subtext: {
@@ -222,14 +224,14 @@ const styles = StyleSheet.create({
 
   button: {
     marginTop: 25 * scale,
-    backgroundColor: Colors.button_bg,
+    backgroundColor: Colors.primary,
     paddingVertical: 14 * scale,
     justifyContent: "center",
     borderRadius: 12 * scale,
     flexDirection: "row",
     alignItems: "center",
   },
-  buttonText: { color: Colors.button_text, fontFamily: Fonts.Bold, fontSize: 15 * scale, marginRight: 5 * scale },
+  buttonText: { color: Colors.white, fontFamily: Fonts.Bold, fontSize: 15 * scale, marginRight: 5 * scale },
 
   loginLink: {
     marginTop: 18 * scale,
@@ -238,7 +240,7 @@ const styles = StyleSheet.create({
   signInText: {
     fontSize: 15 * scale,
     fontFamily: Fonts.Bold,
-    color: Colors.text_link
+    color: Colors.black
   },
 
   arrowButton: {
@@ -248,8 +250,9 @@ const styles = StyleSheet.create({
     width: 55 * scale,
     height: 55 * scale,
     borderRadius: 30 * scale,
-    backgroundColor: Colors.button_bg,
+    backgroundColor: Colors.primary,
     justifyContent: "center",
-    alignItems: "center",    zIndex: 10
+    alignItems: "center",
+    zIndex: 10
   }
 });

@@ -166,11 +166,11 @@ const AppNavigator = () => {
       <View
         style={{
           flex: 1,
-          backgroundColor: '#fff',
+          backgroundColor: 'rgb(255, 255, 255)',
           justifyContent: 'center',
           alignItems: 'center',
         }}>
-        <ActivityIndicator size="large" color="#7756c4ff" />
+        <ActivityIndicator size="large" color="rgb(119, 86, 196)ff" />
       </View>
     );
   }

@@ -27,8 +27,8 @@ const S = width / 375;
 
 // ─── Accent shorthand ────────────────────────────────────────────────────
 const ACCENT = Colors.finance_accent;
-const ACCENT2 = Colors.hex_B8944D;
-const BG = Colors.finance_bg_1;
+const ACCENT2 = "rgb(184, 148, 77)";
+const BG = Colors.beige;
 const TEXT = Colors.finance_text;
 const WHITE = Colors.white;
 
@@ -276,7 +276,7 @@ export default function StorePlans({ navigation, route }) {
             onRefresh={onRefresh}
             tintColor={ACCENT}
             colors={[ACCENT]}
-            progressBackgroundColor="#2C2C2C"
+            progressBackgroundColor="rgb(44, 44, 44)"
           />
         }
       />
@@ -286,13 +286,14 @@ export default function StorePlans({ navigation, route }) {
 
 // ─── Styles ───────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.bg },
+  container: { flex: 1, backgroundColor: Colors.beige },
 
   // ── Tab bar ────────────────────────────────────────────────────────────
   tabBarWrapper: {
-    backgroundColor: Colors.bg,
+    backgroundColor: Colors.beige,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.amberOpacity_15,  },
+    borderBottomColor: "rgba(245,158,11,0.15)",
+  },
   tabBarContent: {
     flexDirection: "row",
     alignItems: "center",
@@ -303,7 +304,8 @@ const styles = StyleSheet.create({
 
   // Active tab
   tabActive: {
-    borderRadius: 100,    // ── KEY FIX: explicit height + centred content ──────────────────
+    borderRadius: 100,
+    // ── KEY FIX: explicit height + centred content ──────────────────
     height: 38 * S,
     paddingHorizontal: 18 * S,
     justifyContent: "center",
@@ -327,7 +329,8 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     backgroundColor: Colors.white,
     justifyContent: "center",
-    alignItems: "center",  },
+    alignItems: "center",
+  },
   tabInactiveText: {
     color: TEXT,
     fontFamily: Fonts.Medium,
@@ -348,11 +351,12 @@ const styles = StyleSheet.create({
 
   // ── Plan card ──────────────────────────────────────────────────────────
   card: {
-    backgroundColor: Colors.homebg,
+    backgroundColor: Colors.beige,
     borderRadius: 18 * S,
     padding: 16 * S,
-    marginBottom: 14 * S,    borderWidth: 1,
-    borderColor: Colors.amberOpacity_18,
+    marginBottom: 16 * S,
+    borderWidth: 1,
+    borderColor: "rgba(245,158,11,0.30)",
     overflow: "visible",
   },
 
@@ -368,7 +372,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8 * S,
     paddingVertical: 3 * S,
     borderBottomLeftRadius: 8 * S,
-    borderBottomRightRadius: 8 * S,  },
+    borderBottomRightRadius: 8 * S,
+  },
   popularBadgeTxt: {
     color: WHITE,
     fontFamily: Fonts.Bold,
@@ -413,7 +418,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: Colors.finance_accent + "66",
-    backgroundColor: Colors.secondary,
+    backgroundColor: Colors.white,
     maxWidth: 130 * S,
   },
   validityTxt: {
@@ -428,7 +433,7 @@ const styles = StyleSheet.create({
   // Divider
   cardDivider: {
     height: 1,
-    backgroundColor: Colors.blackOpacity_05,
+    backgroundColor: "rgba(0,0,0,0.05)",
     marginBottom: 10 * S,
   },
 
@@ -454,7 +459,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 3 * S,
-    backgroundColor: Colors.bg,
+    backgroundColor: Colors.beige,
     paddingVertical: 4 * S,
     paddingHorizontal: 8 * S,
     borderRadius: 8 * S,
@@ -475,7 +480,8 @@ const styles = StyleSheet.create({
     gap: 4 * S,
     paddingVertical: 8 * S,
     paddingHorizontal: 14 * S,
-    borderRadius: 20,  },
+    borderRadius: 20,
+  },
   selectBtnTxt: {
     color: WHITE,
     fontFamily: Fonts.Bold,
@@ -511,3 +517,4 @@ const styles = StyleSheet.create({
     lineHeight: 18 * S,
   },
 });
+

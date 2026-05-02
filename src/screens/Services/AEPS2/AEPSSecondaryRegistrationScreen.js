@@ -54,7 +54,7 @@ const CardHeader = ({ icon, title, subtitle }) => (
 
 const cardStyles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.homebg,
+    backgroundColor: Colors.beige,
     borderRadius: rs(20),
     padding: rs(18),
     marginBottom: rs(14),
@@ -67,7 +67,7 @@ const cardStyles = StyleSheet.create({
     width: rs(36),
     height: rs(36),
     borderRadius: rs(12),
-    backgroundColor: '#F5F6F7',
+    backgroundColor: 'rgb(245, 246, 247)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -80,7 +80,7 @@ const cardStyles = StyleSheet.create({
 const FormField = ({ label, placeholder, value, onChangeText, keyboardType, icon, editable = true, error, maxLength, autoCapitalize }) => (
   <View style={fieldStyles.wrap}>
     <Text style={fieldStyles.label}>{label}</Text>
-    <View style={[fieldStyles.inputRow, error && { borderColor: '#ef4444' }]}>
+    <View style={[fieldStyles.inputRow, error && { borderColor: 'rgb(239, 68, 68)' }]}>
       {icon ? <Text style={fieldStyles.icon}>{icon}</Text> : null}
       <TextInput
         style={[
@@ -89,7 +89,7 @@ const FormField = ({ label, placeholder, value, onChangeText, keyboardType, icon
           (!editable && value) && { opacity: 1 }
         ]}
         placeholder={placeholder}
-        placeholderTextColor={'#9BA5B8'}
+        placeholderTextColor={'rgb(155, 165, 184)'}
         value={value}
         onChangeText={onChangeText}
         keyboardType={keyboardType || 'default'}
@@ -117,7 +117,7 @@ const fieldStyles = StyleSheet.create({
     gap: rs(10),
   },
   icon: { fontSize: rs(14), opacity: 0.55 },
-  input: { flex: 1, fontSize: rs(14), color: '#0B0F1A', padding: 0 },
+  input: { flex: 1, fontSize: rs(14), color: 'rgb(11, 15, 26)', padding: 0 },
   disabled: { opacity: 0.5 },
 });
 
@@ -128,9 +128,9 @@ const DropdownField = ({ label, placeholder, value, onPress, error }) => (
     <TouchableOpacity
       activeOpacity={0.7}
       onPress={onPress}
-      style={[dropStyles.row, error && { borderColor: '#ef4444' }]}
+      style={[dropStyles.row, error && { borderColor: 'rgb(239, 68, 68)' }]}
     >
-      <Text style={[dropStyles.text, value && { color: '#0B0F1A' }]}>
+      <Text style={[dropStyles.text, value && { color: 'rgb(11, 15, 26)' }]}>
         {value || placeholder}
       </Text>
       <Text style={dropStyles.arrow}>▾</Text>
@@ -151,7 +151,7 @@ const dropStyles = StyleSheet.create({
     paddingHorizontal: rs(14),
     paddingVertical: rs(13),
   },
-  text: { fontSize: rs(14), color: '#9BA5B8' },
+  text: { fontSize: rs(14), color: 'rgb(155, 165, 184)' },
   arrow: { fontSize: rs(12), color: Colors.text_secondary },
 });
 
@@ -187,7 +187,7 @@ const SecurityNote = ({ text }) => (
 
 const noteStyles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: rs(5), marginTop: rs(10) },
-  dot: { width: rs(6), height: rs(6), borderRadius: rs(3), backgroundColor: Colors.finance_success },
+  dot: { width: rs(6), height: rs(6), borderRadius: rs(3), backgroundColor: Colors.green },
   text: { fontSize: rs(10), color: Colors.text_secondary, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
 });
 
@@ -233,7 +233,7 @@ const SelectorModal = ({ visible, title, items, onSelect, onClose }) => {
           <TextInput
             style={selStyles.searchInput}
             placeholder="Search here..."
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={Colors.gray}
             value={search}
             onChangeText={setSearch}
           />
@@ -259,14 +259,14 @@ const SelectorModal = ({ visible, title, items, onSelect, onClose }) => {
 const selStyles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' },
   sheet: { position: 'absolute', bottom: 0, width: '100%', backgroundColor: Colors.white, borderTopLeftRadius: rs(25), borderTopRightRadius: rs(25), maxHeight: '70%', paddingBottom: rs(30) },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: rs(20), borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: rs(20), borderBottomWidth: 1, borderBottomColor: 'rgb(241, 245, 249)' },
   title: { fontSize: rs(16), fontWeight: '800', color: Colors.black },
-  close: { fontSize: rs(18), color: '#94A3B8' },
-  searchWrap: { paddingHorizontal: rs(20), paddingVertical: rs(10), borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
-  searchInput: { backgroundColor: '#f8fafc', borderRadius: rs(10), paddingHorizontal: rs(16), paddingVertical: rs(12), fontSize: rs(14), color: Colors.black },
-  item: { padding: rs(18), borderBottomWidth: 1, borderBottomColor: '#f8fafc' },
-  itemText: { fontSize: rs(14), color: '#334155', fontWeight: '500' },
-  empty: { textAlign: 'center', padding: rs(40), color: '#94A3B8' }
+  close: { fontSize: rs(18), color: 'rgb(148, 163, 184)' },
+  searchWrap: { paddingHorizontal: rs(20), paddingVertical: rs(10), borderBottomWidth: 1, borderBottomColor: 'rgb(241, 245, 249)' },
+  searchInput: { backgroundColor: 'rgb(248, 250, 252)', borderRadius: rs(10), paddingHorizontal: rs(16), paddingVertical: rs(12), fontSize: rs(14), color: Colors.black },
+  item: { padding: rs(18), borderBottomWidth: 1, borderBottomColor: 'rgb(248, 250, 252)' },
+  itemText: { fontSize: rs(14), color: 'rgb(51, 65, 85)', fontWeight: '500' },
+  empty: { textAlign: 'center', padding: rs(40), color: 'rgb(148, 163, 184)' }
 });
 
 // ─── Screen ───────────────────────────────────────────────────────
@@ -720,7 +720,7 @@ export default function AEPSSecondaryRegistrationScreen({ navigation }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.bg,
+    backgroundColor: Colors.beige,
   },
   liveBar: {
     flexDirection: 'row',
@@ -738,7 +738,7 @@ const styles = StyleSheet.create({
     width: rs(7),
     height: rs(7),
     borderRadius: rs(4),
-    backgroundColor: Colors.finance_success,
+    backgroundColor: Colors.green,
   },
   liveText: {
     fontSize: rs(11),
@@ -767,7 +767,7 @@ const styles = StyleSheet.create({
   bottomPad: { height: rs(20) },
   errorText: {
     fontSize: rs(10),
-    color: '#ef4444',
+    color: 'rgb(239, 68, 68)',
     marginTop: rs(4),
     marginBottom: rs(4),
     marginLeft: rs(2),

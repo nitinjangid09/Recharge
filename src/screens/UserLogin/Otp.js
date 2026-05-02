@@ -358,7 +358,7 @@ export default function OTP({ navigation, route }) {
           {/* Header */}
           <View style={styles.headerContainer}>
             <View style={styles.iconCircle}>
-              <Icon name="shield-check-outline" size={60} color={Colors.icon_primary} />
+              <Icon name="shield-check-outline" size={60} color={Colors.black} />
             </View>
             <Text style={styles.title}>Verification Code</Text>
             <Text style={styles.subtitle}>
@@ -422,7 +422,7 @@ export default function OTP({ navigation, route }) {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.securityText}>
-                The verification code is valid for 30 seconds. For your security, <Text style={{ fontFamily: Fonts.Bold, color: Colors.text_primary }}>never share this code</Text> with anyone.
+                The verification code is valid for 30 seconds. For your security, <Text style={{ fontFamily: Fonts.Bold, color: Colors.black }}>never share this code</Text> with anyone.
               </Text>
             </View>
           </View>
@@ -448,7 +448,7 @@ export default function OTP({ navigation, route }) {
                 </TouchableOpacity>
               </>
             ) : (
-              <Text style={[styles.resendText, { color: Colors.text_placeholder }]}>
+              <Text style={[styles.resendText, { color: Colors.gray }]}>
                 Request again in <Text style={{ color: Colors.primary, fontFamily: Fonts.Bold }}>{timer}s</Text>
               </Text>
             )}
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontFamily: Fonts.Bold,
-    color: Colors.text_primary,
+    color: Colors.black,
     marginBottom: 10,
     letterSpacing: 0.5,
   },
@@ -522,7 +522,7 @@ const styles = StyleSheet.create({
     width: OTP_BOX_SIZE,
     height: OTP_BOX_SIZE * 1.2,
     borderRadius: 12,
-    backgroundColor: Colors.secondary,
+    backgroundColor: Colors.beige,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 0.8,
@@ -530,7 +530,7 @@ const styles = StyleSheet.create({
   input: {
     fontSize: 20,
     fontFamily: Fonts.Bold,
-    color: Colors.text_primary,
+    color: Colors.black,
     width: "100%",
     height: "100%",
     textAlign: "center",
@@ -538,14 +538,14 @@ const styles = StyleSheet.create({
   },
   btn: {
     marginTop: 40,
-    backgroundColor: Colors.button_bg,
+    backgroundColor: Colors.primary,
     borderRadius: 30,
     paddingVertical: 14,
     alignItems: "center",
     width: "100%",
   },
   btnText: {
-    color: Colors.button_text,
+    color: Colors.beige,
     fontSize: 16,
     fontFamily: Fonts.Bold,
   },
@@ -556,12 +556,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   resendText: {
-    color: Colors.text_secondary,
+    color: Colors.black,
     fontFamily: Fonts.Medium,
     fontSize: 16,
   },
   resendLink: {
-    color: Colors.accent,
+    color: Colors.primary,
     fontFamily: Fonts.Bold,
     fontSize: 16,
   },
@@ -571,7 +571,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   forgotPinText: {
-    color: Colors.text_primary,
+    color: Colors.black,
     fontFamily: Fonts.Bold,
     fontSize: 14,
     textDecorationLine: "underline",
@@ -585,30 +585,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.kyc_border,
   },
   securityInfo: {
     flexDirection: "row",
-    backgroundColor: Colors.whiteOpacity_08,
+    backgroundColor: "rgba(255,255,255,0.08)",
     padding: 16,
     borderRadius: 16,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.kyc_border,
     alignItems: "center",
   },
   securityIconBox: {
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: Colors.secondary,
+    backgroundColor: Colors.beige,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
   },
   securityText: {
     fontSize: 13,
-    color: Colors.text_secondary,
+    color: Colors.black,
     lineHeight: 18,
     fontFamily: Fonts.Medium,
   },

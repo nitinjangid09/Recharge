@@ -98,17 +98,17 @@ const UserListScreen = ({ navigation }) => {
       <Text style={styles.subtitle}>Manage all your registered users</Text>
 
       <View style={styles.searchContainer}>
-        <Icon name="magnify" size={20} color={Colors.icon_secondary} />
+        <Icon name="magnify" size={20} color={Colors.gray} />
         <TextInput
           placeholder="Search by name or ID"
-          placeholderTextColor={Colors.text_placeholder}
+          placeholderTextColor={Colors.gray}
           style={styles.searchInput}
           value={searchQuery}
           onChangeText={handleSearch}
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity onPress={() => handleSearch('')}>
-            <Icon name="close-circle" size={18} color={Colors.icon_secondary} />
+            <Icon name="close-circle" size={18} color={Colors.gray} />
           </TouchableOpacity>
         )}
       </View>
@@ -117,9 +117,9 @@ const UserListScreen = ({ navigation }) => {
 
   const getRoleColor = (role) => {
     const r = (role || '').toUpperCase();
-    if (r.includes('DISTRIBUTOR')) return Colors.hex_6366F1;
-    if (r.includes('RETAILER')) return Colors.hex_F59E0B;
-    return Colors.hex_4B5563;
+    if (r.includes('DISTRIBUTOR')) return Colors.indigo;
+    if (r.includes('RETAILER')) return Colors.warning;
+    return Colors.slate_700;
   };
 
   const renderUserCard = ({ item, index }) => (
@@ -134,7 +134,7 @@ const UserListScreen = ({ navigation }) => {
         <View style={styles.nameArea}>
           <View style={styles.nameRow}>
             <Text style={styles.userName} numberOfLines={1}>{item.fullName || 'N/A'}</Text>
-            <View style={[styles.statusPoint, { backgroundColor: Colors.finance_success || Colors.hex_10B981 }]} />
+            <View style={[styles.statusPoint, { backgroundColor: Colors.green || "rgb(16, 185, 129)" }]} />
           </View>
           <Text style={styles.userId}>{item.userName || 'N/A'}</Text>
         </View>
@@ -152,11 +152,11 @@ const UserListScreen = ({ navigation }) => {
 
       <View style={styles.cardDetails}>
         <View style={styles.detailItem}>
-          <Icon name="email-outline" size={14} color={Colors.icon_secondary} />
+          <Icon name="email-outline" size={14} color={Colors.gray} />
           <Text style={styles.detailTxt} numberOfLines={1}>{item.email || 'no-email@example.com'}</Text>
         </View>
         <View style={[styles.detailItem, { marginTop: 6 }]}>
-          <Icon name="phone-outline" size={14} color={Colors.icon_secondary} />
+          <Icon name="phone-outline" size={14} color={Colors.gray} />
           <Text style={styles.detailTxt}>{item.phone || 'N/A'}</Text>
         </View>
       </View>
@@ -207,11 +207,11 @@ const UserListScreen = ({ navigation }) => {
 
         <View style={styles.mobilePagination}>
           <TouchableOpacity style={styles.pageBtn}>
-            <Icon name="chevron-left" size={24} color={Colors.icon_secondary} />
+            <Icon name="chevron-left" size={24} color={Colors.gray} />
           </TouchableOpacity>
           <Text style={styles.pageIndicator}>Page <Text style={{ color: Colors.primary }}>1</Text> of 1</Text>
           <TouchableOpacity style={styles.pageBtn}>
-            <Icon name="chevron-right" size={24} color={Colors.icon_secondary} />
+            <Icon name="chevron-right" size={24} color={Colors.gray} />
           </TouchableOpacity>
         </View>
         <FullScreenLoader visible={loading} label="Fetching users..." />
@@ -245,14 +245,16 @@ const styles = StyleSheet.create({
     height: 40 * scale,
     borderRadius: 12 * scale,
     justifyContent: 'center',
-    alignItems: 'center',  },
+    alignItems: 'center',
+  },
   logoCircle: {
     width: 44 * scale,
     height: 44 * scale,
     borderRadius: 15 * scale,
     backgroundColor: Colors.white,
     justifyContent: 'center',
-    alignItems: 'center',  },
+    alignItems: 'center',
+  },
   title: {
     fontSize: 24 * scale,
     fontFamily: Fonts.Bold,
@@ -265,7 +267,8 @@ const styles = StyleSheet.create({
     height: 40 * scale,
     borderRadius: 12 * scale,
     justifyContent: 'center',
-    alignItems: 'center',  },
+    alignItems: 'center',
+  },
   subtitle: {
     fontSize: 13 * scale,
     color: Colors.text_secondary,
@@ -282,7 +285,7 @@ const styles = StyleSheet.create({
     borderRadius: 30 * scale,
     height: 50 * scale,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.input_border,
   },
   searchInput: {
     flex: 1,
@@ -298,11 +301,12 @@ const styles = StyleSheet.create({
     paddingBottom: 100 * scale,
   },
   userCard: {
-    backgroundColor: Colors.secondary,
+    backgroundColor: Colors.white,
     borderRadius: 20 * scale,
     padding: 16 * scale,
-    marginBottom: 16 * scale,    borderWidth: 1,
-    borderColor: Colors.whiteOpacity_65,
+    marginBottom: 16 * scale,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.65)",
   },
   cardHeader: {
     flexDirection: 'row',
@@ -314,7 +318,8 @@ const styles = StyleSheet.create({
     borderRadius: 15 * scale,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.primary,  },
+    backgroundColor: Colors.primary,
+  },
   avatarTxt: {
     fontSize: 20 * scale,
     fontFamily: Fonts.Bold,
@@ -353,7 +358,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10 * scale,
     paddingVertical: 5 * scale,
     borderRadius: 8 * scale,
-    backgroundColor: Colors.whiteOpacity_80,
+    backgroundColor: "rgba(255,255,255,0.80)",
   },
   roleLabelTxt: {
     fontSize: 11 * scale,
@@ -361,7 +366,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: Colors.border,
+    backgroundColor: Colors.input_border,
     marginVertical: 14 * scale,
     opacity: 0.5,
   },
@@ -383,7 +388,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: Colors.blackOpacity_03,
+    backgroundColor: "rgba(0,0,0,0.03)",
     padding: 10 * scale,
     borderRadius: 12 * scale,
   },
@@ -393,14 +398,14 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Medium,
   },
   activeTag: {
-    backgroundColor: Colors.successOpacity_10,
+    backgroundColor: "rgba(34,197,94,0.10)",
     paddingHorizontal: 10 * scale,
     paddingVertical: 3 * scale,
     borderRadius: 6 * scale,
   },
   activeTagTxt: {
     fontSize: 11 * scale,
-    color: Colors.finance_success || Colors.hex_059669,
+    color: Colors.green || Colors.success_dark,
     fontFamily: Fonts.Bold,
   },
   mobilePagination: {
@@ -414,7 +419,8 @@ const styles = StyleSheet.create({
     height: 60 * scale,
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 12 * scale,  },
+    paddingHorizontal: 12 * scale,
+  },
   pageBtn: {
     width: 44 * scale,
     height: 44 * scale,
@@ -442,12 +448,12 @@ const styles = StyleSheet.create({
   },
   refreshBtn: {
     marginTop: 24 * scale,
-    backgroundColor: Colors.whiteOpacity_18,
+    backgroundColor: "rgba(255,255,255,0.18)",
     paddingHorizontal: 24 * scale,
     paddingVertical: 12 * scale,
     borderRadius: 30 * scale,
     borderWidth: 1,
-    borderColor: Colors.blackOpacity_05,
+    borderColor: "rgba(0,0,0,0.05)",
   },
   refreshBtnTxt: {
     fontSize: 14 * scale,

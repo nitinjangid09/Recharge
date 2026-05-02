@@ -48,10 +48,10 @@ const FloatInput = ({
 
   const labelTop = labelAnim.interpolate({ inputRange: [0, 1], outputRange: [18, 9] });
   const labelSize = labelAnim.interpolate({ inputRange: [0, 1], outputRange: [14, 10.5] });
-  const labelColor = labelAnim.interpolate({ inputRange: [0, 1], outputRange: [Colors.ink3, Colors.amber] });
+  const labelColor = labelAnim.interpolate({ inputRange: [0, 1], outputRange: ["rgb(95, 93, 91)", Colors.amber] });
   const borderColor = borderAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [error ? Colors.red : Colors.ink5, Colors.amber],
+    outputRange: [error ? Colors.red : Colors.kyc_border, Colors.amber],
   });
 
   return (
@@ -60,7 +60,8 @@ const FloatInput = ({
         style={[
           styles.fField,
           {
-            borderColor,          },
+            borderColor,
+          },
         ]}
       >
         <Animated.Text
@@ -262,7 +263,7 @@ const ForgotPinScreen = ({ navigation }) => {
 
             {/* Tip box */}
             <View style={styles.tipBox}>
-              <Icon name="information-outline" size={14} color={Colors.ink4} style={{ marginTop: 1 }} />
+              <Icon name="information-outline" size={14} color={Colors.text_secondary} style={{ marginTop: 1 }} />
               <Text style={styles.tipText}>
                 Make sure to enter the email linked to your account. Check your spam folder if you don't receive the OTP.
               </Text>
@@ -278,7 +279,7 @@ const ForgotPinScreen = ({ navigation }) => {
                   onPress={handleSendOtp}
                   activeOpacity={1}
                 >
-                  <Icon name="send-outline" size={16} color="#fff" />
+                  <Icon name="send-outline" size={16} color="rgb(255, 255, 255)" />
                   <Text style={styles.btnSolidTxt}>Send OTP</Text>
                 </TouchableOpacity>
               </Animated.View>
@@ -343,11 +344,11 @@ export default ForgotPinScreen;
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.bg,
+    backgroundColor: Colors.beige,
   },
   scroll: {
     flex: 1,
-    backgroundColor: Colors.bg,
+    backgroundColor: Colors.beige,
   },
   scrollContent: {
     paddingBottom: 48,
@@ -360,14 +361,14 @@ const styles = StyleSheet.create({
     paddingTop: 28,
     paddingBottom: 24,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.ink5,
-    backgroundColor: Colors.bg,
+    borderBottomColor: Colors.kyc_border,
+    backgroundColor: Colors.beige,
   },
   pwHeadIc: {
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: Colors.amberBg,
+    backgroundColor: Colors.warning_light,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 14,
@@ -382,7 +383,7 @@ const styles = StyleSheet.create({
   pwHeadSub: {
     fontFamily: Fonts.Regular,
     fontSize: 13,
-    color: Colors.ink3,
+    color: "rgb(95, 93, 91)",
     lineHeight: 19.5,
   },
 
@@ -401,7 +402,7 @@ const styles = StyleSheet.create({
     height: 56,
     backgroundColor: Colors.white,
     borderWidth: 1.5,
-    borderColor: Colors.ink5,
+    borderColor: Colors.kyc_border,
     borderRadius: 14,
     flexDirection: "row",
     alignItems: "center",
@@ -410,7 +411,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 14,
     fontFamily: Fonts.Regular,
-    color: Colors.ink3,
+    color: "rgb(95, 93, 91)",
     pointerEvents: "none",
   },
   fError: {
@@ -441,13 +442,13 @@ const styles = StyleSheet.create({
     marginTop: 2,
     marginBottom: 0,
     borderWidth: 1,
-    borderColor: Colors.ink5,
+    borderColor: Colors.kyc_border,
   },
   tipText: {
     flex: 1,
     fontFamily: Fonts.Regular,
     fontSize: 12,
-    color: Colors.ink3,
+    color: "rgb(95, 93, 91)",
     lineHeight: 18,
   },
 
@@ -463,11 +464,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 7,  },
+    gap: 7,
+  },
   btnSolidTxt: {
     fontFamily: Fonts.SemiBold,
     fontSize: 14,
-    color: "#fff",
+    color: "rgb(255, 255, 255)",
     letterSpacing: -0.14,
   },
 
@@ -481,7 +483,7 @@ const styles = StyleSheet.create({
   },
   modalBox: {
     width: "100%",
-    backgroundColor: Colors.bg,
+    backgroundColor: Colors.beige,
     borderRadius: 24,
     paddingVertical: 28,
     paddingHorizontal: 22,
@@ -491,7 +493,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 14,
-    backgroundColor: Colors.amberBg,
+    backgroundColor: Colors.warning_light,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 14,
@@ -507,7 +509,7 @@ const styles = StyleSheet.create({
   modalSub: {
     fontFamily: Fonts.Regular,
     fontSize: 13,
-    color: Colors.ink3,
+    color: "rgb(95, 93, 91)",
     textAlign: "center",
     lineHeight: 19,
     marginBottom: 22,
@@ -523,11 +525,12 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.ink,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 6,  },
+    marginTop: 6,
+  },
   verifyTxt: {
     fontFamily: Fonts.SemiBold,
     fontSize: 14,
-    color: "#fff",
+    color: "rgb(255, 255, 255)",
     letterSpacing: -0.14,
   },
   modalFooter: {
@@ -539,7 +542,7 @@ const styles = StyleSheet.create({
   modalDivider: {
     width: 1,
     height: 14,
-    backgroundColor: Colors.ink5,
+    backgroundColor: Colors.kyc_border,
   },
   resendTxt: {
     fontFamily: Fonts.SemiBold,
@@ -549,7 +552,7 @@ const styles = StyleSheet.create({
   cancelTxt: {
     fontFamily: Fonts.Medium,
     fontSize: 13,
-    color: Colors.ink3,
+    color: "rgb(95, 93, 91)",
   },
 
   /* ── Otp Input Styles ── */
@@ -570,13 +573,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: Colors.white,
     borderWidth: 1.5,
-    borderColor: Colors.ink5,
+    borderColor: Colors.kyc_border,
     alignItems: "center",
-    justifyContent: "center",  },
+    justifyContent: "center",
+  },
   otpBoxFocused: {
     borderColor: Colors.amber,
     backgroundColor: Colors.white,
-    borderWidth: 2,  },
+    borderWidth: 2,
+  },
   otpBoxFilled: {
     backgroundColor: Colors.white,
     borderColor: Colors.amber,

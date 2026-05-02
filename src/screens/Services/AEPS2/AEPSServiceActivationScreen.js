@@ -39,7 +39,7 @@ const cardStyles = StyleSheet.create({
     padding: rs(18),
     marginBottom: rs(14),
     borderWidth: 0.5,
-    borderColor: Colors.border,
+    borderColor: Colors.input_border,
 
   },
 });
@@ -48,12 +48,12 @@ const cardStyles = StyleSheet.create({
 const FormField = ({ label, placeholder, value, onChangeText, keyboardType, icon, editable = true, error, maxLength, autoCapitalize }) => (
   <View style={fieldStyles.wrap}>
     <Text style={fieldStyles.label}>{label}</Text>
-    <View style={[fieldStyles.inputRow, error && { borderColor: '#ef4444' }]}>
+    <View style={[fieldStyles.inputRow, error && { borderColor: 'rgb(239, 68, 68)' }]}>
       {icon ? <Text style={fieldStyles.icon}>{icon}</Text> : null}
       <TextInput
         style={[fieldStyles.input, !editable && fieldStyles.disabled]}
         placeholder={placeholder}
-        placeholderTextColor={'#9BA5B8'}
+        placeholderTextColor={'rgb(155, 165, 184)'}
         value={value}
         onChangeText={onChangeText}
         keyboardType={keyboardType || 'default'}
@@ -81,7 +81,7 @@ const fieldStyles = StyleSheet.create({
     gap: rs(10),
   },
   icon: { fontSize: rs(14), opacity: 0.55 },
-  input: { flex: 1, fontSize: rs(14), color: '#0B0F1A', padding: 0 },
+  input: { flex: 1, fontSize: rs(14), color: 'rgb(11, 15, 26)', padding: 0 },
   disabled: { opacity: 0.5 },
 });
 
@@ -92,9 +92,9 @@ const DropdownField = ({ label, placeholder, value, onPress, error }) => (
     <TouchableOpacity
       activeOpacity={0.7}
       onPress={onPress}
-      style={[dropStyles.row, error && { borderColor: '#ef4444' }]}
+      style={[dropStyles.row, error && { borderColor: 'rgb(239, 68, 68)' }]}
     >
-      <Text style={[dropStyles.text, value && { color: '#0B0F1A' }]}>
+      <Text style={[dropStyles.text, value && { color: 'rgb(11, 15, 26)' }]}>
         {value || placeholder}
       </Text>
       <Text style={dropStyles.arrow}>▾</Text>
@@ -115,7 +115,7 @@ const dropStyles = StyleSheet.create({
     paddingHorizontal: rs(14),
     paddingVertical: rs(13),
   },
-  text: { fontSize: rs(14), color: '#9BA5B8' },
+  text: { fontSize: rs(14), color: 'rgb(155, 165, 184)' },
   arrow: { fontSize: rs(12), color: Colors.text_secondary },
 });
 
@@ -202,7 +202,7 @@ const docStyles = StyleSheet.create({
   placeholder: { marginBottom: rs(8) },
   plus: { fontSize: rs(28), color: Colors.text_secondary, lineHeight: rs(32) },
   label: { fontSize: rs(10), fontWeight: '700', color: Colors.text_secondary, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' },
-  hint: { fontSize: rs(9), color: Colors.gray_BD, marginTop: rs(2), textAlign: 'center' },
+  hint: { fontSize: rs(9), color: Colors.gray, marginTop: rs(2), textAlign: 'center' },
   preview: { width: '100%', height: rs(80), borderRadius: rs(10), marginBottom: rs(6) },
 });
 
@@ -296,7 +296,7 @@ const SelectorModal = ({ visible, title, items, onSelect, onClose }) => {
           <TextInput
             style={selStyles.searchInput}
             placeholder="Search here..."
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={Colors.gray}
             value={search}
             onChangeText={setSearch}
           />
@@ -322,14 +322,14 @@ const SelectorModal = ({ visible, title, items, onSelect, onClose }) => {
 const selStyles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' },
   sheet: { position: 'absolute', bottom: 0, width: '100%', backgroundColor: Colors.white, borderTopLeftRadius: rs(25), borderTopRightRadius: rs(25), maxHeight: '75%', paddingBottom: rs(30) },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: rs(20), borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: rs(20), borderBottomWidth: 1, borderBottomColor: 'rgb(241, 245, 249)' },
   title: { fontSize: rs(16), fontWeight: '800', color: Colors.black },
-  close: { fontSize: rs(18), color: '#94A3B8' },
-  searchWrap: { paddingHorizontal: rs(20), paddingVertical: rs(10), borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
-  searchInput: { backgroundColor: '#f8fafc', borderRadius: rs(10), paddingHorizontal: rs(16), paddingVertical: rs(12), fontSize: rs(14), color: Colors.black },
-  item: { padding: rs(18), borderBottomWidth: 1, borderBottomColor: '#f8fafc' },
-  itemText: { fontSize: rs(14), color: '#334155', fontWeight: '500' },
-  empty: { textAlign: 'center', padding: rs(40), color: '#94A3B8' }
+  close: { fontSize: rs(18), color: 'rgb(148, 163, 184)' },
+  searchWrap: { paddingHorizontal: rs(20), paddingVertical: rs(10), borderBottomWidth: 1, borderBottomColor: 'rgb(241, 245, 249)' },
+  searchInput: { backgroundColor: 'rgb(248, 250, 252)', borderRadius: rs(10), paddingHorizontal: rs(16), paddingVertical: rs(12), fontSize: rs(14), color: Colors.black },
+  item: { padding: rs(18), borderBottomWidth: 1, borderBottomColor: 'rgb(248, 250, 252)' },
+  itemText: { fontSize: rs(14), color: 'rgb(51, 65, 85)', fontWeight: '500' },
+  empty: { textAlign: 'center', padding: rs(40), color: 'rgb(148, 163, 184)' }
 });
 
 // ─── Main Screen Component ────────────────────────────────────────
@@ -812,9 +812,9 @@ export default function AEPSServiceActivationScreen({ navigation }) {
 
       <Modal visible={modalVisible} transparent animationType="fade" onRequestClose={() => setModalVisible(false)}>
         <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }} activeOpacity={1} onPress={() => setModalVisible(false)}>
-          <View style={{ width: '85%', backgroundColor: '#fff', borderRadius: 20, padding: 25 }}>
+          <View style={{ width: '85%', backgroundColor: 'rgb(255, 255, 255)', borderRadius: 20, padding: 25 }}>
             <Text style={{ fontSize: 18, fontWeight: '800', marginBottom: 10 }}>Upload Photo</Text>
-            <TouchableOpacity onPress={() => handleCapture('camera')} style={{ padding: 15, borderBottomWidth: 1, borderColor: '#eee' }}><Text>Camera</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => handleCapture('camera')} style={{ padding: 15, borderBottomWidth: 1, borderColor: 'rgb(238, 238, 238)' }}><Text>Camera</Text></TouchableOpacity>
             <TouchableOpacity onPress={() => handleCapture('gallery')} style={{ padding: 15 }}><Text>Gallery</Text></TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -833,7 +833,7 @@ export default function AEPSServiceActivationScreen({ navigation }) {
 }
 
 const screenStyles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
+  safe: { flex: 1, backgroundColor: Colors.beige },
   scroll: { flex: 1 },
   content: { paddingHorizontal: rs(16), paddingBottom: rs(30) },
   row: { flexDirection: 'row', gap: rs(10), paddingBottom: rs(10) },
@@ -848,7 +848,7 @@ const screenStyles = StyleSheet.create({
   },
   errorText: {
     fontSize: rs(9),
-    color: '#ef4444',
+    color: 'rgb(239, 68, 68)',
     marginTop: rs(2),
     fontWeight: '600'
   }

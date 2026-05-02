@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import Colors from "../../constants/Colors";
@@ -48,7 +49,7 @@ export default function CreateUser({ navigation }) {
     const btnScale = useRef(new Animated.Value(1)).current;
 
     // Simplified Focus Animations
-    const getBorderColor = (isFocused) => isFocused ? Colors.input_border_focus : Colors.input_border;
+    const getBorderColor = (isFocused) => isFocused ? Colors.primary : Colors.input_border;
     const getScale = (isFocused) => isFocused ? 1.02 : 1;
     const getBgColor = (isFocused) => isFocused ? Colors.white : Colors.input_bg;
 
@@ -210,10 +211,10 @@ export default function CreateUser({ navigation }) {
                         }
                     ]}
                 >
-                    <MaterialCommunityIcons name={icon} size={20} color={error ? Colors.red : isFocused ? Colors.icon_primary : Colors.icon_secondary} style={styles.inputIcon} />
+                    <MaterialCommunityIcons name={icon} size={20} color={error ? Colors.red : isFocused ? Colors.black : Colors.gray} style={styles.inputIcon} />
                     <TextInput
                         placeholder={`Enter ${label}`}
-                        placeholderTextColor={Colors.text_placeholder}
+                        placeholderTextColor={Colors.gray}
                         keyboardType={keyboardType}
                         value={value}
                         onChangeText={(val) => {
@@ -238,122 +239,125 @@ export default function CreateUser({ navigation }) {
 
     return (
         <LinearGradient colors={Colors.background_gradient} style={styles.container}>
-            <View style={styles.circle1} />
-            <View style={styles.circle2} />
+            <SafeAreaView style={{ flex: 1 }}>
+                <View style={styles.circle1} />
+                <View style={styles.circle2} />
 
-            <Animated.View
-                style={[
-                    styles.pageWrapper,
-                    {
-                        opacity: pageOpacity,
-                        transform: [{ translateY: pageTranslateY }]
-                    }
-                ]}
-            >
-                <ScrollView
-                    nestedScrollEnabled={true}
-                    contentContainerStyle={styles.scrollContent}
-                    showsVerticalScrollIndicator={false}
-                    keyboardShouldPersistTaps="handled"
+                <Animated.View
+                    style={[
+                        styles.pageWrapper,
+                        {
+                            opacity: pageOpacity,
+                            transform: [{ translateY: pageTranslateY }]
+                        }
+                    ]}
                 >
-                    <View style={styles.header}>
+                    <ScrollView
+                        nestedScrollEnabled={true}
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                        keyboardShouldPersistTaps="handled"
+                    >
                         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
                             <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
                         </TouchableOpacity>
-                        <View style={styles.logoContainer}>
-                            <Text style={styles.logoText}>U</Text>
+
+                        <View style={styles.header}>
+                            <View style={styles.logoContainer}>
+                                <Text style={styles.logoText}>U</Text>
+                            </View>
                         </View>
-                    </View>
 
-                    <Animated.View style={[styles.card, { transform: [{ translateX: shakeAnim }] }]}>
-                        <Text style={styles.welcome}>Add New User</Text>
-                        <Text style={styles.subTitle}>Fill details to add a new member</Text>
+                        <Animated.View style={[styles.card, { transform: [{ translateX: shakeAnim }] }]}>
+                            <Text style={styles.welcome}>Add New User</Text>
+                            <Text style={styles.subTitle}>Fill details to add a new member</Text>
 
-                        {renderInput("First Name", "account", firstName, (t) => setFirstName(t.replace(/[^a-zA-Z\s]/g, "")), "firstName", 'default', { maxLength: 100 })}
-                        {renderInput("Last Name", "account-outline", lastName, (t) => setLastName(t.replace(/[^a-zA-Z\s]/g, "")), "lastName", 'default', { maxLength: 100 })}
-                        {renderInput("Mobile Number", "phone", phone, (text) => setPhone(text.replace(/[^0-9]/g, "")), "phone", "phone-pad", { maxLength: 10 })}
-                        {renderInput("Email Address", "email", email, (t) => setEmail(t.replace(/\s/g, "")), "email", "email-address")}
+                            {renderInput("First Name", "account", firstName, (t) => setFirstName(t.replace(/[^a-zA-Z\s]/g, "")), "firstName", 'default', { maxLength: 100 })}
+                            {renderInput("Last Name", "account-outline", lastName, (t) => setLastName(t.replace(/[^a-zA-Z\s]/g, "")), "lastName", 'default', { maxLength: 100 })}
+                            {renderInput("Mobile Number", "phone", phone, (text) => setPhone(text.replace(/[^0-9]/g, "")), "phone", "phone-pad", { maxLength: 10 })}
+                            {renderInput("Email Address", "email", email, (t) => setEmail(t.replace(/\s/g, "")), "email", "email-address")}
 
-                        <View style={[styles.inputContainer, { zIndex: 10 }]}>
-                            <Text style={styles.label}>Select Role</Text>
-                            <TouchableOpacity
-                                style={[
-                                    styles.inputBox,
-                                    {
-                                        height: 50 * scale,
-                                        justifyContent: 'space-between',
-                                        paddingHorizontal: 16 * scale,
-                                        backgroundColor: roleOpen ? Colors.white : Colors.input_bg,
-                                        borderColor: errors.role ? Colors.red : roleOpen ? Colors.input_border_focus : Colors.input_border
-                                    }
-                                ]}
-                                onPress={() => { setRoleOpen(!roleOpen); if (errors.role) setErrors(prev => ({ ...prev, role: null })); }}
-                                activeOpacity={0.85}
-                            >
-                                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                                    <MaterialCommunityIcons name="account-group-outline" size={20} color={errors.role ? Colors.red : role ? Colors.icon_primary : Colors.icon_secondary} style={styles.inputIcon} />
-                                    <Text style={[styles.input, { color: role ? Colors.black : Colors.text_placeholder }]}>
-                                        {rolesList.find(r => r.value === role)?.label || "Select Role..."}
+                            <View style={[styles.inputContainer, { zIndex: 10 }]}>
+                                <Text style={styles.label}>Select Role</Text>
+                                <TouchableOpacity
+                                    style={[
+                                        styles.inputBox,
+                                        {
+                                            height: 50 * scale,
+                                            justifyContent: 'space-between',
+                                            paddingHorizontal: 16 * scale,
+                                            backgroundColor: roleOpen ? Colors.white : Colors.input_bg,
+                                            borderColor: errors.role ? Colors.red : roleOpen ? Colors.primary : Colors.input_border
+                                        }
+                                    ]}
+                                    onPress={() => { setRoleOpen(!roleOpen); if (errors.role) setErrors(prev => ({ ...prev, role: null })); }}
+                                    activeOpacity={0.85}
+                                >
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                                        <MaterialCommunityIcons name="account-group-outline" size={20} color={errors.role ? Colors.red : role ? Colors.black : Colors.gray} style={styles.inputIcon} />
+                                        <Text style={[styles.input, { color: role ? Colors.black : Colors.gray }]}>
+                                            {rolesList.find(r => r.value === role)?.label || "Select Role..."}
+                                        </Text>
+                                    </View>
+                                    <MaterialCommunityIcons name="chevron-down" size={20} color={Colors.gray} />
+                                </TouchableOpacity>
+                                {!!errors.role && (
+                                    <Text style={styles.errorText}>
+                                        <MaterialCommunityIcons name="alert-circle-outline" size={12} /> {errors.role}
                                     </Text>
-                                </View>
-                                <MaterialCommunityIcons name="chevron-down" size={20} color={Colors.icon_secondary} />
-                            </TouchableOpacity>
-                            {!!errors.role && (
-                                <Text style={styles.errorText}>
-                                    <MaterialCommunityIcons name="alert-circle-outline" size={12} /> {errors.role}
-                                </Text>
-                            )}
-
-                            {roleOpen && (
-                                <View style={styles.customDropContainer}>
-                                    <ScrollView nestedScrollEnabled style={{ maxHeight: 180 * scale }}>
-                                        {rolesList.map((r, index) => (
-                                            <TouchableOpacity
-                                                key={r.value}
-                                                style={[
-                                                    styles.customDropItem,
-                                                    index === rolesList.length - 1 && { borderBottomWidth: 0 },
-                                                    role === r.value && { backgroundColor: Colors.whiteOpacity_12 }
-                                                ]}
-                                                onPress={() => {
-                                                    setRole(r.value);
-                                                    setRoleOpen(false);
-                                                }}
-                                            >
-                                                <Text style={[styles.customDropText, role === r.value && { color: Colors.accent }]}>{r.label}</Text>
-                                                {role === r.value && <MaterialCommunityIcons name="check" size={16} color={Colors.accent} />}
-                                            </TouchableOpacity>
-                                        ))}
-                                    </ScrollView>
-                                </View>
-                            )}
-                        </View>
-
-                        <Animated.View style={{ transform: [{ scale: btnScale }] }}>
-                            <TouchableOpacity
-                                style={styles.loginBtn}
-                                onPress={handleCreateUser}
-                                disabled={loading}
-                                activeOpacity={0.9}
-                            >
-                                {loading ? (
-                                    <ActivityIndicator size="small" color={Colors.white} />
-                                ) : (
-                                    <Text style={styles.loginText}>Create User</Text>
                                 )}
-                            </TouchableOpacity>
-                        </Animated.View>
-                    </Animated.View>
-                </ScrollView>
-            </Animated.View>
 
-            <CustomAlert
-                visible={alertVisible}
-                title={alertTitle}
-                message={alertMessage}
-                onClose={() => setAlertVisible(false)}
-            />
-            <FullScreenLoader visible={loading} label="Creating User..." />
+                                {roleOpen && (
+                                    <View style={styles.customDropContainer}>
+                                        <ScrollView nestedScrollEnabled style={{ maxHeight: 180 * scale }}>
+                                            {rolesList.map((r, index) => (
+                                                <TouchableOpacity
+                                                    key={r.value}
+                                                    style={[
+                                                        styles.customDropItem,
+                                                        index === rolesList.length - 1 && { borderBottomWidth: 0 },
+                                                        role === r.value && { backgroundColor: "rgba(255,255,255,0.12)" }
+                                                    ]}
+                                                    onPress={() => {
+                                                        setRole(r.value);
+                                                        setRoleOpen(false);
+                                                    }}
+                                                >
+                                                    <Text style={[styles.customDropText, role === r.value && { color: Colors.accent }]}>{r.label}</Text>
+                                                    {role === r.value && <MaterialCommunityIcons name="check" size={16} color={Colors.accent} />}
+                                                </TouchableOpacity>
+                                            ))}
+                                        </ScrollView>
+                                    </View>
+                                )}
+                            </View>
+
+                            <Animated.View style={{ transform: [{ scale: btnScale }] }}>
+                                <TouchableOpacity
+                                    style={styles.loginBtn}
+                                    onPress={handleCreateUser}
+                                    disabled={loading}
+                                    activeOpacity={0.9}
+                                >
+                                    {loading ? (
+                                        <ActivityIndicator size="small" color={Colors.white} />
+                                    ) : (
+                                        <Text style={styles.loginText}>Create User</Text>
+                                    )}
+                                </TouchableOpacity>
+                            </Animated.View>
+                        </Animated.View>
+                    </ScrollView>
+                </Animated.View>
+
+                <CustomAlert
+                    visible={alertVisible}
+                    title={alertTitle}
+                    message={alertMessage}
+                    onClose={() => setAlertVisible(false)}
+                />
+                <FullScreenLoader visible={loading} label="Creating User..." />
+            </SafeAreaView>
         </LinearGradient>
     );
 }
@@ -362,20 +366,36 @@ const styles = StyleSheet.create({
     container: { flex: 1 },
     pageWrapper: { flex: 1 },
     scrollContent: { flexGrow: 1, justifyContent: 'center', paddingVertical: 20 * scale },
-    header: { alignItems: "center", marginBottom: 20 * scale, marginTop: 40 * scale },
-    backBtn: { alignSelf: 'flex-start', marginLeft: 20, marginBottom: 10 },
+    header: { 
+        width: '100%',
+        flexDirection: 'row',
+        alignItems: "center", 
+        justifyContent: 'center',
+        marginBottom: 20 * scale, 
+        marginTop: 10 * scale,
+        minHeight: 64 * scale,
+    },
+    backBtn: { 
+        position: 'absolute',
+        left: 10 * scale,
+        top: 10 * scale,
+        zIndex: 99,
+        padding: 10 * scale,
+    },
     logoContainer: {
         width: 64 * scale, height: 64 * scale, borderRadius: 18 * scale,
-        backgroundColor: Colors.button_bg, justifyContent: 'center', alignItems: 'center',    },
+        backgroundColor: Colors.primary, justifyContent: 'center', alignItems: 'center',
+    },
     logoText: { fontSize: 32 * scale, fontFamily: Fonts.Bold, color: Colors.white },
-    appName: { fontSize: 24 * scale, fontFamily: Fonts.Bold, color: Colors.text_primary, letterSpacing: 0.5 },
+    appName: { fontSize: 24 * scale, fontFamily: Fonts.Bold, color: Colors.primary, letterSpacing: 0.5 },
     card: {
-        marginHorizontal: 16 * scale, backgroundColor: Colors.secondary, borderRadius: 24 * scale,
-        padding: 16 * scale,     },
+        marginHorizontal: 16 * scale, backgroundColor: Colors.beige, borderRadius: 24 * scale,
+        padding: 16 * scale,
+    },
     welcome: { fontSize: 22 * scale, fontFamily: Fonts.Bold, textAlign: "center", color: Colors.primary },
     subTitle: { fontSize: 13 * scale, fontFamily: Fonts.Medium, color: Colors.text_secondary, textAlign: "center", marginTop: 6 * scale, marginBottom: 20 * scale },
     inputContainer: { marginBottom: 16 * scale },
-    label: { fontSize: 13 * scale, fontFamily: Fonts.Bold, color: Colors.text_primary, marginBottom: 6 * scale, marginLeft: 4 * scale },
+    label: { fontSize: 13 * scale, fontFamily: Fonts.Bold, color: Colors.black, marginBottom: 6 * scale, marginLeft: 4 * scale },
     errorText: {
         fontSize: 12 * scale,
         fontFamily: Fonts.Medium,
@@ -390,8 +410,9 @@ const styles = StyleSheet.create({
     inputIcon: { marginRight: 10 * scale },
     input: { flex: 1, fontSize: 15 * scale, color: Colors.black, fontFamily: Fonts.Medium, padding: 0 },
     loginBtn: {
-        backgroundColor: Colors.button_bg, borderRadius: 25 * scale, height: 50 * scale,
-        justifyContent: "center", alignItems: "center",     },
+        backgroundColor: Colors.primary, borderRadius: 25 * scale, height: 50 * scale,
+        justifyContent: "center", alignItems: "center",
+    },
     loginText: { color: Colors.white, fontSize: 16 * scale, fontFamily: Fonts.Bold, letterSpacing: 0.5 },
     circle1: {
         position: 'absolute', width: 250 * scale, height: 250 * scale, borderRadius: 125 * scale,
@@ -402,9 +423,10 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.circle_bg, bottom: -40 * scale, left: -40 * scale,
     },
     customDropContainer: {
-        backgroundColor: Colors.button_bg,
+        backgroundColor: Colors.primary,
         borderRadius: 16 * scale,
-        marginTop: 6 * scale,        overflow: 'hidden',
+        marginTop: 6 * scale,
+        overflow: 'hidden',
     },
     customDropItem: {
         flexDirection: 'row',
@@ -413,7 +435,7 @@ const styles = StyleSheet.create({
         paddingVertical: 14 * scale,
         paddingHorizontal: 16 * scale,
         borderBottomWidth: 1,
-        borderBottomColor: Colors.whiteOpacity_12,
+        borderBottomColor: "rgba(255,255,255,0.12)",
     },
     customDropText: {
         fontSize: 14 * scale,

@@ -14,7 +14,7 @@ import Colors from '../../constants/Colors';
 const { width } = Dimensions.get('window');
 
 // ─── SVG-style icons as unicode / emoji fallback ───────────────────────────
-const Icon = ({ name, size = 28, color = '#fff' }) => {
+const Icon = ({ name, size = 28, color = 'rgb(255, 255, 255)' }) => {
     const icons = {
         camera: '📷',
         gallery: '🖼️',
@@ -127,21 +127,21 @@ export const ImageUploadAlert = ({ visible, onClose, onCamera, onGallery, onFile
                     <OptionButton
                         icon="camera"
                         label="Camera"
-                        accentColor="#3B82F6"
+                        accentColor="rgb(59, 130, 246)"
                         delay={60}
                         onPress={() => handleOption(onCamera)}
                     />
                     <OptionButton
                         icon="gallery"
                         label="Gallery"
-                        accentColor="#10B981"
+                        accentColor="rgb(16, 185, 129)"
                         delay={120}
                         onPress={() => handleOption(onGallery)}
                     />
                     <OptionButton
                         icon="file"
                         label="Files"
-                        accentColor="#8B5CF6"
+                        accentColor="rgb(139, 92, 246)"
                         delay={180}
                         onPress={() => handleOption(onFile)}
                     />
@@ -166,36 +166,37 @@ const styles = StyleSheet.create({
     // Demo screen
     screen: {
         flex: 1,
-        backgroundColor: '#0F172A',
+        backgroundColor: 'rgb(15, 23, 42)',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 24,
     },
     bgCircle1: {
         position: 'absolute', width: 320, height: 320, borderRadius: 160,
-        backgroundColor: '#6D28D920', top: -80, right: -80,
+        backgroundColor: 'rgb(109, 40, 217)20', top: -80, right: -80,
     },
     bgCircle2: {
         position: 'absolute', width: 220, height: 220, borderRadius: 110,
-        backgroundColor: '#0EA5E915', bottom: 40, left: -60,
+        backgroundColor: 'rgb(14, 165, 233)15', bottom: 40, left: -60,
     },
     appTitle: {
-        fontSize: 32, fontWeight: '800', color: '#F1F5F9',
+        fontSize: 32, fontWeight: '800', color: 'rgb(241, 245, 249)',
         letterSpacing: -0.5, marginBottom: 6,
     },
     appSub: {
-        fontSize: 14, color: '#64748B', marginBottom: 32,
+        fontSize: 14, color: 'rgb(100, 116, 139)', marginBottom: 32,
     },
     resultBadge: {
-        backgroundColor: '#34D39915', borderWidth: 1, borderColor: '#34D39940',
+        backgroundColor: 'rgb(52, 211, 153)15', borderWidth: 1, borderColor: 'rgb(52, 211, 153)40',
         borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8, marginBottom: 24,
     },
     triggerBtn: {
         flexDirection: 'row', alignItems: 'center', gap: 10,
-        backgroundColor: '#A78BFA', paddingHorizontal: 32, paddingVertical: 16,
-        borderRadius: 16, shadowColor: '#A78BFA', shadowOffset: { width: 0, height: 8 },    },
+        backgroundColor: 'rgb(167, 139, 250)', paddingHorizontal: 32, paddingVertical: 16,
+        borderRadius: 16, shadowColor: 'rgb(167, 139, 250)', shadowOffset: { width: 0, height: 8 },
+    },
     triggerTxt: {
-        color: '#0F172A', fontWeight: '700', fontSize: 16, letterSpacing: 0.2,
+        color: 'rgb(15, 23, 42)', fontWeight: '700', fontSize: 16, letterSpacing: 0.2,
     },
 
     // Alert Sheet
@@ -205,13 +206,14 @@ const styles = StyleSheet.create({
     },
     sheet: {
         position: 'absolute', bottom: 0, left: 0, right: 0,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: 'rgb(255, 255, 255)',
         borderTopLeftRadius: 32, borderTopRightRadius: 32,
         paddingHorizontal: 24, paddingTop: 12,
-        paddingBottom: 20,    },
+        paddingBottom: 20,
+    },
     handle: {
         alignSelf: 'center', width: 36, height: 4,
-        backgroundColor: '#E5E7EB', borderRadius: 2, marginBottom: 20,
+        backgroundColor: 'rgb(229, 231, 235)', borderRadius: 2, marginBottom: 20,
     },
     header: {
         flexDirection: 'row', alignItems: 'center',
@@ -220,17 +222,17 @@ const styles = StyleSheet.create({
     headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 14 },
     uploadIconBg: {
         width: 48, height: 48, borderRadius: 14,
-        backgroundColor: '#F3F4F6',
+        backgroundColor: 'rgb(243, 244, 246)',
         alignItems: 'center', justifyContent: 'center',
     },
-    title: { color: '#111827', fontSize: 20, fontWeight: '800', letterSpacing: -0.5 },
-    subtitle: { color: '#6B7280', fontSize: 13, marginTop: 2 },
+    title: { color: 'rgb(17, 24, 39)', fontSize: 20, fontWeight: '800', letterSpacing: -0.5 },
+    subtitle: { color: 'rgb(107, 114, 128)', fontSize: 13, marginTop: 2 },
     closeBtn: {
         width: 32, height: 32, borderRadius: 16,
-        backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center',
+        backgroundColor: 'rgb(243, 244, 246)', alignItems: 'center', justifyContent: 'center',
     },
-    closeTxt: { color: '#9CA3AF', fontSize: 12, fontWeight: 'bold' },
-    divider: { height: 1.5, backgroundColor: '#F3F4F6', marginBottom: 24 },
+    closeTxt: { color: 'rgb(156, 163, 175)', fontSize: 12, fontWeight: 'bold' },
+    divider: { height: 1.5, backgroundColor: 'rgb(243, 244, 246)', marginBottom: 24 },
 
     // Options Row Layout
     optionsRow: {
@@ -255,7 +257,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     optionLabel: {
-        color: '#374151',
+        color: 'rgb(55, 65, 81)',
         fontSize: 13,
         fontWeight: '700',
         textAlign: 'center',
@@ -263,10 +265,10 @@ const styles = StyleSheet.create({
 
     cancelBtn: {
         alignItems: 'center', paddingVertical: 15,
-        borderRadius: 16, backgroundColor: '#334155',
+        borderRadius: 16, backgroundColor: 'rgb(51, 65, 85)',
     },
     cancelTxt: {
-        color: '#FFFFFF',
+        color: 'rgb(255, 255, 255)',
         fontWeight: '700',
         fontSize: 15,
     },

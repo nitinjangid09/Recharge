@@ -116,15 +116,15 @@ const downloadReceipt = async (item) => {
     try { RNHTMLtoPDF = require('react-native-html-to-pdf').default; } catch (_) { }
     if (RNHTMLtoPDF) {
       const html = `<html><head><meta charset="utf-8"/><style>
-        body{font-family:Arial,sans-serif;padding:32px;color:#1a1a1a;}
-        .header{text-align:center;margin-bottom:24px;border-bottom:2px solid #eee;padding-bottom:16px;}
-        .title{font-size:20px;font-weight:900;color:${Colors.primary};}.subtitle{font-size:12px;color:#888;}
+        body{font-family:Arial,sans-serif;padding:32px;color:rgb(26, 26, 26);}
+        .header{text-align:center;margin-bottom:24px;border-bottom:2px solid rgb(238, 238, 238);padding-bottom:16px;}
+        .title{font-size:20px;font-weight:900;color:${Colors.primary};}.subtitle{font-size:12px;color:rgb(136, 136, 136);}
         .badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:800;
-          background:${isDebit ? Colors.amberOpacity_10 : Colors.successOpacity_10};color:${isDebit ? Colors.hex_D97706 : Colors.success};}
-        .amount{font-size:36px;font-weight:900;color:${isDebit ? Colors.hex_D97706 : Colors.success};margin:12px 0;}
-        table{width:100%;border-collapse:collapse;margin-top:16px;}tr{border-bottom:1px solid #f0f0f0;}
-        td{padding:10px 0;font-size:13px;}td:first-child{color:#888;width:40%;}td:last-child{font-weight:700;}
-        .footer{text-align:center;margin-top:32px;font-size:10px;color:#aaa;}
+          background:${isDebit ? "rgba(245,158,11,0.10)" : "rgba(34,197,94,0.10)"};color:${isDebit ? Colors.kyc_warning : Colors.green};}
+        .amount{font-size:36px;font-weight:900;color:${isDebit ? Colors.kyc_warning : Colors.green};margin:12px 0;}
+        table{width:100%;border-collapse:collapse;margin-top:16px;}tr{border-bottom:1px solid rgb(240, 240, 240);}
+        td{padding:10px 0;font-size:13px;}td:first-child{color:rgb(136, 136, 136);width:40%;}td:last-child{font-weight:700;}
+        .footer{text-align:center;margin-top:32px;font-size:10px;color:rgb(170, 170, 170);}
       </style></head><body>
         <div class="header"><div class="title">Wallet Transaction Receipt</div><div class="subtitle">${dateStr}</div></div>
         <div style="text-align:center;margin:16px 0;"><div class="badge">${typeLabel}</div><div class="amount">${amtPrefix}${item.amount?.toFixed(2)}</div></div>
@@ -241,8 +241,8 @@ const FilterSheet = ({ visible, onClose, onApply, activeFilters, startDate, endD
                   style={[FST.navItem, isActive && FST.navItemActive]}
                   onPress={() => setActiveSection(sec.key)}
                   activeOpacity={0.7}>
-                  <View style={[FST.navIconBox, isActive && { backgroundColor: Colors.amberOpacity_15 }]}>
-                    <Icon name={sec.icon} size={rs(15)} color={isActive ? Colors.finance_accent : (Colors.text_placeholder || "#999")} />
+                  <View style={[FST.navIconBox, isActive && { backgroundColor: "rgba(245,158,11,0.15)" }]}>
+                    <Icon name={sec.icon} size={rs(15)} color={isActive ? Colors.finance_accent : (Colors.gray || "rgb(153, 153, 153)")} />
                   </View>
                   <Text style={[FST.navTxt, isActive && FST.navTxtActive]}>
                     {sec.label.split(' ')[0]}
@@ -272,11 +272,11 @@ const FilterSheet = ({ visible, onClose, onApply, activeFilters, startDate, endD
                   style={[FST.optRow, isSel && FST.optRowActive]}
                   onPress={() => setLocal(p => ({ ...p, [currentSection.stateKey]: opt.key }))}
                   activeOpacity={0.7}>
-                  <View style={[FST.optIconBox, isSel && { backgroundColor: Colors.goldDim }]}>
+                  <View style={[FST.optIconBox, isSel && { backgroundColor: "rgba(245,158,11,0.15)" }]}>
                     {opt.icon ? (
-                      <Icon name={opt.icon} size={rs(14)} color={isSel ? Colors.finance_accent : (Colors.text_placeholder || "#999")} />
+                      <Icon name={opt.icon} size={rs(14)} color={isSel ? Colors.finance_accent : (Colors.gray || "rgb(153, 153, 153)")} />
                     ) : (
-                      <View style={{ width: rs(14), height: rs(14), borderRadius: rs(7), backgroundColor: isSel ? Colors.finance_accent : Colors.text_placeholder, alignItems: 'center', justifyContent: 'center' }}>
+                      <View style={{ width: rs(14), height: rs(14), borderRadius: rs(7), backgroundColor: isSel ? Colors.finance_accent : Colors.gray, alignItems: 'center', justifyContent: 'center' }}>
                         <Text style={{ fontSize: rs(8), color: Colors.white, fontFamily: Fonts.Bold }}>{String(opt.label).charAt(0)}</Text>
                       </View>
                     )}
@@ -308,39 +308,39 @@ const FilterSheet = ({ visible, onClose, onApply, activeFilters, startDate, endD
 };
 
 const FST = StyleSheet.create({
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: Colors.blackOpacity_55 },
+  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.55)" },
   sheet: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     backgroundColor: Colors.white,
     borderTopLeftRadius: sc(24), borderTopRightRadius: sc(24),
     maxHeight: SH * 0.78,
   },
-  handle: { width: sc(32), height: vs(4), backgroundColor: Colors.blackOpacity_12, borderRadius: 2, alignSelf: 'center', marginTop: vs(10), marginBottom: vs(2) },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: sc(20), paddingVertical: vs(14), borderBottomWidth: 1, borderBottomColor: Colors.border },
-  title: { fontSize: rs(17), fontFamily: Fonts.Bold, color: Colors.text_primary },
-  resetBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: sc(12), paddingVertical: vs(6), borderRadius: sc(8), backgroundColor: Colors.amberOpacity_15 },
+  handle: { width: sc(32), height: vs(4), backgroundColor: "rgba(0,0,0,0.12)", borderRadius: 2, alignSelf: 'center', marginTop: vs(10), marginBottom: vs(2) },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: sc(20), paddingVertical: vs(14), borderBottomWidth: 1, borderBottomColor: Colors.input_border },
+  title: { fontSize: rs(17), fontFamily: Fonts.Bold, color: Colors.black },
+  resetBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: sc(12), paddingVertical: vs(6), borderRadius: sc(8), backgroundColor: "rgba(245,158,11,0.15)" },
   resetTxt: { fontSize: rs(12), fontFamily: Fonts.Bold, color: Colors.kyc_accent },
   body: { flexDirection: 'row', flex: 1, maxHeight: SH * 0.52 },
-  navCol: { width: sc(82), borderRightWidth: 1, borderRightColor: Colors.border, paddingTop: vs(10) },
+  navCol: { width: sc(82), borderRightWidth: 1, borderRightColor: Colors.input_border, paddingTop: vs(10) },
   navItem: { paddingVertical: vs(18), alignItems: 'center', paddingHorizontal: sc(6) },
-  navItemActive: { backgroundColor: Colors.surfaceMid },
-  navIconBox: { width: sc(34), height: sc(34), borderRadius: sc(10), backgroundColor: Colors.surfaceMid, alignItems: 'center', justifyContent: 'center', marginBottom: vs(5) },
-  navTxt: { fontSize: rs(9), fontFamily: Fonts.Medium, color: Colors.text_placeholder, textAlign: 'center', letterSpacing: 0.3 },
+  navItemActive: { backgroundColor: Colors.white },
+  navIconBox: { width: sc(34), height: sc(34), borderRadius: sc(10), backgroundColor: Colors.white, alignItems: 'center', justifyContent: 'center', marginBottom: vs(5) },
+  navTxt: { fontSize: rs(9), fontFamily: Fonts.Medium, color: Colors.gray, textAlign: 'center', letterSpacing: 0.3 },
   navTxtActive: { color: Colors.kyc_accent, fontFamily: Fonts.Bold },
   navDot: { position: 'absolute', top: vs(12), right: sc(10), width: sc(6), height: sc(6), borderRadius: sc(3), backgroundColor: Colors.gold },
   optCol: { flex: 1, paddingHorizontal: sc(14) },
-  optSectionLabel: { fontSize: rs(9), fontFamily: Fonts.Bold, color: Colors.text_placeholder, letterSpacing: 1.2, marginBottom: vs(10), textTransform: 'uppercase' },
+  optSectionLabel: { fontSize: rs(9), fontFamily: Fonts.Bold, color: Colors.gray, letterSpacing: 1.2, marginBottom: vs(10), textTransform: 'uppercase' },
   optRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: vs(12), gap: sc(10), borderRadius: sc(10), paddingHorizontal: sc(4) },
-  optRowActive: { backgroundColor: Colors.goldDim, marginHorizontal: -sc(4), paddingHorizontal: sc(8) },
-  optIconBox: { width: sc(32), height: sc(32), borderRadius: sc(9), backgroundColor: Colors.surfaceMid, alignItems: 'center', justifyContent: 'center' },
+  optRowActive: { backgroundColor: "rgba(245,158,11,0.15)", marginHorizontal: -sc(4), paddingHorizontal: sc(8) },
+  optIconBox: { width: sc(32), height: sc(32), borderRadius: sc(9), backgroundColor: Colors.white, alignItems: 'center', justifyContent: 'center' },
   optTxt: { flex: 1, fontSize: rs(13), fontFamily: Fonts.Medium, color: Colors.text_secondary },
   optTxtActive: { color: Colors.kyc_accent, fontFamily: Fonts.Bold },
-  radioOff: { width: sc(18), height: sc(18), borderRadius: sc(9), borderWidth: 1.5, borderColor: Colors.border },
+  radioOff: { width: sc(18), height: sc(18), borderRadius: sc(9), borderWidth: 1.5, borderColor: Colors.input_border },
   radioOn: { width: sc(18), height: sc(18), borderRadius: sc(9), borderWidth: 2, borderColor: Colors.gold, alignItems: 'center', justifyContent: 'center' },
   radioInner: { width: sc(8), height: sc(8), borderRadius: sc(4), backgroundColor: Colors.gold },
   customDateRow: { flexDirection: 'row', alignItems: 'center', marginBottom: vs(16), paddingHorizontal: sc(4) },
-  footer: { paddingHorizontal: sc(20), paddingTop: vs(12), paddingBottom: Platform.OS === 'ios' ? vs(34) : vs(16), borderTopWidth: 1, borderTopColor: Colors.border },
-  applyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.headerBg, borderRadius: sc(14), paddingVertical: vs(15) },
+  footer: { paddingHorizontal: sc(20), paddingTop: vs(12), paddingBottom: Platform.OS === 'ios' ? vs(34) : vs(16), borderTopWidth: 1, borderTopColor: Colors.input_border },
+  applyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primary, borderRadius: sc(14), paddingVertical: vs(15) },
   applyTxt: { color: Colors.white, fontSize: rs(14), fontFamily: Fonts.Bold },
   badge: { marginLeft: sc(8), backgroundColor: Colors.gold, minWidth: sc(20), height: sc(20), borderRadius: sc(10), alignItems: 'center', justifyContent: 'center', paddingHorizontal: sc(4) },
   badgeTxt: { color: Colors.black, fontSize: rs(9), fontFamily: Fonts.Bold },
@@ -357,7 +357,7 @@ const DateFilterBtn = ({ label, date, onPress }) => {
           <Text style={S.datePillLabel}>{label}</Text>
           <Text style={S.datePillValue}>{formatDisplay(date)}</Text>
         </View>
-        <Icon name="chevron-down" size={rs(13)} color={Colors.text_placeholder} />
+        <Icon name="chevron-down" size={rs(13)} color={Colors.gray} />
       </TouchableOpacity>
     </Animated.View>
   );
@@ -414,10 +414,10 @@ const SummaryStrip = ({ data, fromDate, toDate, walletStats }) => {
   const refundCount = walletStats?.refund?.count ?? 0;
 
   const cards = [
-    { id: 'credit', title: 'TOTAL CREDIT', icon: 'arrow-down', iconColor: Colors.finance_success, bg: 'rgba(16,185,129,0.12)', val: totalCredit, sub: `Commissions: ₹${totalComm.toFixed(2)}` },
+    { id: 'credit', title: 'TOTAL CREDIT', icon: 'arrow-down', iconColor: Colors.green, bg: 'rgba(16,185,129,0.12)', val: totalCredit, sub: `Commissions: ₹${totalComm.toFixed(2)}` },
     { id: 'debit', title: 'TOTAL DEBIT', icon: 'arrow-up', iconColor: Colors.blue, bg: 'rgba(59,130,246,0.12)', val: totalDebit, sub: `Charges: ₹${(walletStats?.totalCharges ?? 0).toFixed(2)}` },
-    { id: 'success', title: 'SUCCESS', icon: 'check-circle', iconColor: Colors.finance_success, bg: 'rgba(16,185,129,0.12)', val: successAmt, sub: `${successCount} Transactions` },
-    { id: 'failed', title: 'FAILED', icon: 'close-circle', iconColor: Colors.hex_D97706, bg: 'rgba(217,119,6,0.12)', val: failedAmt, sub: `${failedCount} Transactions` },
+    { id: 'success', title: 'SUCCESS', icon: 'check-circle', iconColor: Colors.green, bg: 'rgba(16,185,129,0.12)', val: successAmt, sub: `${successCount} Transactions` },
+    { id: 'failed', title: 'FAILED', icon: 'close-circle', iconColor: Colors.kyc_warning, bg: 'rgba(217,119,6,0.12)', val: failedAmt, sub: `${failedCount} Transactions` },
     { id: 'refund', title: 'REFUNDED', icon: 'keyboard-return', iconColor: Colors.kyc_accent, bg: 'rgba(139,92,246,0.12)', val: refundAmt, sub: `${refundCount} Transactions` }
   ];
 
@@ -447,14 +447,14 @@ const SummaryStrip = ({ data, fromDate, toDate, walletStats }) => {
 
 const SS = StyleSheet.create({
   wrap: { marginHorizontal: sc(14), marginBottom: vs(10), backgroundColor: Colors.white, borderRadius: sc(16), overflow: 'hidden' },
-  rangeRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: sc(16), paddingVertical: vs(10), borderBottomWidth: 1, borderBottomColor: Colors.border },
-  rangeTxt: { fontSize: rs(13), fontFamily: Fonts.Bold, color: Colors.text_primary },
+  rangeRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: sc(16), paddingVertical: vs(10), borderBottomWidth: 1, borderBottomColor: Colors.input_border },
+  rangeTxt: { fontSize: rs(13), fontFamily: Fonts.Bold, color: Colors.black },
   scrollContainer: { paddingHorizontal: sc(16), paddingVertical: vs(14), gap: sc(12) },
-  card: { width: sc(130), backgroundColor: Colors.white, borderRadius: sc(12), padding: sc(12), borderWidth: 1, borderColor: Colors.border },
+  card: { width: sc(130), backgroundColor: Colors.white, borderRadius: sc(12), padding: sc(12), borderWidth: 1, borderColor: Colors.input_border },
   cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: vs(10) },
   cardIconBg: { width: sc(28), height: sc(28), borderRadius: sc(8), alignItems: 'center', justifyContent: 'center', marginRight: sc(8) },
-  cardTitle: { fontSize: rs(9), fontFamily: Fonts.Bold, color: Colors.text_placeholder, letterSpacing: 0.5 },
-  cardValue: { fontSize: rs(15), fontFamily: Fonts.Black, color: Colors.text_primary, marginBottom: vs(4) },
+  cardTitle: { fontSize: rs(9), fontFamily: Fonts.Bold, color: Colors.gray, letterSpacing: 0.5 },
+  cardValue: { fontSize: rs(15), fontFamily: Fonts.Black, color: Colors.black, marginBottom: vs(4) },
   cardSub: { fontSize: rs(9), fontFamily: Fonts.Medium, color: Colors.text_secondary }
 });
 
@@ -749,11 +749,11 @@ const WalletTransactionScreen = ({ navigation, route, isInnerTab }) => {
 
   return (
     <SafeAreaView style={S.safe} edges={isInnerTab ? [] : ['top']}>
-      {!isInnerTab && <StatusBar barStyle="light-content" backgroundColor={Colors.headerBg} />}
+      {!isInnerTab && <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />}
       {!isInnerTab && <HeaderBar title="Wallet Ledger" onBack={() => navigation?.goBack()} />}
       {!!error && (
         <View style={S.errorBanner}>
-          <Icon name="alert-circle-outline" size={rs(15)} color="#DC2626" style={{ marginRight: sc(8) }} />
+          <Icon name="alert-circle-outline" size={rs(15)} color={Colors.error_dark} style={{ marginRight: sc(8) }} />
           <Text style={S.errorTxt}>{error}</Text>
           <TouchableOpacity onPress={() => handleSearch()} style={S.retryBtn}><Text style={S.retryTxt}>Retry</Text></TouchableOpacity>
         </View>
@@ -803,7 +803,7 @@ const WalletTransactionScreen = ({ navigation, route, isInnerTab }) => {
         status: detailItem.isRefunded ? "pending" : "success",
         title: detailItem.description, amount: detailItem.amount?.toFixed(2), date: detailItem.date, txn_ref: detailItem.txnId,
         details: [
-          { label: "Status", value: detailItem.isRefunded ? 'Refunded' : (detailItem.type === 'debit' ? 'Debited' : 'Credited'), isStatusPill: true, color: detailItem.isRefunded ? Colors.finance_accent : (detailItem.type === 'debit' ? Colors.amber : Colors.finance_success) },
+          { label: "Status", value: detailItem.isRefunded ? 'Refunded' : (detailItem.type === 'debit' ? 'Debited' : 'Credited'), isStatusPill: true, color: detailItem.isRefunded ? Colors.finance_accent : (detailItem.type === 'debit' ? Colors.amber : Colors.green) },
           { label: "Reference ID", value: detailItem.txnId ?? '—', small: true },
           { label: "Transaction Type", value: detailItem.type === 'debit' ? 'Debit' : 'Credit' },
           { label: "Wallet", value: detailItem.wallet?.toUpperCase() ?? 'MAIN' },
@@ -837,17 +837,17 @@ const ListHeader = ({
   <View>
     <View style={S.sfRow}>
       <View style={S.sfSearchBox}>
-        <Icon name="magnify" size={rs(18)} color={Colors.hex_C79A3F} style={{ marginRight: sc(10) }} />
+        <Icon name="magnify" size={rs(18)} color={Colors.finance_accent} style={{ marginRight: sc(10) }} />
         <TextInput
           style={S.sfInput}
           placeholder="Search by user or service..."
-          placeholderTextColor={Colors.text_placeholder}
+          placeholderTextColor={Colors.gray}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
         {!!searchQuery && (
           <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Icon name="close-circle" size={rs(16)} color={Colors.text_placeholder} />
+            <Icon name="close-circle" size={rs(16)} color={Colors.gray} />
           </TouchableOpacity>
         )}
       </View>
@@ -873,65 +873,65 @@ const ListHeader = ({
 
 const MONO = Platform.select({ ios: 'Courier New', android: 'monospace' });
 const CARD_S = StyleSheet.create({
-  card: { backgroundColor: Colors.white, borderRadius: 18, borderWidth: 1, borderColor: Colors.blackOpacity_05, overflow: 'hidden', marginBottom: 14, marginHorizontal: 16, elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4 },
-  cardHeader: { backgroundColor: Colors.white, paddingHorizontal: 18, paddingVertical: 14, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: Colors.blackOpacity_05 },
+  card: { backgroundColor: Colors.white, borderRadius: 18, borderWidth: 1, borderColor: "rgba(0,0,0,0.05)", overflow: 'hidden', marginBottom: 14, marginHorizontal: 16, elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4 },
+  cardHeader: { backgroundColor: Colors.white, paddingHorizontal: 18, paddingVertical: 14, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: "rgba(0,0,0,0.05)" },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  logoPill: { width: 40, height: 40, borderRadius: 12, backgroundColor: Colors.bg, borderWidth: 1, borderColor: Colors.finance_accent + '30', alignItems: 'center', justifyContent: 'center' },
+  logoPill: { width: 40, height: 40, borderRadius: 12, backgroundColor: Colors.beige, borderWidth: 1, borderColor: Colors.finance_accent + '30', alignItems: 'center', justifyContent: 'center' },
   logoText: { fontSize: 12, fontWeight: '800', color: Colors.finance_accent, letterSpacing: 0.5 },
   typeCol: { flexDirection: 'column', gap: 3 },
   typeLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 0.8 },
-  typeLabelCredit: { color: Colors.success },
-  typeLabelDebit: { color: Colors.error },
+  typeLabelCredit: { color: Colors.green },
+  typeLabelDebit: { color: Colors.red },
   txnRef: { fontSize: 11, color: Colors.text_secondary, fontFamily: MONO },
   amountCol: { marginLeft: 'auto', alignItems: 'flex-end' },
   amountVal: { fontSize: 20, fontWeight: '800', letterSpacing: -0.5 },
-  amountCredit: { color: Colors.success },
-  amountDebit: { color: Colors.error },
+  amountCredit: { color: Colors.green },
+  amountDebit: { color: Colors.red },
   amountDate: { fontSize: 11, color: Colors.text_secondary, marginTop: 1 },
   body: { paddingHorizontal: 18, paddingVertical: 4 },
   section: { paddingVertical: 11 },
   sectionRow: { flexDirection: 'row', gap: 12 },
   infoCell: { flex: 1 },
   field: { gap: 3 },
-  fieldLabel: { fontSize: 10, fontWeight: '600', color: Colors.text_placeholder, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 2 },
-  fieldValue: { fontSize: 13, fontWeight: '700', color: Colors.ink_main },
-  fieldMono: { fontFamily: MONO, fontSize: 12, fontWeight: '600', color: Colors.hex_374151 },
+  fieldLabel: { fontSize: 10, fontWeight: '600', color: Colors.gray, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 2 },
+  fieldValue: { fontSize: 13, fontWeight: '700', color: Colors.black },
+  fieldMono: { fontFamily: MONO, fontSize: 12, fontWeight: '600', color: "rgb(55, 65, 81)" },
   badge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, marginTop: 2 },
-  badgeCredit: { backgroundColor: Colors.successOpacity_10 },
-  badgeDebit: { backgroundColor: Colors.redOpacity_10 },
+  badgeCredit: { backgroundColor: "rgba(34,197,94,0.10)" },
+  badgeDebit: { backgroundColor: "rgba(239,68,68,0.10)" },
   badgeText: { fontSize: 10, fontWeight: '800' },
   badgeCreditText: { color: Colors.success_dark },
   badgeDebitText: { color: Colors.error_dark },
-  statStrip: { flexDirection: 'row', gap: 8, padding: 12, paddingHorizontal: 18, borderTopWidth: 1, borderTopColor: Colors.blackOpacity_05, backgroundColor: Colors.surfaceMid },
-  statCard: { flex: 1, backgroundColor: Colors.white, borderRadius: 10, padding: 10, borderWidth: 1, borderColor: Colors.blackOpacity_05 },
-  statLabel: { fontSize: 10, color: Colors.text_placeholder, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 3 },
-  statValue: { fontSize: 14, fontWeight: '800', color: Colors.ink_main },
+  statStrip: { flexDirection: 'row', gap: 8, padding: 12, paddingHorizontal: 18, borderTopWidth: 1, borderTopColor: "rgba(0,0,0,0.05)", backgroundColor: Colors.white },
+  statCard: { flex: 1, backgroundColor: Colors.white, borderRadius: 10, padding: 10, borderWidth: 1, borderColor: "rgba(0,0,0,0.05)" },
+  statLabel: { fontSize: 10, color: Colors.gray, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 3 },
+  statValue: { fontSize: 14, fontWeight: '800', color: Colors.black },
   greenText: { color: Colors.success_dark },
   redText: { color: Colors.error_dark },
-  actionRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 18, paddingBottom: 14, paddingTop: 6, backgroundColor: Colors.surfaceMid },
+  actionRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 18, paddingBottom: 14, paddingTop: 6, backgroundColor: Colors.white },
   btnView: { flex: 1, flexDirection: 'row', paddingVertical: 12, borderRadius: 12, backgroundColor: Colors.finance_accent, alignItems: 'center', justifyContent: 'center' },
   btnViewText: { fontSize: 13, fontWeight: '800', color: Colors.white, letterSpacing: 0.3 },
 });
 
 const S = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
+  safe: { flex: 1, backgroundColor: Colors.beige },
   sfRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: sc(14), marginTop: vs(14), marginBottom: vs(12), gap: sc(10) },
-  sfSearchBox: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: sc(12), paddingHorizontal: sc(14), borderWidth: 1, borderColor: Colors.border },
-  sfInput: { flex: 1, height: vs(46), fontSize: rs(13), color: Colors.text_primary, padding: 0, fontFamily: Fonts.Medium },
+  sfSearchBox: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: sc(12), paddingHorizontal: sc(14), borderWidth: 1, borderColor: Colors.input_border },
+  sfInput: { flex: 1, height: vs(46), fontSize: rs(13), color: Colors.black, padding: 0, fontFamily: Fonts.Medium },
   sfFilterBtn: { width: sc(48), height: sc(48), alignItems: 'center', justifyContent: 'center' },
-  sfFilterIconBox: { width: sc(44), height: sc(44), borderRadius: sc(12), backgroundColor: Colors.white, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: Colors.border, elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3 },
-  datePill: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: sc(10), paddingVertical: vs(10), paddingHorizontal: sc(10), borderWidth: 1.5, borderColor: Colors.hex_C79A3F },
-  datePillLabel: { color: Colors.text_placeholder, fontSize: rs(9), fontFamily: Fonts.Medium, marginBottom: vs(1) },
-  datePillValue: { color: Colors.text_primary, fontSize: rs(12), fontFamily: Fonts.Bold },
+  sfFilterIconBox: { width: sc(44), height: sc(44), borderRadius: sc(12), backgroundColor: Colors.white, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: Colors.input_border, elevation: 2, shadowColor: Colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3 },
+  datePill: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: sc(10), paddingVertical: vs(10), paddingHorizontal: sc(10), borderWidth: 1.5, borderColor: Colors.finance_accent },
+  datePillLabel: { color: Colors.gray, fontSize: rs(9), fontFamily: Fonts.Medium, marginBottom: vs(1) },
+  datePillValue: { color: Colors.black, fontSize: rs(12), fontFamily: Fonts.Bold },
   sectionRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: sc(14), marginBottom: vs(8) },
   sectionTxt: { flex: 1, color: Colors.black, fontSize: rs(10), fontFamily: Fonts.Bold, letterSpacing: 0.2 },
-  allPill: { backgroundColor: Colors.goldDim, borderRadius: sc(20), paddingHorizontal: sc(10), paddingVertical: vs(3), borderWidth: 1, borderColor: Colors.amberOpacity_15 },
-  allPillTxt: { color: Colors.hex_C79A3F, fontSize: rs(11), fontFamily: Fonts.Bold },
-  errorBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.redOpacity_10, borderLeftWidth: 4, borderLeftColor: '#DC2626', marginHorizontal: sc(16), marginTop: vs(8), paddingHorizontal: sc(12), paddingVertical: vs(8), borderRadius: sc(10) },
-  errorTxt: { flex: 1, color: '#DC2626', fontSize: rs(12), fontFamily: Fonts.Medium },
+  allPill: { backgroundColor: "rgba(245,158,11,0.15)", borderRadius: sc(20), paddingHorizontal: sc(10), paddingVertical: vs(3), borderWidth: 1, borderColor: "rgba(245,158,11,0.15)" },
+  allPillTxt: { color: Colors.finance_accent, fontSize: rs(11), fontFamily: Fonts.Bold },
+  errorBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: "rgba(239,68,68,0.10)", borderLeftWidth: 4, borderLeftColor: 'rgb(220, 38, 38)', marginHorizontal: sc(16), marginTop: vs(8), paddingHorizontal: sc(12), paddingVertical: vs(8), borderRadius: sc(10) },
+  errorTxt: { flex: 1, color: 'rgb(220, 38, 38)', fontSize: rs(12), fontFamily: Fonts.Medium },
   retryBtn: { marginLeft: sc(8) },
   retryTxt: { color: Colors.primary, fontSize: rs(12), fontFamily: Fonts.Bold },
   emptyWrap: { alignItems: 'center', paddingTop: vs(40), paddingBottom: vs(20) },
-  emptyTitle: { color: Colors.text_primary, fontSize: rs(15), fontFamily: Fonts.Bold, marginTop: vs(12), marginBottom: vs(4) },
+  emptyTitle: { color: Colors.black, fontSize: rs(15), fontFamily: Fonts.Bold, marginTop: vs(12), marginBottom: vs(4) },
   emptySub: { color: Colors.text_secondary, fontSize: rs(12), fontFamily: Fonts.Medium, textAlign: 'center', paddingHorizontal: sc(20) },
 });

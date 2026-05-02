@@ -60,7 +60,7 @@ const CommTable = ({ data, accentColor }) => (
                 ))}
                 {data.length === 0 && (
                     <View style={{ padding: 20, alignItems: 'center' }}>
-                        <MaterialCommunityIcons name="table-off" size={28} color={Colors.gray_BD} />
+                        <MaterialCommunityIcons name="table-off" size={28} color={Colors.gray} />
                         <Text style={{ fontSize: 12, color: Colors.text_secondary, marginTop: 8, fontFamily: Fonts.Medium }}>
                             No data found for this category
                         </Text>
@@ -256,7 +256,7 @@ export default function CommissionPlanScreen({ navigation }) {
 
             {loading ? null : error ? (
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-                    <Text style={{ color: Colors.finance_error, textAlign: 'center' }}>{error}</Text>
+                    <Text style={{ color: Colors.red, textAlign: 'center' }}>{error}</Text>
                     <TouchableOpacity onPress={() => fetchPlan()} style={{ marginTop: 12, paddingHorizontal: 20, paddingVertical: 10, backgroundColor: Colors.primary, borderRadius: 8 }}>
                         <Text style={{ color: Colors.white, fontWeight: '700', fontFamily: Fonts.Bold }}>Retry</Text>
                     </TouchableOpacity>
@@ -296,7 +296,7 @@ export default function CommissionPlanScreen({ navigation }) {
                         pipColor={Colors.primary}
                         pipeline={rechargePipeline}
                         color={{
-                            tagBg: Colors.finance_chip,
+                            tagBg: Colors.gold,
                             tagBorder: Colors.finance_accent,
                             tagText: Colors.primary,
                         }}
@@ -324,7 +324,7 @@ export default function CommissionPlanScreen({ navigation }) {
                         pipColor={Colors.black}
                         pipeline={bbpsPipeline}
                         color={{
-                            tagBg: Colors.finance_chip,
+                            tagBg: Colors.gold,
                             tagBorder: Colors.finance_accent,
                             tagText: Colors.black,
                         }}
@@ -414,7 +414,7 @@ export default function CommissionPlanScreen({ navigation }) {
                         <TextInput
                             style={s.searchInput}
                             placeholder="Search service structure..."
-                            placeholderTextColor={Colors.text_placeholder}
+                            placeholderTextColor={Colors.gray}
                             value={bbpsSearch}
                             onChangeText={setBbpsSearch}
                         />
@@ -432,16 +432,17 @@ export default function CommissionPlanScreen({ navigation }) {
 const s = StyleSheet.create({
     root: {
         flex: 1,
-        backgroundColor: Colors.bg,
+        backgroundColor: Colors.beige,
     },
     scroll: { flex: 1 },
     scrollContent: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 20 },
     planCard: {
-        backgroundColor: Colors.homebg,
+        backgroundColor: Colors.beige,
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: Colors.input_border,
         borderRadius: 18,
-        overflow: 'hidden',    },
+        overflow: 'hidden',
+    },
     planGradBar: {
         height: 4,
         backgroundColor: Colors.finance_accent,
@@ -455,7 +456,7 @@ const s = StyleSheet.create({
     planIcon: {
         width: 44,
         height: 44,
-        backgroundColor: Colors.finance_chip,
+        backgroundColor: Colors.gold,
         borderWidth: 1,
         borderColor: Colors.finance_accent,
         borderRadius: 14,
@@ -481,20 +482,20 @@ const s = StyleSheet.create({
         gap: 5,
         paddingHorizontal: 10,
         paddingVertical: 4,
-        backgroundColor: '#E8F5E9',
+        backgroundColor: 'rgb(232, 245, 233)',
         borderWidth: 1,
-        borderColor: Colors.finance_success,
+        borderColor: Colors.green,
         borderRadius: 100,
     },
     activeDot: {
         width: 5,
         height: 5,
         borderRadius: 3,
-        backgroundColor: Colors.finance_success,
+        backgroundColor: Colors.green,
     },
     activeTxt: {
         fontSize: 10,
-        color: Colors.finance_success,
+        color: Colors.green,
         letterSpacing: 0.7,
         fontFamily: Fonts.Bold,
         textTransform: 'uppercase',
@@ -533,7 +534,7 @@ const s = StyleSheet.create({
         flexDirection: 'row',
         backgroundColor: Colors.white,
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: Colors.input_border,
         borderRadius: 10,
         padding: 3,
         gap: 2,
@@ -544,7 +545,8 @@ const s = StyleSheet.create({
         borderRadius: 7,
     },
     segBtnOn: {
-        backgroundColor: Colors.primary,    },
+        backgroundColor: Colors.primary,
+    },
     segBtnTxt: {
         fontSize: 11,
         color: Colors.text_secondary,
@@ -559,12 +561,13 @@ const s = StyleSheet.create({
         borderColor: Colors.finance_accent,
         borderRadius: 14,
         overflow: 'hidden',
-        marginBottom: 4,    },
+        marginBottom: 4,
+    },
     tableHead: {
         flexDirection: 'row',
         paddingHorizontal: 14,
         paddingVertical: 9,
-        backgroundColor: Colors.homeSecondry,
+        backgroundColor: Colors.homeSecondary,
         borderBottomWidth: 1,
         borderBottomColor: Colors.finance_accent,
     },
@@ -583,7 +586,7 @@ const s = StyleSheet.create({
         paddingHorizontal: 14,
         paddingVertical: 10,
         borderBottomWidth: 1,
-        borderBottomColor: Colors.gray_EB,
+        borderBottomColor: "rgb(235, 235, 235)",
     },
     tdName: {
         flex: 1,
@@ -615,11 +618,11 @@ const s = StyleSheet.create({
         borderWidth: 1,
     },
     badgePercent: {
-        backgroundColor: Colors.finance_chip,
+        backgroundColor: Colors.gold,
         borderColor: Colors.finance_accent,
     },
     badgeFlat: {
-        backgroundColor: Colors.finance_chip,
+        backgroundColor: Colors.gold,
         borderColor: Colors.finance_accent,
     },
     badgeTxt: {
@@ -635,7 +638,7 @@ const s = StyleSheet.create({
     searchInput: {
         backgroundColor: Colors.white,
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: Colors.input_border,
         borderRadius: 10,
         paddingHorizontal: 12,
         paddingVertical: 8,
@@ -658,7 +661,8 @@ const s = StyleSheet.create({
         borderColor: Colors.finance_accent,
         borderRadius: 10,
         alignItems: 'center',
-        justifyContent: 'center',    },
+        justifyContent: 'center',
+    },
 
     // ── Search ──
     searchWrap: {
@@ -666,16 +670,17 @@ const s = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: Colors.white,
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: Colors.input_border,
         borderRadius: 12,
         paddingHorizontal: 12,
-        marginBottom: 10,    },
+        marginBottom: 10,
+    },
     searchIcon: { marginRight: 8 },
     searchInput: {
         flex: 1,
         paddingVertical: 10,
         fontSize: 14,
-        color: Colors.text_primary,
+        color: Colors.black,
         fontFamily: Fonts.Medium,
     },
     searchClear: { padding: 4 },
@@ -696,7 +701,7 @@ const s = StyleSheet.create({
     modalHandle: {
         width: 40,
         height: 4,
-        backgroundColor: Colors.gray_E0,
+        backgroundColor: Colors.kyc_border,
         borderRadius: 2,
         alignSelf: 'center',
         marginTop: 12,
@@ -721,7 +726,7 @@ const s = StyleSheet.create({
     modalCloseBtn: {
         width: 30,
         height: 30,
-        backgroundColor: Colors.gray_F0,
+        backgroundColor: "rgb(240, 240, 240)",
         borderRadius: 15,
         alignItems: 'center',
         justifyContent: 'center',
@@ -740,7 +745,7 @@ const s = StyleSheet.create({
         backgroundColor: Colors.white,
     },
     catItemOn: {
-        backgroundColor: Colors.finance_chip,
+        backgroundColor: Colors.gold,
     },
     catItemLeft: {
         flexDirection: 'row',

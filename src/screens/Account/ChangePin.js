@@ -45,9 +45,9 @@ const FloatPinInput = ({
 
   const labelTop = labelAnim.interpolate({ inputRange: [0, 1], outputRange: [18, 9] });
   const labelSize = labelAnim.interpolate({ inputRange: [0, 1], outputRange: [14, 10.5] });
-  const labelColor = labelAnim.interpolate({ inputRange: [0, 1], outputRange: [Colors.ink3, Colors.amber] });
+  const labelColor = labelAnim.interpolate({ inputRange: [0, 1], outputRange: ["rgb(95, 93, 91)", Colors.amber] });
   
-  let finalBorderColor = error ? Colors.red || "#C13B3B" : (success ? Colors.green : Colors.ink5);
+  let finalBorderColor = error ? Colors.red || Colors.red_profile : (success ? Colors.green : Colors.kyc_border);
   const borderColor = borderAnim.interpolate({ 
     inputRange: [0, 1], 
     outputRange: [finalBorderColor, success ? Colors.green : Colors.amber] 
@@ -59,7 +59,8 @@ const FloatPinInput = ({
         style={[
           styles.fField,
           {
-            borderColor,          },
+            borderColor,
+          },
         ]}
       >
         {/* Floating label */}
@@ -95,7 +96,7 @@ const FloatPinInput = ({
               <Icon
                 name={showSecure ? "eye-outline" : "eye-off-outline"}
                 size={14}
-                color={focused ? Colors.amber : Colors.ink4}
+                color={focused ? Colors.amber : Colors.text_secondary}
               />
           )}
         </TouchableOpacity>
@@ -245,7 +246,7 @@ const ChangePinScreen = ({ navigation }) => {
 
             {/* Tip box */}
             <View style={styles.tipBox}>
-              <Icon name="shield-outline" size={14} color={Colors.ink4} style={{ marginTop: 1 }} />
+              <Icon name="shield-outline" size={14} color={Colors.text_secondary} style={{ marginTop: 1 }} />
               <Text style={styles.tipText}>
                 Never share your PIN with anyone. Use a unique combination that's easy for you to remember but hard for others to guess.
               </Text>
@@ -288,12 +289,12 @@ export default ChangePinScreen;
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.bg,
+    backgroundColor: Colors.beige,
 
   },
   scroll: {
     flex: 1,
-    backgroundColor: Colors.bg,
+    backgroundColor: Colors.beige,
   },
   scrollContent: {
     paddingBottom: 48,
@@ -306,14 +307,14 @@ const styles = StyleSheet.create({
     paddingTop: 28,
     paddingBottom: 24,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.ink5,
-    backgroundColor: Colors.bg,
+    borderBottomColor: Colors.kyc_border,
+    backgroundColor: Colors.beige,
   },
   pwHeadIc: {
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: Colors.amberBg,
+    backgroundColor: Colors.warning_light,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 14,
@@ -328,7 +329,7 @@ const styles = StyleSheet.create({
   pwHeadSub: {
     fontFamily: Fonts.Regular,
     fontSize: 13,
-    color: Colors.ink3,
+    color: "rgb(95, 93, 91)",
     lineHeight: 19.5,
   },
 
@@ -347,7 +348,7 @@ const styles = StyleSheet.create({
     height: 56,
     backgroundColor: Colors.white,
     borderWidth: 1.5,
-    borderColor: Colors.ink5,
+    borderColor: Colors.kyc_border,
     borderRadius: 14,
     flexDirection: "row",
     alignItems: "center",
@@ -356,12 +357,12 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 14,
     fontFamily: Fonts.Regular,
-    color: Colors.ink3,
+    color: "rgb(95, 93, 91)",
   },
   fError: {
     fontFamily: Fonts.Medium,
     fontSize: 10,
-    color: Colors.red || "#C13B3B",
+    color: Colors.red || Colors.red_profile,
     marginTop: 4,
     marginLeft: 14,
   },
@@ -403,12 +404,13 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     borderWidth: 1.5,
-    borderColor: Colors.ink5,
+    borderColor: Colors.kyc_border,
     backgroundColor: "transparent",
   },
   pinDotOn: {
     backgroundColor: Colors.amber,
-    borderColor: Colors.amber,  },
+    borderColor: Colors.amber,
+  },
 
   /* ── Tip box ── */
   tipBox: {
@@ -419,13 +421,13 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginBottom: 0,
     borderWidth: 1,
-    borderColor: Colors.ink5,
+    borderColor: Colors.kyc_border,
   },
   tipText: {
     flex: 1,
     fontFamily: Fonts.Regular,
     fontSize: 12,
-    color: Colors.ink3,
+    color: "rgb(95, 93, 91)",
     lineHeight: 18,
   },
 
@@ -441,7 +443,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 7,  },
+    gap: 7,
+  },
   btnSolidTxt: {
     fontFamily: Fonts.SemiBold,
     fontSize: 14,

@@ -351,7 +351,7 @@ export default function Login({ navigation }) {
   const getBorderColor = (anim) =>
     anim.interpolate({
       inputRange: [0, 1],
-      outputRange: [Colors.input_border, Colors.input_border_focus],
+      outputRange: [Colors.input_border, Colors.primary],
     });
 
   const getInputScale = (anim) =>
@@ -412,12 +412,12 @@ export default function Login({ navigation }) {
             >
               <MaterialCommunityIcons
                 name="email" size={20}
-                color={focusedInput === "email" ? Colors.icon_primary : Colors.icon_secondary}
+                color={focusedInput === "email" ? Colors.black : Colors.gray}
                 style={styles.inputIcon}
               />
               <TextInput
                 placeholder="Enter Email Address"
-                placeholderTextColor={Colors.text_placeholder}
+                placeholderTextColor={Colors.gray}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 value={email}
@@ -451,12 +451,12 @@ export default function Login({ navigation }) {
             >
               <MaterialCommunityIcons
                 name="account" size={20}
-                color={focusedInput === "userName" ? Colors.icon_primary : Colors.icon_secondary}
+                color={focusedInput === "userName" ? Colors.black : Colors.gray}
                 style={styles.inputIcon}
               />
               <TextInput
                 placeholder="Enter User Name"
-                placeholderTextColor={Colors.text_placeholder}
+                placeholderTextColor={Colors.gray}
                 autoCapitalize="characters"
                 value={userName}
                 onChangeText={(text) => {
@@ -490,12 +490,12 @@ export default function Login({ navigation }) {
             >
               <MaterialCommunityIcons
                 name="lock" size={20}
-                color={focusedInput === "password" ? Colors.icon_primary : Colors.icon_secondary}
+                color={focusedInput === "password" ? Colors.black : Colors.gray}
                 style={styles.inputIcon}
               />
               <TextInput
                 placeholder="Enter Password"
-                placeholderTextColor={Colors.text_placeholder}
+                placeholderTextColor={Colors.gray}
                 secureTextEntry={!showPassword}
                 value={password}
                 onChangeText={(text) => {
@@ -620,17 +620,19 @@ const styles = StyleSheet.create({
   header: { alignItems: "center", marginBottom: 20 * scale, marginTop: 60 * scale },
   logoContainer: {
     width: 64 * scale, height: 64 * scale, borderRadius: 18 * scale,
-    backgroundColor: Colors.button_bg, justifyContent: "center", alignItems: "center",  },
+    backgroundColor: Colors.primary, justifyContent: "center", alignItems: "center",
+  },
   logoText: { fontSize: 32 * scale, fontFamily: Fonts.Bold, color: Colors.white },
   appName: {
     fontSize: 24 * scale, fontFamily: Fonts.Bold,
-    color: Colors.text_primary, letterSpacing: 0.5,
+    color: Colors.black, letterSpacing: 0.5,
   },
 
   // Card
   card: {
-    marginHorizontal: 16 * scale, backgroundColor: Colors.secondary,
-    borderRadius: 24 * scale, padding: 16 * scale,  },
+    marginHorizontal: 16 * scale, backgroundColor: Colors.beige,
+    borderRadius: 24 * scale, padding: 16 * scale,
+  },
   welcome: {
     fontSize: 22 * scale, fontFamily: Fonts.Bold,
     textAlign: "center", color: Colors.primary,
@@ -643,7 +645,7 @@ const styles = StyleSheet.create({
   // Inputs
   label: {
     fontSize: 13 * scale, fontFamily: Fonts.Bold,
-    color: Colors.text_primary, marginBottom: 6 * scale, marginLeft: 4 * scale,
+    color: Colors.black, marginBottom: 6 * scale, marginLeft: 4 * scale,
   },
   inputBox: {
     flexDirection: "row", alignItems: "center",
@@ -654,7 +656,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 12 * scale,
     fontFamily: Fonts.Medium,
-    color: Colors.hex_E53935,
+    color: Colors.red,
     marginLeft: 12 * scale,
     marginBottom: 10 * scale,
     marginTop: 2 * scale,
@@ -678,13 +680,14 @@ const styles = StyleSheet.create({
     justifyContent: "center", alignItems: "center", marginRight: 8 * scale,
   },
   checked: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  rememberText: { fontSize: 13 * scale, fontFamily: Fonts.Medium, color: Colors.text_primary },
-  forgotText: { fontSize: 13 * scale, fontFamily: Fonts.Bold, color: Colors.text_link },
+  rememberText: { fontSize: 13 * scale, fontFamily: Fonts.Medium, color: Colors.black },
+  forgotText: { fontSize: 13 * scale, fontFamily: Fonts.Bold, color: Colors.black },
 
   // Button
   loginBtn: {
-    backgroundColor: Colors.button_bg, borderRadius: 25 * scale,
-    height: 50 * scale, justifyContent: "center", alignItems: "center",  },
+    backgroundColor: Colors.primary, borderRadius: 25 * scale,
+    height: 50 * scale, justifyContent: "center", alignItems: "center",
+  },
   loginText: {
     color: Colors.white, fontSize: 16 * scale,
     fontFamily: Fonts.Bold, letterSpacing: 0.5,
@@ -694,24 +697,25 @@ const styles = StyleSheet.create({
   signupContainer: {
     flexDirection: "row", justifyContent: "center", marginTop: 20 * scale,
   },
-  signupText: { fontSize: 13 * scale, color: Colors.text_secondary, fontFamily: Fonts.Medium },
-  signupLink: { color: Colors.text_link, fontFamily: Fonts.Bold, fontSize: 13 * scale },
+  signupText: { fontSize: 13 * scale, color: Colors.black, fontFamily: Fonts.Medium },
+  signupLink: { color: Colors.primary, fontFamily: Fonts.Bold, fontSize: 13 * scale },
 
   // Social
   socialContainer: {
     marginTop: 30 * scale, paddingHorizontal: 30 * scale, marginBottom: 10 * scale,
   },
   dividerRow: { flexDirection: "row", alignItems: "center", marginBottom: 16 * scale },
-  divider: { flex: 1, height: 1, backgroundColor: Colors.divider },
+  divider: { flex: 1, height: 1, backgroundColor: Colors.input_border },
   orText: {
     marginHorizontal: 10 * scale, fontSize: 11 * scale,
-    fontFamily: Fonts.Bold, color: Colors.text_secondary,
+    fontFamily: Fonts.Bold, color: Colors.black,
   },
   socialRow: { flexDirection: "row", justifyContent: "center" },
   socialBtn: {
     width: 46 * scale, height: 46 * scale, borderRadius: 14 * scale,
-    backgroundColor: Colors.surface, justifyContent: "center", alignItems: "center",
-    marginHorizontal: 10 * scale,   },
+    backgroundColor: Colors.beige, justifyContent: "center", alignItems: "center",
+    marginHorizontal: 10 * scale,
+  },
   socialIcon: { width: 22 * scale, height: 22 * scale },
 
   // Decorative

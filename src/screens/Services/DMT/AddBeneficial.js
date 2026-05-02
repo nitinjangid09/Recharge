@@ -79,7 +79,7 @@ const SelectPicker = ({
         <Icon
           name={open ? "chevron-up" : "chevron-down"}
           size={rs(20)}
-          color={open ? Colors.kyc_accent : Colors.gray_9E}
+          color={open ? Colors.kyc_accent : Colors.gray}
         />
       </TouchableOpacity>
 
@@ -115,7 +115,7 @@ const SelectPicker = ({
                 <TextInput
                   style={sp.searchInput}
                   placeholder={`Search ${label.toLowerCase()}...`}
-                  placeholderTextColor={Colors.gray_BD}
+                  placeholderTextColor={Colors.gray}
                   value={search}
                   onChangeText={setSearch}
                 />
@@ -397,17 +397,22 @@ const AddBeneficiary = () => {
           />
 
           {/* BUTTON */}
-          <TouchableOpacity
-            style={[styles.button, submitting && styles.buttonDisabled]}
-            onPress={handleAddBeneficiary}
-            disabled={submitting}
-          >
-            {submitting ? (
-              <ActivityIndicator color={Colors.white} />
-            ) : (
-              <Text style={styles.buttonText}>Add Beneficiary</Text>
-            )}
-          </TouchableOpacity>
+          {(() => {
+            const allFilled = !!formData.bankName && !!formData.accountNumber && !!formData.ifscCode && !!formData.holderName && !!formData.mobileNumber && !submitting;
+            return (
+              <TouchableOpacity
+                style={[styles.button, { backgroundColor: allFilled ? Colors.primary : Colors.gold }]}
+                onPress={handleAddBeneficiary}
+                disabled={!allFilled}
+              >
+                {submitting ? (
+                  <ActivityIndicator color={Colors.white} />
+                ) : (
+                  <Text style={[styles.buttonText, { color: allFilled ? Colors.white : Colors.slate_500 }]}>Add Beneficiary</Text>
+                )}
+              </TouchableOpacity>
+            );
+          })()}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -447,7 +452,7 @@ const FormInput = ({
     <TextInput
       style={[styles.input, error && styles.inputError]}
       placeholder={placeholder}
-      placeholderTextColor={Colors.text_placeholder}
+      placeholderTextColor={Colors.gray}
       keyboardType={keyboardType}
       value={value}
       onChangeText={onChangeText}
@@ -472,7 +477,7 @@ const styles = StyleSheet.create({
 
   scrollBody: {
     flex: 1,
-    backgroundColor: Colors.bg,
+    backgroundColor: Colors.beige,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     overflow: "hidden",
@@ -510,7 +515,7 @@ const styles = StyleSheet.create({
   },
 
   subtitle: {
-    color: Colors.whiteOpacity_80,
+    color: "rgba(255,255,255,0.80)",
     marginTop: 4,
     fontSize: 13,
   },
@@ -518,8 +523,12 @@ const styles = StyleSheet.create({
   /* CARD */
 
   card: {
-    backgroundColor: Colors.bg,
+    backgroundColor: Colors.beige,
     padding: 20,
+    borderWidth: 1,
+    borderColor: "rgba(245,158,11,0.30)",
+    borderRadius: 20,
+    margin: 16,
   },
 
   /* SECTION */
@@ -531,7 +540,7 @@ const styles = StyleSheet.create({
 
   sectionText: {
     fontSize: 12,
-    color: Colors.text_placeholder,
+    color: Colors.gray,
     fontWeight: "700",
     letterSpacing: 1,
   },
@@ -551,7 +560,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 13,
     fontWeight: "500",
-    color: Colors.text_primary,
+    color: Colors.black,
   },
 
   required: {
@@ -561,7 +570,7 @@ const styles = StyleSheet.create({
 
   optional: {
     fontSize: 11,
-    color: Colors.text_placeholder,
+    color: Colors.gray,
   },
 
   input: {
@@ -569,17 +578,18 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: 14,
     paddingHorizontal: 15,
-    fontSize: 14,    borderWidth: 1,
+    fontSize: 14,
+    borderWidth: 1,
     borderColor: "transparent",
   },
 
   inputError: {
-    borderColor: "#ef4444",
+    borderColor: Colors.red,
     borderWidth: 1,
   },
 
   errorText: {
-    color: "#ef4444",
+    color: Colors.red,
     fontSize: 11,
     marginTop: 4,
     fontWeight: "600",
@@ -590,19 +600,20 @@ const styles = StyleSheet.create({
     height: 50,
     backgroundColor: Colors.white,
     borderRadius: 14,
-    justifyContent: "center",    borderWidth: 1,
+    justifyContent: "center",
+    borderWidth: 1,
     borderColor: "transparent",
   },
   /* BUTTON */
 
   button: {
     marginTop: 30,
-    backgroundColor: Colors.primary,
-    paddingVertical: 16,
     borderRadius: 30,
-    alignItems: "center",  },
+    paddingVertical: 16,
+    alignItems: "center",
+  },
   buttonDisabled: {
-    backgroundColor: Colors.gray_BD,
+    backgroundColor: Colors.gold,
   },
   buttonText: {
     color: Colors.white,
@@ -625,7 +636,7 @@ const sp = StyleSheet.create({
   labelText: {
     fontSize: 13,
     fontWeight: "500",
-    color: Colors.text_primary,
+    color: Colors.black,
     marginBottom: vs(6),
   },
   required: { color: Colors.kyc_accent },
@@ -637,19 +648,20 @@ const sp = StyleSheet.create({
     borderRadius: scale(14),
     borderWidth: 1, borderColor: "transparent",
     paddingHorizontal: scale(15),
-    minHeight: vs(50),  },
+    minHeight: vs(50),
+  },
   triggerError: { borderColor: Colors.red, borderWidth: 1 },
   triggerLeft: { flexDirection: "row", alignItems: "center", flex: 1 },
   triggerIcon: { fontSize: rs(18), marginRight: scale(8) },
-  triggerValue: { fontFamily: Fonts.Bold, fontSize: rs(14), color: Colors.gray_21, fontWeight: "600" },
-  triggerPlaceholder: { fontFamily: Fonts.Medium, fontSize: rs(14), color: Colors.gray_BD },
+  triggerValue: { fontFamily: Fonts.Bold, fontSize: rs(14), color: Colors.heroEnd, fontWeight: "600" },
+  triggerPlaceholder: { fontFamily: Fonts.Medium, fontSize: rs(14), color: Colors.gray },
 
   errorTxt: { fontFamily: Fonts.Light, color: Colors.red, fontSize: rs(10.5), marginTop: vs(4), fontWeight: "300" },
 
   // Backdrop
   backdrop: {
     position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: Colors.blackOpacity_45,
+    backgroundColor: "rgba(0,0,0,0.45)",
   },
 
   // Sheet
@@ -657,16 +669,17 @@ const sp = StyleSheet.create({
     position: "absolute", bottom: 0, left: 0, right: 0,
     backgroundColor: Colors.white,
     borderTopLeftRadius: scale(24), borderTopRightRadius: scale(24),
-    maxHeight: SH * 0.68,  },
+    maxHeight: SH * 0.68,
+  },
 
   sheetHeader: {
     paddingHorizontal: scale(16),
     paddingBottom: vs(10),
-    borderBottomWidth: 1, borderBottomColor: Colors.gray_F0,
+    borderBottomWidth: 1, borderBottomColor: "rgb(240, 240, 240)",
   },
   handleBar: {
     width: scale(40), height: vs(4), borderRadius: scale(2),
-    backgroundColor: Colors.gray_E0, alignSelf: "center",
+    backgroundColor: Colors.kyc_border, alignSelf: "center",
     marginTop: vs(10), marginBottom: vs(14),
   },
   sheetTitleRow: {
@@ -676,38 +689,38 @@ const sp = StyleSheet.create({
   sheetTitle: { fontFamily: Fonts.Bold, fontSize: rs(16), fontWeight: "800", color: Colors.primary },
   closeBtn: {
     width: scale(28), height: scale(28), borderRadius: scale(14),
-    backgroundColor: Colors.gray_F4, alignItems: "center", justifyContent: "center",
+    backgroundColor: "rgb(244, 244, 244)", alignItems: "center", justifyContent: "center",
   },
-  closeBtnTxt: { fontFamily: Fonts.Bold, color: Colors.gray_66, fontSize: rs(12), fontWeight: "800" },
+  closeBtnTxt: { fontFamily: Fonts.Bold, color: "rgb(102, 102, 102)", fontSize: rs(12), fontWeight: "800" },
 
   // Search
   searchRow: {
     flexDirection: "row", alignItems: "center",
-    backgroundColor: Colors.gray_F5, borderRadius: scale(10),
+    backgroundColor: Colors.bg_F8, borderRadius: scale(10),
     paddingHorizontal: scale(10), marginBottom: vs(4),
     minHeight: vs(42),
   },
   searchIcon: { fontSize: rs(15), marginRight: scale(6) },
-  searchInput: { fontFamily: Fonts.Medium, flex: 1, fontSize: rs(14), color: Colors.gray_21, padding: 0 },
-  searchClear: { fontFamily: Fonts.Bold, color: Colors.gray_BD, fontSize: rs(14), fontWeight: "700" },
+  searchInput: { fontFamily: Fonts.Medium, flex: 1, fontSize: rs(14), color: Colors.heroEnd, padding: 0 },
+  searchClear: { fontFamily: Fonts.Bold, color: Colors.gray, fontSize: rs(14), fontWeight: "700" },
 
   // List
   listItem: {
     flexDirection: "row", alignItems: "center",
     paddingHorizontal: scale(16), paddingVertical: vs(13),
-    borderBottomWidth: 1, borderBottomColor: Colors.gray_F5,
+    borderBottomWidth: 1, borderBottomColor: Colors.bg_F8,
     gap: scale(12),
   },
   listItemSel: { backgroundColor: Colors.kyc_accent + "08" },
 
   listIconBox: {
     width: scale(36), height: scale(36), borderRadius: scale(10),
-    backgroundColor: Colors.gray_F5, alignItems: "center", justifyContent: "center",
+    backgroundColor: Colors.bg_F8, alignItems: "center", justifyContent: "center",
   },
   listIconBoxSel: { backgroundColor: Colors.kyc_accent + "18" },
   listIcon: { fontSize: rs(18) },
 
-  listTxt: { fontFamily: Fonts.Medium, flex: 1, fontSize: rs(14), color: Colors.gray_21, fontWeight: "500" },
+  listTxt: { fontFamily: Fonts.Medium, flex: 1, fontSize: rs(14), color: Colors.heroEnd, fontWeight: "500" },
   listTxtSel: { fontFamily: Fonts.Bold, color: Colors.kyc_accent, fontWeight: "700" },
 
   checkCircle: {
@@ -717,5 +730,5 @@ const sp = StyleSheet.create({
   checkMark: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(12), fontWeight: "900" },
 
   emptyWrap: { alignItems: "center", paddingVertical: vs(30) },
-  emptyTxt: { fontFamily: Fonts.Regular, color: Colors.gray_BD, fontSize: rs(14) },
+  emptyTxt: { fontFamily: Fonts.Regular, color: Colors.gray, fontSize: rs(14) },
 });
