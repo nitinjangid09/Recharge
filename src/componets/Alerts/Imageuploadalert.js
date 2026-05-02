@@ -95,20 +95,16 @@ export const ImageUploadAlert = ({ visible, onClose, onCamera, onGallery, onFile
                 {/* Handle */}
                 <View style={styles.handle} />
 
-                {/* Header */}
                 <View style={styles.header}>
-                    <View style={styles.headerLeft}>
+                    <View style={styles.headerCenter}>
                         <View style={styles.uploadIconBg}>
-                            <Icon name="cloud-upload-outline" size={24} color={Colors.kyc_accentDark} />
+                             <Icon name="cloud-upload-outline" size={22} color={Colors.kyc_accentDark} />
                         </View>
                         <View>
                             <Text style={styles.title}>Upload Screenshot</Text>
                             <Text style={styles.subtitle}>Select a source to provide proof</Text>
                         </View>
                     </View>
-                    <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-                        <Icon name="close" size={16} color={Colors.slate_500} />
-                    </TouchableOpacity>
                 </View>
 
                 {/* Divider */}
@@ -211,18 +207,18 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0,0,0,0.08)', borderRadius: 10, marginBottom: 16,
     },
     header: {
-        flexDirection: 'row', alignItems: 'center',
-        justifyContent: 'space-between', marginBottom: 16,
+        alignItems: 'center',
+        justifyContent: 'center', marginBottom: 12,
     },
-    headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+    headerCenter: { flexDirection: 'row', alignItems: 'center', gap: 12 },
     uploadIconBg: {
-        width: 44, height: 44, borderRadius: 12,
+        width: 36, height: 36, borderRadius: 10,
         backgroundColor: 'rgba(212,176,106,0.1)',
         alignItems: 'center', justifyContent: 'center',
         borderWidth: 1, borderColor: 'rgba(212,176,106,0.25)',
     },
     title: { color: Colors.hub_dark, fontSize: 16, fontFamily: Fonts.Bold, letterSpacing: -0.2 },
-    subtitle: { color: Colors.slate_500, fontSize: 11, marginTop: 1, fontFamily: Fonts.Medium },
+    subtitle: { color: Colors.slate_500, fontSize: 11, fontFamily: Fonts.Medium },
     closeBtn: {
         width: 32, height: 32, borderRadius: 16,
         backgroundColor: 'rgba(0,0,0,0.05)', alignItems: 'center', justifyContent: 'center',
