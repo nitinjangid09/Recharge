@@ -899,7 +899,7 @@ export default function FinanceHome({ navigation }) {
                     <Icon name="magnify" size={rs(20)} color={Colors.white} />
                   </TouchableOpacity>
                   <TouchableOpacity style={S.glassBtn}
-                    onPress={() => navigation.navigate("MiniStatement")}
+                    onPress={() => navigation.navigate("KycSubmitted")}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                     <Icon name="bell-ring-outline" size={rs(20)} color={Colors.white} />
                   </TouchableOpacity>
@@ -1417,8 +1417,8 @@ function SectionHeader({ title, subtitle, linkLabel = "See all", onLink }) {
 // STYLES
 // ─────────────────────────────────────────────────────────────────────────────
 const S = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.kyc_lockedBg },
-  root: { flex: 1, backgroundColor: Colors.kyc_lockedBg },
+  safe: { flex: 1, backgroundColor: Colors.bg },
+  root: { flex: 1, backgroundColor: Colors.bg },
   rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
 
   splash: { flex: 1, justifyContent: "center", alignItems: "center" },

@@ -34,12 +34,14 @@ const SIZE_LABEL = "10 KB – 200 KB";
 
 
 const resolveColors = () => ({
-  accent: typeof Colors.finance_accent === "string" && Colors.finance_accent.length > 2 ? Colors.finance_accent : Colors.kyc_accent,
-  success: typeof Colors.green === "string" && Colors.green.length > 2 ? Colors.green : Colors.kyc_success,
-  error: typeof Colors.red === "string" && Colors.red.length > 2 ? Colors.red : Colors.kyc_error,
-  text: typeof Colors.finance_text === "string" && Colors.finance_text.length > 2 ? Colors.finance_text : Colors.kyc_text,
-  bg: typeof Colors.beige === "string" && Colors.beige.length > 2 ? Colors.beige : Colors.kyc_bg,
-  white: typeof Colors.white === "string" && Colors.white.length > 2 ? Colors.white : Colors.white,
+  accent: Colors.finance_accent || Colors.kyc_accent,
+  success: Colors.green || Colors.kyc_success,
+  error: Colors.red || Colors.kyc_error,
+  text: Colors.finance_text || Colors.kyc_text,
+  bg: Colors.bg || Colors.kyc_bg,
+  white: Colors.white,
+  amber: Colors.amber,
+  primary: Colors.primary,
 });
 
 // ─── Step config ──────────────────────────────────────────────────────────
@@ -275,7 +277,7 @@ export default function Offlinekyc({ navigation, route }) {
     if (acc === conf) return "match";
     return "mismatch";
   })();
-  const accMatchColor = { idle: Colors.kyc_border, match: Colors.kyc_success, mismatch: Colors.kyc_error }[accMatchStatus];
+  const accMatchColor = { idle: Colors.amber, match: Colors.green, mismatch: Colors.red }[accMatchStatus];
   const accMatchIcon = { match: "check-circle", mismatch: "close-circle" }[accMatchStatus];
 
   // ── Pre-fill from route / AsyncStorage ────────────────────────────────
@@ -565,7 +567,7 @@ export default function Offlinekyc({ navigation, route }) {
   const validatePersonal = () => {
     const e = {};
     if (!personal.gender || !["male", "female", "other"].includes(personal.gender.toLowerCase())) e.gender = "Required";
-    
+
     // Name validations (Max 100 chars)
     if (!personal.firstName.trim() || personal.firstName.trim().length < 3) e.firstName = "Min 3 chars";
     else if (personal.firstName.trim().length > 100) e.firstName = "Max 100 chars";
@@ -582,7 +584,7 @@ export default function Offlinekyc({ navigation, route }) {
     }
 
     if (!personal.phone.trim() || personal.phone.trim().length !== 10 || !RX.phone.test(personal.phone.trim())) e.phone = "Must be 10 digits";
-    
+
     if (!personal.dob.trim() || !RX.dob.test(personal.dob.trim())) {
       e.dob = "DD-MM-YYYY";
     } else {
@@ -773,7 +775,7 @@ export default function Offlinekyc({ navigation, route }) {
   // RENDER
   // ─────────────────────────────────────────────────────────────────────
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: Colors.kyc_bg }]} edges={["bottom"]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: Colors.beige }]} edges={["bottom"]}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
 
 
@@ -782,16 +784,13 @@ export default function Offlinekyc({ navigation, route }) {
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.navigate("Login")} activeOpacity={0.7}>
           <Icon name="chevron-left" size={rs(22)} color={Colors.kyc_text} />
         </TouchableOpacity>
+
         <View style={styles.headerCenter}>
-          <LinearGradient colors={[Colors.kyc_accent, Colors.kyc_accentDark]} style={styles.headerLogo}>
-            <Icon name="shield-account-outline" size={rs(17)} color={Colors.white} />
-          </LinearGradient>
-          <View>
-            <Text style={[styles.headerTitle, { fontFamily: Fonts.Bold, fontSize: rs(16) }]}>KYC Verification</Text>
-            <Text style={[styles.headerSub, { fontSize: rs(10) }]}>{(STEPS[step] || {}).label} Details — Step {step + 1} of 3</Text>
-          </View>
+          <Text style={[styles.headerTitle, { fontFamily: Fonts.Bold, fontSize: rs(16) }]}>KYC Verification</Text>
+          <Text style={[styles.headerSub, { fontSize: rs(10) }]}>{(STEPS[step] || {}).label} Details — Step {step + 1} of 3</Text>
         </View>
-        <View style={[styles.stepBadge, { backgroundColor: Colors.kyc_accent + "1A" }]}>
+
+        <View style={[styles.stepBadge, { backgroundColor: Colors.kyc_accent + "20" }]}>
           <Text style={[styles.stepBadgeText, { color: Colors.kyc_accent, fontFamily: Fonts.Bold, fontSize: rs(11) }]}>{step + 1} / 3</Text>
         </View>
       </View>
@@ -811,7 +810,7 @@ export default function Offlinekyc({ navigation, route }) {
             return (
               <View key={s.key} style={styles.stepDotItem}>
                 <LinearGradient
-                  colors={done ? [Colors.kyc_success, Colors.success_dark] : active ? [Colors.kyc_accent, Colors.kyc_accentDark] : [Colors.kyc_border, Colors.kyc_border]}
+                  colors={done ? [Colors.green, Colors.green] : active ? [Colors.primary, Colors.primary] : [Colors.amber + "30", Colors.amber + "10"]}
                   style={[styles.stepDotCircle, { width: rs(active ? 36 : 28), height: rs(active ? 36 : 28), borderRadius: rs(active ? 18 : 14) }]}
                 >
                   <Icon name={done ? "check" : s.icon} size={rs(done ? 14 : active ? 16 : 13)} color={done || active ? Colors.white : Colors.kyc_textMuted} />
@@ -828,7 +827,7 @@ export default function Offlinekyc({ navigation, route }) {
 
       {/* Form */}
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <Animated.View style={[{ flex: 1 }, { transform: [{ translateX: slideAnim }] }]}>
+        <Animated.View style={[{ flex: 1, backgroundColor: Colors.beige }, { transform: [{ translateX: slideAnim }] }]}>
           <ScrollView
             ref={scrollViewRef}
             contentContainerStyle={[styles.scrollContent, { paddingHorizontal: hs(16), paddingBottom: vs(40), alignItems: isWide ? "center" : undefined }]}
@@ -1201,8 +1200,17 @@ export default function Offlinekyc({ navigation, route }) {
                 </TouchableOpacity>
                 : <View style={{ flex: 1 }} />
               }
-              <TouchableOpacity style={styles.nextBtnOuter} onPress={step < 2 ? handleNext : handleSubmit} activeOpacity={0.85} disabled={loading}>
-                <LinearGradient colors={[Colors.kyc_accent, Colors.kyc_accentDark]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.nextBtnGrad}>
+              <TouchableOpacity
+                style={[styles.nextBtnOuter, { opacity: loading ? 0.7 : 1 }]}
+                onPress={step < 2 ? handleNext : handleSubmit}
+                activeOpacity={0.85}
+                disabled={loading}
+              >
+                <LinearGradient
+                  colors={loading ? [Colors.amber, Colors.amber] : [Colors.primary, Colors.primary]}
+                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                  style={styles.nextBtnGrad}
+                >
                   {loading
                     ? <ActivityIndicator color={Colors.white} size="small" />
                     : <>
@@ -1471,37 +1479,48 @@ function ErrLabel({ msg }) {
 // STYLES
 // ─────────────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  safeArea: { flex: 1 },
-  header: { flexDirection: "row", alignItems: "center", paddingBottom: vs(10) },
-  backBtn: { width: hs(38), height: hs(38), borderRadius: hs(12), backgroundColor: Colors.white, alignItems: "center", justifyContent: "center", marginRight: hs(10), elevation: 2, shadowColor: Colors.black, shadowOpacity: 0.07, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } },
-  headerCenter: { flex: 1, flexDirection: "row", alignItems: "center", gap: hs(10) },
-  headerLogo: { width: hs(34), height: hs(34), borderRadius: hs(10), alignItems: "center", justifyContent: "center" },
-  headerTitle: { color: Colors.kyc_text, lineHeight: rs(20) },
-  headerSub: { color: Colors.kyc_textSub, marginTop: 1 },
+  safeArea: { flex: 1, backgroundColor: Colors.beige },
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingBottom: vs(12), backgroundColor: Colors.beige },
+  backBtn: { width: hs(36), height: hs(36), borderRadius: hs(12), backgroundColor: Colors.white, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: Colors.kyc_border },
+  headerCenter: { flex: 1, alignItems: "center", justifyContent: "center" },
+  headerTitle: { color: Colors.kyc_text, textAlign: "center" },
+  headerSub: { color: Colors.kyc_textSub, marginTop: 1, textAlign: "center" },
   stepBadge: { paddingHorizontal: hs(10), paddingVertical: vs(4), borderRadius: hs(10) },
   stepBadgeText: { letterSpacing: 0.4 },
-  progressWrap: { paddingBottom: vs(14) },
-  progressTrack: { height: 3, backgroundColor: Colors.kyc_border, borderRadius: 2, marginBottom: vs(10), overflow: "hidden" },
+  progressWrap: { paddingBottom: vs(12), backgroundColor: Colors.beige },
+  progressTrack: { height: 2.5, backgroundColor: "rgba(201, 168, 76, 0.15)", borderRadius: 2, marginBottom: vs(10), overflow: "hidden" },
   progressFill: { height: "100%", borderRadius: 2 },
   stepDots: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   stepDotItem: { alignItems: "center", flex: 1 },
   stepDotCircle: { alignItems: "center", justifyContent: "center", marginBottom: vs(4) },
   stepDotLabel: { color: Colors.kyc_textMuted, textAlign: "center", letterSpacing: 0.4 },
-  scrollContent: { paddingTop: vs(4) },
-  card: { backgroundColor: Colors.white, borderRadius: hs(20), padding: hs(18), marginBottom: vs(14), elevation: 3, shadowColor: Colors.black, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 10 },
-  sectionBanner: { flexDirection: "row", alignItems: "center", gap: hs(12), marginBottom: vs(18), padding: hs(12), backgroundColor: Colors.kyc_accent + "0C", borderRadius: hs(14), borderLeftWidth: 3, borderLeftColor: Colors.kyc_accent },
+  scrollContent: { paddingTop: vs(2), backgroundColor: Colors.beige },
+  card: {
+    backgroundColor: Colors.beige,
+    borderRadius: hs(16),
+    padding: hs(18),
+    marginBottom: vs(16),
+    borderWidth: 1,
+    borderColor: "rgba(201, 168, 76, 0.25)",
+    elevation: 0,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0,
+    shadowRadius: 10
+  },
+  sectionBanner: { flexDirection: "row", alignItems: "center", gap: hs(12), marginBottom: vs(18), padding: hs(12), backgroundColor: "rgba(201, 168, 76, 0.12)", borderRadius: hs(14), borderLeftWidth: 3, borderLeftColor: Colors.amber },
   sectionBannerIcon: { width: hs(42), height: hs(42), borderRadius: hs(12), alignItems: "center", justifyContent: "center" },
   sectionBannerTitle: { color: Colors.kyc_text },
   sectionBannerSub: { color: Colors.kyc_textSub, marginTop: 2 },
   fieldWrap: { marginBottom: vs(12) },
   fieldLabel: { color: Colors.kyc_textSub, fontFamily: Fonts.Bold, letterSpacing: 0.7, marginBottom: vs(5), textTransform: "uppercase" },
-  inputRow: { flexDirection: "row", alignItems: "center", backgroundColor: Colors.input_bg, borderWidth: 1.2, borderColor: Colors.kyc_border, borderRadius: hs(10), paddingHorizontal: hs(12) },
+  inputRow: { flexDirection: "row", alignItems: "center", backgroundColor: "#FAFAFA", borderWidth: 1.2, borderColor: Colors.kyc_border, borderRadius: hs(10), paddingHorizontal: hs(12) },
   input: { flex: 1, paddingVertical: vs(10), color: Colors.kyc_text, fontFamily: Fonts.Medium },
   fieldHint: { color: Colors.kyc_textMuted, marginTop: vs(3), fontFamily: Fonts.Regular },
   errRow: { flexDirection: "row", alignItems: "center", marginTop: vs(3) },
   errText: { fontFamily: Fonts.Medium },
-  inputRowLocked: { backgroundColor: Colors.kyc_lockedBg, borderColor: Colors.kyc_lockedBorder, borderStyle: "dashed" },
-  inputLocked: { color: Colors.kyc_textMuted },
+  inputRowLocked: { backgroundColor: "#FAFAFA", borderColor: Colors.kyc_border },
+  inputLocked: { color: Colors.kyc_text },
   lockedBadge: { flexDirection: "row", alignItems: "center", gap: 3, backgroundColor: Colors.kyc_accent + "18", borderRadius: hs(6), paddingHorizontal: hs(6), paddingVertical: vs(3), marginRight: hs(2) },
   lockedBadgeTxt: { color: Colors.kyc_accent, fontFamily: Fonts.Bold, letterSpacing: 0.2 },
   lockedHintRow: { flexDirection: "row", alignItems: "center", gap: hs(4), marginTop: vs(3) },
@@ -1510,16 +1529,16 @@ const styles = StyleSheet.create({
   accMatchStrip: { flexDirection: "row", alignItems: "center", gap: hs(6), marginTop: vs(5), paddingHorizontal: hs(10), paddingVertical: vs(6), borderRadius: hs(8), borderWidth: 1 },
   accMatchTxt: { fontSize: rs(10), fontFamily: Fonts.Bold, flex: 1, letterSpacing: 0.2, includeFontPadding: false, lineHeight: rs(14) },
   genderRow: { flexDirection: "row", gap: hs(5) },
-  genderBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: vs(9), borderRadius: hs(8), backgroundColor: Colors.input_bg, borderWidth: 1.2, borderColor: Colors.kyc_border, gap: hs(4) },
+  genderBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: vs(9), borderRadius: hs(8), backgroundColor: "#FAFAFA", borderWidth: 1.2, borderColor: Colors.kyc_border, gap: hs(4) },
   genderBtnText: { color: Colors.kyc_textMuted },
   divider: { flexDirection: "row", alignItems: "center", marginVertical: vs(14), gap: hs(8) },
-  dividerLine: { flex: 1, height: 1.2, backgroundColor: Colors.kyc_border },
+  dividerLine: { flex: 1, height: 1.2, backgroundColor: "rgba(201, 168, 76, 0.15)" },
   dividerLabel: { color: Colors.kyc_textMuted, letterSpacing: 1 },
-  sizeHintBanner: { flexDirection: "row", alignItems: "flex-start", gap: hs(7), backgroundColor: Colors.kyc_accent + "10", borderRadius: hs(8), borderLeftWidth: 3, borderLeftColor: Colors.kyc_accent, paddingHorizontal: hs(10), paddingVertical: vs(7), marginBottom: vs(10) },
+  sizeHintBanner: { flexDirection: "row", alignItems: "flex-start", gap: hs(7), backgroundColor: "rgba(201, 168, 76, 0.10)", borderRadius: hs(8), borderLeftWidth: 3, borderLeftColor: Colors.amber, paddingHorizontal: hs(10), paddingVertical: vs(7), marginBottom: vs(10) },
   sizeHintText: { flex: 1, color: Colors.kyc_textSub, fontFamily: Fonts.Regular, lineHeight: rs(16) },
   docGrid: {},
   docSlotWrap: { marginBottom: vs(10) },
-  docBox: { height: vs(90), borderRadius: hs(14), borderWidth: 1.5, borderStyle: "dashed", borderColor: Colors.kyc_border, overflow: "hidden", backgroundColor: Colors.input_bg },
+  docBox: { height: vs(90), borderRadius: hs(14), borderWidth: 1.5, borderStyle: "dashed", borderColor: Colors.kyc_border, overflow: "hidden", backgroundColor: "#FAFAFA" },
   docThumb: { width: "100%", height: "100%", borderRadius: hs(12) },
   docOverlay: { position: "absolute", bottom: 0, left: 0, right: 0, flexDirection: "row", alignItems: "center", paddingHorizontal: hs(10), paddingVertical: vs(6), gap: hs(6) },
   docDoneLabel: { color: Colors.kyc_success, fontFamily: Fonts.Bold, letterSpacing: 0.4 },
