@@ -12,14 +12,12 @@ import {
   Keyboard,
   ActivityIndicator,
   ScrollView,
-  PermissionsAndroid,
   Platform,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import DeviceInfo from "react-native-device-info";
-import Geolocation from "@react-native-community/geolocation";
 import { NetworkInfo } from "react-native-network-info";
 
 import Colors from "../../constants/Colors";
@@ -249,49 +247,7 @@ export default function Login({ navigation }) {
     } catch { /* ignore */ }
 
     // ── Location permission + exact coords ────────────────────────────────────
-    const requestLocationPermission = async () => {
-      try {
-        if (Platform.OS === "android") {
-          const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-            {
-              title: "Location Permission",
-              message: "App needs access to your location to login securely.",
-              buttonNeutral: "Ask Me Later",
-              buttonNegative: "Cancel",
-              buttonPositive: "OK",
-            }
-          );
-          return granted === PermissionsAndroid.RESULTS.GRANTED;
-        }
-        return true;
-      } catch {
-        return false;
-      }
-    };
-
-    const hasPermission = await requestLocationPermission();
-
-    if (!hasPermission) {
-      setLoading(false);
-      showAlert("Permission Denied", "Location permission is required to proceed.");
-      return;
-    }
-
-    await new Promise((resolve) => {
-      Geolocation.getCurrentPosition(
-        (position) => {
-          currentLat = position.coords.latitude;
-          currentLng = position.coords.longitude;
-          resolve();
-        },
-        (error) => {
-          console.log("Geolocation error:", error.code, error.message);
-          resolve(); // proceed even on error — IP-based coords already set
-        },
-        { enableHighAccuracy: false, timeout: 10000, maximumAge: 10000 }
-      );
-    });
+    // ── Location data removed from Login ──
 
     // ── API call ───────────────────────────────────────────────────────────────
     try {
