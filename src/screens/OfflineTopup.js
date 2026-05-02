@@ -690,7 +690,6 @@ export default function OfflineTopup({ navigation }) {
 
           {/* ── Payment Mode ── */}
           <View style={st.fieldWrap}>
-            {/* label row: same FieldLabel + inline hint */}
             <View style={st.modeLabelRow}>
               <FieldLabel text="Payment Mode" />
               <Text style={st.modeHintTxt}>{activeModeHint}</Text>
@@ -742,7 +741,6 @@ export default function OfflineTopup({ navigation }) {
             icon="text-box-search-outline"
             keyboardType="default"
             maxLength={20}
-            filter="alphanumeric"
             autoCapitalize="characters"
             error={errors.utrNumber}
           />
@@ -765,60 +763,57 @@ export default function OfflineTopup({ navigation }) {
             </TouchableOpacity>
             {!!errors.paymentDate && <Text style={st.errorTxt}>{errors.paymentDate}</Text>}
           </View>
-          <CalendarModal
-            visible={calVisible}
-            title={calTarget === 'start' ? 'Select Start Date' : 'Select End Date'}
-            initialDate={calTarget === 'start' ? startDate : endDate}
-            minDate={calTarget === 'end' ? startDate : null}
-            maxDate={new Date()}
-            onConfirm={onCalConfirm}
-            onCancel={() => setCalVisible(false)}
-          />
 
           {/* ── Payment Proof ── */}
           <View style={st.fieldWrap}>
-            <FieldLabel text="Payment Proof" />
-            <TouchableOpacity
-              style={[st.inputRow, errors.paymentProof ? st.inputRowError : paymentProof && !errors.paymentProof ? st.inputRowGreen : null]}
-              onPress={() => {
-                if (errors.paymentProof) setErrors(prev => ({ ...prev, paymentProof: null }));
-                setUploadVisible(true);
-              }}
-              activeOpacity={0.7}
-            >
-              <Text style={[
-                st.inputText,
-                {
-                  color: paymentProof ? Colors.kyc_success : "rgb(196, 196, 196)",
-                  fontFamily: paymentProof ? Fonts.Bold : Fonts.Medium,
-                  paddingVertical: S(11),
-                },
-              ]}>
-                {paymentProof ? "✓  Proof Attached" : "Upload Payment Screenshot"}
-              </Text>
-              <Icon
-                name={paymentProof ? "check-circle" : "camera-plus-outline"}
-                size={S(18)}
-                color={errors.paymentProof ? Colors.red : paymentProof ? Colors.kyc_success : ACCENT + "90"}
-              />
-            </TouchableOpacity>
-            {!!errors.paymentProof && <Text style={st.errorTxt}>{errors.paymentProof}</Text>}
-
-            {!!paymentProof && (
-              <View style={st.previewBox}>
-                <Image source={{ uri: paymentProof }} style={st.previewImg} />
-                <View style={st.chipRow}>
-                  <TouchableOpacity style={st.actionChip} onPress={() => setUploadVisible(true)}>
-                    <Icon name="pencil" size={S(11)} color="rgb(255, 255, 255)" />
-                    <Text style={st.actionChipTxt}>Change</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[st.actionChip, st.removeChipBg]} onPress={() => setPaymentProof("")}>
-                    <Icon name="delete" size={S(11)} color="rgb(255, 255, 255)" />
-                    <Text style={st.actionChipTxt}>Remove</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
+            <FieldLabel text="Payment Proof Screenshot" />
+            <View style={st.docSlotWrap}>
+              <TouchableOpacity
+                style={[
+                  st.docBox,
+                  paymentProof && { borderStyle: "solid", borderColor: Colors.kyc_success, backgroundColor: Colors.kyc_success + "08" },
+                  errors.paymentProof && { borderStyle: "solid", borderColor: Colors.red, backgroundColor: Colors.red + "06" },
+                ]}
+                onPress={() => {
+                  if (errors.paymentProof) setErrors(prev => ({ ...prev, paymentProof: null }));
+                  setUploadVisible(true);
+                }}
+                activeOpacity={0.75}
+              >
+                {paymentProof ? (
+                  <View style={{ width: '100%', height: '100%' }}>
+                    <Image source={{ uri: paymentProof }} style={st.docThumb} resizeMode="cover" />
+                    <LinearGradient colors={["transparent", "rgba(0,0,0,0.72)"]} style={st.docOverlay}>
+                      <Icon name="check-circle" size={S(13)} color={Colors.white} />
+                      <Text style={st.docDoneLabel}>UPLOADED</Text>
+                      <Text style={st.docFileName} numberOfLines={1}>Payment_Screenshot.jpg</Text>
+                    </LinearGradient>
+                    <TouchableOpacity
+                      style={st.cornerDelete}
+                      onPress={() => setPaymentProof("")}
+                    >
+                      <Icon name="close" size={S(12)} color={Colors.white} />
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <View style={st.docEmptyContent}>
+                    <View style={[st.docIconCircle, { backgroundColor: ACCENT + "1C" }]}>
+                      <Icon name="receipt" size={S(22)} color={ACCENT} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={st.docSlotLabel}>Payment Receipt</Text>
+                      <Text style={st.docSlotSub}>Screenshot or photo of transfer</Text>
+                      <Text style={st.docSizeLabel}>JPG/PNG · 10KB to 200KB</Text>
+                    </View>
+                    <View style={st.docUploadTag}>
+                      <Icon name="camera-plus-outline" size={S(11)} color={ACCENT} />
+                      <Text style={st.docUploadTagText}>Upload</Text>
+                    </View>
+                  </View>
+                )}
+              </TouchableOpacity>
+              {!!errors.paymentProof && <Text style={st.errorTxt}>{errors.paymentProof}</Text>}
+            </View>
           </View>
 
           {/* ── Submit ── */}
@@ -1089,7 +1084,69 @@ const st = StyleSheet.create({
   },
 
   // ── Field wrapper ─────────────────────────────────────────────────────
-  fieldWrap: { width: "100%", marginTop: S(16) },
+  // ── Document Slot Styles (Sync with KYC) ──
+  docSlotWrap: { marginBottom: S(4) },
+  docBox: {
+    height: S(90),
+    borderRadius: S(14),
+    borderWidth: 1.5,
+    borderStyle: "dashed",
+    borderColor: "rgba(0,0,0,0.12)",
+    backgroundColor: "#FAFAFA",
+  },
+  docThumb: { width: "100%", height: "100%", borderRadius: S(12) },
+  docOverlay: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: S(10),
+    paddingVertical: S(6),
+    gap: S(6),
+    borderBottomLeftRadius: S(12),
+    borderBottomRightRadius: S(12),
+  },
+  docDoneLabel: { color: Colors.white, fontFamily: Fonts.Bold, fontSize: S(9), letterSpacing: 0.4 },
+  docFileName: { flex: 1, color: "rgba(255,255,255,0.8)", fontFamily: Fonts.Regular, fontSize: S(8) },
+  docEmptyContent: { flex: 1, flexDirection: "row", alignItems: "center", paddingHorizontal: S(14), gap: S(12) },
+  docIconCircle: { width: S(42), height: S(42), borderRadius: S(12), alignItems: "center", justifyContent: "center" },
+  docSlotLabel: { color: FG, fontFamily: Fonts.Bold, fontSize: S(13) },
+  docSlotSub: { color: "rgb(153, 153, 153)", marginTop: S(1), fontFamily: Fonts.Regular, fontSize: S(10) },
+  docSizeLabel: { color: "rgb(196, 196, 196)", marginTop: S(2), fontFamily: Fonts.Regular, fontSize: S(9) },
+  docUploadTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: S(8),
+    paddingVertical: S(4),
+    borderRadius: S(10),
+    borderWidth: 1,
+    backgroundColor: ACCENT + "12",
+    borderColor: ACCENT + "40",
+    gap: S(4),
+  },
+  docUploadTagText: { color: ACCENT, fontFamily: Fonts.Bold, fontSize: S(9) },
+
+  cornerDelete: {
+    position: 'absolute',
+    top: -S(8),
+    right: -S(8),
+    width: S(24),
+    height: S(24),
+    borderRadius: S(12),
+    backgroundColor: Colors.red,
+    borderWidth: 1,
+    borderColor: Colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    zIndex: 10,
+  },
 
   // ── UNIFIED field label ───────────────────────────────────────────────
   fieldLabel: {
@@ -1155,32 +1212,31 @@ const st = StyleSheet.create({
 
   // ── Proof preview ─────────────────────────────────────────────────────
   previewBox: {
-    marginTop: S(10),
-    borderRadius: S(12),
-    overflow: "hidden",
+    marginTop: S(15),
+    borderRadius: S(16),
     borderWidth: 1,
     borderColor: "rgba(0,0,0,0.07)",
   },
   previewImg: { width: "100%", height: S(170), resizeMode: "cover" },
-  chipRow: {
-    position: "absolute",
-    top: S(10), right: S(10),
-    flexDirection: "row",
-    gap: S(8),
+  cornerDelete: {
+    position: 'absolute',
+    top: -S(8),
+    right: -S(8),
+    width: S(24),
+    height: S(24),
+    borderRadius: S(12),
+    backgroundColor: Colors.red,
+    borderWidth: 1,
+    borderColor: Colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    zIndex: 10,
   },
-  actionChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: S(4),
-    backgroundColor: "rgba(0,0,0,0.52)",
-    borderRadius: S(20),
-    paddingHorizontal: S(10),
-    paddingVertical: S(5),
-  },
-  removeChipBg: {
-    backgroundColor: "rgba(220, 38, 38, 0.85)",
-  },
-  actionChipTxt: { color: "rgb(255, 255, 255)", fontSize: S(11), fontFamily: Fonts.Medium },
 
   // ── Submit ────────────────────────────────────────────────────────────
   submitWrap: { marginTop: S(22) },
@@ -1248,7 +1304,7 @@ const st = StyleSheet.create({
     width: "100%",
     alignItems: "center",
     backgroundColor: "rgb(245, 245, 247)",
-    borderRadius: S(12),
+    borderRadius: S(10),
   },
   sheetCloseTxt: { fontFamily: Fonts.Bold, color: FG, fontSize: S(13) },
 

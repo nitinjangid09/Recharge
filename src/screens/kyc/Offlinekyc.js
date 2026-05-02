@@ -1005,18 +1005,17 @@ export default function Offlinekyc({ navigation, route }) {
                             <>
                               <Image source={{ uri: img.uri }} style={styles.docThumb} resizeMode="cover" />
                               <LinearGradient colors={["transparent", "rgba(0,0,0,0.72)"]} style={styles.docOverlay}>
-                                <Icon name="check-circle" size={rs(13)} color={Colors.kyc_success} />
+                                <Icon name="check-circle" size={rs(13)} color={Colors.white} />
                                 <Text style={[styles.docDoneLabel, { fontSize: rs(9) }]}>UPLOADED</Text>
                                 <Text style={styles.docFileName} numberOfLines={1}>{img.name}</Text>
                               </LinearGradient>
                               {!lockedFiles[slot.key] && (
-                                <TouchableOpacity style={[styles.docCornerBtn, { backgroundColor: Colors.kyc_accent, right: vs(30) }]} onPress={() => pickImage(slot.key)}>
-                                  <Icon name="pencil" size={rs(10)} color={Colors.white} />
-                                </TouchableOpacity>
-                              )}
-                              {!lockedFiles[slot.key] && (
-                                <TouchableOpacity style={[styles.docCornerBtn, { backgroundColor: Colors.kyc_error, right: vs(6) }]} onPress={() => removeFile(slot.key)}>
-                                  <Icon name="close" size={rs(10)} color={Colors.white} />
+                                <TouchableOpacity
+                                  style={[styles.docCornerBtn, { backgroundColor: Colors.kyc_error, top: -8, right: -8, width: rs(24), height: rs(24), borderRadius: rs(12), borderWidth: 1, borderColor: Colors.white, elevation: 4 }]}
+                                  onPress={() => removeFile(slot.key)}
+                                  activeOpacity={0.8}
+                                >
+                                  <Icon name="close" size={rs(12)} color={Colors.white} />
                                 </TouchableOpacity>
                               )}
                             </>
@@ -1142,13 +1141,12 @@ export default function Offlinekyc({ navigation, route }) {
                                 <Text style={styles.docFileName} numberOfLines={1}>{img.name}</Text>
                               </LinearGradient>
                               {!lockedFiles[slot.key] && (
-                                <TouchableOpacity style={[styles.docCornerBtn, { backgroundColor: Colors.kyc_accent, right: vs(30) }]} onPress={() => pickImage(slot.key)}>
-                                  <Icon name="pencil" size={rs(10)} color={Colors.white} />
-                                </TouchableOpacity>
-                              )}
-                              {!lockedFiles[slot.key] && (
-                                <TouchableOpacity style={[styles.docCornerBtn, { backgroundColor: Colors.kyc_error, right: vs(6) }]} onPress={() => removeFile(slot.key)}>
-                                  <Icon name="close" size={rs(10)} color={Colors.white} />
+                                <TouchableOpacity
+                                  style={[styles.docCornerBtn, { backgroundColor: Colors.kyc_error, right: vs(8), width: rs(28), height: rs(28), borderRadius: rs(14) }]}
+                                  onPress={() => removeFile(slot.key)}
+                                  activeOpacity={0.8}
+                                >
+                                  <Icon name="close" size={rs(16)} color={Colors.white} />
                                 </TouchableOpacity>
                               )}
                             </>
@@ -1516,14 +1514,14 @@ const styles = StyleSheet.create({
   sizeHintText: { flex: 1, color: Colors.kyc_textSub, fontFamily: Fonts.Regular, lineHeight: rs(16) },
   docGrid: {},
   docSlotWrap: { marginBottom: vs(10) },
-  docBox: { height: vs(90), borderRadius: hs(14), borderWidth: 1.5, borderStyle: "dashed", borderColor: Colors.kyc_border, overflow: "hidden", backgroundColor: "#FAFAFA" },
+  docBox: { height: vs(90), borderRadius: hs(14), borderWidth: 1.5, borderStyle: "dashed", borderColor: Colors.kyc_border, backgroundColor: "#FAFAFA" },
   docThumb: { width: "100%", height: "100%", borderRadius: hs(12) },
   docOverlay: { position: "absolute", bottom: 0, left: 0, right: 0, flexDirection: "row", alignItems: "center", paddingHorizontal: hs(10), paddingVertical: vs(6), gap: hs(6) },
-  docDoneLabel: { color: Colors.kyc_success, fontFamily: Fonts.Bold, letterSpacing: 0.4 },
+  docDoneLabel: { color: Colors.white, fontFamily: Fonts.Bold, letterSpacing: 0.4 },
   docFileName: { flex: 1, color: Colors.white, fontFamily: Fonts.Regular, fontSize: rs(9) },
   docCornerBtn: { position: "absolute", top: vs(6), width: hs(22), height: hs(22), borderRadius: hs(11), alignItems: "center", justifyContent: "center" },
   docEmptyContent: { flex: 1, flexDirection: "row", alignItems: "center", paddingHorizontal: hs(14), gap: hs(12) },
-  docIconCircle: { width: hs(42), height: hs(42), borderRadius: hs(21), alignItems: "center", justifyContent: "center" },
+  docIconCircle: { width: hs(42), height: hs(42), borderRadius: hs(12), alignItems: "center", justifyContent: "center" },
   docSlotLabel: { color: Colors.kyc_text },
   docSlotSub: { color: Colors.kyc_textMuted, marginTop: 2, fontFamily: Fonts.Regular },
   docSizeLabel: { color: Colors.kyc_textMuted, marginTop: vs(2), fontFamily: Fonts.Regular },

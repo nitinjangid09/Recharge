@@ -590,10 +590,16 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
                                 <View style={styles.hubUploadBox}>
                                     {receiptImage ? (
                                         <View style={{ width: '100%', height: '100%', position: 'relative' }}>
-                                            <Image
-                                                source={{ uri: receiptImage }}
-                                                style={{ width: '100%', height: '100%', borderRadius: 14 }}
-                                            />
+                                            <TouchableOpacity
+                                                activeOpacity={0.9}
+                                                style={{ width: '100%', height: '100%' }}
+                                                onPress={() => setShowAlert(true)}
+                                            >
+                                                <Image
+                                                    source={{ uri: receiptImage }}
+                                                    style={{ width: '100%', height: '100%', borderRadius: 14 }}
+                                                />
+                                            </TouchableOpacity>
                                             <View style={styles.uploadOverlay}>
                                                 <TouchableOpacity style={styles.deleteCircle} onPress={() => setReceiptImage(null)}>
                                                     <Text style={styles.deleteIconText}>✕</Text>
@@ -1017,6 +1023,6 @@ const styles = StyleSheet.create({
     // Upload Overlay
     // Upload Overlay (Small icons top-right)
     uploadOverlay: { position: 'absolute', top: -10, right: -10, zIndex: 10 },
-    deleteCircle: { width: 28, height: 28, borderRadius: 14, backgroundColor: Colors.red, alignItems: 'center', justifyContent: 'center', elevation: 6, shadowColor: Colors.black, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 5, borderWidth: 2, borderColor: Colors.white },
+    deleteCircle: { width: 28, height: 28, borderRadius: 14, backgroundColor: Colors.red, alignItems: 'center', justifyContent: 'center', elevation: 6, shadowColor: Colors.black, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 5, borderWidth: 1, borderColor: Colors.white },
     deleteIconText: { fontSize: 14, color: Colors.white, fontFamily: Fonts.Bold, lineHeight: 16 },
 });

@@ -267,7 +267,13 @@ export default function OfflineServiceForm({ navigation, route }) {
                                         >
                                             {documents[doc.key] ? (
                                                 <View style={styles.previewWrap}>
-                                                    <Image source={{ uri: documents[doc.key].uri }} style={styles.previewImage} />
+                                                    <TouchableOpacity
+                                                        activeOpacity={0.9}
+                                                        style={{ width: '100%', height: '100%' }}
+                                                        onPress={() => handlePickDocument(doc.key, doc.label)}
+                                                    >
+                                                        <Image source={{ uri: documents[doc.key].uri }} style={styles.previewImage} />
+                                                    </TouchableOpacity>
                                                     <TouchableOpacity
                                                         style={styles.removeBtn}
                                                         onPress={() => removeDocument(doc.key)}
@@ -451,7 +457,6 @@ const styles = StyleSheet.create({
         borderColor: Colors.input_border,
         justifyContent: 'center',
         alignItems: 'center',
-        overflow: 'hidden'
     },
     uploadBoxActive: {
         borderStyle: 'solid',
@@ -469,14 +474,21 @@ const styles = StyleSheet.create({
     previewImage: { width: '100%', height: '100%' },
     removeBtn: {
         position: 'absolute',
-        top: 5,
-        right: 5,
+        top: -8,
+        right: -8,
         width: 24,
         height: 24,
-        backgroundColor: "rgba(0,0,0,0.5)",
+        backgroundColor: Colors.red,
         borderRadius: 12,
+        borderWidth: 1,
+        borderColor: Colors.white,
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        elevation: 4,
+        shadowColor: Colors.black,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
     },
     removeText: { color: Colors.white, fontSize: 12 },
 
