@@ -11,6 +11,7 @@ import {
     Platform,
     StatusBar,
     Alert,
+    Modal,
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -234,6 +235,7 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [receiptImage, setReceiptImage] = useState(null);
     const [showMethodPicker, setShowMethodPicker] = useState(false);
+    const [uploadModalVisible, setUploadModalVisible] = useState(false);
 
     const methods = ['UPI', 'IMPS', 'bank', 'NEFT'];
 
@@ -270,19 +272,24 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
         return true;
     };
 
-    const pickImage = () => {
-        ImagePicker.openPicker({
-            width: 1000,
-            height: 1000,
-            cropping: true,
-            mediaType: 'photo',
-            compressImageQuality: 0.8,
-        }).then(async image => {
-            const isValid = await validateImageSize(image);
-            if (isValid) setReceiptImage(image.path);
-        }).catch(err => {
+    const handleCapture = async (method) => {
+        setUploadModalVisible(false);
+        try {
+            const options = {
+                width: 1000,
+                height: 1000,
+                cropping: true,
+                mediaType: 'photo',
+                compressImageQuality: 0.8,
+            };
+            const image = method === 'camera' ? await ImagePicker.openCamera(options) : await ImagePicker.openPicker(options);
+            if (image) {
+                const isValid = await validateImageSize(image);
+                if (isValid) setReceiptImage(image.path);
+            }
+        } catch (err) {
             console.log("Image picker err:", err);
-        });
+        }
     };
 
     const onDateConfirm = (selectedDate) => {
@@ -366,7 +373,7 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
                                 setShowMethodPicker(false);
                             }}
                         >
-                            <Text style={[styles.hubDropdownText, !bank && { color: Colors.slate_100 }]}>
+                            <Text style={[styles.hubDropdownText, !bank && { color: 'rgba(255,255,255,0.4)' }]}>
                                 {bank ? bank.bankName : 'CHOOSE BANK'}
                             </Text>
                             <Text style={styles.hubDropdownArrow}>▼</Text>
@@ -413,8 +420,13 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
             {/* QR Section */}
             <View style={styles.hubContent}>
                 {bank && (
-                    <View style={styles.qrStage}>
-                        <View style={styles.qrCardMain}>
+                    <View style={styles.qrCardMain}>
+                        <View style={styles.hubSectionHeader}>
+                            <Text style={styles.hubSectionTitle}>Scan & Pay</Text>
+                            <Text style={styles.hubSectionSub}>Use any UPI app to scan and pay instantly</Text>
+                        </View>
+                        
+                        <View style={styles.qrStage}>
                             <View style={styles.qrBorder}>
                                 <View style={styles.qrHeader}>
                                     <Text style={styles.qrBrand}>paytm | UPI</Text>
@@ -437,169 +449,216 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
                                     <Text style={styles.qrVpa}>{bank.upiId || 'No UPI ID'}</Text>
                                 </View>
                             </View>
-                        </View>
-                        <View style={styles.qrStatusBadge}>
-                            <Text style={styles.qrStatusText}>✓ VERIFIED QR</Text>
+                            
+                            <View style={styles.qrStatusBadge}>
+                                <Text style={styles.qrStatusText}>✓ VERIFIED SECURE QR</Text>
+                            </View>
                         </View>
                     </View>
                 )}
 
                 {bank && (
                     <View style={styles.bankDetailGroup}>
-                        {[
-                            { label: 'A/C Number', value: bank.accountNumber },
-                            { label: 'IFSC Code', value: bank.ifscCode },
-                            { label: 'Payee Name', value: bank.accountHolderName },
-                        ].map(item => (
-                            <View key={item.label} style={styles.bankDetailItem}>
-                                <Text style={styles.bankDetailLabel}>{item.label}</Text>
-                                <View style={styles.bankDetailRow}>
-                                    <Text style={styles.bankDetailValue}>{item.value}</Text>
-                                    <TouchableOpacity onPress={() => copy(item.value, item.label)}>
-                                        <Text style={styles.copyIconText}>⧉</Text>
-                                    </TouchableOpacity>
+                        <View style={styles.hubSectionHeader}>
+                            <Text style={styles.hubSectionTitle}>Bank Transfer Details</Text>
+                            <Text style={styles.hubSectionSub}>Pay via IMPS/NEFT using details below</Text>
+                        </View>
+                        
+                        <View style={styles.bankDetailList}>
+                            {[
+                                { label: 'A/C Number', value: bank.accountNumber },
+                                { label: 'IFSC Code', value: bank.ifscCode },
+                                { label: 'Payee Name', value: bank.accountHolderName },
+                            ].map(item => (
+                                <View key={item.label} style={styles.bankDetailItem}>
+                                    <Text style={styles.bankDetailLabel}>{item.label}</Text>
+                                    <View style={styles.bankDetailRow}>
+                                        <Text style={styles.bankDetailValue}>{item.value}</Text>
+                                        <TouchableOpacity onPress={() => copy(item.value, item.label)}>
+                                            <Text style={styles.copyIconText}>⧉</Text>
+                                        </TouchableOpacity>
+                                    </View>
                                 </View>
-                            </View>
-                        ))}
+                            ))}
+                        </View>
                     </View>
                 )}
 
-                {/* Payment Form */}
-                <View style={styles.confirmPaymentHeading}>
-                    <View style={styles.headingBadge}>
-                        <Text style={styles.headingBadgeText}>SECURE CHECKOUT</Text>
-                    </View>
-                    <Text style={styles.confirmTitle}>Confirm Payment</Text>
-                    <Text style={styles.confirmSubtitle}>Provide your transfer details for manual verification.</Text>
-                </View>
-
-                <View style={styles.hubForm}>
-                    <View style={styles.hubFormRow}>
-                        <View style={styles.hubFormField}>
-                            <Text style={styles.hubFieldLabel}>FEE AMOUNT</Text>
-                            <View style={styles.hubFieldInputWrap}>
-                                <Text style={styles.hubFieldCurrency}>₹</Text>
-                                <TextInput
-                                    style={styles.hubFieldInput}
-                                    value={feeAmount}
-                                    editable={false}
-                                />
+                {/* Payment Form - Only show after bank selection */}
+                {bank && (
+                    <View style={styles.hubFormCard}>
+                        <View style={styles.confirmPaymentHeading}>
+                            <View style={styles.headingBadge}>
+                                <Text style={styles.headingBadgeText}>SECURE CHECKOUT</Text>
                             </View>
-                            <Text style={styles.hubFieldHint}>* Non-refundable activation fee</Text>
+                            <Text style={styles.confirmTitle}>Confirm Payment</Text>
+                            <Text style={styles.confirmSubtitle}>Provide your transfer details for manual verification.</Text>
                         </View>
 
-                        <View style={styles.hubFormField}>
-                            <Text style={styles.hubFieldLabel}>TRANSFER DATE *</Text>
+                        <View style={styles.hubForm}>
+                            <View style={styles.hubFormRow}>
+                                <View style={styles.hubFormField}>
+                                    <Text style={styles.hubFieldLabel}>FEE AMOUNT</Text>
+                                    <View style={styles.hubFieldInputWrap}>
+                                        <Text style={styles.hubFieldCurrency}>₹</Text>
+                                        <TextInput
+                                            style={styles.hubFieldInput}
+                                            value={feeAmount}
+                                            editable={false}
+                                        />
+                                    </View>
+                                    <Text style={styles.hubFieldHint}>* Non-refundable activation fee</Text>
+                                </View>
+
+                                <View style={styles.hubFormField}>
+                                    <Text style={styles.hubFieldLabel}>TRANSFER DATE *</Text>
+                                    <TouchableOpacity
+                                        style={styles.hubFieldInputWrap}
+                                        onPress={() => setShowDatePicker(true)}
+                                    >
+                                        <Text style={styles.hubFieldPlaceholder}>
+                                            {date.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                        </Text>
+                                        <Text style={styles.hubFieldIcon}>📅</Text>
+                                    </TouchableOpacity>
+
+                                    <CalendarModal
+                                        visible={showDatePicker}
+                                        title="Select Transfer Date"
+                                        initialDate={date}
+                                        maxDate={new Date()}
+                                        onCancel={() => setShowDatePicker(false)}
+                                        onConfirm={onDateConfirm}
+                                    />
+                                </View>
+                            </View>
+
+                            <View style={styles.hubFormField}>
+                                <Text style={styles.hubFieldLabel}>Payment Method</Text>
+                                <TouchableOpacity
+                                    style={styles.hubFieldInputWrap}
+                                    onPress={() => {
+                                        setShowMethodPicker(!showMethodPicker);
+                                        setShowSelectors(false);
+                                    }}
+                                >
+                                    <Text style={styles.hubFieldPlaceholder}>
+                                        {payMode || 'Select Method'}
+                                    </Text>
+                                    <Text style={styles.hubFieldIcon}>▼</Text>
+                                </TouchableOpacity>
+
+                                {showMethodPicker && (
+                                    <View style={styles.methodPickerList}>
+                                        <View style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)', backgroundColor: Colors.primary, borderTopLeftRadius: 12, borderTopRightRadius: 12 }}>
+                                            <Text style={{ fontSize: 10, fontFamily: Fonts.Bold, color: Colors.white, letterSpacing: 1 }}>CHOOSE METHOD</Text>
+                                        </View>
+                                        {methods.map(m => (
+                                            <TouchableOpacity
+                                                key={m}
+                                                style={styles.methodPickerItem}
+                                                onPress={() => {
+                                                    setPayMode(m);
+                                                    setShowMethodPicker(false);
+                                                }}
+                                            >
+                                                <Text style={styles.methodPickerText}>{m}</Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </View>
+                                )}
+                            </View>
+
+                            <View style={styles.hubFormField}>
+                                <Text style={styles.hubFieldLabel}>UTR / REFERENCE NO</Text>
+                                <View style={styles.hubFieldInputWrap}>
+                                    <Text style={styles.hubFieldIcon}>ℹ️</Text>
+                                    <TextInput
+                                        style={styles.hubFieldInput}
+                                        placeholder="Enter UTR No"
+                                        placeholderTextColor={Colors.slate_500}
+                                        value={utr}
+                                        onChangeText={t => setUtr(t.toUpperCase())}
+                                        autoCapitalize="characters"
+                                        maxLength={20}
+                                    />
+                                </View>
+                            </View>
+
+                            <View style={styles.hubFormField}>
+                                <Text style={styles.hubFieldLabel}>Payment Screenshot</Text>
+                                <View style={styles.hubUploadBox}>
+                                    {receiptImage ? (
+                                        <View style={{ width: '100%', height: '100%', position: 'relative' }}>
+                                            <Image
+                                                source={{ uri: receiptImage }}
+                                                style={{ width: '100%', height: '100%', borderRadius: 14 }}
+                                            />
+                                            <View style={styles.uploadOverlay}>
+                                                <TouchableOpacity style={styles.deleteCircle} onPress={() => setReceiptImage(null)}>
+                                                    <Text style={styles.deleteIconText}>✕</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        </View>
+                                    ) : (
+                                        <TouchableOpacity 
+                                            style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center' }} 
+                                            onPress={() => setUploadModalVisible(true)}
+                                        >
+                                            <View style={styles.hubUploadIcon}>
+                                                <Text style={{ fontSize: 24 }}>📤</Text>
+                                            </View>
+                                            <Text style={styles.hubUploadTitle}>Drop your receipt here</Text>
+                                            <Text style={styles.hubUploadSub}>JPEG/JPG ONLY · MAX 200KB</Text>
+                                        </TouchableOpacity>
+                                    )}
+                                </View>
+                            </View>
+
                             <TouchableOpacity
-                                style={styles.hubFieldInputWrap}
-                                onPress={() => setShowDatePicker(true)}
+                                style={[styles.hubSubmitBtn, loading && { opacity: 0.7 }]}
+                                onPress={submit}
+                                disabled={loading}
                             >
-                                <Text style={styles.hubFieldPlaceholder}>
-                                    {date.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                <Text style={styles.hubSubmitText}>
+                                    {loading ? 'Processing...' : 'Confirm & Activate Account'}
                                 </Text>
-                                <Text style={styles.hubFieldIcon}>📅</Text>
+                                <Text style={styles.hubSubmitArrow}> →</Text>
                             </TouchableOpacity>
 
-                            <CalendarModal
-                                visible={showDatePicker}
-                                title="Select Transfer Date"
-                                initialDate={date}
-                                maxDate={new Date()}
-                                onCancel={() => setShowDatePicker(false)}
-                                onConfirm={onDateConfirm}
-                            />
                         </View>
                     </View>
+                )}
 
-                    <View style={styles.hubFormField}>
-                        <Text style={styles.hubFieldLabel}>Payment Method</Text>
-                        <TouchableOpacity
-                            style={styles.hubFieldInputWrap}
-                            onPress={() => {
-                                setShowMethodPicker(!showMethodPicker);
-                                setShowSelectors(false);
-                            }}
-                        >
-                            <Text style={styles.hubFieldPlaceholder}>
-                                {payMode || 'Select Method'}
-                            </Text>
-                            <Text style={styles.hubFieldIcon}>▼</Text>
-                        </TouchableOpacity>
-
-                        {showMethodPicker && (
-                            <View style={styles.methodPickerList}>
-                                <View style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)', backgroundColor: Colors.primary, borderTopLeftRadius: 12, borderTopRightRadius: 12 }}>
-                                    <Text style={{ fontSize: 10, fontFamily: Fonts.Bold, color: Colors.white, letterSpacing: 1 }}>CHOOSE METHOD</Text>
-                                </View>
-                                {methods.map(m => (
-                                    <TouchableOpacity
-                                        key={m}
-                                        style={styles.methodPickerItem}
-                                        onPress={() => {
-                                            setPayMode(m);
-                                            setShowMethodPicker(false);
-                                        }}
-                                    >
-                                        <Text style={styles.methodPickerText}>{m}</Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        )}
-                    </View>
-
-                    <View style={styles.hubFormField}>
-                        <Text style={styles.hubFieldLabel}>UTR / REFERENCE NO</Text>
-                        <View style={styles.hubFieldInputWrap}>
-                            <Text style={styles.hubFieldIcon}>ℹ️</Text>
-                            <TextInput
-                                style={styles.hubFieldInput}
-                                placeholder="Enter UTR No"
-                                placeholderTextColor={Colors.slate_100}
-                                value={utr}
-                                onChangeText={t => setUtr(t.toUpperCase())}
-                                autoCapitalize="characters"
-                                maxLength={20}
-                            />
-                        </View>
-                    </View>
-
-                    <View style={styles.hubFormField}>
-                        <Text style={styles.hubFieldLabel}>Payment Screenshot</Text>
-                        <TouchableOpacity style={styles.hubUploadBox} onPress={pickImage}>
-                            {receiptImage ? (
-                                <Image
-                                    source={{ uri: receiptImage }}
-                                    style={{ width: '100%', height: '100%', borderRadius: 16 }}
-                                />
-                            ) : (
-                                <>
-                                    <View style={styles.hubUploadIcon}>
-                                        <Text style={{ fontSize: 24 }}>📤</Text>
+                <Modal visible={uploadModalVisible} transparent animationType="fade" onRequestClose={() => setUploadModalVisible(false)}>
+                    <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setUploadModalVisible(false)}>
+                        <View style={styles.uploadModalContent}>
+                            <View style={styles.modalIndicator} />
+                            <Text style={styles.modalTitle}>Upload Receipt</Text>
+                            <Text style={styles.modalSub}>Select a source to upload your payment screenshot</Text>
+                            
+                            <View style={styles.modalActionRow}>
+                                <TouchableOpacity style={styles.modalActionBtn} onPress={() => handleCapture('camera')}>
+                                    <View style={[styles.modalActionIcon, { backgroundColor: 'rgba(212,176,106,0.1)' }]}>
+                                        <Text style={{ fontSize: 24 }}>📸</Text>
                                     </View>
-                                    <Text style={styles.hubUploadTitle}>Drop your receipt here</Text>
-                                    <Text style={styles.hubUploadSub}>JPEG/JPG ONLY · MAX 100KB</Text>
-                                </>
-                            )}
-                        </TouchableOpacity>
-                    </View>
+                                    <Text style={styles.modalActionLabel}>Camera</Text>
+                                </TouchableOpacity>
 
-                    <TouchableOpacity
-                        style={[styles.hubSubmitBtn, loading && { opacity: 0.7 }]}
-                        onPress={submit}
-                        disabled={loading}
-                    >
-                        <Text style={styles.hubSubmitText}>
-                            {loading ? 'Processing...' : 'Confirm & Activate Account'}
-                        </Text>
-                        <Text style={styles.hubSubmitArrow}> →</Text>
+                                <TouchableOpacity style={styles.modalActionBtn} onPress={() => handleCapture('gallery')}>
+                                    <View style={[styles.modalActionIcon, { backgroundColor: 'rgba(59,130,246,0.1)' }]}>
+                                        <Text style={{ fontSize: 24 }}>🖼️</Text>
+                                    </View>
+                                    <Text style={styles.modalActionLabel}>Gallery</Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setUploadModalVisible(false)}>
+                                <Text style={styles.modalCancelText}>Cancel</Text>
+                            </TouchableOpacity>
+                        </View>
                     </TouchableOpacity>
-
-                    <View style={styles.hubTrustRow}>
-                        <Text style={styles.hubTrustText}>• PCI COMPLIANT</Text>
-                        <Text style={styles.hubTrustText}>• SSL SECURED</Text>
-                        <Text style={styles.hubTrustText}>• ENCRYPTED</Text>
-                    </View>
-                </View>
+                </Modal>
             </View>
         </View>
     );
@@ -809,7 +868,7 @@ const styles = StyleSheet.create({
     sectionLabel: { fontSize: 9, fontFamily: Fonts.Bold, letterSpacing: 1.8, color: Colors.slate_500, paddingHorizontal: 20, marginBottom: 10, textTransform: 'uppercase' },
 
     // Tabs
-    tabsContainer: { marginHorizontal: 16, marginBottom: 20, backgroundColor: Colors.white, borderRadius: 18, padding: 5, flexDirection: 'row', borderWidth: 1.5, borderColor: Colors.hub_border, position: 'relative', height: 64 },
+    tabsContainer: { marginHorizontal: 16, marginBottom: 20, backgroundColor: Colors.beige, borderRadius: 18, padding: 5, flexDirection: 'row', borderWidth: 1.5, borderColor: Colors.kyc_accent + "30", position: 'relative', height: 64 },
     tabIndicator: { position: 'absolute', top: 5, bottom: 5, width: '30%', backgroundColor: Colors.primary, borderRadius: 13, elevation: 0 },
     tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, zIndex: 1 },
     tabIcon: { fontSize: 16 },
@@ -817,8 +876,8 @@ const styles = StyleSheet.create({
     tabLabelActive: { color: Colors.white, fontFamily: Fonts.Bold },
 
     // Hub Container (Bank logic)
-    hubContainer: { backgroundColor: Colors.white, borderRadius: 32, overflow: 'hidden', borderWidth: 1, borderColor: Colors.hub_border, marginHorizontal: 1 },
-    hubSidebar: { backgroundColor: Colors.primary, padding: 24 },
+    hubContainer: { backgroundColor: 'transparent', marginHorizontal: 16 },
+    hubSidebar: { backgroundColor: Colors.primary, padding: 24, borderRadius: 32, marginBottom: 16, borderWidth: 1, borderColor: Colors.kyc_accent + "40" },
     hubHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20 },
     hubIconCircle: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center' },
     hubBrand: { fontSize: 12, fontFamily: Fonts.Bold, color: 'rgba(255,255,255,0.6)', letterSpacing: 1.5 },
@@ -840,53 +899,57 @@ const styles = StyleSheet.create({
     hubFeatureIcon: { fontSize: 12, color: Colors.green },
     hubFeatureText: { fontSize: 12, color: 'rgba(255,255,255,0.7)', fontFamily: Fonts.Medium },
 
-    hubContent: { padding: 20 },
-    qrStage: { alignItems: 'center', paddingVertical: 20, gap: 16 },
-    qrCardMain: { backgroundColor: Colors.white, borderRadius: 24, padding: 12, borderWidth: 1, borderColor: Colors.info_light },
-    qrBorder: { borderWidth: 4, borderColor: Colors.info_dark, borderRadius: 18, borderStyle: 'solid', padding: 12, width: 220, height: 220, alignItems: 'center', justifyContent: 'space-between' },
+    hubContent: { padding: 0 },
+    qrStage: { alignItems: 'center', paddingVertical: 10, gap: 16 },
+    qrCardMain: { backgroundColor: Colors.beige, borderRadius: 32, padding: 24, borderWidth: 1, borderColor: Colors.kyc_accent + "40", marginBottom: 16 },
+    qrBorder: { borderWidth: 1.5, borderColor: Colors.finance_accent, borderRadius: 18, borderStyle: 'solid', padding: 12, width: 220, height: 220, alignItems: 'center', justifyContent: 'space-between' },
     qrHeader: { flexDirection: 'row', gap: 4 },
-    qrBrand: { fontSize: 14, fontFamily: Fonts.Bold, color: Colors.info_dark },
-    qrCodePlaceholder: { width: 140, height: 140, backgroundColor: Colors.slate_100, alignItems: 'center', justifyContent: 'center', borderRadius: 8, position: 'relative' },
-    qrScanLine: { position: 'absolute', top: '50%', left: 0, right: 0, height: 2, backgroundColor: Colors.info_dark, opacity: 0.5 },
+    qrBrand: { fontSize: 14, fontFamily: Fonts.Bold, color: Colors.finance_accent },
+    qrCodePlaceholder: { width: 140, height: 140, backgroundColor: Colors.white, alignItems: 'center', justifyContent: 'center', borderRadius: 8, position: 'relative' },
+    qrScanLine: { position: 'absolute', top: '50%', left: 0, right: 0, height: 2, backgroundColor: Colors.finance_accent, opacity: 0.5 },
     qrFooter: { alignItems: 'center' },
-    qrVpa: { fontSize: 12, fontFamily: Fonts.Bold, color: Colors.bg_F8 },
-    qrStatusBadge: { backgroundColor: Colors.greenSoft, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 100, borderWidth: 1, borderColor: 'rgba(34,197,94,0.2)' },
+    qrVpa: { fontSize: 12, fontFamily: Fonts.Bold, color: Colors.kyc_text },
+    qrStatusBadge: { backgroundColor: Colors.greenSoft, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 100, borderWidth: 1, borderColor: 'rgba(34,197,94,0.2)', marginTop: 10 },
     qrStatusText: { fontSize: 10, fontFamily: Fonts.Bold, color: Colors.green, letterSpacing: 1 },
 
-    bankDetailGroup: { gap: 12, marginBottom: 32 },
+    bankDetailGroup: { marginBottom: 24, backgroundColor: Colors.beige, borderRadius: 32, padding: 24, borderWidth: 1, borderColor: Colors.kyc_accent + "40" },
     bankDetailItem: { gap: 6 },
     bankDetailLabel: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.slate_500, letterSpacing: 1 },
-    bankDetailRow: { height: 50, borderRadius: 12, backgroundColor: Colors.hub_bg, borderWidth: 1, borderColor: Colors.hub_border, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16 },
+    bankDetailRow: { height: 50, borderRadius: 12, backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.kyc_accent + "20", flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16 },
     bankDetailValue: { fontSize: 14, fontFamily: Fonts.Bold, color: Colors.hub_dark },
-    copyIconText: { fontSize: 16, color: Colors.slate_100 },
+    copyIconText: { fontSize: 16, color: Colors.finance_accent },
 
     confirmPaymentHeading: { marginBottom: 24 },
-    headingBadge: { alignSelf: 'flex-start', backgroundColor: Colors.info_light, paddingVertical: 4, paddingHorizontal: 8, borderRadius: 6, marginBottom: 8 },
-    headingBadgeText: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.primary, letterSpacing: 1 },
-    confirmTitle: { fontSize: 24, fontFamily: Fonts.Bold, color: Colors.hub_dark, marginBottom: 6 },
+    headingBadge: { alignSelf: 'flex-start', backgroundColor: 'rgba(212,176,106,0.15)', paddingVertical: 4, paddingHorizontal: 8, borderRadius: 6, marginBottom: 8 },
+    headingBadgeText: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.kyc_accentDark, letterSpacing: 1 },
     confirmSubtitle: { fontSize: 13, color: Colors.slate_500, fontFamily: Fonts.Regular, lineHeight: 20 },
 
+    hubSectionHeader: { marginBottom: 4 },
+    hubSectionTitle: { fontSize: 18, fontFamily: Fonts.Bold, color: Colors.hub_dark },
+    hubSectionSub: { fontSize: 12, color: Colors.slate_500, fontFamily: Fonts.Regular },
+
+    hubFormCard: { backgroundColor: Colors.beige, borderRadius: 32, padding: 24, borderWidth: 1, borderColor: Colors.kyc_accent + "40" },
     hubForm: { gap: 20 },
     hubFormRow: { flexDirection: 'row', gap: 16 },
     hubFormField: { flex: 1, gap: 8 },
     hubFieldLabel: { fontSize: 10, fontFamily: Fonts.Bold, color: Colors.hub_dark, textTransform: 'uppercase' },
-    hubFieldInputWrap: { height: 50, borderRadius: 12, borderWidth: 1, borderColor: Colors.hub_border, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 10 },
+    hubFieldInputWrap: { height: 50, borderRadius: 12, borderWidth: 1, borderColor: Colors.kyc_accent + "20", backgroundColor: Colors.white, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 10 },
     hubFieldCurrency: { fontSize: 14, fontFamily: Fonts.Bold, color: Colors.primary },
     hubFieldInput: { flex: 1, fontSize: 14, fontFamily: Fonts.Bold, color: Colors.hub_dark },
-    hubFieldPlaceholder: { flex: 1, fontSize: 13, fontFamily: Fonts.SemiBold, color: Colors.slate_100 },
-    hubFieldIcon: { fontSize: 12, color: Colors.slate_100 },
+    hubFieldPlaceholder: { flex: 1, fontSize: 13, fontFamily: Fonts.SemiBold, color: Colors.slate_500 },
+    hubFieldIcon: { fontSize: 12, color: Colors.slate_500 },
     hubFieldHint: { fontSize: 9, fontFamily: Fonts.SemiBold, color: Colors.slate_500, fontStyle: 'italic' },
 
-    hubUploadBox: { height: 140, borderRadius: 16, borderStyle: 'dashed', borderWidth: 2, borderColor: Colors.hub_border, alignItems: 'center', justifyContent: 'center', gap: 8 },
-    hubUploadIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.hub_bg, alignItems: 'center', justifyContent: 'center' },
+    hubUploadBox: { height: 140, borderRadius: 16, borderStyle: 'dashed', borderWidth: 2, borderColor: Colors.kyc_accent + "40", backgroundColor: Colors.white, alignItems: 'center', justifyContent: 'center', gap: 8 },
+    hubUploadIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.beige, alignItems: 'center', justifyContent: 'center' },
     hubUploadTitle: { fontSize: 14, fontFamily: Fonts.Bold, color: Colors.hub_dark },
-    hubUploadSub: { fontSize: 10, fontFamily: Fonts.SemiBold, color: Colors.slate_100 },
+    hubUploadSub: { fontSize: 10, fontFamily: Fonts.SemiBold, color: Colors.slate_500 },
 
     hubSubmitBtn: { height: 56, borderRadius: 28, backgroundColor: Colors.primary, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 12 },
     hubSubmitText: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.white },
     hubSubmitArrow: { fontSize: 18, color: Colors.white, fontFamily: Fonts.Bold },
     hubTrustRow: { flexDirection: 'row', justifyContent: 'center', gap: 12, marginTop: 8 },
-    hubTrustText: { fontSize: 8, fontFamily: Fonts.Bold, color: Colors.slate_100, letterSpacing: 1 },
+    hubTrustText: { fontSize: 8, fontFamily: Fonts.Bold, color: Colors.kyc_accent, letterSpacing: 1 },
 
     // Form Picker lists
     methodPickerList: { position: 'absolute', top: 52, left: 0, right: 0, backgroundColor: Colors.white, borderRadius: 12, borderWidth: 1, borderColor: Colors.hub_border, zIndex: 10 },
@@ -894,7 +957,7 @@ const styles = StyleSheet.create({
     methodPickerText: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.hub_dark },
 
     // Panel card (shared by coupon + online)
-    panelCard: { backgroundColor: Colors.white, borderRadius: 24, borderWidth: 1.5, borderColor: Colors.hub_border, padding: 24, alignItems: 'center', gap: 14 },
+    panelCard: { backgroundColor: Colors.beige, borderRadius: 32, borderWidth: 1, borderColor: Colors.kyc_accent + "40", padding: 24, alignItems: 'center', gap: 14 },
     iconBox: { width: 72, height: 72, alignItems: 'center', justifyContent: 'center' },
     panelTitle: { fontSize: 22, fontFamily: Fonts.Bold, color: Colors.hub_dark, textAlign: 'center' },
     panelDesc: { fontSize: 13, color: Colors.slate_500, fontFamily: Fonts.Regular, textAlign: 'center', lineHeight: 20, maxWidth: 270 },
@@ -927,18 +990,18 @@ const styles = StyleSheet.create({
     // Trust Bar (Enterprise Grade)
     trustBar: { marginTop: 32, paddingHorizontal: 20, alignItems: 'center' },
     trustBarHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
-    trustBarLine: { flex: 1, height: 1.5, backgroundColor: Colors.hub_border, opacity: 0.7 },
-    trustBarTitle: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.slate_100, letterSpacing: 1.5, textTransform: 'uppercase' },
+    trustBarLine: { flex: 1, height: 1.5, backgroundColor: Colors.kyc_accent },
+    trustBarTitle: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.kyc_accentDark, letterSpacing: 1.5, textTransform: 'uppercase' },
     trustFooter: { flexDirection: 'row', justifyContent: 'center', gap: 10, flexWrap: 'wrap' },
     trustPill: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.beige,
         paddingVertical: 8,
         paddingHorizontal: 12,
         borderRadius: 100,
         borderWidth: 1,
-        borderColor: Colors.hub_border,
+        borderColor: Colors.kyc_accent + "30",
     },
     trustPillIcon: { fontSize: 12, marginRight: 6 },
     trustItem: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.slate_500, textTransform: 'uppercase', letterSpacing: 0.5 },
@@ -955,8 +1018,27 @@ const styles = StyleSheet.create({
         fontFamily: Fonts.Medium,
     },
     loginLinkBold: {
-        color: Colors.primary,
+        color: Colors.finance_accent,
         fontFamily: Fonts.Bold,
         textDecorationLine: 'underline',
     },
+
+    // Modal Styles
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+    uploadModalContent: { backgroundColor: Colors.beige, borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 24, paddingBottom: 40, alignItems: 'center' },
+    modalIndicator: { width: 40, height: 4, backgroundColor: 'rgba(0,0,0,0.1)', borderRadius: 2, marginBottom: 20 },
+    modalTitle: { fontSize: 20, fontFamily: Fonts.Bold, color: Colors.hub_dark, marginBottom: 4 },
+    modalSub: { fontSize: 13, color: Colors.slate_500, fontFamily: Fonts.Regular, marginBottom: 24, textAlign: 'center' },
+    modalActionRow: { flexDirection: 'row', gap: 20, marginBottom: 30 },
+    modalActionBtn: { alignItems: 'center', gap: 10 },
+    modalActionIcon: { width: 80, height: 80, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+    modalActionLabel: { fontSize: 14, fontFamily: Fonts.Bold, color: Colors.hub_dark },
+    modalCancelBtn: { width: '100%', height: 56, borderRadius: 28, backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.kyc_accent + "20", alignItems: 'center', justifyContent: 'center' },
+    modalCancelText: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.slate_500 },
+
+    // Upload Overlay
+    // Upload Overlay (Small icons top-right)
+    uploadOverlay: { position: 'absolute', top: -10, right: -10, zIndex: 10 },
+    deleteCircle: { width: 28, height: 28, borderRadius: 14, backgroundColor: Colors.red, alignItems: 'center', justifyContent: 'center', elevation: 6, shadowColor: Colors.black, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 5, borderWidth: 2, borderColor: Colors.white },
+    deleteIconText: { fontSize: 14, color: Colors.white, fontFamily: Fonts.Bold, lineHeight: 16 },
 });
