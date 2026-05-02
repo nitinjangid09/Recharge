@@ -18,7 +18,9 @@ import {
   ToastAndroid,
   Platform,
   Alert,
+  PermissionsAndroid,
 } from "react-native";
+import Geolocation from "@react-native-community/geolocation";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -181,6 +183,35 @@ export default function FinanceHome({ navigation }) {
   const HEADER_MAX = insets.top + TOP_ROW_H + GAP + WALLET_H + rs(14);
   const HEADER_MIN = insets.top + TOP_ROW_H + rs(14);
   const SCROLL_D = HEADER_MAX - HEADER_MIN;
+
+  // ── Location ───────────────────────────────────────────────────────────────
+  const requestLocation = async () => {
+    try {
+      if (Platform.OS === "android") {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: "Location Access",
+            message: "Location access is required for secure transactions.",
+            buttonNeutral: "Later",
+            buttonNegative: "Cancel",
+            buttonPositive: "Allow",
+          }
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) return;
+      }
+      Geolocation.getCurrentPosition(
+        (pos) => {
+          // You can save this to AsyncStorage or state if needed elsewhere
+          console.log("Home location captured:", pos.coords.latitude, pos.coords.longitude);
+        },
+        (err) => console.log("Home location error:", err.message),
+        { enableHighAccuracy: false, timeout: 15000, maximumAge: 10000 }
+      );
+    } catch (e) {
+      console.log("Location request failed:", e);
+    }
+  };
 
   // ── Greeting ───────────────────────────────────────────────────────────────
   const [greeting, setGreeting] = useState(getGreeting());
@@ -510,6 +541,7 @@ export default function FinanceHome({ navigation }) {
 
   useEffect(() => {
     loadSession();
+    requestLocation();
     Animated.parallel([
       Animated.timing(leftAnim, { toValue: 0, duration: 1400, easing: Easing.out(Easing.exp), useNativeDriver: false }),
       Animated.timing(leftFade, { toValue: 1, duration: 1400, useNativeDriver: false }),
@@ -806,6 +838,10 @@ export default function FinanceHome({ navigation }) {
                     navigation.navigate("DmtLogin");
                   } else if (base === "xpresspayout" || base === "xpress-payout" || base === "upi-payout" || base === "aepspayout" || base === "aeps-payout" || n === "aepspayout") {
                     navigation.navigate("XpressPayout");
+                  } else if (n.includes("offline")) {
+                    navigation.navigate("OfflineServices");
+                  } else if (n.includes("online")) {
+                    navigation.navigate("OnlineServices");
                   }
                 }}
               >
@@ -1553,7 +1589,8 @@ const S = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: rs(16),
-    marginBottom: rs(8),
+    marginBottom: rs(4),
+    marginTop: rs(16),
   },
   secTitle: {
     fontSize: rs(15),
