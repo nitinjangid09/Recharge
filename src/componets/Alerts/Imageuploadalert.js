@@ -50,14 +50,9 @@ const OptionButton = ({ icon, label, subtitle, onPress, delay, accentColor }) =>
                 onPressOut={onPressOut}
                 style={styles.optionBtn}
             >
-                <LinearGradient
-                    colors={accentColor}
-                    style={styles.iconWrap}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                >
-                    <Icon name={icon} size={28} color={Colors.white} />
-                </LinearGradient>
+                <View style={[styles.iconWrap, { backgroundColor: '#FFFBEB', borderColor: 'rgba(212,176,106,0.4)' }]}>
+                    <Icon name={icon} size={22} color="#D4B06A" />
+                </View>
                 <Text style={styles.optionLabel}>{label}</Text>
             </TouchableOpacity>
         </Animated.View>
@@ -104,7 +99,7 @@ export const ImageUploadAlert = ({ visible, onClose, onCamera, onGallery, onFile
                 <View style={styles.header}>
                     <View style={styles.headerLeft}>
                         <View style={styles.uploadIconBg}>
-                             <Icon name="cloud-upload-outline" size={24} color={Colors.kyc_accentDark} />
+                            <Icon name="cloud-upload-outline" size={24} color={Colors.kyc_accentDark} />
                         </View>
                         <View>
                             <Text style={styles.title}>Upload Screenshot</Text>
@@ -112,7 +107,7 @@ export const ImageUploadAlert = ({ visible, onClose, onCamera, onGallery, onFile
                         </View>
                     </View>
                     <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-                         <Icon name="close" size={16} color={Colors.slate_500} />
+                        <Icon name="close" size={16} color={Colors.slate_500} />
                     </TouchableOpacity>
                 </View>
 
@@ -122,23 +117,23 @@ export const ImageUploadAlert = ({ visible, onClose, onCamera, onGallery, onFile
                 {/* Options Row */}
                 <View style={styles.optionsRow}>
                     <OptionButton
-                        icon="camera-outline"
+                        icon="camera"
                         label="Camera"
-                        accentColor={['#6366F1', '#4F46E5']}
+                        accentColor={['#D4B06A', '#C9A84C']}
                         delay={60}
                         onPress={() => handleOption(onCamera)}
                     />
                     <OptionButton
-                        icon="image-multiple-outline"
+                        icon="image"
                         label="Gallery"
-                        accentColor={['#3B82F6', '#2563EB']}
+                        accentColor={['#D4B06A', '#C9A84C']}
                         delay={120}
                         onPress={() => handleOption(onGallery)}
                     />
                     <OptionButton
-                        icon="file-document-outline"
+                        icon="file-document"
                         label="Files"
-                        accentColor={['#64748B', '#475569']}
+                        accentColor={['#D4B06A', '#C9A84C']}
                         delay={180}
                         onPress={() => handleOption(onFile)}
                     />
@@ -202,21 +197,22 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0,0,0,0.4)',
     },
     sheet: {
-        position: 'absolute', bottom: 0, left: 0, right: 0,
+        position: 'absolute', bottom: 20, left: 16, right: 16,
         backgroundColor: Colors.white,
-        borderTopLeftRadius: 36, borderTopRightRadius: 36,
-        paddingHorizontal: 24, paddingTop: 12,
-        paddingBottom: 20,
-        borderWidth: 1,
-        borderColor: 'rgba(212,176,106,0.2)',
+        borderRadius: 32,
+        paddingHorizontal: 20, paddingTop: 12,
+        paddingBottom: 16,
+        borderWidth: 1.5,
+        borderColor: 'rgba(212,176,106,0.25)',
+        elevation: 20, shadowColor: Colors.black, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 20,
     },
     handle: {
-        alignSelf: 'center', width: 40, height: 5,
-        backgroundColor: 'rgba(0,0,0,0.08)', borderRadius: 10, marginBottom: 24,
+        alignSelf: 'center', width: 36, height: 4,
+        backgroundColor: 'rgba(0,0,0,0.08)', borderRadius: 10, marginBottom: 16,
     },
     header: {
         flexDirection: 'row', alignItems: 'center',
-        justifyContent: 'space-between', marginBottom: 28,
+        justifyContent: 'space-between', marginBottom: 16,
     },
     headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 14 },
     uploadIconBg: {
@@ -225,19 +221,19 @@ const styles = StyleSheet.create({
         alignItems: 'center', justifyContent: 'center',
         borderWidth: 1, borderColor: 'rgba(212,176,106,0.25)',
     },
-    title: { color: Colors.hub_dark, fontSize: 20, fontFamily: Fonts.Bold, letterSpacing: -0.5 },
-    subtitle: { color: Colors.slate_500, fontSize: 13, marginTop: 2, fontFamily: Fonts.Medium },
+    title: { color: Colors.hub_dark, fontSize: 16, fontFamily: Fonts.Bold, letterSpacing: -0.2 },
+    subtitle: { color: Colors.slate_500, fontSize: 11, marginTop: 1, fontFamily: Fonts.Medium },
     closeBtn: {
         width: 32, height: 32, borderRadius: 16,
         backgroundColor: 'rgba(0,0,0,0.05)', alignItems: 'center', justifyContent: 'center',
     },
-    divider: { height: 1, backgroundColor: 'rgba(0,0,0,0.05)', marginBottom: 28 },
+    divider: { height: 1, backgroundColor: 'rgba(0,0,0,0.05)', marginBottom: 16 },
 
     // Options Row Layout
     optionsRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 24,
+        marginBottom: 16,
         gap: 12,
     },
     optionContainer: {
@@ -246,36 +242,36 @@ const styles = StyleSheet.create({
     optionBtn: {
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 20,
-        paddingHorizontal: 10,
-
+        paddingVertical: 14,
+        paddingHorizontal: 8,
     },
     iconWrap: {
-        width: 64, height: 64, borderRadius: 22,
+        width: 48, height: 48, borderRadius: 16,
         alignItems: 'center', justifyContent: 'center',
-        marginBottom: 14,
-        elevation: 8,
-        shadowColor: '#4F46E5',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
+        marginBottom: 8,
+        borderWidth: 1.2,
+        elevation: 6,
+        shadowColor: '#D4B06A',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.12,
+        shadowRadius: 6,
     },
     optionLabel: {
         color: Colors.hub_dark,
-        fontSize: 13,
+        fontSize: 12,
         fontFamily: Fonts.Bold,
         textAlign: 'center',
     },
 
     cancelBtn: {
-        alignItems: 'center', paddingVertical: 16,
-        borderRadius: 28, backgroundColor: '#F1F5F9',
-        marginTop: 10,
-        borderWidth: 1, borderColor: '#E2E8F0',
+        alignItems: 'center', paddingVertical: 12,
+        borderRadius: 20, backgroundColor: Colors.finance_accent,
+        marginTop: 6,
+        borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)',
     },
     cancelTxt: {
-        color: '#475569',
+        color: Colors.black,
         fontFamily: Fonts.Bold,
-        fontSize: 16,
+        fontSize: 14,
     },
 });
