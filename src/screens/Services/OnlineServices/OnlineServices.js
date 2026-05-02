@@ -274,7 +274,7 @@ export default function OnlineServices({ navigation }) {
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.beige,
     },
     scrollView: { flex: 1 },
 
@@ -288,10 +288,12 @@ const styles = StyleSheet.create({
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: 'rgba(212,176,106,0.1)',
+        backgroundColor: Colors.white,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 16,
+        borderWidth: 1,
+        borderColor: Colors.input_border,
     },
     heroTitle: {
         fontSize: 26,

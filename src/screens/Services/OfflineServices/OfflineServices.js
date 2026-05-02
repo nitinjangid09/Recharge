@@ -304,7 +304,7 @@ export default function OfflineServices({ navigation }) {
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.beige,
     },
     scrollView: { flex: 1 },
 
