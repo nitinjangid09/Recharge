@@ -169,11 +169,10 @@ function DashboardContent({ onTransfer, onAddBank, banks, loading, onRefresh, ba
 
       <View style={styles.managementCard}>
         <View style={styles.manageGrid}>
-          <FeatureCard icon="account-plus" label="Add Bank" color="rgb(16, 185, 129)" onPress={onAddBank} />
-          <FeatureCard icon="history" label="Txn History" color={Colors.indigo} onPress={() => navigation.navigate("AEPS_Payout_Report")} />
-
-          <FeatureCard icon="shield-check" label="Verification" color={Colors.warning} />
-          <FeatureCard icon="bank-transfer" label="Bulk Payout" color="rgb(225, 29, 72)" />
+          <FeatureCard icon="plus-circle" label="Add Bank" color={Colors.kyc_accent} onPress={onAddBank} />
+          <FeatureCard icon="file-document-outline" label="Txn History" color={Colors.kyc_accent} onPress={() => navigation.navigate("AEPS_Payout_Report")} />
+          <FeatureCard icon="shield-check-outline" label="Verification" color={Colors.kyc_accent} />
+          <FeatureCard icon="bank-outline" label="Bulk Payout" color={Colors.kyc_accent} />
         </View>
       </View>
 

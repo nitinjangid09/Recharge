@@ -93,20 +93,16 @@ const AEPS_Services = () => {
         }
     };
 
-    const ServiceCard = ({ title, sub, Svg, onPress }) => (
+    const ServiceCard = ({ title, Svg, onPress }) => (
         <TouchableOpacity
             style={styles.card}
             activeOpacity={0.8}
             onPress={onPress}
         >
             <View style={styles.iconBox}>
-                <Svg width={22 * S} height={22 * S} />
+                <Svg width={20 * S} height={20 * S} />
             </View>
-            <View style={{ marginTop: 10 }}>
-                <Text style={styles.cardTitle}>{title}</Text>
-                <Text style={styles.cardSub}>{sub}</Text>
-            </View>
-
+            <Text style={styles.cardTitle} numberOfLines={2}>{title}</Text>
         </TouchableOpacity>
     );
 
@@ -187,34 +183,23 @@ const AEPS_Services = () => {
                 {/* ── Quick Services ── */}
                 <Text style={styles.sectionLabel}>QUICK SERVICES</Text>
                 <View style={styles.grid}>
-                    <View style={styles.gridRow}>
-                        <ServiceCard
-                            title="Cash Withdrawal"
-                            sub="Instant biometric"
-                            Svg={CashWithdrawIcon}
-                            onPress={() => NavigationService.navigate("CashWithdraw")}
-                        />
-                        <ServiceCard
-                            title="Balance Enquiry"
-                            sub="Check account"
-                            Svg={BalanceEnquiryIcon}
-                            onPress={() => NavigationService.navigate("BalanceEnquiry")}
-                        />
-                    </View>
-                    <View style={styles.gridRow}>
-                        <ServiceCard
-                            title="Mini Statement"
-                            sub="Last 5 txns"
-                            Svg={MiniStatementIcon}
-                            onPress={() => NavigationService.navigate("MiniStatement")}
-                        />
-                        <ServiceCard
-                            title="Payout Hub"
-                            sub="AEPS Payout"
-                            Svg={aepsIcon}
-                            onPress={() => NavigationService.navigate("AEPSPayOut")}
-                        />
-                    </View>
+                <View style={styles.gridRow}>
+                    <ServiceCard
+                        title="Cash Withdrawal"
+                        Svg={CashWithdrawIcon}
+                        onPress={() => NavigationService.navigate("CashWithdraw")}
+                    />
+                    <ServiceCard
+                        title="Balance Enquiry"
+                        Svg={BalanceEnquiryIcon}
+                        onPress={() => NavigationService.navigate("BalanceEnquiry")}
+                    />
+                    <ServiceCard
+                        title="Mini Statement"
+                        Svg={MiniStatementIcon}
+                        onPress={() => NavigationService.navigate("MiniStatement")}
+                    />
+                </View>
                 </View>
 
                 {/* ── Recent Activity ── */}
@@ -256,7 +241,7 @@ const AEPS_Services = () => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: "rgb(235, 227, 204)" },
+    container: { flex: 1, backgroundColor: Colors.beige },
     scroll: { paddingHorizontal: 16 * S, paddingBottom: 16 * S },
 
     // ── Header ──────────────────────────────────────────────
@@ -268,11 +253,11 @@ const styles = StyleSheet.create({
         paddingVertical: 12 * S,
         marginTop: 4,
     },
-    headerTitle: { fontSize: 20 * S, fontFamily: Fonts.Bold, color: Colors.hub_dark },
-    headerSub: { fontSize: 12 * S, fontFamily: Fonts.Medium, color: "rgb(113, 113, 113)", marginTop: 1 },
+    headerTitle: { fontSize: 20 * S, fontFamily: Fonts.Bold, color: Colors.black },
+    headerSub: { fontSize: 12 * S, fontFamily: Fonts.Medium, color: Colors.text_secondary, marginTop: 1 },
     profileBtn: {
         width: 38 * S, height: 38 * S,
-        backgroundColor: "rgb(0, 0, 0)", borderRadius: 12,
+        backgroundColor: Colors.primary, borderRadius: 12,
         alignItems: "center", justifyContent: "center",
     },
     badge: {
@@ -280,13 +265,13 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.red, borderRadius: 10,
         width: 16 * S, height: 16 * S,
         alignItems: "center", justifyContent: "center",
-        borderWidth: 2, borderColor: "rgb(235, 227, 204)",
+        borderWidth: 2, borderColor: Colors.beige,
     },
     badgeText: { color: "rgb(255, 255, 255)", fontSize: 9, fontFamily: Fonts.Bold },
 
     // ── Compact Wallet Card ─────────────────────────────────
     mainCard: {
-        backgroundColor: "rgb(0, 0, 0)",
+        backgroundColor: Colors.primary,
         borderRadius: 24 * S,
         paddingHorizontal: 20 * S,
         paddingTop: 16 * S,
@@ -317,14 +302,14 @@ const styles = StyleSheet.create({
 
     // ── Agent Card ──────────────────────────────────────────
     agentCard: {
-        backgroundColor: Colors.beige,
+        backgroundColor: Colors.white,
         borderRadius: 20 * S,
         padding: 14 * S,
         flexDirection: "row",
         alignItems: "center",
         marginBottom: 20 * S,
         borderWidth: 1,
-        borderColor: "rgba(245,158,11,0.30)",
+        borderColor: "rgba(201, 168, 76, 0.40)",
     },
     agentIconBox: {
         width: 38 * S, height: 38 * S,
@@ -346,7 +331,7 @@ const styles = StyleSheet.create({
     sectionLabel: {
         fontSize: 10 * S,
         fontFamily: Fonts.Bold,
-        color: "rgb(212, 168, 67)",
+        color: Colors.kyc_accentDark,
         letterSpacing: 1.5,
         marginBottom: 10 * S,
         textTransform: "uppercase",
@@ -357,22 +342,24 @@ const styles = StyleSheet.create({
     gridRow: { flexDirection: "row", gap: 10 * S },
     card: {
         flex: 1,
-        backgroundColor: Colors.beige,
-        borderRadius: 20 * S,
-        padding: 14 * S,
-        justifyContent: "space-between",
-        minHeight: 88 * S,
+        alignItems: "center",
+        justifyContent: "flex-start",
+        backgroundColor: Colors.white,
+        borderRadius: 16 * S,
+        paddingVertical: 12 * S,
+        paddingHorizontal: 4 * S,
         borderWidth: 1,
-        borderColor: "rgba(245,158,11,0.30)",
+        borderColor: "rgba(201, 168, 76, 0.40)",
+        minHeight: 100 * S,
     },
     iconBox: {
-        width: 50 * S, height: 50 * S,
-        borderRadius: 10,
+        width: 40 * S, height: 40 * S,
+        borderRadius: 12,
         alignItems: "center", justifyContent: "center",
-        backgroundColor: 'rgba(0,0,0,0.05)',
+        backgroundColor: 'rgba(201, 168, 76, 0.12)',
+        marginBottom: 8 * S,
     },
-    cardTitle: { fontSize: 12 * S, fontFamily: Fonts.Bold, color: Colors.black, lineHeight: 17 },
-    cardSub: { fontSize: 10 * S, fontFamily: Fonts.Medium, color: Colors.black, marginTop: 2, opacity: 0.5 },
+    cardTitle: { fontSize: 9.5 * S, fontFamily: Fonts.Bold, color: Colors.black, textAlign: 'center', lineHeight: 12 * S },
 
 
     // ── Transaction Items ───────────────────────────────────
@@ -384,7 +371,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginBottom: 8 * S,
         borderWidth: 1,
-        borderColor: "rgba(245,158,11,0.30)",
+        borderColor: "rgba(201, 168, 76, 0.40)",
     },
     txnIconBox: {
         width: 36 * S, height: 36 * S,

@@ -836,8 +836,10 @@ export default function FinanceHome({ navigation }) {
                     }
                   } else if (n === "dmt" || n === "dmt1") {
                     navigation.navigate("DmtLogin");
-                  } else if (base === "xpresspayout" || base === "xpress-payout" || base === "upi-payout" || base === "aepspayout" || base === "aeps-payout" || n === "aepspayout") {
+                  } else if (base === "xpresspayout" || base === "xpress-payout" || base === "upi-payout") {
                     navigation.navigate("XpressPayout");
+                  } else if (base === "aepspayout" || base === "aeps-payout" || n === "aepspayout") {
+                    navigation.navigate("AEPSPayOut");
                   } else if (n.includes("offline")) {
                     navigation.navigate("OfflineServices");
                   } else if (n.includes("online")) {
@@ -935,7 +937,7 @@ export default function FinanceHome({ navigation }) {
                     <Icon name="magnify" size={rs(20)} color={Colors.white} />
                   </TouchableOpacity>
                   <TouchableOpacity style={S.glassBtn}
-                    onPress={() => navigation.navigate("Notification")}
+                    onPress={() => navigation.navigate("AEPS1")}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                     <Icon name="bell-ring-outline" size={rs(20)} color={Colors.white} />
                   </TouchableOpacity>

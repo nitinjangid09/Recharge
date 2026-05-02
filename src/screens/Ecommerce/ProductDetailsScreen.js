@@ -117,74 +117,79 @@ export default function ProductDetailsScreen({ navigation, route }) {
                 </View>
                 <View style={s.iconActions}>
                   <TouchableOpacity onPress={onShare} style={s.styledIconBtn}>
-                    <Icon name="share-variant" size={20} color={Colors.finance_accent} />
+                    <Icon name="share-variant" size={20} color={Colors.primary} />
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => setIsFav(!isFav)} style={s.styledIconBtn}>
                     <Icon
                       name={isFav ? "heart" : "heart-outline"}
                       size={20}
-                      color={isFav ? Colors.red : Colors.finance_accent}
+                      color={isFav ? Colors.red : Colors.primary}
                     />
                   </TouchableOpacity>
                 </View>
               </View>
 
-              {/* Attribute Icons Row */}
               <View style={s.attrRow}>
-                <View style={s.attrItem}>
-                  <Icon name="identifier" size={20} color={Colors.finance_accent} />
-                  <Text style={s.attrText}>{product.sku || 'N/A'}</Text>
+                <View style={[s.attrPill, { backgroundColor: 'rgba(79, 70, 229, 0.08)', borderColor: 'rgba(79, 70, 229, 0.15)' }]}>
+                  <Icon name="barcode-scan" size={14} color="#4F46E5" />
+                  <Text style={[s.attrText, { color: "#4F46E5" }]}>{product.sku || 'N/A'}</Text>
                 </View>
-                <View style={s.attrItem}>
-                  <Icon name="package-variant-closed" size={20} color={Colors.finance_accent} />
-                  <Text style={s.attrText}>{product.stock || 0} In Stock</Text>
+                <View style={[s.attrPill, { backgroundColor: 'rgba(22, 163, 74, 0.08)', borderColor: 'rgba(22, 163, 74, 0.15)' }]}>
+                  <Icon name="package-variant-closed" size={14} color="#16A34A" />
+                  <Text style={[s.attrText, { color: "#16A34A" }]}>{product.stock || 0} Units</Text>
                 </View>
-                <View style={s.attrItem}>
-                  <Icon name="calendar-outline" size={20} color={Colors.finance_accent} />
-                  <Text style={s.attrText}>{new Date(product.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</Text>
+                <View style={[s.attrPill, { backgroundColor: 'rgba(217, 119, 6, 0.08)', borderColor: 'rgba(217, 119, 6, 0.15)' }]}>
+                  <Icon name="calendar-clock-outline" size={14} color="#D97706" />
+                  <Text style={[s.attrText, { color: "#D97706" }]}>{new Date(product.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</Text>
                 </View>
               </View>
 
-              {/* Quantity Selector */}
-              <View style={s.quantitySection}>
-                <Text style={s.sectionHeader}>Quantity</Text>
+              {/* Quantity & Description Group */}
+              <View style={s.mainContentCard}>
+                {/* Quantity Selector */}
+                {/* Quantity Selector */}
                 <View style={s.quantityRow}>
-                  <TouchableOpacity 
-                    style={s.qtyBtn} 
-                    onPress={() => setQuantity(Math.max(1, quantity - 1))}
-                  >
-                    <Icon name="minus" size={20} color={Colors.finance_accent} />
-                  </TouchableOpacity>
-                  <Text style={s.qtyText}>{quantity}</Text>
-                  <TouchableOpacity 
-                    style={s.qtyBtn} 
-                    onPress={() => setQuantity(quantity + 1)}
-                  >
-                    <Icon name="plus" size={20} color={Colors.finance_accent} />
-                  </TouchableOpacity>
+                  <View>
+                    <Text style={s.sectionHeader}>Quantity</Text>
+                    <Text style={s.qtySub}>Select units for purchase</Text>
+                  </View>
+                  <View style={s.stepperContainer}>
+                    <TouchableOpacity
+                      style={s.qtyBtn}
+                      onPress={() => setQuantity(Math.max(1, quantity - 1))}
+                    >
+                      <Icon name="minus" size={18} color={Colors.finance_accent} />
+                    </TouchableOpacity>
+                    <View style={s.qtyValueContainer}>
+                      <Text style={s.qtyText}>{quantity}</Text>
+                    </View>
+                    <TouchableOpacity
+                      style={s.qtyBtn}
+                      onPress={() => setQuantity(quantity + 1)}
+                    >
+                      <Icon name="plus" size={18} color={Colors.finance_accent} />
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
 
-              {/* Description Section */}
-              <View style={s.descSection}>
-                <Text style={s.sectionHeader}>Description</Text>
-                <Text style={s.descText}>
-                  {product.description || 'No description available for this product.'}
-                </Text>
-              </View>
+                <View style={s.divider} />
 
-              {/* Extra Info Grid */}
-              <View style={s.extraInfoGrid}>
-                <View style={s.infoBox}>
-                  <Text style={s.infoLabel}>Category</Text>
-                  <Text style={s.infoVal}>{product.category || 'General'}</Text>
-                </View>
-                <View style={s.infoBox}>
-                  <Text style={s.infoLabel}>Status</Text>
-                  <Text style={[s.infoVal, { color: product.isActive ? 'rgb(16, 185, 129)' : 'rgb(239, 68, 68)' }]}>
-                    {product.isActive ? 'Active' : 'Inactive'}
+                {/* Description Section */}
+                <View style={s.descSection}>
+                  <Text style={s.sectionHeader}>Product Overview</Text>
+                  <Text style={s.descText}>
+                    {product.description || 'This premium hardware component is designed for maximum performance and durability. Precision engineered to meet industry standards.'}
                   </Text>
                 </View>
+              </View>
+
+              {/* Specifications Section */}
+              <Text style={[s.sectionHeader, { marginLeft: 5, marginBottom: 12 }]}>Specifications</Text>
+              <View style={s.specsCard}>
+                <SpecItem label="Category" value={product.category || 'Hardware'} icon="layers-outline" iconColor="#7C3AED" />
+                <SpecItem label="Availability" value={product.isActive ? 'In Stock' : 'Out of Stock'} icon="check-circle-outline" iconColor={product.isActive ? Colors.green : Colors.red} color={product.isActive ? Colors.green : Colors.red} />
+                <SpecItem label="SKU ID" value={product.sku || 'HW-9920-X'} icon="barcode-scan" iconColor="#4F46E5" />
+                <SpecItem label="Listed On" value={new Date(product.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })} icon="calendar-month-outline" iconColor="#D97706" />
               </View>
             </View>
           </ScrollView>
@@ -196,9 +201,9 @@ export default function ProductDetailsScreen({ navigation, route }) {
                 <Icon name="message-text-outline" size={24} color={Colors.finance_accent} />
               </TouchableOpacity>
 
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={s.buyBtn}
-                onPress={() => navigation.navigate('CheckoutScreen', { 
+                onPress={() => navigation.navigate('CheckoutScreen', {
                   product: {
                     productId: product._id,
                     quantity: quantity,
@@ -254,9 +259,19 @@ const s = StyleSheet.create({
     borderColor: Colors.kyc_accent + "40"
   },
 
-  attrRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 25 },
-  attrItem: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  attrText: { fontFamily: Fonts.Bold, fontSize: 11, color: Colors.kyc_textSub },
+  attrRow: { flexDirection: 'row', gap: 8, marginBottom: 25, flexWrap: 'wrap' },
+  attrPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(201, 168, 76, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(201, 168, 76, 0.2)'
+  },
+  attrText: { fontFamily: Fonts.Bold, fontSize: 10, color: Colors.kyc_accentDark },
 
   descSection: { marginBottom: 15 },
   sectionHeader: { fontFamily: Fonts.Bold, fontSize: 16, color: Colors.kyc_text },
@@ -268,9 +283,12 @@ const s = StyleSheet.create({
   infoVal: { fontFamily: Fonts.Bold, fontSize: 13, color: Colors.kyc_text },
 
   quantitySection: { marginBottom: 20 },
-  quantityRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 15 },
-  qtyBtn: { width: 40, height: 40, borderRadius: 10, backgroundColor: Colors.beige, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: Colors.kyc_accent + "40" },
-  qtyText: { fontFamily: Fonts.Bold, fontSize: 18, color: Colors.kyc_text, minWidth: 20, textAlign: 'center' },
+  quantityRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  qtySub: { fontFamily: Fonts.Medium, fontSize: 11, color: Colors.kyc_textSub, marginTop: 2 },
+  stepperContainer: { flexDirection: 'row', alignItems: 'center' },
+  qtyBtn: { width: 34, height: 34, borderRadius: 8, backgroundColor: Colors.beige, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(212,176,106,0.3)' },
+  qtyValueContainer: { paddingHorizontal: 15 },
+  qtyText: { fontFamily: Fonts.Bold, fontSize: 16, color: Colors.kyc_text, textAlign: 'center' },
 
   // Footer
   footer: { position: 'absolute', bottom: 0, width: width, backgroundColor: Colors.beige, borderTopWidth: 1, borderTopColor: Colors.kyc_accent + "40" },
@@ -284,4 +302,65 @@ const s = StyleSheet.create({
   errorTxt: { fontFamily: Fonts.Medium, fontSize: 16, color: Colors.kyc_textSub, textAlign: 'center', marginTop: 15 },
   retryBtn: { marginTop: 25, backgroundColor: Colors.finance_accent, paddingHorizontal: 30, paddingVertical: 12, borderRadius: 12 },
   retryTxt: { fontFamily: Fonts.Bold, color: Colors.black, fontSize: 14 },
+
+  // New UI Elements
+  mainContentCard: {
+    backgroundColor: Colors.gold,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 25,
+    borderWidth: 1,
+    borderColor: 'rgba(212,176,106,0.3)',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(212,176,106,0.1)',
+    marginVertical: 20,
+  },
+  specsCard: {
+    backgroundColor: 'rgba(212,176,106,0.05)',
+    borderRadius: 20,
+    padding: 15,
+    borderWidth: 1.5,
+    borderColor: 'rgba(212,176,106,0.3)',
+  },
+  specItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(212,176,106,0.1)',
+  },
+  specIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: Colors.gold,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(212,176,106,0.2)',
+  },
+  specLabel: {
+    flex: 1,
+    fontFamily: Fonts.Medium,
+    fontSize: 12,
+    color: Colors.kyc_textSub,
+  },
+  specValue: {
+    fontFamily: Fonts.Bold,
+    fontSize: 13,
+    color: Colors.kyc_text,
+  },
 });
+
+const SpecItem = ({ label, value, icon, color, iconColor }) => (
+  <View style={s.specItem}>
+    <View style={[s.specIconBox, { backgroundColor: iconColor ? `${iconColor}10` : 'rgba(212,176,106,0.1)' }]}>
+      <Icon name={icon} size={18} color={iconColor || Colors.primary} />
+    </View>
+    <Text style={s.specLabel}>{label}</Text>
+    <Text style={[s.specValue, color ? { color } : {}]}>{value}</Text>
+  </View>
+);
