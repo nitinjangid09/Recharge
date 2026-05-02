@@ -593,7 +593,10 @@ export default function FinanceHome({ navigation }) {
       if (base === "upi-payout") label = "UPI Payout";
       if (n && n.includes("offline")) label = "OFFLINE SERVICES";
       if (n && n.includes("online")) label = "ONLINE SERVICES";
-      return { ...item, label, n, base, isLocked };
+      const req = userProfile?.requestedService?.find(r => r.serviceName === n);
+      const reqStatus = req ? req.status : null;
+      const reqReason = req ? req.reason : null;
+      return { ...item, label, n, base, isLocked, reqStatus, reqReason };
     });
 
   const aepsServices = allServiceItems.filter(i => i.base === "aeps" || (i.n && i.n.includes("aeps")));
@@ -633,7 +636,7 @@ export default function FinanceHome({ navigation }) {
         <SectionHeader title={title || "Services"} subtitle={subtitle} />
         <View style={S.svcGrid}>
           {items.map((item, idx) => {
-            const { code, service, label, n, base, isStatic, screen, Svg, isLocked } = item;
+            const { code, service, label, n, base, isStatic, screen, Svg, isLocked, reqStatus, reqReason } = item;
             const iconName = SERVICE_ICON_MAP[base] || SERVICE_ICON_MAP.default;
 
             return (
@@ -654,10 +657,53 @@ export default function FinanceHome({ navigation }) {
                       return;
                     }
 
-                    const rejectedService = userProfile?.requestedService?.find(req => req.serviceName === n && req.status === "rejected");
+                    if (reqStatus === "rejected") {
+                      showAlert(
+                        "theme",
+                        "Request Rejected",
+                        `Reason: ${reqReason || "No reason provided."}\n\nDo you want to request this service again?`,
+                        async () => {
+                          try {
+                            setAlert(p => ({ ...p, isLoading: true }));
+                            const res = await requestService({
+                              serviceId: service._id || service.serviceId,
+                              pipeline: n,
+                              headerToken: token
+                            });
 
-                    if (rejectedService) {
-                      showAlert("error", "Request Rejected", `Reason: ${rejectedService.reason}`);
+                            if (res?.success) {
+                              try {
+                                const profileRes = await fetchUserProfile({ headerToken: token });
+                                if (profileRes?.success && profileRes?.data) {
+                                  setUserProfile(profileRes.data);
+                                  setProfileAssignedServices(Array.isArray(profileRes.data.assignedServices) ? profileRes.data.assignedServices : []);
+                                }
+                              } catch (e) {
+                                console.log("Failed to refresh profile:", e);
+                              }
+                            }
+
+                            setAlert(p => ({
+                              ...p,
+                              type: res.success ? "success" : "warning",
+                              title: res.success ? "Request Sent" : "Notice",
+                              message: res.message || "Your request has been sent.",
+                              isLoading: false,
+                              onConfirm: null,
+                            }));
+                          } catch (error) {
+                            setAlert(p => ({
+                              ...p,
+                              type: "error",
+                              title: "Error",
+                              message: "Failed to request service. Please try again.",
+                              isLoading: false,
+                              onConfirm: null,
+                            }));
+                          }
+                        },
+                        "Request Again"
+                      );
                       return;
                     }
 

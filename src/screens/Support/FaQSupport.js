@@ -58,7 +58,7 @@ const getToken = async () => {
  */
 const normaliseService = (item, index) => {
   const key =
-    item._id || item.id || item.name || item.type || item.cat_key || String(index);
+    item.serviceId || item._id || item.id || item.name || item.type || item.cat_key || String(index);
   const rawLabel =
     item.name || item.label || item.serviceName || item.type || `Service ${index + 1}`;
 
@@ -360,6 +360,30 @@ const FaqSupportScreen = () => {
   };
 
   /* ── Submit ───────────────────────────────── */
+  const handleAepsSupport = async () => {
+    setSubmitting(true);
+    try {
+      const headerToken = await getToken();
+      const result = await createSupportRequest({
+        serviceId: "699313906af23c118e1fd8fa",
+        supportDetails: "Aeps Not Working",
+        transactionId: "",
+        headerToken,
+      });
+
+      if (result.success) {
+        showAlert("success", "Support Raised", "AEPS support request submitted successfully.");
+        loadData(1);
+      } else {
+        showAlert("error", "Error", result.message || "Failed to raise support.");
+      }
+    } catch (err) {
+      showAlert("error", "Error", "Unexpected error.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!selectedService)
       return showAlert("warning", "Validation", "Please select a service type.");
@@ -421,7 +445,16 @@ const FaqSupportScreen = () => {
         {/* FAQ Section */}
         {faqs.length > 0 && (
           <View style={faqStyles.container}>
-            <Text style={faqStyles.title}>Frequent Questions</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <Text style={faqStyles.title}>Frequent Questions</Text>
+              <TouchableOpacity 
+                style={styles.quickBtn} 
+                onPress={handleAepsSupport}
+                disabled={submitting}
+              >
+                <Text style={styles.quickBtnTxt}>Report AEPS Issue</Text>
+              </TouchableOpacity>
+            </View>
             {faqs.map((faq, idx) => (
               <FAQItem key={faq._id || idx} item={faq} />
             ))}
@@ -650,9 +683,19 @@ const styles = StyleSheet.create({
   submitButtonDisabled: { opacity: 0.65 },
   submitText: { color: Colors.white, fontFamily: Fonts.Bold, fontSize: 14, letterSpacing: 1 },
 
-  refreshBtn: { fontSize: 14, color: Colors.red, fontFamily: Fonts.Bold },
-
-  emptyWrap: { alignItems: "center", marginTop: 30 },
+  refreshBtn: { color: Colors.primary, fontFamily: Fonts.Bold, fontSize: 13 },
+  quickBtn: {
+    backgroundColor: Colors.red,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  quickBtnTxt: {
+    color: Colors.white,
+    fontFamily: Fonts.Bold,
+    fontSize: 10,
+  },
+  emptyWrap: { alignItems: 'center', marginTop: 40, paddingBottom: 20 },
   emptyIcon: { fontSize: 40, marginBottom: 8 },
   emptyText: { color: Colors.text_placeholder, fontSize: 14, fontFamily: Fonts.Medium },
 

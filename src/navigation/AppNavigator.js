@@ -30,6 +30,9 @@ import UserListScreen from '../screens/UserDownline/UserListScreen';
 import WalletTransactionScreen from '../screens/Reports/WalletLedger'
 import ShoppingScreen from '../screens/Ecommerce/ShoppingScreen';
 import ProductDetailsScreen from '../screens/Ecommerce/ProductDetailsScreen';
+import MyOrdersScreen from '../screens/Ecommerce/MyOrdersScreen';
+import OrderDetailScreen from '../screens/Ecommerce/OrderDetailScreen';
+import CheckoutScreen from '../screens/Ecommerce/CheckoutScreen';
 import BalanceEnquiry from "../screens/Services/AEPS1/BalanceEnquiry";
 import CashWithdraw from "../screens/Services/AEPS1/CashWithdraw";
 import MiniStatement from "../screens/Services/AEPS1/MiniStatements";
@@ -193,6 +196,9 @@ const AppNavigator = () => {
       <Stack.Screen name="WalletTransactionScreen" component={WalletTransactionScreen} />
       <Stack.Screen name="ShoppingScreen" component={ShoppingScreen} />
       <Stack.Screen name="ProductDetailsScreen" component={ProductDetailsScreen} />
+      <Stack.Screen name="MyOrdersScreen" component={MyOrdersScreen} />
+      <Stack.Screen name="OrderDetailScreen" component={OrderDetailScreen} />
+      <Stack.Screen name="CheckoutScreen" component={CheckoutScreen} />
 
       <Stack.Screen name="DmtLogin" component={DmtLogin} />
       <Stack.Screen name="BalanceEnquiry" component={BalanceEnquiry} />

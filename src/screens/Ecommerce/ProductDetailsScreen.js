@@ -28,6 +28,7 @@ export default function ProductDetailsScreen({ navigation, route }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isFav, setIsFav] = useState(false);
+  const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
     if (productId) {
@@ -144,6 +145,26 @@ export default function ProductDetailsScreen({ navigation, route }) {
                 </View>
               </View>
 
+              {/* Quantity Selector */}
+              <View style={s.quantitySection}>
+                <Text style={s.sectionHeader}>Quantity</Text>
+                <View style={s.quantityRow}>
+                  <TouchableOpacity 
+                    style={s.qtyBtn} 
+                    onPress={() => setQuantity(Math.max(1, quantity - 1))}
+                  >
+                    <Icon name="minus" size={20} color={Colors.finance_accent} />
+                  </TouchableOpacity>
+                  <Text style={s.qtyText}>{quantity}</Text>
+                  <TouchableOpacity 
+                    style={s.qtyBtn} 
+                    onPress={() => setQuantity(quantity + 1)}
+                  >
+                    <Icon name="plus" size={20} color={Colors.finance_accent} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
               {/* Description Section */}
               <View style={s.descSection}>
                 <Text style={s.sectionHeader}>Description</Text>
@@ -175,14 +196,25 @@ export default function ProductDetailsScreen({ navigation, route }) {
                 <Icon name="message-text-outline" size={24} color={Colors.finance_accent} />
               </TouchableOpacity>
 
-              <TouchableOpacity style={s.buyBtn}>
+              <TouchableOpacity 
+                style={s.buyBtn}
+                onPress={() => navigation.navigate('CheckoutScreen', { 
+                  product: {
+                    productId: product._id,
+                    quantity: quantity,
+                    name: product.name,
+                    price: product.priceAfterDiscount ?? product.price,
+                    image: product.productImageUrl
+                  }
+                })}
+              >
                 <LinearGradient
                   colors={['#161616', '#2A2A2A']}
                   style={s.buyBtnGrad}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                 >
-                  <Text style={s.buyBtnTxt}>Add to Cart • ₹{product.priceAfterDiscount ?? product.price}</Text>
+                  <Text style={s.buyBtnTxt}>Buy Now • ₹{(product.priceAfterDiscount ?? product.price) * quantity}</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -234,6 +266,11 @@ const s = StyleSheet.create({
   infoBox: { flex: 1, backgroundColor: '#F9FAFB', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#F1F5F9' },
   infoLabel: { fontFamily: Fonts.Medium, fontSize: 10, color: '#94A3B8', marginBottom: 2 },
   infoVal: { fontFamily: Fonts.Bold, fontSize: 13, color: '#161616' },
+
+  quantitySection: { marginBottom: 20 },
+  quantityRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 15 },
+  qtyBtn: { width: 40, height: 40, borderRadius: 10, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
+  qtyText: { fontFamily: Fonts.Bold, fontSize: 18, color: '#161616', minWidth: 20, textAlign: 'center' },
 
   // Footer
   footer: { position: 'absolute', bottom: 0, width: width, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#F1F5F9' },

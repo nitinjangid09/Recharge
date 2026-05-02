@@ -466,6 +466,58 @@ export const getProductDetails = async ({ headerToken, productId }) => {
   }
 };
 
+export const getMyOrders = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/order/my-orders`, {
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get My Orders API Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch orders" };
+  }
+};
+
+export const getOrderDetail = async ({ headerToken, orderId }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/order/my-order/${orderId}`, {
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get Order Detail API Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch order details" };
+  }
+};
+
+export const createOrder = async ({ headerToken, product, shippingAddress, shippingCharge, gst }) => {
+  const generateIdempotencyKey = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = 'ORD';
+    for (let i = 0; i < 10; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
+  const idempotencyKey = generateIdempotencyKey();
+
+  try {
+    const payload = { product, shippingAddress, shippingCharge, gst };
+    const response = await axios.post(`${BASE_URL}/user/order/create-order`, payload, {
+      headers: { 
+        Authorization: `Bearer ${headerToken}`,
+        'idempotency-key': idempotencyKey,
+        'Content-Type': 'application/json'
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Create Order API Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Order creation failed" };
+  }
+};
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SERVICES

@@ -169,7 +169,12 @@ export default function ShoppingScreen({ navigation }) {
   return (
     <SafeAreaView style={s.root} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.headerBg} />
-      <HeaderBar title="Hardware Store" onBack={() => navigation.goBack()} />
+      <HeaderBar 
+        title="Hardware Store" 
+        onBack={() => navigation.goBack()} 
+        rightIcon="package-variant-closed" 
+        onRightPress={() => navigation.navigate('MyOrdersScreen')} 
+      />
       {loading && page === 1 ? (
         <FullScreenLoader visible={true} label="Loading Hardware..." />
       ) : error ? (
