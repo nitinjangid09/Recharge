@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import LinearGradient from 'react-native-linear-gradient';
 import Colors from "../../constants/Colors";
 import Fonts from "../../constants/Fonts";
 import { getOrderDetail } from "../../api/AuthApi";
@@ -89,24 +90,59 @@ export default function OrderDetailScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.beige} />
-      <HeaderBar title="Order Details" onBack={() => navigation.goBack()} />
+      <HeaderBar 
+        title="Order Details" 
+        onBack={() => navigation.goBack()} 
+        style={{ backgroundColor: Colors.primary }}
+        titleStyle={{ color: Colors.white }}
+      />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scrollContent}>
-        {/* Status Section */}
-        <View style={s.statusCard}>
+        {/* Status Hero Section */}
+        <LinearGradient
+          colors={['#1A1A2E', '#2D2D44']}
+          style={s.statusCard}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
           <View style={s.statusHeader}>
             <View>
-              <Text style={s.orderIdLabel}>Order ID</Text>
+              <Text style={s.orderIdLabel}>ORDER TRACKING</Text>
               <Text style={s.orderIdValue}>#{order._id?.toUpperCase()}</Text>
             </View>
-            <View style={[s.statusBadge, { backgroundColor: getStatusColor(order.orderStatus) + '20' }]}>
+            <View style={[s.statusBadge, { backgroundColor: getStatusColor(order.orderStatus) + '30' }]}>
+              <Icon name="check-decagram" size={12} color={getStatusColor(order.orderStatus)} style={{marginRight: 4}} />
               <Text style={[s.statusText, { color: getStatusColor(order.orderStatus) }]}>
                 {order.orderStatus?.toUpperCase()}
               </Text>
             </View>
           </View>
-          <Text style={s.orderDate}>{formatDate(order.createdAt)}</Text>
+          <View style={s.heroFooter}>
+            <Text style={s.orderDate}>{formatDate(order.createdAt)}</Text>
+            <View style={s.paymentStatusBox}>
+               <Icon name="shield-check" size={12} color={Colors.finance_accent} />
+               <Text style={s.payStatusTxt}>{order.paymentStatus?.toUpperCase()}</Text>
+            </View>
+          </View>
+        </LinearGradient>
+
+        {/* Order Timeline (Modern SaaS Component) */}
+        <View style={s.timelineSection}>
+           <View style={s.timelineItem}>
+              <View style={[s.timelineDot, { backgroundColor: Colors.green }]} />
+              <View style={[s.timelineLine, { backgroundColor: Colors.green }]} />
+              <View style={s.timelineContent}>
+                 <Text style={s.timelineTitle}>Order Placed</Text>
+                 <Text style={s.timelineDate}>{formatDate(order.createdAt)}</Text>
+              </View>
+           </View>
+           <View style={s.timelineItem}>
+              <View style={[s.timelineDot, { backgroundColor: order.orderStatus === 'completed' ? Colors.green : Colors.slate_100, borderColor: Colors.finance_accent, borderWidth: 2 }]} />
+              <View style={s.timelineContent}>
+                 <Text style={s.timelineTitle}>{order.orderStatus === 'completed' ? 'Delivered' : 'In Transit'}</Text>
+                 <Text style={s.timelineSub}>Updates will be shared via SMS</Text>
+              </View>
+           </View>
         </View>
 
         {/* Product Details */}
@@ -115,26 +151,30 @@ export default function OrderDetailScreen({ route, navigation }) {
             <Icon name="package-variant" size={20} color={Colors.finance_accent} />
             <Text style={s.sectionTitle}>Items in this order</Text>
           </View>
-          <View style={s.productItem}>
-            <View style={s.productInfo}>
-              <Text style={s.productName}>{order.productName}</Text>
-              <Text style={s.productSpecs}>Unit Price: ₹{order.unitPrice} | Quantity: {order.quantity}</Text>
+          <View style={s.sectionContent}>
+            <View style={s.productItem}>
+              <View style={s.productInfo}>
+                <Text style={s.productName}>{order.productName}</Text>
+                <Text style={s.productSpecs}>Unit Price: ₹{order.unitPrice} | Quantity: {order.quantity}</Text>
+              </View>
+              <Text style={s.itemTotal}>₹{order.subTotal}</Text>
             </View>
-            <Text style={s.itemTotal}>₹{order.subTotal}</Text>
           </View>
         </View>
 
         {/* Shipping Address */}
-        <View style={s.section}>
-          <View style={s.sectionHeader}>
-            <Icon name="map-marker-outline" size={20} color={Colors.finance_accent} />
+        <View style={[s.section, { borderColor: Colors.finance_accent, borderWidth: 1.5 }]}>
+          <View style={[s.sectionHeader, { backgroundColor: 'rgba(212,176,106,0.15)' }]}>
+            <Icon name="map-marker-radius" size={20} color={Colors.finance_accent} />
             <Text style={s.sectionTitle}>Shipping Address</Text>
           </View>
-          <View style={s.addressContent}>
-            <Text style={s.addressName}>{order.shippingAddress?.name}</Text>
-            <Text style={s.addressText}>{order.shippingAddress?.address}</Text>
-            <Text style={s.addressText}>{order.shippingAddress?.city}, {order.shippingAddress?.state}</Text>
-            <Text style={s.addressText}>PIN: {order.shippingAddress?.pincode}</Text>
+          <View style={[s.sectionContent, { backgroundColor: 'rgba(212,176,106,0.05)' }]}>
+            <View style={s.addressContent}>
+              <Text style={s.addressName}>{order.shippingAddress?.name}</Text>
+              <Text style={s.addressText}>{order.shippingAddress?.address}</Text>
+              <Text style={s.addressText}>{order.shippingAddress?.city}, {order.shippingAddress?.state}</Text>
+              <Text style={s.addressText}>PIN: {order.shippingAddress?.pincode}</Text>
+            </View>
           </View>
         </View>
 
@@ -144,7 +184,8 @@ export default function OrderDetailScreen({ route, navigation }) {
             <Icon name="credit-card-outline" size={20} color={Colors.finance_accent} />
             <Text style={s.sectionTitle}>Payment Summary</Text>
           </View>
-          
+          <View style={s.sectionContent}>
+
           <View style={s.paymentMethodRow}>
             <Text style={s.paymentLabel}>Payment Method</Text>
             <Text style={s.paymentValue}>{order.paymentMethod?.toUpperCase()}</Text>
@@ -176,6 +217,7 @@ export default function OrderDetailScreen({ route, navigation }) {
             <Text style={s.totalValue}>₹{order.grandTotal}</Text>
           </View>
         </View>
+      </View>
 
         <TouchableOpacity style={s.supportBtn}>
           <Icon name="help-circle-outline" size={20} color={Colors.slate_400} />
@@ -192,47 +234,65 @@ const s = StyleSheet.create({
   scrollContent: { padding: 16, paddingBottom: 40 },
 
   statusCard: {
-    backgroundColor: Colors.primary,
-    borderRadius: 20,
-    padding: 20,
+    borderRadius: 24,
+    padding: 22,
     marginBottom: 20,
+    borderWidth: 1.5,
+    borderColor: Colors.finance_accent,
   },
   statusHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 10,
+    marginBottom: 16,
   },
-  orderIdLabel: { color: Colors.slate_400, fontSize: 10, fontFamily: Fonts.Medium, marginBottom: 2 },
-  orderIdValue: { color: Colors.white, fontSize: 14, fontFamily: Fonts.Bold },
-  statusBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
+  orderIdLabel: { color: 'rgba(255,255,255,0.5)', fontSize: 9, fontFamily: Fonts.Bold, letterSpacing: 1, marginBottom: 4 },
+  orderIdValue: { color: Colors.white, fontSize: 16, fontFamily: Fonts.Bold },
+  statusBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, flexDirection: 'row', alignItems: 'center' },
   statusText: { fontSize: 10, fontFamily: Fonts.Bold, letterSpacing: 0.5 },
-  orderDate: { color: Colors.slate_400, fontSize: 11, fontFamily: Fonts.Medium },
+  heroFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, paddingTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)' },
+  orderDate: { color: 'rgba(255,255,255,0.6)', fontSize: 11, fontFamily: Fonts.Medium },
+  paymentStatusBox: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  payStatusTxt: { color: Colors.finance_accent, fontSize: 10, fontFamily: Fonts.Bold },
+
+  // Timeline
+  timelineSection: { backgroundColor: Colors.white, borderRadius: 24, padding: 20, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)' },
+  timelineItem: { flexDirection: 'row', gap: 15, paddingBottom: 20 },
+  timelineDot: { width: 12, height: 12, borderRadius: 6, zIndex: 1, marginTop: 4 },
+  timelineLine: { position: 'absolute', left: 5.5, top: 16, bottom: 0, width: 1, backgroundColor: Colors.slate_100 },
+  timelineContent: { flex: 1 },
+  timelineTitle: { fontSize: 14, fontFamily: Fonts.Bold, color: Colors.primary },
+  timelineDate: { fontSize: 11, fontFamily: Fonts.Medium, color: Colors.slate_400, marginTop: 2 },
+  timelineSub: { fontSize: 11, fontFamily: Fonts.Medium, color: Colors.slate_400, marginTop: 2 },
 
   section: {
-    backgroundColor: Colors.beige,
-    borderRadius: 20,
-    padding: 16,
+    backgroundColor: Colors.white,
+    borderRadius: 24,
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: Colors.kyc_accent + "40",
+    borderWidth: 1.2,
+    borderColor: 'rgba(212,176,106,0.3)',
+    overflow: 'hidden',
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 16,
-    paddingBottom: 12,
+    gap: 10,
+    backgroundColor: 'rgba(212,176,106,0.08)',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.kyc_accent + "30",
+    borderBottomColor: 'rgba(212,176,106,0.15)',
+  },
+  sectionContent: {
+    padding: 16,
   },
   sectionTitle: { fontSize: 14, fontFamily: Fonts.Bold, color: Colors.kyc_text },
 
   productItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   productInfo: { flex: 1 },
-  productName: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.kyc_text, marginBottom: 4 },
-  productSpecs: { fontSize: 12, fontFamily: Fonts.Medium, color: Colors.slate_400 },
-  itemTotal: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.finance_accent },
+  productName: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.primary, marginBottom: 4 },
+  productSpecs: { fontSize: 12, fontFamily: Fonts.Bold, color: Colors.slate_500 },
+  itemTotal: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.primary },
 
   addressContent: { gap: 4 },
   addressName: { fontSize: 15, fontFamily: Fonts.Bold, color: Colors.kyc_text, marginBottom: 2 },
@@ -246,8 +306,8 @@ const s = StyleSheet.create({
   summaryLabel: { fontSize: 13, fontFamily: Fonts.Medium, color: Colors.slate_500 },
   summaryValue: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.kyc_text },
   totalRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: Colors.kyc_accent + "30" },
-  totalLabel: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.kyc_text },
-  totalValue: { fontSize: 20, fontFamily: Fonts.Bold, color: Colors.finance_accent },
+  totalLabel: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.primary },
+  totalValue: { fontSize: 20, fontFamily: Fonts.Bold, color: Colors.primary },
 
   supportBtn: {
     flexDirection: 'row',

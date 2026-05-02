@@ -7,7 +7,6 @@ import {
   Image,
   TouchableOpacity,
   Dimensions,
-  StatusBar,
   Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -73,7 +72,6 @@ export default function ProductDetailsScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
       <HeaderBar title="Product Details" onBack={() => navigation.goBack()} />
 
       {loading ? (

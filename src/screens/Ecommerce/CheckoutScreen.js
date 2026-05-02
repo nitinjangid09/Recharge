@@ -7,7 +7,6 @@ import {
   TextInput,
   TouchableOpacity,
   Dimensions,
-  StatusBar,
   KeyboardAvoidingView,
   Platform,
   Alert,
@@ -258,7 +257,6 @@ export default function CheckoutScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.beige} />
       <HeaderBar title="Checkout" onBack={() => navigation.goBack()} />
 
       <KeyboardAvoidingView

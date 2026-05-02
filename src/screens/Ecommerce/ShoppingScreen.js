@@ -11,7 +11,6 @@ import {
   Dimensions,
   TextInput,
   ScrollView,
-  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -168,12 +167,11 @@ export default function ShoppingScreen({ navigation }) {
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.beige} />
-      <HeaderBar 
-        title="Hardware Store" 
-        onBack={() => navigation.goBack()} 
-        rightIcon="package-variant-closed" 
-        onRightPress={() => navigation.navigate('MyOrdersScreen')} 
+      <HeaderBar
+        title="Hardware Store"
+        onBack={() => navigation.goBack()}
+        rightIcon="package-variant-closed"
+        onRightPress={() => navigation.navigate('MyOrdersScreen')}
       />
       {loading && page === 1 ? (
         <FullScreenLoader visible={true} label="Loading Hardware..." />
@@ -231,11 +229,16 @@ const s = StyleSheet.create({
   card: {
     width: (width - 55) / 2,
     marginBottom: 25,
-    backgroundColor: Colors.beige,
+    backgroundColor: Colors.white,
     borderRadius: 24,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: Colors.kyc_accent + "40",
+    borderColor: 'rgba(212,176,106,0.2)',
+    elevation: 4,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
   },
   cardGradient: {
     flex: 1,
@@ -244,14 +247,14 @@ const s = StyleSheet.create({
   cardImageWrap: {
     width: '100%',
     height: 140,
-    backgroundColor: Colors.beige,
+    backgroundColor: '#F8FAFC',
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: Colors.kyc_accent + "20",
+    borderColor: 'rgba(212,176,106,0.1)',
   },
   cardImage: {
     width: '85%',
@@ -264,8 +267,8 @@ const s = StyleSheet.create({
   },
   cardName: {
     fontFamily: Fonts.Bold,
-    fontSize: 13,
-    color: Colors.kyc_text,
+    fontSize: 14,
+    color: Colors.primary,
     marginBottom: 4,
   },
   cardCategory: {
@@ -292,8 +295,8 @@ const s = StyleSheet.create({
   },
   cardPrice: {
     fontFamily: Fonts.Bold,
-    fontSize: 16,
-    color: Colors.kyc_text,
+    fontSize: 17,
+    color: Colors.primary,
   },
   cardOldPrice: {
     fontFamily: Fonts.Medium,
@@ -302,12 +305,14 @@ const s = StyleSheet.create({
     textDecorationLine: 'line-through',
   },
   addBtnSmall: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    backgroundColor: Colors.finance_accent,
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    backgroundColor: Colors.primary,
     alignItems: 'center',
-    justifyContent: 'center',  },
+    justifyContent: 'center',
+    elevation: 4,
+  },
   errorTxt: { fontFamily: Fonts.Medium, fontSize: 14, color: Colors.kyc_textSub, marginTop: 12, textAlign: 'center' },
   retryBtn: { marginTop: 20, backgroundColor: Colors.finance_accent, paddingHorizontal: 24, paddingVertical: 10, borderRadius: 12 },
   retryTxt: { fontFamily: Fonts.Bold, color: Colors.black, fontSize: 14 },

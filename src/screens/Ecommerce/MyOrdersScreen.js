@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
   RefreshControl,
   Dimensions,
-  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -104,8 +103,8 @@ export default function MyOrdersScreen({ navigation }) {
     const statusBg = getStatusBg(item.orderStatus);
 
     return (
-      <TouchableOpacity 
-        style={s.orderCard} 
+      <TouchableOpacity
+        style={s.orderCard}
         activeOpacity={0.8}
         onPress={() => navigation.navigate('OrderDetailScreen', { orderId: item._id })}
       >
@@ -148,9 +147,13 @@ export default function MyOrdersScreen({ navigation }) {
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.beige} />
-      <HeaderBar title="My Orders" onBack={() => navigation.navigate('FinanceHome')} />
-      
+      <HeaderBar
+        title="My Orders"
+        onBack={() => navigation.navigate('FinanceHome')}
+        style={{ backgroundColor: Colors.primary }}
+        titleStyle={{ color: Colors.white }}
+      />
+
       {loading && !refreshing ? (
         <FullScreenLoader visible={true} label="Fetching your orders..." />
       ) : error ? (
@@ -168,8 +171,8 @@ export default function MyOrdersScreen({ navigation }) {
           </View>
           <Text style={s.emptyTitle}>No Orders Yet</Text>
           <Text style={s.emptySub}>Looks like you haven't made any orders yet.</Text>
-          <TouchableOpacity 
-            style={s.shopBtn} 
+          <TouchableOpacity
+            style={s.shopBtn}
             onPress={() => navigation.navigate('ShoppingScreen')}
           >
             <Text style={s.shopBtnTxt}>Start Shopping</Text>
@@ -183,10 +186,10 @@ export default function MyOrdersScreen({ navigation }) {
           contentContainerStyle={s.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl 
-              refreshing={refreshing} 
-              onRefresh={onRefresh} 
-              colors={[Colors.finance_accent]} 
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[Colors.finance_accent]}
             />
           }
         />
@@ -199,20 +202,29 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.beige },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 30 },
   listContent: { padding: 16, paddingBottom: 40 },
-  
+
   orderCard: {
     backgroundColor: Colors.beige,
-    borderRadius: 20,
+    borderRadius: 24,
     marginBottom: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: Colors.kyc_accent + "40",
+    padding: 18,
+    borderWidth: 1.2,
+    borderColor: 'rgba(212,176,106,0.4)',
   },
   orderHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    backgroundColor: 'rgba(212,176,106,0.08)',
+    marginHorizontal: -18,
+    marginTop: -18,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(212,176,106,0.15)',
+    marginBottom: 16,
   },
   orderIdRow: {
     flexDirection: 'row',
@@ -222,7 +234,7 @@ const s = StyleSheet.create({
   orderIdText: {
     fontFamily: Fonts.Bold,
     fontSize: 14,
-    color: Colors.kyc_text,
+    color: Colors.finance_accent,
   },
   statusBadge: {
     paddingHorizontal: 10,
@@ -251,14 +263,14 @@ const s = StyleSheet.create({
   },
   productName: {
     fontFamily: Fonts.Bold,
-    fontSize: 15,
-    color: Colors.kyc_text,
+    fontSize: 16,
+    color: Colors.primary,
     marginBottom: 4,
   },
   productQty: {
-    fontFamily: Fonts.Medium,
+    fontFamily: Fonts.Bold,
     fontSize: 12,
-    color: Colors.slate_400,
+    color: Colors.slate_500,
   },
   priceInfo: {
     alignItems: 'flex-end',
@@ -271,8 +283,8 @@ const s = StyleSheet.create({
   },
   totalValue: {
     fontFamily: Fonts.Bold,
-    fontSize: 18,
-    color: Colors.finance_accent,
+    fontSize: 19,
+    color: Colors.primary,
   },
   orderFooter: {
     flexDirection: 'row',
@@ -301,11 +313,11 @@ const s = StyleSheet.create({
     fontSize: 11,
     color: Colors.slate_400,
   },
-  
+
   errorTxt: { fontFamily: Fonts.Medium, fontSize: 14, color: Colors.kyc_textSub, marginTop: 16, textAlign: 'center' },
   retryBtn: { marginTop: 20, backgroundColor: Colors.finance_accent, paddingHorizontal: 24, paddingVertical: 10, borderRadius: 12 },
   retryTxt: { fontFamily: Fonts.Bold, color: Colors.black, fontSize: 14 },
-  
+
   emptyIconCircle: {
     width: 100,
     height: 100,
@@ -330,13 +342,19 @@ const s = StyleSheet.create({
   },
   shopBtn: {
     backgroundColor: Colors.primary,
-    paddingHorizontal: 30,
-    paddingVertical: 14,
-    borderRadius: 15,
+    paddingHorizontal: 36,
+    paddingVertical: 15,
+    borderRadius: 18,
+    elevation: 8,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
   },
   shopBtnTxt: {
     fontFamily: Fonts.Bold,
-    fontSize: 14,
+    fontSize: 15,
     color: Colors.finance_accent,
+    letterSpacing: 0.5,
   },
 });
