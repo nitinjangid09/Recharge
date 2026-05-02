@@ -209,7 +209,7 @@ export default function ProductDetailsScreen({ navigation, route }) {
                 })}
               >
                 <LinearGradient
-                  colors={['rgb(22, 22, 22)', 'rgb(42, 42, 42)']}
+                  colors={[Colors.primary, '#2A2A2A']}
                   style={s.buyBtnGrad}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
@@ -226,22 +226,22 @@ export default function ProductDetailsScreen({ navigation, route }) {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: 'rgb(255, 255, 255)' },
+  root: { flex: 1, backgroundColor: Colors.beige },
   scrollContent: { paddingBottom: 120 },
 
   // Image Section
-  imageContainer: { width: width, height: height * 0.35, backgroundColor: 'rgb(249, 250, 251)', alignItems: 'center' },
+  imageContainer: { width: width, height: height * 0.35, backgroundColor: Colors.beige, alignItems: 'center' },
   productImgBox: { flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' },
   mainImg: { width: '75%', height: '75%' },
   indicatorRow: { flexDirection: 'row', gap: 5, marginBottom: 15 },
-  dot: { width: 8, height: 4, borderRadius: 2, backgroundColor: 'rgb(203, 213, 225)' },
+  dot: { width: 8, height: 4, borderRadius: 2, backgroundColor: Colors.kyc_border },
   dotActive: { width: 24, backgroundColor: Colors.finance_accent },
 
   // Info Section
   infoSection: { paddingHorizontal: 25, paddingTop: 15 },
   titleRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 15 },
-  productTitle: { fontFamily: Fonts.Bold, fontSize: 24, color: 'rgb(22, 22, 22)', marginBottom: 2 },
-  subTitle: { fontFamily: Fonts.Medium, fontSize: 12, color: 'rgb(148, 163, 184)' },
+  productTitle: { fontFamily: Fonts.Bold, fontSize: 24, color: Colors.kyc_text, marginBottom: 2 },
+  subTitle: { fontFamily: Fonts.Medium, fontSize: 12, color: Colors.kyc_textSub },
   iconActions: { flexDirection: 'row', gap: 10 },
   styledIconBtn: {
     width: 36,
@@ -251,37 +251,37 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(212,176,106,0.05)'
+    borderColor: Colors.kyc_accent + "40"
   },
 
   attrRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 25 },
   attrItem: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  attrText: { fontFamily: Fonts.Bold, fontSize: 11, color: 'rgb(71, 85, 105)' },
+  attrText: { fontFamily: Fonts.Bold, fontSize: 11, color: Colors.kyc_textSub },
 
   descSection: { marginBottom: 15 },
-  sectionHeader: { fontFamily: Fonts.Bold, fontSize: 16, color: 'rgb(22, 22, 22)' },
-  descText: { fontFamily: Fonts.Medium, fontSize: 13, color: 'rgb(100, 116, 139)', lineHeight: 20 },
+  sectionHeader: { fontFamily: Fonts.Bold, fontSize: 16, color: Colors.kyc_text },
+  descText: { fontFamily: Fonts.Medium, fontSize: 13, color: Colors.kyc_textSub, lineHeight: 20 },
 
   extraInfoGrid: { flexDirection: 'row', gap: 12, marginTop: 5 },
-  infoBox: { flex: 1, backgroundColor: 'rgb(249, 250, 251)', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: 'rgb(241, 245, 249)' },
-  infoLabel: { fontFamily: Fonts.Medium, fontSize: 10, color: 'rgb(148, 163, 184)', marginBottom: 2 },
-  infoVal: { fontFamily: Fonts.Bold, fontSize: 13, color: 'rgb(22, 22, 22)' },
+  infoBox: { flex: 1, backgroundColor: Colors.beige, padding: 12, borderRadius: 10, borderWidth: 1, borderColor: Colors.kyc_accent + "40" },
+  infoLabel: { fontFamily: Fonts.Medium, fontSize: 10, color: Colors.kyc_textSub, marginBottom: 2 },
+  infoVal: { fontFamily: Fonts.Bold, fontSize: 13, color: Colors.kyc_text },
 
   quantitySection: { marginBottom: 20 },
   quantityRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 15 },
-  qtyBtn: { width: 40, height: 40, borderRadius: 10, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
-  qtyText: { fontFamily: Fonts.Bold, fontSize: 18, color: '#161616', minWidth: 20, textAlign: 'center' },
+  qtyBtn: { width: 40, height: 40, borderRadius: 10, backgroundColor: Colors.beige, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: Colors.kyc_accent + "40" },
+  qtyText: { fontFamily: Fonts.Bold, fontSize: 18, color: Colors.kyc_text, minWidth: 20, textAlign: 'center' },
 
   // Footer
-  footer: { position: 'absolute', bottom: 0, width: width, backgroundColor: 'rgb(255, 255, 255)', borderTopWidth: 1, borderTopColor: 'rgb(241, 245, 249)' },
+  footer: { position: 'absolute', bottom: 0, width: width, backgroundColor: Colors.beige, borderTopWidth: 1, borderTopColor: Colors.kyc_accent + "40" },
   footerInner: { flexDirection: 'row', alignItems: 'center', padding: 20, gap: 15 },
-  chatBtn: { width: 55, height: 55, borderRadius: 12, borderWidth: 1.5, borderColor: 'rgba(212,176,106,0.2)', alignItems: 'center', justifyContent: 'center' },
+  chatBtn: { width: 55, height: 55, borderRadius: 12, borderWidth: 1.5, borderColor: Colors.kyc_accent + "40", alignItems: 'center', justifyContent: 'center' },
   buyBtn: { flex: 1, height: 55, borderRadius: 12, overflow: 'hidden' },
   buyBtnGrad: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   buyBtnTxt: { fontFamily: Fonts.Bold, color: Colors.finance_accent, fontSize: 16, letterSpacing: 0.5 },
 
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 30 },
-  errorTxt: { fontFamily: Fonts.Medium, fontSize: 16, color: 'rgb(100, 116, 139)', textAlign: 'center', marginTop: 15 },
+  errorTxt: { fontFamily: Fonts.Medium, fontSize: 16, color: Colors.kyc_textSub, textAlign: 'center', marginTop: 15 },
   retryBtn: { marginTop: 25, backgroundColor: Colors.finance_accent, paddingHorizontal: 30, paddingVertical: 12, borderRadius: 12 },
-  retryTxt: { fontFamily: Fonts.Bold, color: 'rgb(0, 0, 0)', fontSize: 14 },
+  retryTxt: { fontFamily: Fonts.Bold, color: Colors.black, fontSize: 14 },
 });

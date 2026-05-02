@@ -88,7 +88,7 @@ export default function ShoppingScreen({ navigation }) {
   const renderHeader = () => (
     <View style={s.headerContainer}>
       <LinearGradient
-        colors={['#161616', '#2A2A2A']}
+        colors={[Colors.primary, '#2A2A2A']}
         style={s.banner}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -134,7 +134,7 @@ export default function ShoppingScreen({ navigation }) {
         onPress={() => navigation.navigate('ProductDetailsScreen', { productId: item._id })}
       >
         <LinearGradient
-          colors={['#FCFAF5', '#F5F1E6']}
+          colors={[Colors.beige, Colors.gold]}
           style={s.cardGradient}
         >
           <View style={s.cardImageWrap}>
@@ -157,7 +157,7 @@ export default function ShoppingScreen({ navigation }) {
                 )}
               </View>
               <TouchableOpacity style={s.addBtnSmall}>
-                <Icon name="shopping-outline" size={18} color="#fff" />
+                <Icon name="shopping-outline" size={18} color={Colors.white} />
               </TouchableOpacity>
             </View>
           </View>
@@ -168,7 +168,7 @@ export default function ShoppingScreen({ navigation }) {
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.headerBg} />
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.beige} />
       <HeaderBar 
         title="Hardware Store" 
         onBack={() => navigation.goBack()} 
@@ -207,7 +207,7 @@ export default function ShoppingScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#FFFFFF' },
+  root: { flex: 1, backgroundColor: Colors.beige },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   headerContainer: { paddingHorizontal: 20, paddingTop: 10 },
   banner: { width: '100%', height: 180, borderRadius: 24, padding: 25, justifyContent: 'center', marginBottom: 30, overflow: 'hidden' },
@@ -216,26 +216,26 @@ const s = StyleSheet.create({
   bannerTitle: { fontFamily: Fonts.Bold, fontSize: 18, color: Colors.finance_accent, lineHeight: 24, marginBottom: 8 },
   bannerSub: { fontFamily: Fonts.Medium, fontSize: 11, color: 'rgba(255,255,255,0.7)', marginBottom: 15 },
   bannerBtn: { alignSelf: 'flex-start', backgroundColor: Colors.finance_accent, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10 },
-  bannerBtnTxt: { fontFamily: Fonts.Bold, fontSize: 12, color: '#000' },
+  bannerBtnTxt: { fontFamily: Fonts.Bold, fontSize: 12, color: Colors.black },
   brandScroll: { marginBottom: 30 },
   brandContent: { paddingRight: 20 },
-  brandTab: { paddingHorizontal: 18, paddingVertical: 10, marginRight: 10, borderRadius: 14, backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: 'rgba(212,176,106,0.1)' },
-  brandTabActive: { backgroundColor: '#161616', borderColor: '#161616' },
-  brandTxt: { fontFamily: Fonts.Bold, fontSize: 11, color: '#94A3B8' },
+  brandTab: { paddingHorizontal: 18, paddingVertical: 10, marginRight: 10, borderRadius: 14, backgroundColor: Colors.bg_F8 || '#F8FAFC', borderWidth: 1, borderColor: 'rgba(212,176,106,0.1)' },
+  brandTabActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  brandTxt: { fontFamily: Fonts.Bold, fontSize: 11, color: Colors.kyc_textSub },
   brandTxtActive: { color: Colors.finance_accent },
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  sectionTitle: { fontFamily: Fonts.Bold, fontSize: 16, color: '#161616' },
+  sectionTitle: { fontFamily: Fonts.Bold, fontSize: 16, color: Colors.kyc_text },
   showAll: { fontFamily: Fonts.Bold, fontSize: 11, color: Colors.finance_accent },
   listPadding: { paddingBottom: 40 },
   columnGap: { paddingHorizontal: 20, justifyContent: 'space-between' },
   card: {
     width: (width - 55) / 2,
     marginBottom: 25,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.beige,
     borderRadius: 24,
     overflow: 'hidden',
-    borderWidth: 1.5,
-    borderColor: 'rgba(212,176,106,0.35)',
+    borderWidth: 1,
+    borderColor: Colors.kyc_accent + "40",
   },
   cardGradient: {
     flex: 1,
@@ -244,14 +244,14 @@ const s = StyleSheet.create({
   cardImageWrap: {
     width: '100%',
     height: 140,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.beige,
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(212,176,106,0.1)',
+    borderColor: Colors.kyc_accent + "20",
   },
   cardImage: {
     width: '85%',
@@ -265,7 +265,7 @@ const s = StyleSheet.create({
   cardName: {
     fontFamily: Fonts.Bold,
     fontSize: 13,
-    color: '#0F172A',
+    color: Colors.kyc_text,
     marginBottom: 4,
   },
   cardCategory: {
@@ -293,12 +293,12 @@ const s = StyleSheet.create({
   cardPrice: {
     fontFamily: Fonts.Bold,
     fontSize: 16,
-    color: '#0F172A', // Dark color for price
+    color: Colors.kyc_text,
   },
   cardOldPrice: {
     fontFamily: Fonts.Medium,
     fontSize: 10,
-    color: '#94A3B8',
+    color: Colors.kyc_textSub,
     textDecorationLine: 'line-through',
   },
   addBtnSmall: {
@@ -308,7 +308,7 @@ const s = StyleSheet.create({
     backgroundColor: Colors.finance_accent,
     alignItems: 'center',
     justifyContent: 'center',  },
-  errorTxt: { fontFamily: Fonts.Medium, fontSize: 14, color: '#6B7280', marginTop: 12, textAlign: 'center' },
+  errorTxt: { fontFamily: Fonts.Medium, fontSize: 14, color: Colors.kyc_textSub, marginTop: 12, textAlign: 'center' },
   retryBtn: { marginTop: 20, backgroundColor: Colors.finance_accent, paddingHorizontal: 24, paddingVertical: 10, borderRadius: 12 },
-  retryTxt: { fontFamily: Fonts.Bold, color: '#000', fontSize: 14 },
+  retryTxt: { fontFamily: Fonts.Bold, color: Colors.black, fontSize: 14 },
 });

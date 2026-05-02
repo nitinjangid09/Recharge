@@ -89,7 +89,7 @@ export default function OrderDetailScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.headerBg} />
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.beige} />
       <HeaderBar title="Order Details" onBack={() => navigation.goBack()} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scrollContent}>
@@ -187,12 +187,12 @@ export default function OrderDetailScreen({ route, navigation }) {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F8FAFC' },
+  root: { flex: 1, backgroundColor: Colors.beige },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
   scrollContent: { padding: 16, paddingBottom: 40 },
 
   statusCard: {
-    backgroundColor: '#1E293B',
+    backgroundColor: Colors.primary,
     borderRadius: 20,
     padding: 20,
     marginBottom: 20,
@@ -204,18 +204,18 @@ const s = StyleSheet.create({
     marginBottom: 10,
   },
   orderIdLabel: { color: Colors.slate_400, fontSize: 10, fontFamily: Fonts.Medium, marginBottom: 2 },
-  orderIdValue: { color: '#FFFFFF', fontSize: 14, fontFamily: Fonts.Bold },
+  orderIdValue: { color: Colors.white, fontSize: 14, fontFamily: Fonts.Bold },
   statusBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
   statusText: { fontSize: 10, fontFamily: Fonts.Bold, letterSpacing: 0.5 },
   orderDate: { color: Colors.slate_400, fontSize: 11, fontFamily: Fonts.Medium },
 
   section: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.beige,
     borderRadius: 20,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: 'rgba(212,176,106,0.1)',
+    borderColor: Colors.kyc_accent + "40",
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -224,29 +224,29 @@ const s = StyleSheet.create({
     marginBottom: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: Colors.kyc_accent + "30",
   },
-  sectionTitle: { fontSize: 14, fontFamily: Fonts.Bold, color: '#0F172A' },
+  sectionTitle: { fontSize: 14, fontFamily: Fonts.Bold, color: Colors.kyc_text },
 
   productItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   productInfo: { flex: 1 },
-  productName: { fontSize: 16, fontFamily: Fonts.Bold, color: '#1E293B', marginBottom: 4 },
+  productName: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.kyc_text, marginBottom: 4 },
   productSpecs: { fontSize: 12, fontFamily: Fonts.Medium, color: Colors.slate_400 },
   itemTotal: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.finance_accent },
 
   addressContent: { gap: 4 },
-  addressName: { fontSize: 15, fontFamily: Fonts.Bold, color: '#1E293B', marginBottom: 2 },
+  addressName: { fontSize: 15, fontFamily: Fonts.Bold, color: Colors.kyc_text, marginBottom: 2 },
   addressText: { fontSize: 13, fontFamily: Fonts.Medium, color: Colors.slate_500 },
 
   paymentMethodRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
   paymentLabel: { fontSize: 13, fontFamily: Fonts.Medium, color: Colors.slate_500 },
-  paymentValue: { fontSize: 13, fontFamily: Fonts.Bold, color: '#1E293B' },
-  priceDivider: { height: 1, backgroundColor: '#F1F5F9', marginVertical: 12 },
+  paymentValue: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.kyc_text },
+  priceDivider: { height: 1, backgroundColor: Colors.kyc_accent + "30", marginVertical: 12 },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
   summaryLabel: { fontSize: 13, fontFamily: Fonts.Medium, color: Colors.slate_500 },
-  summaryValue: { fontSize: 13, fontFamily: Fonts.Bold, color: '#1E293B' },
-  totalRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#F1F5F9' },
-  totalLabel: { fontSize: 16, fontFamily: Fonts.Bold, color: '#0F172A' },
+  summaryValue: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.kyc_text },
+  totalRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: Colors.kyc_accent + "30" },
+  totalLabel: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.kyc_text },
   totalValue: { fontSize: 20, fontFamily: Fonts.Bold, color: Colors.finance_accent },
 
   supportBtn: {
@@ -259,7 +259,7 @@ const s = StyleSheet.create({
   },
   supportBtnTxt: { fontSize: 13, fontFamily: Fonts.Medium, color: Colors.slate_400 },
 
-  errorTxt: { fontFamily: Fonts.Medium, fontSize: 14, color: '#6B7280', marginTop: 12, textAlign: 'center' },
+  errorTxt: { fontFamily: Fonts.Medium, fontSize: 14, color: Colors.kyc_textSub, marginTop: 12, textAlign: 'center' },
   retryBtn: { marginTop: 20, backgroundColor: Colors.finance_accent, paddingHorizontal: 24, paddingVertical: 10, borderRadius: 12 },
-  retryTxt: { fontFamily: Fonts.Bold, color: '#000', fontSize: 14 },
+  retryTxt: { fontFamily: Fonts.Bold, color: Colors.black, fontSize: 14 },
 });

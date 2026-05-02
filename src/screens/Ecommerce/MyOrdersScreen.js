@@ -148,7 +148,7 @@ export default function MyOrdersScreen({ navigation }) {
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.headerBg} />
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.beige} />
       <HeaderBar title="My Orders" onBack={() => navigation.navigate('FinanceHome')} />
       
       {loading && !refreshing ? (
@@ -196,22 +196,17 @@ export default function MyOrdersScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F8FAFC' },
+  root: { flex: 1, backgroundColor: Colors.beige },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 30 },
   listContent: { padding: 16, paddingBottom: 40 },
   
   orderCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.beige,
     borderRadius: 20,
     marginBottom: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(212,176,106,0.15)',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
+    borderColor: Colors.kyc_accent + "40",
   },
   orderHeader: {
     flexDirection: 'row',
@@ -227,7 +222,7 @@ const s = StyleSheet.create({
   orderIdText: {
     fontFamily: Fonts.Bold,
     fontSize: 14,
-    color: '#0F172A',
+    color: Colors.kyc_text,
   },
   statusBadge: {
     paddingHorizontal: 10,
@@ -241,7 +236,7 @@ const s = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.kyc_accent + "30",
     marginBottom: 12,
   },
   orderBody: {
@@ -257,7 +252,7 @@ const s = StyleSheet.create({
   productName: {
     fontFamily: Fonts.Bold,
     fontSize: 15,
-    color: '#1E293B',
+    color: Colors.kyc_text,
     marginBottom: 4,
   },
   productQty: {
@@ -284,7 +279,7 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: Colors.kyc_accent + "30",
   },
   dateBox: {
     flexDirection: 'row',
@@ -307,9 +302,9 @@ const s = StyleSheet.create({
     color: Colors.slate_400,
   },
   
-  errorTxt: { fontFamily: Fonts.Medium, fontSize: 14, color: '#64748B', marginTop: 16, textAlign: 'center' },
+  errorTxt: { fontFamily: Fonts.Medium, fontSize: 14, color: Colors.kyc_textSub, marginTop: 16, textAlign: 'center' },
   retryBtn: { marginTop: 20, backgroundColor: Colors.finance_accent, paddingHorizontal: 24, paddingVertical: 10, borderRadius: 12 },
-  retryTxt: { fontFamily: Fonts.Bold, color: '#000', fontSize: 14 },
+  retryTxt: { fontFamily: Fonts.Bold, color: Colors.black, fontSize: 14 },
   
   emptyIconCircle: {
     width: 100,
@@ -323,7 +318,7 @@ const s = StyleSheet.create({
   emptyTitle: {
     fontFamily: Fonts.Bold,
     fontSize: 20,
-    color: '#1E293B',
+    color: Colors.kyc_text,
     marginBottom: 8,
   },
   emptySub: {
@@ -334,7 +329,7 @@ const s = StyleSheet.create({
     marginBottom: 30,
   },
   shopBtn: {
-    backgroundColor: '#1E293B',
+    backgroundColor: Colors.primary,
     paddingHorizontal: 30,
     paddingVertical: 14,
     borderRadius: 15,

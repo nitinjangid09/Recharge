@@ -232,12 +232,12 @@ export default function CheckoutScreen({ navigation, route }) {
         <Text style={s.label}>{label}</Text>
         <View style={[
           s.inputWrapper,
-          { borderColor: error ? Colors.red || '#EF4444' : '#E2E8F0' }
+          { borderColor: error ? Colors.kyc_error : '#E2E8F0' }
         ]}>
           <TextInput
             style={[s.input, { flex: 1 }]}
             placeholder={placeholder}
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={Colors.kyc_textSub}
             value={address[key]}
             onChangeText={customOnChange ? customOnChange : (val) => {
               setAddress({ ...address, [key]: val });
@@ -258,7 +258,7 @@ export default function CheckoutScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.headerBg} />
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.beige} />
       <HeaderBar title="Checkout" onBack={() => navigation.goBack()} />
 
       <KeyboardAvoidingView
@@ -338,7 +338,7 @@ export default function CheckoutScreen({ navigation, route }) {
           disabled={loading}
         >
           <LinearGradient
-            colors={['#161616', '#2A2A2A']}
+            colors={[Colors.primary, '#2A2A2A']}
             style={s.grad}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
@@ -358,67 +358,62 @@ export default function CheckoutScreen({ navigation, route }) {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F8FAFC' },
+  root: { flex: 1, backgroundColor: Colors.beige },
   scrollContent: { padding: 20, paddingBottom: 100 },
 
   section: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.beige,
     borderRadius: 20,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: 'rgba(212,176,106,0.1)',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
+    borderColor: Colors.kyc_accent + "40",
   },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9', paddingBottom: 10 },
-  sectionTitle: { fontFamily: Fonts.Bold, fontSize: 14, color: '#1E293B' },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16, borderBottomWidth: 1, borderBottomColor: Colors.kyc_accent + "30", paddingBottom: 10 },
+  sectionTitle: { fontFamily: Fonts.Bold, fontSize: 14, color: Colors.kyc_text },
 
   productRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   productInfo: { flex: 1 },
-  productName: { fontFamily: Fonts.Bold, fontSize: 15, color: '#1E293B' },
-  productQty: { fontFamily: Fonts.Medium, fontSize: 12, color: '#94A3B8', marginTop: 2 },
+  productName: { fontFamily: Fonts.Bold, fontSize: 15, color: Colors.kyc_text },
+  productQty: { fontFamily: Fonts.Medium, fontSize: 12, color: Colors.kyc_textSub, marginTop: 2 },
   productPrice: { fontFamily: Fonts.Bold, fontSize: 16, color: Colors.finance_accent },
 
   inputGroup: { marginBottom: 15 },
-  label: { fontFamily: Fonts.Bold, fontSize: 12, color: '#64748B', marginBottom: 6 },
+  label: { fontFamily: Fonts.Bold, fontSize: 12, color: Colors.kyc_textSub, marginBottom: 6 },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.white,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.kyc_accent + "20",
     minHeight: 52,
     paddingHorizontal: 12,
   },
   input: {
     fontFamily: Fonts.Medium,
     fontSize: 14,
-    color: '#1E293B',
+    color: Colors.kyc_text,
     paddingVertical: 12,
     paddingHorizontal: 4,
   },
   errorText: {
     fontFamily: Fonts.Medium,
     fontSize: 11,
-    color: '#EF4444',
+    color: Colors.kyc_error,
     marginTop: 4,
     marginLeft: 4,
   },
   row: { flexDirection: 'row', gap: 12 },
 
   billRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
-  billLabel: { fontFamily: Fonts.Medium, fontSize: 13, color: '#64748B' },
-  billVal: { fontFamily: Fonts.Bold, fontSize: 13, color: '#1E293B' },
-  totalRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F1F5F9' },
-  totalLabel: { fontFamily: Fonts.Bold, fontSize: 16, color: '#0F172A' },
+  billLabel: { fontFamily: Fonts.Medium, fontSize: 13, color: Colors.kyc_textSub },
+  billVal: { fontFamily: Fonts.Bold, fontSize: 13, color: Colors.kyc_text },
+  totalRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.kyc_accent + "30" },
+  totalLabel: { fontFamily: Fonts.Bold, fontSize: 16, color: Colors.kyc_text },
   totalVal: { fontFamily: Fonts.Bold, fontSize: 20, color: Colors.finance_accent },
 
-  footer: { position: 'absolute', bottom: 0, width: width, backgroundColor: '#FFFFFF', padding: 20, borderTopWidth: 1, borderTopColor: '#F1F5F9' },
+  footer: { position: 'absolute', bottom: 0, width: width, backgroundColor: Colors.beige, padding: 20, borderTopWidth: 1, borderTopColor: Colors.kyc_accent + "30" },
   placeOrderBtn: { height: 55, borderRadius: 15, overflow: 'hidden' },
   grad: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   btnTxt: { fontFamily: Fonts.Bold, color: Colors.finance_accent, fontSize: 16 },
