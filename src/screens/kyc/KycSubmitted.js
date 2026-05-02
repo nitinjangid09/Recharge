@@ -5,11 +5,19 @@ import {
   StyleSheet,
   Animated,
   TouchableOpacity,
+  Dimensions,
+  PixelRatio,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Colors from "../../constants/Colors";
 import Fonts from "../../constants/Fonts";
+ 
+const { width: SCREEN_W } = Dimensions.get("window");
+const rs = (size) => {
+  const clamped = Math.min(SCREEN_W / 375, 1.3);
+  return Math.round(PixelRatio.roundToNearestPixel(size * clamped));
+};
 
 export default function KycSubmitted({ navigation }) {
   // Animation refs
@@ -63,7 +71,7 @@ export default function KycSubmitted({ navigation }) {
         {/* Icon Container */}
         <Animated.View style={[styles.iconContainer, { transform: [{ scale: scaleAnim }] }]}>
           <View style={styles.iconBackground}>
-            <Icon name="check-decagram-outline" size={80} color={Colors.primary} />
+            <Icon name="check-decagram" size={rs(72)} color={Colors.kyc_success} />
           </View>
         </Animated.View>
 
@@ -103,14 +111,14 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   iconBackground: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: Colors.white,
+    width: rs(130),
+    height: rs(130),
+    borderRadius: rs(65),
+    backgroundColor: Colors.kyc_success + "15",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 2,
-    borderColor: Colors.primary,
+    borderWidth: 3,
+    borderColor: Colors.kyc_success + "25",
   },
   title: {
     fontSize: 28,
