@@ -934,12 +934,12 @@ export default function FinanceHome({ navigation }) {
                     onPress={openSearch}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   >
-                    <Icon name="magnify" size={rs(20)} color={Colors.white} />
+                    <Icon name="magnify" size={rs(20)} color={Colors.finance_accent} />
                   </TouchableOpacity>
                   <TouchableOpacity style={S.glassBtn}
-                    onPress={() => navigation.navigate("AEPS1")}
+                    onPress={() => navigation.navigate("Notification")}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                    <Icon name="bell-ring-outline" size={rs(20)} color={Colors.white} />
+                    <Icon name="bell-ring-outline" size={rs(20)} color={Colors.finance_accent} />
                   </TouchableOpacity>
                 </View>
               </Animated.View>
@@ -1504,9 +1504,9 @@ const S = StyleSheet.create({
   actions: { flexDirection: "row", flexShrink: 0, marginLeft: rs(6) },
   glassBtn: {
     width: rs(38), height: rs(38), borderRadius: rs(19),
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(255,255,255,0.06)",
     alignItems: "center", justifyContent: "center",
-    marginLeft: rs(7), borderWidth: 1, borderColor: "rgba(255,255,255,0.15)",
+    marginLeft: rs(7), borderWidth: 1, borderColor: "rgba(212,176,106,0.35)",
   },
   notifDot: {
     position: "absolute", top: rs(8), right: rs(8),

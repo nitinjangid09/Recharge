@@ -9,25 +9,14 @@ import {
     Dimensions,
     Platform,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import LinearGradient from 'react-native-linear-gradient';
 import Colors from '../../constants/Colors';
+import Fonts from '../../constants/Fonts';
 
 const { width } = Dimensions.get('window');
 
 // ─── SVG-style icons as unicode / emoji fallback ───────────────────────────
-const Icon = ({ name, size = 28, color = 'rgb(255, 255, 255)' }) => {
-    const icons = {
-        camera: '📷',
-        gallery: '🖼️',
-        file: '📁',
-        close: '✕',
-        check: '✓',
-    };
-    return (
-        <Text style={{ fontSize: size, color, lineHeight: size + 4 }}>
-            {icons[name]}
-        </Text>
-    );
-};
 
 // ─── Individual Option Row ──────────────────────────────────────────────────
 const OptionButton = ({ icon, label, subtitle, onPress, delay, accentColor }) => {
@@ -61,9 +50,14 @@ const OptionButton = ({ icon, label, subtitle, onPress, delay, accentColor }) =>
                 onPressOut={onPressOut}
                 style={styles.optionBtn}
             >
-                <View style={[styles.iconWrap, { backgroundColor: accentColor + '20' }]}>
-                    <Icon name={icon} size={24} color={accentColor} />
-                </View>
+                <LinearGradient
+                    colors={accentColor}
+                    style={styles.iconWrap}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                >
+                    <Icon name={icon} size={28} color={Colors.white} />
+                </LinearGradient>
                 <Text style={styles.optionLabel}>{label}</Text>
             </TouchableOpacity>
         </Animated.View>
@@ -109,13 +103,16 @@ export const ImageUploadAlert = ({ visible, onClose, onCamera, onGallery, onFile
                 {/* Header */}
                 <View style={styles.header}>
                     <View style={styles.headerLeft}>
+                        <View style={styles.uploadIconBg}>
+                             <Icon name="cloud-upload-outline" size={24} color={Colors.kyc_accentDark} />
+                        </View>
                         <View>
-                            <Text style={styles.title}>Upload Image</Text>
-                            <Text style={styles.subtitle}>Choose a source to continue</Text>
+                            <Text style={styles.title}>Upload Screenshot</Text>
+                            <Text style={styles.subtitle}>Select a source to provide proof</Text>
                         </View>
                     </View>
                     <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-                        <Text style={styles.closeTxt}>✕</Text>
+                         <Icon name="close" size={16} color={Colors.slate_500} />
                     </TouchableOpacity>
                 </View>
 
@@ -125,23 +122,23 @@ export const ImageUploadAlert = ({ visible, onClose, onCamera, onGallery, onFile
                 {/* Options Row */}
                 <View style={styles.optionsRow}>
                     <OptionButton
-                        icon="camera"
+                        icon="camera-outline"
                         label="Camera"
-                        accentColor={Colors.kyc_accent}
+                        accentColor={['#6366F1', '#4F46E5']}
                         delay={60}
                         onPress={() => handleOption(onCamera)}
                     />
                     <OptionButton
-                        icon="gallery"
+                        icon="image-multiple-outline"
                         label="Gallery"
-                        accentColor={Colors.primary}
+                        accentColor={['#3B82F6', '#2563EB']}
                         delay={120}
                         onPress={() => handleOption(onGallery)}
                     />
                     <OptionButton
-                        icon="file"
+                        icon="file-document-outline"
                         label="Files"
-                        accentColor={Colors.slate_500}
+                        accentColor={['#64748B', '#475569']}
                         delay={180}
                         onPress={() => handleOption(onFile)}
                     />
@@ -206,33 +203,35 @@ const styles = StyleSheet.create({
     },
     sheet: {
         position: 'absolute', bottom: 0, left: 0, right: 0,
-        backgroundColor: 'rgb(255, 255, 255)',
-        borderTopLeftRadius: 32, borderTopRightRadius: 32,
+        backgroundColor: Colors.white,
+        borderTopLeftRadius: 36, borderTopRightRadius: 36,
         paddingHorizontal: 24, paddingTop: 12,
         paddingBottom: 20,
+        borderWidth: 1,
+        borderColor: 'rgba(212,176,106,0.2)',
     },
     handle: {
-        alignSelf: 'center', width: 36, height: 4,
-        backgroundColor: 'rgb(229, 231, 235)', borderRadius: 2, marginBottom: 20,
+        alignSelf: 'center', width: 40, height: 5,
+        backgroundColor: 'rgba(0,0,0,0.08)', borderRadius: 10, marginBottom: 24,
     },
     header: {
         flexDirection: 'row', alignItems: 'center',
-        justifyContent: 'space-between', marginBottom: 24,
+        justifyContent: 'space-between', marginBottom: 28,
     },
     headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 14 },
     uploadIconBg: {
-        width: 48, height: 48, borderRadius: 14,
-        backgroundColor: 'rgb(243, 244, 246)',
+        width: 44, height: 44, borderRadius: 12,
+        backgroundColor: 'rgba(212,176,106,0.1)',
         alignItems: 'center', justifyContent: 'center',
+        borderWidth: 1, borderColor: 'rgba(212,176,106,0.25)',
     },
-    title: { color: 'rgb(17, 24, 39)', fontSize: 20, fontWeight: '800', letterSpacing: -0.5 },
-    subtitle: { color: 'rgb(107, 114, 128)', fontSize: 13, marginTop: 2 },
+    title: { color: Colors.hub_dark, fontSize: 20, fontFamily: Fonts.Bold, letterSpacing: -0.5 },
+    subtitle: { color: Colors.slate_500, fontSize: 13, marginTop: 2, fontFamily: Fonts.Medium },
     closeBtn: {
         width: 32, height: 32, borderRadius: 16,
-        backgroundColor: 'rgb(243, 244, 246)', alignItems: 'center', justifyContent: 'center',
+        backgroundColor: 'rgba(0,0,0,0.05)', alignItems: 'center', justifyContent: 'center',
     },
-    closeTxt: { color: Colors.black, fontSize: 12, fontWeight: 'bold' },
-    divider: { height: 1.5, backgroundColor: 'rgb(243, 244, 246)', marginBottom: 24 },
+    divider: { height: 1, backgroundColor: 'rgba(0,0,0,0.05)', marginBottom: 28 },
 
     // Options Row Layout
     optionsRow: {
@@ -252,24 +251,31 @@ const styles = StyleSheet.create({
 
     },
     iconWrap: {
-        width: 56, height: 56, borderRadius: 18,
+        width: 64, height: 64, borderRadius: 22,
         alignItems: 'center', justifyContent: 'center',
-        marginBottom: 12,
+        marginBottom: 14,
+        elevation: 8,
+        shadowColor: '#4F46E5',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
     },
     optionLabel: {
-        color: 'rgb(55, 65, 81)',
+        color: Colors.hub_dark,
         fontSize: 13,
-        fontWeight: '700',
+        fontFamily: Fonts.Bold,
         textAlign: 'center',
     },
 
     cancelBtn: {
-        alignItems: 'center', paddingVertical: 15,
-        borderRadius: 16, backgroundColor: Colors.black,
+        alignItems: 'center', paddingVertical: 16,
+        borderRadius: 28, backgroundColor: '#F1F5F9',
+        marginTop: 10,
+        borderWidth: 1, borderColor: '#E2E8F0',
     },
     cancelTxt: {
-        color: 'rgb(255, 255, 255)',
-        fontWeight: '700',
-        fontSize: 15,
+        color: '#475569',
+        fontFamily: Fonts.Bold,
+        fontSize: 16,
     },
 });

@@ -16,6 +16,7 @@ import {
 import Clipboard from '@react-native-clipboard/clipboard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CalendarModal from '../../componets/Calendar/CalendarModal';
+import ImageUploadAlert from '../../componets/Alerts/Imageuploadalert';
 import ImagePicker from 'react-native-image-crop-picker';
 import { redeemCoupon, getAllTopupBanks, BASE_URL, addIdChargeRequest } from '../../api/AuthApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -235,7 +236,7 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [receiptImage, setReceiptImage] = useState(null);
     const [showMethodPicker, setShowMethodPicker] = useState(false);
-    const [uploadModalVisible, setUploadModalVisible] = useState(false);
+    const [showAlert, setShowAlert] = useState(false);
 
     const methods = ['UPI', 'IMPS', 'bank', 'NEFT'];
 
@@ -273,7 +274,6 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
     };
 
     const handleCapture = async (method) => {
-        setUploadModalVisible(false);
         try {
             const options = {
                 width: 1000,
@@ -603,7 +603,7 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
                                     ) : (
                                         <TouchableOpacity
                                             style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center' }}
-                                            onPress={() => setUploadModalVisible(true)}
+                                            onPress={() => setShowAlert(true)}
                                         >
                                             <View style={styles.hubUploadIcon}>
                                                 <Text style={{ fontSize: 24 }}>📤</Text>
@@ -630,35 +630,13 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
                     </View>
                 )}
 
-                <Modal visible={uploadModalVisible} transparent animationType="fade" onRequestClose={() => setUploadModalVisible(false)}>
-                    <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setUploadModalVisible(false)}>
-                        <View style={styles.uploadModalContent}>
-                            <View style={styles.modalIndicator} />
-                            <Text style={styles.modalTitle}>Upload Receipt</Text>
-                            <Text style={styles.modalSub}>Select a source to upload your payment screenshot</Text>
-
-                            <View style={styles.modalActionRow}>
-                                <TouchableOpacity style={styles.modalActionBtn} onPress={() => handleCapture('camera')}>
-                                    <View style={[styles.modalActionIcon, { backgroundColor: 'rgba(212,176,106,0.1)' }]}>
-                                        <Text style={{ fontSize: 24 }}>📸</Text>
-                                    </View>
-                                    <Text style={styles.modalActionLabel}>Camera</Text>
-                                </TouchableOpacity>
-
-                                <TouchableOpacity style={styles.modalActionBtn} onPress={() => handleCapture('gallery')}>
-                                    <View style={[styles.modalActionIcon, { backgroundColor: 'rgba(59,130,246,0.1)' }]}>
-                                        <Text style={{ fontSize: 24 }}>🖼️</Text>
-                                    </View>
-                                    <Text style={styles.modalActionLabel}>Gallery</Text>
-                                </TouchableOpacity>
-                            </View>
-
-                            <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setUploadModalVisible(false)}>
-                                <Text style={styles.modalCancelText}>Cancel</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </TouchableOpacity>
-                </Modal>
+                <ImageUploadAlert
+                    visible={showAlert}
+                    onClose={() => setShowAlert(false)}
+                    onCamera={() => handleCapture('camera')}
+                    onGallery={() => handleCapture('gallery')}
+                    onFile={() => handleCapture('file')}
+                />
             </View>
         </View>
     );
