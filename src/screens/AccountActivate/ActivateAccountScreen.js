@@ -425,7 +425,7 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
                             <Text style={styles.hubSectionTitle}>Scan & Pay</Text>
                             <Text style={styles.hubSectionSub}>Use any UPI app to scan and pay instantly</Text>
                         </View>
-                        
+
                         <View style={styles.qrStage}>
                             <View style={styles.qrBorder}>
                                 <View style={styles.qrHeader}>
@@ -449,7 +449,7 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
                                     <Text style={styles.qrVpa}>{bank.upiId || 'No UPI ID'}</Text>
                                 </View>
                             </View>
-                            
+
                             <View style={styles.qrStatusBadge}>
                                 <Text style={styles.qrStatusText}>✓ VERIFIED SECURE QR</Text>
                             </View>
@@ -463,7 +463,7 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
                             <Text style={styles.hubSectionTitle}>Bank Transfer Details</Text>
                             <Text style={styles.hubSectionSub}>Pay via IMPS/NEFT using details below</Text>
                         </View>
-                        
+
                         <View style={styles.bankDetailList}>
                             {[
                                 { label: 'A/C Number', value: bank.accountNumber },
@@ -601,8 +601,8 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
                                             </View>
                                         </View>
                                     ) : (
-                                        <TouchableOpacity 
-                                            style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center' }} 
+                                        <TouchableOpacity
+                                            style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center' }}
                                             onPress={() => setUploadModalVisible(true)}
                                         >
                                             <View style={styles.hubUploadIcon}>
@@ -636,7 +636,7 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
                             <View style={styles.modalIndicator} />
                             <Text style={styles.modalTitle}>Upload Receipt</Text>
                             <Text style={styles.modalSub}>Select a source to upload your payment screenshot</Text>
-                            
+
                             <View style={styles.modalActionRow}>
                                 <TouchableOpacity style={styles.modalActionBtn} onPress={() => handleCapture('camera')}>
                                     <View style={[styles.modalActionIcon, { backgroundColor: 'rgba(212,176,106,0.1)' }]}>
@@ -730,7 +730,7 @@ export default function ActivateAccountScreen({ navigation }) {
 
     const indicatorLeft = tabAnim.interpolate({
         inputRange: [0, 1, 2],
-        outputRange: ['2%', '35%', '68%'],
+        outputRange: ['1.6%', '34.1%', '66.6%'],
     });
 
     return (
@@ -853,8 +853,8 @@ const styles = StyleSheet.create({
 
     // Hero
     hero: { margin: 16, borderRadius: 28, padding: 24, backgroundColor: Colors.primary, overflow: 'hidden', position: 'relative' },
-    heroGlowTop: { position: 'absolute', top: -60, right: -30, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(37,99,235,0.3)', opacity: 0.6 },
-    heroGlowBottom: { position: 'absolute', bottom: -80, left: -30, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(59,130,246,0.2)', opacity: 0.5 },
+    heroGlowTop: { position: 'absolute', top: -60, right: -30, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(212,176,106,0.25)', opacity: 0.6 },
+    heroGlowBottom: { position: 'absolute', bottom: -80, left: -30, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(212,176,106,0.15)', opacity: 0.5 },
     heroBadge: { fontSize: 9, fontFamily: Fonts.Bold, letterSpacing: 1.8, color: 'rgba(255,255,255,0.45)', marginBottom: 12 },
     heroAmount: { fontSize: 48, fontFamily: Fonts.Bold, color: Colors.white, lineHeight: 52 },
     heroCurrency: { fontSize: 24, fontFamily: Fonts.Medium, color: 'rgba(255,255,255,0.55)' },
@@ -869,8 +869,8 @@ const styles = StyleSheet.create({
 
     // Tabs
     tabsContainer: { marginHorizontal: 16, marginBottom: 20, backgroundColor: Colors.beige, borderRadius: 18, padding: 5, flexDirection: 'row', borderWidth: 1.5, borderColor: Colors.kyc_accent + "30", position: 'relative', height: 64 },
-    tabIndicator: { position: 'absolute', top: 5, bottom: 5, width: '30%', backgroundColor: Colors.primary, borderRadius: 13, elevation: 0 },
-    tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, zIndex: 1 },
+    tabIndicator: { position: 'absolute', top: 5, bottom: 5, width: '33.8%', backgroundColor: Colors.primary, borderRadius: 13, elevation: 0 },
+    tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, zIndex: 1 },
     tabIcon: { fontSize: 16 },
     tabLabel: { fontSize: 11, fontFamily: Fonts.SemiBold, color: Colors.slate_500 },
     tabLabelActive: { color: Colors.white, fontFamily: Fonts.Bold },

@@ -15,6 +15,7 @@ import Colors from "../../constants/Colors";
 import CalendarModal from "../../componets/Calendar/CalendarModal";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 import CustomAlert from "../../componets/Alerts/CustomAlert";
+import ImageUploadAlert from "../../componets/Alerts/Imageuploadalert";
 import RNFS from "react-native-fs";
 
 // ─── Responsive helpers ───────────────────────────────────────────────────
@@ -1278,9 +1279,10 @@ export default function Offlinekyc({ navigation, route }) {
         items={bankList.filter(b => b.bankName?.toLowerCase().includes(bankSearch.trim().toLowerCase()))} getLabel={b => b.bankName}
         onSelect={bn => { setBanking(b => ({ ...b, bankName: bn.bankName })); setShowBankModal(false); setBankSearch(""); }}
         onClose={() => { setShowBankModal(false); setBankSearch(""); }} onRefresh={handleFetchBanks} />
-      <SourcePicker
+      <ImageUploadAlert
         visible={showSourcePicker}
-        onSelect={handlePickSource}
+        onCamera={() => handlePickSource("camera")}
+        onGallery={() => handlePickSource("gallery")}
         onClose={() => setShowSourcePicker(false)}
       />
 
@@ -1295,30 +1297,6 @@ export default function Offlinekyc({ navigation, route }) {
   );
 }
 
-function SourcePicker({ visible, onSelect, onClose }) {
-  return (
-    <Modal visible={visible} transparent animationType="slide">
-      <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose}>
-        <View style={styles.modalCard}>
-          <Text style={styles.modalTitle}>Choose Source</Text>
-          <View style={{ flexDirection: "row", gap: hs(16), marginTop: vs(10), width: "100%" }}>
-            <TouchableOpacity style={{ flex: 1, alignItems: "center", gap: 8, padding: hs(16), backgroundColor: Colors.kyc_accent + "10", borderRadius: hs(16) }} onPress={() => onSelect("camera")}>
-              <Icon name="camera-outline" size={rs(30)} color={Colors.kyc_accent} />
-              <Text style={{ fontFamily: Fonts.Bold, color: Colors.kyc_accent }}>Camera</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={{ flex: 1, alignItems: "center", gap: 8, padding: hs(16), backgroundColor: Colors.kyc_accent + "10", borderRadius: hs(16) }} onPress={() => onSelect("gallery")}>
-              <Icon name="image-multiple-outline" size={rs(30)} color={Colors.kyc_accent} />
-              <Text style={{ fontFamily: Fonts.Bold, color: Colors.kyc_accent }}>Gallery</Text>
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity style={{ marginTop: vs(20), padding: hs(12) }} onPress={onClose}>
-            <Text style={{ color: Colors.kyc_textMuted, fontFamily: Fonts.Bold }}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
-    </Modal>
-  );
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ATOMS
@@ -1571,6 +1549,5 @@ const styles = StyleSheet.create({
   modalBtn: { width: "100%", borderRadius: hs(12), overflow: "hidden" },
   modalBtnGrad: { paddingVertical: vs(14), alignItems: "center", justifyContent: "center" },
   modalBtnText: { color: Colors.white, fontFamily: Fonts.Bold, fontSize: rs(14) },
-  modalEmpty: { textAlign: "center", marginTop: vs(40), color: Colors.kyc_textMuted, fontFamily: Fonts.Regular, fontSize: rs(13) },
   modalListItem: { paddingVertical: vs(14), borderBottomWidth: 1, borderBottomColor: Colors.kyc_border },
 });

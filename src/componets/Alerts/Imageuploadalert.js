@@ -61,7 +61,7 @@ const OptionButton = ({ icon, label, subtitle, onPress, delay, accentColor }) =>
                 onPressOut={onPressOut}
                 style={styles.optionBtn}
             >
-                <View style={[styles.iconWrap, { backgroundColor: accentColor + '15' }]}>
+                <View style={[styles.iconWrap, { backgroundColor: accentColor + '20' }]}>
                     <Icon name={icon} size={24} color={accentColor} />
                 </View>
                 <Text style={styles.optionLabel}>{label}</Text>
@@ -127,21 +127,21 @@ export const ImageUploadAlert = ({ visible, onClose, onCamera, onGallery, onFile
                     <OptionButton
                         icon="camera"
                         label="Camera"
-                        accentColor="rgb(59, 130, 246)"
+                        accentColor={Colors.kyc_accent}
                         delay={60}
                         onPress={() => handleOption(onCamera)}
                     />
                     <OptionButton
                         icon="gallery"
                         label="Gallery"
-                        accentColor="rgb(16, 185, 129)"
+                        accentColor={Colors.primary}
                         delay={120}
                         onPress={() => handleOption(onGallery)}
                     />
                     <OptionButton
                         icon="file"
                         label="Files"
-                        accentColor="rgb(139, 92, 246)"
+                        accentColor={Colors.slate_500}
                         delay={180}
                         onPress={() => handleOption(onFile)}
                     />
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
         width: 32, height: 32, borderRadius: 16,
         backgroundColor: 'rgb(243, 244, 246)', alignItems: 'center', justifyContent: 'center',
     },
-    closeTxt: { color: 'rgb(156, 163, 175)', fontSize: 12, fontWeight: 'bold' },
+    closeTxt: { color: Colors.black, fontSize: 12, fontWeight: 'bold' },
     divider: { height: 1.5, backgroundColor: 'rgb(243, 244, 246)', marginBottom: 24 },
 
     // Options Row Layout
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
 
     cancelBtn: {
         alignItems: 'center', paddingVertical: 15,
-        borderRadius: 16, backgroundColor: 'rgb(51, 65, 85)',
+        borderRadius: 16, backgroundColor: Colors.black,
     },
     cancelTxt: {
         color: 'rgb(255, 255, 255)',
