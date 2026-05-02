@@ -18,6 +18,7 @@ import {
     RefreshControl,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '../../constants/Colors';
@@ -112,6 +113,8 @@ function WalletScreen({ navigation }) {
     const [refreshing, setRefreshing] = useState(false);
     const [errors, setErrors] = useState({});
     const [senderBalance, setSenderBalance] = useState(0);
+    const [searchText, setSearchText] = useState('');
+    const [historySearch, setHistorySearch] = useState('');
 
     const [alert, setAlert] = useState({ visible: false, type: 'info', title: '', message: '' });
     const [receiptData, setReceiptData] = useState(null);
@@ -363,6 +366,7 @@ function WalletScreen({ navigation }) {
                                     style={[styles.selectField, errors.selectedUser && { borderColor: Colors.red }]}
                                     onPress={() => {
                                         setUserPickerOpen(!userPickerOpen);
+                                        if (!userPickerOpen) setSearchText('');
                                         setErrors(prev => ({ ...prev, selectedUser: null }));
                                     }}
                                     activeOpacity={0.8}
@@ -388,29 +392,59 @@ function WalletScreen({ navigation }) {
 
                                 {userPickerOpen && (
                                     <View style={styles.dropdownList}>
-                                        {users.map((u) => (
-                                            <TouchableOpacity
-                                                key={u.id}
-                                                style={[
-                                                    styles.dropdownItem,
-                                                    selectedUser?.id === u.id && styles.dropdownItemActive,
-                                                ]}
-                                                onPress={() => { setSelectedUser(u); setUserPickerOpen(false); }}
-                                            >
-                                                <Text style={[
-                                                    styles.dropdownItemText,
-                                                    selectedUser?.id === u.id && styles.dropdownItemTextActive,
-                                                ]}>
-                                                    {u.name}
-                                                </Text>
-                                                <Text style={[
-                                                    styles.dropdownItemSubText,
-                                                    selectedUser?.id === u.id && styles.dropdownItemSubTextActive,
-                                                ]}>
-                                                    {u.code}
-                                                </Text>
-                                            </TouchableOpacity>
-                                        ))}
+                                        <View style={styles.searchWrap}>
+                                            <View style={styles.searchBoxInner}>
+                                                <Icon name="magnify" size={18} color={Colors.gray} style={{ marginRight: 8 }} />
+                                                <TextInput
+                                                    style={styles.searchInput}
+                                                    placeholder="Search by name or code..."
+                                                    placeholderTextColor={Colors.gray}
+                                                    value={searchText}
+                                                    onChangeText={setSearchText}
+                                                    autoCorrect={false}
+                                                />
+                                            </View>
+                                        </View>
+                                        <ScrollView style={{ maxHeight: 180 }} keyboardShouldPersistTaps="handled">
+                                            {users.filter(u =>
+                                                u.name.toLowerCase().includes(searchText.toLowerCase()) ||
+                                                u.code.toLowerCase().includes(searchText.toLowerCase())
+                                            ).map((u) => (
+                                                <TouchableOpacity
+                                                    key={u.id}
+                                                    style={[
+                                                        styles.dropdownItem,
+                                                        selectedUser?.id === u.id && styles.dropdownItemActive,
+                                                    ]}
+                                                    onPress={() => {
+                                                        setSelectedUser(u);
+                                                        setUserPickerOpen(false);
+                                                        setSearchText('');
+                                                    }}
+                                                >
+                                                    <Text style={[
+                                                        styles.dropdownItemText,
+                                                        selectedUser?.id === u.id && styles.dropdownItemTextActive,
+                                                    ]}>
+                                                        {u.name}
+                                                    </Text>
+                                                    <Text style={[
+                                                        styles.dropdownItemSubText,
+                                                        selectedUser?.id === u.id && styles.dropdownItemSubTextActive,
+                                                    ]}>
+                                                        {u.code}
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            ))}
+                                            {users.filter(u =>
+                                                u.name.toLowerCase().includes(searchText.toLowerCase()) ||
+                                                u.code.toLowerCase().includes(searchText.toLowerCase())
+                                            ).length === 0 && (
+                                                    <View style={{ padding: 20, alignItems: 'center' }}>
+                                                        <Text style={{ fontSize: 12, color: Colors.gray, fontWeight: '600' }}>No users found</Text>
+                                                    </View>
+                                                )}
+                                        </ScrollView>
                                     </View>
                                 )}
                             </View>
@@ -502,16 +536,35 @@ function WalletScreen({ navigation }) {
                 {/* Refill History */}
                 <SectionRow title="Refill History" action="See all →" onAction={() => { }} />
 
+                <View style={styles.historySearchContainer}>
+                    <View style={styles.historySearchBoxInner}>
+                        <Icon name="magnify" size={20} color={Colors.gray} style={{ marginRight: 10 }} />
+                        <TextInput
+                            style={styles.historySearchInput}
+                            placeholder="Search history by name..."
+                            placeholderTextColor={Colors.gray}
+                            value={historySearch}
+                            onChangeText={setHistorySearch}
+                        />
+                    </View>
+                </View>
+
                 {loadingHistory ? (
                     <View style={{ padding: 20, alignItems: 'center' }}>
                         <ActivityIndicator size="small" color={Colors.primary} />
                     </View>
-                ) : history.length === 0 ? (
+                ) : history.filter(txn =>
+                    (txn.name || '').toLowerCase().includes(historySearch.toLowerCase())
+                ).length === 0 ? (
                     <View style={{ padding: 20, alignItems: 'center' }}>
-                        <Text style={{ color: Colors.text_secondary, fontSize: 13 }}>No refill history found.</Text>
+                        <Text style={{ color: Colors.text_secondary, fontSize: 13 }}>
+                            {historySearch ? 'No matching transactions found.' : 'No refill history found.'}
+                        </Text>
                     </View>
                 ) : (
-                    history.map((txn, idx) => (
+                    history.filter(txn =>
+                        (txn.name || '').toLowerCase().includes(historySearch.toLowerCase())
+                    ).map((txn, idx) => (
                         <TouchableOpacity key={txn.referenceId || idx} style={styles.txnRow} activeOpacity={0.85}>
                             <View style={styles.txnIcon}><Text style={styles.txnIconText}>💳</Text></View>
                             <View style={{ flex: 1 }}>
@@ -723,7 +776,30 @@ const styles = StyleSheet.create({
         borderColor: Colors.input_border,
         overflow: 'hidden',
         zIndex: 999,
-        maxHeight: 250,
+        maxHeight: 280,
+    },
+    searchWrap: {
+        padding: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.input_border,
+        backgroundColor: Colors.beige,
+    },
+    searchBoxInner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.beige,
+        borderRadius: 10,
+        paddingHorizontal: 12,
+        height: 42,
+        borderWidth: 1,
+        borderColor: Colors.input_border,
+    },
+    searchInput: {
+        flex: 1,
+        fontSize: 13,
+        color: Colors.black,
+        fontWeight: '600',
+        padding: 0,
     },
     dropdownItem: {
         paddingVertical: 12,
@@ -764,6 +840,28 @@ const styles = StyleSheet.create({
         color: Colors.black,
         borderWidth: 1,
         borderColor: Colors.input_border,
+    },
+    historySearchContainer: {
+        marginHorizontal: 20,
+        marginBottom: 12,
+    },
+    historySearchBoxInner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.white,
+        borderRadius: 12,
+        paddingHorizontal: 16,
+        height: 48,
+        borderWidth: 1,
+        borderColor: Colors.input_border,
+    },
+    historySearchInput: {
+        flex: 1,
+        fontSize: 13,
+        color: Colors.black,
+        fontFamily: Fonts.Medium,
+        padding: 0,
+        marginLeft: 10,
     },
 
     // Quick Amounts
