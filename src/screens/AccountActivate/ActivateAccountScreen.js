@@ -658,18 +658,7 @@ function BankPanel({ onSuccess, onError, feeAmount, banks = [] }) {
                             </TouchableOpacity>
                         </View>
                     </TouchableOpacity>
-<<<<<<< HEAD
-
-                    <View style={{ height: 1, backgroundColor: Colors.input_border, marginVertical: 10, width: '40%', alignSelf: 'center' }} />
-                    <View style={styles.hubTrustRow}>
-                        <Text style={styles.hubTrustText}>• PCI COMPLIANT</Text>
-                        <Text style={styles.hubTrustText}>• SSL SECURED</Text>
-                        <Text style={styles.hubTrustText}>• ENCRYPTED</Text>
-                    </View>
-                </View>
-=======
                 </Modal>
->>>>>>> 08713db290d1491e15134a4c3b58b499d674bcfc
             </View>
         </View>
     );
@@ -960,11 +949,7 @@ const styles = StyleSheet.create({
     hubSubmitText: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.white },
     hubSubmitArrow: { fontSize: 18, color: Colors.white, fontFamily: Fonts.Bold },
     hubTrustRow: { flexDirection: 'row', justifyContent: 'center', gap: 12, marginTop: 8 },
-<<<<<<< HEAD
-    hubTrustText: { fontSize: 8, fontFamily: Fonts.Bold, color: Colors.slate_500, letterSpacing: 1 },
-=======
     hubTrustText: { fontSize: 8, fontFamily: Fonts.Bold, color: Colors.kyc_accent, letterSpacing: 1 },
->>>>>>> 08713db290d1491e15134a4c3b58b499d674bcfc
 
     // Form Picker lists
     methodPickerList: { position: 'absolute', top: 52, left: 0, right: 0, backgroundColor: Colors.white, borderRadius: 12, borderWidth: 1, borderColor: Colors.hub_border, zIndex: 10 },
@@ -1005,13 +990,8 @@ const styles = StyleSheet.create({
     // Trust Bar (Enterprise Grade)
     trustBar: { marginTop: 32, paddingHorizontal: 20, alignItems: 'center' },
     trustBarHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
-<<<<<<< HEAD
-    trustBarLine: { flex: 1, height: 1, backgroundColor: Colors.primary, opacity: 0.15 },
-    trustBarTitle: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.slate_500, letterSpacing: 1.5, textTransform: 'uppercase' },
-=======
     trustBarLine: { flex: 1, height: 1.5, backgroundColor: Colors.kyc_accent },
     trustBarTitle: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.kyc_accentDark, letterSpacing: 1.5, textTransform: 'uppercase' },
->>>>>>> 08713db290d1491e15134a4c3b58b499d674bcfc
     trustFooter: { flexDirection: 'row', justifyContent: 'center', gap: 10, flexWrap: 'wrap' },
     trustPill: {
         flexDirection: 'row',
