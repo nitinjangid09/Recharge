@@ -171,18 +171,28 @@ const stepStyles = StyleSheet.create({
 });
 
 // ─── Document Upload Card ─────────────────────────────────────────
-const DocUploadCard = ({ label, onPress, uri }) => (
-  <TouchableOpacity activeOpacity={0.75} style={docStyles.card} onPress={onPress}>
-    {uri ? (
-      <Image source={{ uri }} style={docStyles.preview} resizeMode="cover" />
-    ) : (
-      <View style={docStyles.placeholder}>
-        <Text style={docStyles.plus}>+</Text>
-      </View>
+const DocUploadCard = ({ label, onPress, uri, onDelete }) => (
+  <View style={{ flex: 1, position: 'relative' }}>
+    <TouchableOpacity activeOpacity={0.75} style={docStyles.card} onPress={onPress}>
+      {uri ? (
+        <Image source={{ uri }} style={docStyles.preview} resizeMode="cover" />
+      ) : (
+        <View style={docStyles.placeholder}>
+          <Text style={docStyles.plus}>+</Text>
+        </View>
+      )}
+      <Text style={docStyles.label}>{label}</Text>
+      <Text style={docStyles.hint}>JPG, JPEG, PNG (Max 200KB)</Text>
+    </TouchableOpacity>
+    {uri && onDelete && (
+      <TouchableOpacity 
+        style={docStyles.deleteBtn} 
+        onPress={onDelete}
+      >
+        <Text style={docStyles.deleteIconText}>✕</Text>
+      </TouchableOpacity>
     )}
-    <Text style={docStyles.label}>{label}</Text>
-    <Text style={docStyles.hint}>JPG, JPEG, PNG (Max 200KB)</Text>
-  </TouchableOpacity>
+  </View>
 );
 
 const docStyles = StyleSheet.create({
@@ -204,6 +214,8 @@ const docStyles = StyleSheet.create({
   label: { fontSize: rs(10), fontWeight: '700', color: Colors.text_secondary, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' },
   hint: { fontSize: rs(9), color: Colors.gray, marginTop: rs(2), textAlign: 'center' },
   preview: { width: '100%', height: rs(80), borderRadius: rs(10), marginBottom: rs(6) },
+  deleteBtn: { position: 'absolute', top: -rs(5), right: -rs(5), width: rs(24), height: rs(24), borderRadius: rs(12), backgroundColor: Colors.red, alignItems: 'center', justifyContent: 'center', elevation: 6, shadowColor: Colors.black, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 4, zIndex: 999, borderWidth: 1.5, borderColor: Colors.white },
+  deleteIconText: { fontSize: rs(12), color: Colors.white, fontWeight: '800', lineHeight: rs(14) },
 });
 
 // ─── Address Sub-Section ──────────────────────────────────────────
@@ -778,11 +790,11 @@ export default function AEPSServiceActivationScreen({ navigation }) {
         <SectionCard>
           <StepCardHeader step="5" variant="gold" title="KYC Documents" subtitle="Upload Required Identities" />
           <View style={screenStyles.row}>
-            <DocUploadCard label="PAN Card" uri={form.panFile} onPress={() => { setActiveDoc('panFile'); setModalVisible(true); }} />
-            <DocUploadCard label="Aadhaar Front" uri={form.aadhaarFront} onPress={() => { setActiveDoc('aadhaarFront'); setModalVisible(true); }} />
+            <DocUploadCard label="PAN Card" uri={form.panFile} onPress={() => { setActiveDoc('panFile'); setModalVisible(true); }} onDelete={() => updateForm('panFile', null)} />
+            <DocUploadCard label="Aadhaar Front" uri={form.aadhaarFront} onPress={() => { setActiveDoc('aadhaarFront'); setModalVisible(true); }} onDelete={() => updateForm('aadhaarFront', null)} />
           </View>
           <View style={screenStyles.row}>
-            <DocUploadCard label="Aadhaar Back" uri={form.aadhaarBack} onPress={() => { setActiveDoc('aadhaarBack'); setModalVisible(true); }} />
+            <DocUploadCard label="Aadhaar Back" uri={form.aadhaarBack} onPress={() => { setActiveDoc('aadhaarBack'); setModalVisible(true); }} onDelete={() => updateForm('aadhaarBack', null)} />
           </View>
           {errors.panFile || errors.aadhaarFront || errors.aadhaarBack ? (
             <Text style={[screenStyles.errorText, { textAlign: 'center', marginBottom: rs(10) }]}>Please upload all documents</Text>
