@@ -41,6 +41,7 @@ export default function Signup({ navigation }) {
     const [alertVisible, setAlertVisible] = useState(false);
     const [alertTitle, setAlertTitle] = useState("");
     const [alertMessage, setAlertMessage] = useState("");
+    const [alertType, setAlertType] = useState("info");
 
     const pageAnim = useRef(new Animated.Value(0)).current;
     const shakeAnim = useRef(new Animated.Value(0)).current;
@@ -90,9 +91,10 @@ export default function Signup({ navigation }) {
         ]).start();
     };
 
-    const showAlert = (title, message) => {
+    const showAlert = (title, message, type = "info") => {
         setAlertTitle(title);
         setAlertMessage(message);
+        setAlertType(type);
         setAlertVisible(true);
     };
 
@@ -103,11 +105,29 @@ export default function Signup({ navigation }) {
         let newErrors = {};
         let hasError = false;
 
-        if (!firstName.trim()) { newErrors.firstName = "First name is required"; hasError = true; }
-        else if (firstName.trim().length > 50) { newErrors.firstName = "First name cannot exceed 50 characters"; hasError = true; }
+        const nameRegex = /^[A-Za-z\s]+$/;
 
-        if (!lastName.trim()) { newErrors.lastName = "Last name is required"; hasError = true; }
-        else if (lastName.trim().length > 50) { newErrors.lastName = "Last name cannot exceed 50 characters"; hasError = true; }
+        if (!firstName.trim()) { 
+            newErrors.firstName = "First name is required"; 
+            hasError = true; 
+        } else if (firstName.trim().length > 40) { 
+            newErrors.firstName = "First name cannot exceed 40 characters"; 
+            hasError = true; 
+        } else if (!nameRegex.test(firstName.trim())) {
+            newErrors.firstName = "First name should contain only alphabets";
+            hasError = true;
+        }
+
+        if (!lastName.trim()) { 
+            newErrors.lastName = "Last name is required"; 
+            hasError = true; 
+        } else if (lastName.trim().length > 40) { 
+            newErrors.lastName = "Last name cannot exceed 40 characters"; 
+            hasError = true; 
+        } else if (!nameRegex.test(lastName.trim())) {
+            newErrors.lastName = "Last name should contain only alphabets";
+            hasError = true;
+        }
 
         if (!phone.trim()) { newErrors.phone = "Mobile number is required"; hasError = true; }
         else if (phone.length !== 10) { newErrors.phone = "Mobile number must be 10 digits"; hasError = true; }
@@ -138,7 +158,7 @@ export default function Signup({ navigation }) {
             setLoading(false);
 
             if (result?.success) {
-                showAlert("Success", result?.message || "User registered successfully");
+                showAlert("Success", result?.message || "User registered successfully", "success");
                 // Clear fields on success
                 setFirstName("");
                 setLastName("");
@@ -153,12 +173,12 @@ export default function Signup({ navigation }) {
                 }, 1500);
             } else {
                 triggerShake();
-                showAlert("Signup Failed", result?.message || "User already exists");
+                showAlert("Signup Failed", result?.message || "User already exists", "error");
             }
         } catch (error) {
             setLoading(false);
             triggerShake();
-            showAlert("Error", "An unexpected error occurred");
+            showAlert("Error", "An unexpected error occurred", "error");
         }
     };
 
@@ -240,8 +260,8 @@ export default function Signup({ navigation }) {
                         <Text style={styles.welcome}>Sign Up</Text>
                         <Text style={styles.subTitle}>Join us today!</Text>
 
-                        {renderInput("First Name", "account", firstName, setFirstName, "firstName", 'default', { maxLength: 50 })}
-                        {renderInput("Last Name", "account-outline", lastName, setLastName, "lastName", 'default', { maxLength: 50 })}
+                        {renderInput("First Name", "account", firstName, (text) => setFirstName(text.replace(/[^A-Za-z\s]/g, "")), "firstName", 'default', { maxLength: 40 })}
+                        {renderInput("Last Name", "account-outline", lastName, (text) => setLastName(text.replace(/[^A-Za-z\s]/g, "")), "lastName", 'default', { maxLength: 40 })}
                         {renderInput("Mobile Number", "phone", phone, (text) => setPhone(text.replace(/[^0-9]/g, "")), "phone", "phone-pad", { maxLength: 10 })}
                         {renderInput("Email Address", "email", email, setEmail, "email", "email-address")}
 
@@ -331,6 +351,7 @@ export default function Signup({ navigation }) {
 
             <CustomAlert
                 visible={alertVisible}
+                type={alertType}
                 title={alertTitle}
                 message={alertMessage}
                 onClose={() => setAlertVisible(false)}
@@ -352,7 +373,7 @@ const styles = StyleSheet.create({
     appName: { fontSize: 24 * scale, fontFamily: Fonts.Bold, color: Colors.black, letterSpacing: 0.5 },
     card: {
         marginHorizontal: 16 * scale, backgroundColor: Colors.beige, borderRadius: 24 * scale,
-        padding: 16 * scale,
+        padding: 16 * scale, borderWidth: 1, borderColor: Colors.input_border,
     },
     welcome: { fontSize: 22 * scale, fontFamily: Fonts.Bold, textAlign: "center", color: Colors.primary },
     subTitle: { fontSize: 13 * scale, fontFamily: Fonts.Medium, color: Colors.text_secondary, textAlign: "center", marginTop: 6 * scale, marginBottom: 20 * scale },

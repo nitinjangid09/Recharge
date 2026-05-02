@@ -1,7 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Animated, Easing } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Animated, Easing, Platform } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Colors from '../../constants/Colors';
+import Fonts from '../../constants/Fonts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetchUserProfile } from '../../api/AuthApi';
 import { ActivityIndicator } from 'react-native';
@@ -62,95 +64,140 @@ export default function PaymentVerification({ navigation }) {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
-            <Animated.View style={[styles.card, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-                {/* Icon Wrapper */}
-                <View style={styles.iconCircle}>
-                    <Text style={{ fontSize: 40, color: Colors.primary }}>🕒</Text>
-                </View>
-
-                {/* Title & Description */}
-                <Text style={styles.title}>Payment Verification</Text>
-                <Text style={styles.desc}>
-                    Your payment request has been submitted. Our compliance team is currently verifying the transaction details.
-                </Text>
-
-                {/* Status Box */}
-                <View style={styles.statusBox}>
-                    <View style={styles.statusDotRow}>
-                        <View style={styles.dot} />
-                        <Text style={styles.statusSubtitle}>CURRENT STATUS</Text>
+        <LinearGradient colors={Colors.background_gradient} style={styles.container}>
+            <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+                <Animated.View style={[styles.card, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+                    {/* Icon Wrapper */}
+                    <View style={styles.iconCircle}>
+                        <Text style={{ fontSize: 44 }}>⏳</Text>
                     </View>
-                    <Text style={styles.statusMain}>AUDIT IN PROGRESS</Text>
-                    <Text style={styles.estTime}>EST. TIME: 2-4 HOURS</Text>
-                </View>
-
-                {/* Footer Action */}
-                <TouchableOpacity
-                    style={[styles.refreshBtn, refreshing && { opacity: 0.7 }]}
-                    onPress={handleRefresh}
-                    disabled={refreshing}
-                >
-                    {refreshing ? (
-                        <ActivityIndicator color={Colors.white} size="small" />
-                    ) : (
-                        <Text style={styles.refreshText}>Check Status Now ↻</Text>
-                    )}
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
-                    <Text style={styles.logoutText}>Logout from Session</Text>
-                </TouchableOpacity>
-            </Animated.View>
-        </SafeAreaView>
+    
+                    {/* Title & Description */}
+                    <Text style={styles.title}>Payment Verification</Text>
+                    <Text style={styles.desc}>
+                        Your payment request has been submitted. Our compliance team is currently verifying the transaction details.
+                    </Text>
+    
+                    {/* Status Box */}
+                    <View style={styles.statusBox}>
+                        <View style={styles.statusDotRow}>
+                            <View style={styles.dot} />
+                            <Text style={styles.statusSubtitle}>CURRENT STATUS</Text>
+                        </View>
+                        <Text style={styles.statusMain}>AUDIT IN PROGRESS</Text>
+                        <Text style={styles.estTime}>Estimated time: 2-4 hours</Text>
+                    </View>
+    
+                    {/* Footer Action */}
+                    <TouchableOpacity
+                        style={[styles.refreshBtn, refreshing && { opacity: 0.7 }]}
+                        onPress={handleRefresh}
+                        disabled={refreshing}
+                        activeOpacity={0.8}
+                    >
+                        {refreshing ? (
+                            <ActivityIndicator color={Colors.white} size="small" />
+                        ) : (
+                            <Text style={styles.refreshText}>Check Status Now</Text>
+                        )}
+                    </TouchableOpacity>
+    
+                    <TouchableOpacity style={styles.logoutBtn} onPress={logout} activeOpacity={0.6}>
+                        <Text style={styles.logoutText}>Logout from Session</Text>
+                    </TouchableOpacity>
+                </Animated.View>
+            </SafeAreaView>
+        </LinearGradient>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.bg_F8, justifyContent: 'center', alignItems: 'center', padding: 20 },
+    container: { flex: 1 },
     card: {
-        width: '100%',
-        backgroundColor: Colors.white,
+        width: width * 0.9,
+        backgroundColor: Colors.beige,
         borderRadius: 32,
-        padding: 40,
-        alignItems: 'center',
-    },
-    iconCircle: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        backgroundColor: Colors.info_light,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 32,
-    },
-    title: { fontSize: 26, fontWeight: '900', color: Colors.primary, marginBottom: 12, textAlign: 'center' },
-    desc: { fontSize: 13, color: Colors.bg_F8, textAlign: 'center', lineHeight: 22, maxWidth: 280, marginBottom: 40 },
-    statusBox: {
-        width: '100%',
-        backgroundColor: Colors.bg_F8,
-        borderRadius: 24,
-        padding: 24,
+        padding: 32,
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: Colors.slate_100,
-        marginBottom: 40,
+        borderColor: Colors.input_border,
     },
-    statusDotRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 6 },
-    dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.amber },
-    statusSubtitle: { fontSize: 10, fontWeight: '800', color: Colors.gray, letterSpacing: 1 },
-    statusMain: { fontSize: 18, fontWeight: '800', color: Colors.primary, marginBottom: 4 },
-    estTime: { fontSize: 11, fontWeight: '700', color: Colors.gray },
-    logoutBtn: { paddingVertical: 10 },
-    logoutText: { fontSize: 14, fontWeight: '700', color: Colors.gray },
-    refreshBtn: {
-        width: '100%',
-        height: 54,
-        backgroundColor: Colors.primary,
-        borderRadius: 18,
+    iconCircle: {
+        width: 90,
+        height: 90,
+        borderRadius: 45,
+        backgroundColor: Colors.warning_light,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 16,
+        marginBottom: 24,
     },
-    refreshText: { fontSize: 15, fontWeight: '800', color: Colors.white },
+    title: { 
+        fontSize: 24, 
+        fontFamily: Fonts.Bold, 
+        color: Colors.primary, 
+        marginBottom: 10, 
+        textAlign: 'center' 
+    },
+    desc: { 
+        fontSize: 14, 
+        color: Colors.text_secondary, 
+        textAlign: 'center', 
+        lineHeight: 22, 
+        maxWidth: '90%', 
+        marginBottom: 32,
+        fontFamily: Fonts.Medium,
+    },
+    statusBox: {
+        width: '100%',
+        backgroundColor: Colors.white,
+        borderRadius: 20,
+        padding: 20,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: Colors.input_border,
+        marginBottom: 32,
+    },
+    statusDotRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6, gap: 8 },
+    dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.warning },
+    statusSubtitle: { 
+        fontSize: 11, 
+        fontFamily: Fonts.Bold, 
+        color: Colors.warning_dark, 
+        letterSpacing: 1.2 
+    },
+    statusMain: { 
+        fontSize: 18, 
+        fontFamily: Fonts.Bold, 
+        color: Colors.primary, 
+        marginBottom: 4 
+    },
+    estTime: { 
+        fontSize: 12, 
+        fontFamily: Fonts.Medium, 
+        color: Colors.slate_500 
+    },
+    logoutBtn: { 
+        paddingVertical: 12,
+        marginTop: 8,
+    },
+    logoutText: { 
+        fontSize: 14, 
+        fontFamily: Fonts.SemiBold, 
+        color: Colors.slate_500,
+        textDecorationLine: 'underline'
+    },
+    refreshBtn: {
+        width: '100%',
+        height: 56,
+        backgroundColor: Colors.primary,
+        borderRadius: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    refreshText: { 
+        fontSize: 16, 
+        fontFamily: Fonts.Bold, 
+        color: Colors.white,
+        letterSpacing: 0.5
+    },
 });

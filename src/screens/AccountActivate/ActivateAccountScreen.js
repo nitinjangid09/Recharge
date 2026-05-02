@@ -108,8 +108,8 @@ function CouponPanel({ onSuccess }) {
                 style={[
                     styles.iconBox,
                     {
-                        backgroundColor: Colors.greenSoft,
-                        borderColor: 'rgba(34,197,94,0.18)',
+                        backgroundColor: 'transparent',
+                        borderWidth: 0,
                         transform: [{ translateY: float }],
                     },
                 ]}
@@ -181,8 +181,8 @@ function OnlinePanel({ onSuccess, feeAmount }) {
                 style={[
                     styles.iconBox,
                     {
-                        backgroundColor: Colors.hub_orangeSoft,
-                        borderColor: Colors.hub_orangeBorder,
+                        backgroundColor: 'transparent',
+                        borderWidth: 0,
                         transform: [{ translateY: float }],
                     },
                 ]}
@@ -204,7 +204,7 @@ function OnlinePanel({ onSuccess, feeAmount }) {
             </View>
 
             <TouchableOpacity
-                style={[styles.ctaBtn, { backgroundColor: Colors.hub_orange }, loading && styles.ctaLoading]}
+                style={[styles.ctaBtn, { backgroundColor: Colors.primary }, loading && styles.ctaLoading]}
                 onPress={pay}
                 activeOpacity={0.88}
             >
@@ -793,8 +793,8 @@ const styles = StyleSheet.create({
     scrollContent: { paddingBottom: 60 },
 
     // Hero
-    hero: { margin: 16, borderRadius: 28, padding: 24, backgroundColor: Colors.hub_heroFrom, overflow: 'hidden', position: 'relative' },
-    heroGlowTop: { position: 'absolute', top: -60, right: -30, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(244,114,43,0.4)', opacity: 0.6 },
+    hero: { margin: 16, borderRadius: 28, padding: 24, backgroundColor: Colors.primary, overflow: 'hidden', position: 'relative' },
+    heroGlowTop: { position: 'absolute', top: -60, right: -30, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(37,99,235,0.3)', opacity: 0.6 },
     heroGlowBottom: { position: 'absolute', bottom: -80, left: -30, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(59,130,246,0.2)', opacity: 0.5 },
     heroBadge: { fontSize: 9, fontFamily: Fonts.Bold, letterSpacing: 1.8, color: 'rgba(255,255,255,0.45)', marginBottom: 12 },
     heroAmount: { fontSize: 48, fontFamily: Fonts.Bold, color: Colors.white, lineHeight: 52 },
@@ -809,8 +809,8 @@ const styles = StyleSheet.create({
     sectionLabel: { fontSize: 9, fontFamily: Fonts.Bold, letterSpacing: 1.8, color: Colors.slate_500, paddingHorizontal: 20, marginBottom: 10, textTransform: 'uppercase' },
 
     // Tabs
-    tabsContainer: { marginHorizontal: 16, marginBottom: 20, backgroundColor: Colors.white, borderRadius: 18, padding: 5, flexDirection: 'row', borderWidth: 1.5, borderColor: Colors.hub_border, shadowColor: 'rgb(0, 0, 0)', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 3, position: 'relative', height: 64 },
-    tabIndicator: { position: 'absolute', top: 5, bottom: 5, width: '30%', backgroundColor: Colors.hub_orange, borderRadius: 13, shadowColor: Colors.hub_orange, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.22, shadowRadius: 12, elevation: 6 },
+    tabsContainer: { marginHorizontal: 16, marginBottom: 20, backgroundColor: Colors.white, borderRadius: 18, padding: 5, flexDirection: 'row', borderWidth: 1.5, borderColor: Colors.hub_border, position: 'relative', height: 64 },
+    tabIndicator: { position: 'absolute', top: 5, bottom: 5, width: '30%', backgroundColor: Colors.primary, borderRadius: 13, elevation: 0 },
     tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, zIndex: 1 },
     tabIcon: { fontSize: 16 },
     tabLabel: { fontSize: 11, fontFamily: Fonts.SemiBold, color: Colors.slate_500 },
@@ -820,7 +820,7 @@ const styles = StyleSheet.create({
     hubContainer: { backgroundColor: Colors.white, borderRadius: 32, overflow: 'hidden', borderWidth: 1, borderColor: Colors.hub_border, marginHorizontal: 1 },
     hubSidebar: { backgroundColor: Colors.primary, padding: 24 },
     hubHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20 },
-    hubIconCircle: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
+    hubIconCircle: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center' },
     hubBrand: { fontSize: 12, fontFamily: Fonts.Bold, color: 'rgba(255,255,255,0.6)', letterSpacing: 1.5 },
     hubTitle: { fontSize: 24, fontFamily: Fonts.Bold, color: Colors.white, marginBottom: 8 },
     hubSubtitle: { fontSize: 13, color: 'rgba(255,255,255,0.5)', fontFamily: Fonts.Regular, lineHeight: 20, marginBottom: 24 },
@@ -842,7 +842,7 @@ const styles = StyleSheet.create({
 
     hubContent: { padding: 20 },
     qrStage: { alignItems: 'center', paddingVertical: 20, gap: 16 },
-    qrCardMain: { backgroundColor: Colors.white, borderRadius: 24, padding: 12, borderWidth: 1, borderColor: Colors.info_light, shadowColor: Colors.hub_hubSky, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 5 },
+    qrCardMain: { backgroundColor: Colors.white, borderRadius: 24, padding: 12, borderWidth: 1, borderColor: Colors.info_light },
     qrBorder: { borderWidth: 4, borderColor: Colors.info_dark, borderRadius: 18, borderStyle: 'solid', padding: 12, width: 220, height: 220, alignItems: 'center', justifyContent: 'space-between' },
     qrHeader: { flexDirection: 'row', gap: 4 },
     qrBrand: { fontSize: 14, fontFamily: Fonts.Bold, color: Colors.info_dark },
@@ -889,13 +889,13 @@ const styles = StyleSheet.create({
     hubTrustText: { fontSize: 8, fontFamily: Fonts.Bold, color: Colors.slate_100, letterSpacing: 1 },
 
     // Form Picker lists
-    methodPickerList: { position: 'absolute', top: 52, left: 0, right: 0, backgroundColor: Colors.white, borderRadius: 12, borderWidth: 1, borderColor: Colors.hub_border, zIndex: 10, shadowColor: 'rgb(0, 0, 0)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5 },
+    methodPickerList: { position: 'absolute', top: 52, left: 0, right: 0, backgroundColor: Colors.white, borderRadius: 12, borderWidth: 1, borderColor: Colors.hub_border, zIndex: 10 },
     methodPickerItem: { padding: 14, borderBottomWidth: 1, borderBottomColor: Colors.hub_bg },
     methodPickerText: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.hub_dark },
 
     // Panel card (shared by coupon + online)
-    panelCard: { backgroundColor: Colors.white, borderRadius: 24, borderWidth: 1.5, borderColor: Colors.hub_border, padding: 24, alignItems: 'center', gap: 14, shadowColor: 'rgb(0, 0, 0)', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 3 },
-    iconBox: { width: 72, height: 72, borderRadius: 22, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+    panelCard: { backgroundColor: Colors.white, borderRadius: 24, borderWidth: 1.5, borderColor: Colors.hub_border, padding: 24, alignItems: 'center', gap: 14 },
+    iconBox: { width: 72, height: 72, alignItems: 'center', justifyContent: 'center' },
     panelTitle: { fontSize: 22, fontFamily: Fonts.Bold, color: Colors.hub_dark, textAlign: 'center' },
     panelDesc: { fontSize: 13, color: Colors.slate_500, fontFamily: Fonts.Regular, textAlign: 'center', lineHeight: 20, maxWidth: 270 },
 
@@ -912,7 +912,7 @@ const styles = StyleSheet.create({
     methodPillText: { fontSize: 11, fontFamily: Fonts.SemiBold, color: Colors.slate_500 },
 
     // CTA button
-    ctaBtn: { width: '100%', height: 56, borderRadius: 26, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', shadowColor: Colors.hub_orange, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.22, shadowRadius: 16, elevation: 6 },
+    ctaBtn: { width: '100%', height: 56, borderRadius: 26, alignItems: 'center', justifyContent: 'center', flexDirection: 'row' },
     ctaLoading: { opacity: 0.75 },
     ctaBtnLabel: { color: Colors.white, fontSize: 16, fontFamily: Fonts.Bold, letterSpacing: 0.2 },
     ctaArrow: { color: Colors.white, fontSize: 18, fontFamily: Fonts.Bold },
