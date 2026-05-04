@@ -307,27 +307,26 @@ const BillServicesCard = ({ navigation, categories, groups, activeGroup, setActi
   const filtered = categories.filter(c => activeGroup === "ALL" || c.group === activeGroup);
 
   return (
-    <View style={styles.bigCard}>
-      {/* Header */}
-      <View style={styles.cardHeaderRow}>
-        <View style={styles.cardHeaderLeft}>
-          <View style={styles.cardHeaderDot} />
-          <Text style={styles.sectionTitle}>RECHARGE & BILL SERVICES</Text>
-        </View>
+    <View style={styles.modernCard}>
+      <View style={styles.cardHighlightHeader}>
+        <Icon name="lightning-bolt-outline" size={14} color={Colors.finance_accent} />
+        <Text style={styles.cardHighlightTitle}>RECHARGE & BILL SERVICES</Text>
       </View>
 
-      {/* Tabs */}
-      <TabBar groups={groups} activeGroup={activeGroup} onSelect={setActiveGroup} />
+      <View style={styles.cardBody}>
+        {/* Tabs */}
+        <TabBar groups={groups} activeGroup={activeGroup} onSelect={setActiveGroup} />
 
-      {/* Content */}
-      {filtered.length === 0 && !loading ? (
-        <View style={styles.emptyBox}>
-          <Icon name="apps-box" size={36} color={ACCENT + "50"} />
-          <Text style={styles.emptyTxt}>No services in this category</Text>
-        </View>
-      ) : (
-        <ServiceGrid items={filtered} navigation={navigation} />
-      )}
+        {/* Content */}
+        {filtered.length === 0 && !loading ? (
+          <View style={styles.emptyBox}>
+            <Icon name="apps-box" size={36} color={ACCENT + "50"} />
+            <Text style={styles.emptyTxt}>No services in this category</Text>
+          </View>
+        ) : (
+          <ServiceGrid items={filtered} navigation={navigation} />
+        )}
+      </View>
     </View>
   );
 };
@@ -377,41 +376,40 @@ export default function PaymentsScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container} edges={["bottom"]}>
       <FullScreenLoader visible={loading} label="Fetching bill services..." />
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={ACCENT}
-            colors={[ACCENT]}
-            progressBackgroundColor={Colors.white}
-          />
-        }
+      {/* Custom Header */}
+      <LinearGradient
+        colors={[Colors.primary, Colors.black]}
+        style={[styles.headerGradient, { paddingTop: insets.top + 10 }]}
+        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
       >
-
-        {/* Header */}
-        <LinearGradient
-          colors={[Colors.primary, Colors.black]}
-          style={[styles.headerGradient, { paddingTop: insets.top + 10 }]}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-        >
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Icon name="arrow-left" size={24} color={Colors.white} />
-            </TouchableOpacity>
-            <View style={{ alignItems: "center" }}>
-              <Text style={styles.headerTitle}>PAY WITH THANKS</Text>
-              <Text style={styles.subTitle}>UPI, bills, recharges & utilities</Text>
-            </View>
-            <View style={styles.qrCircle}>
-              <UpiIconSVG width={22} height={22} />
-            </View>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Icon name="arrow-left" size={24} color={Colors.white} />
+          </TouchableOpacity>
+          <View style={{ flex: 1, alignItems: "center" }}>
+            <Text style={styles.headerTitle}>PAY WITH THANKS</Text>
+            <Text style={styles.subTitle}>UPI, bills, recharges & utilities</Text>
           </View>
-        </LinearGradient>
+          <View style={styles.qrCircle}>
+            <UpiIconSVG width={22} height={22} />
+          </View>
+        </View>
+      </LinearGradient>
 
-        <View style={{ paddingHorizontal: 14 }}>
-
+      <View style={styles.body}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 100 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={ACCENT}
+              colors={[ACCENT]}
+              progressBackgroundColor={Colors.white}
+            />
+          }
+        >
           {/* Quick-pay reminder */}
           <View style={styles.reminderCard}>
             <View>
@@ -440,6 +438,8 @@ export default function PaymentsScreen({ navigation }) {
               <Image source={require("../../../assets/bbps.png")} style={styles.bannerImage} />
             </LinearGradient>
 
+            <View style={{ height: 20 }} />
+
             {/* Services card */}
             <BillServicesCard
               navigation={navigation}
@@ -451,8 +451,8 @@ export default function PaymentsScreen({ navigation }) {
             />
 
           </Animated.View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -461,7 +461,16 @@ export default function PaymentsScreen({ navigation }) {
 // STYLES
 // ─────────────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.beige || "rgb(247, 244, 239)" },
+  container: { flex: 1, backgroundColor: Colors.primary },
+  body: {
+    flex: 1,
+    backgroundColor: Colors.beige || "rgb(247, 244, 239)",
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    marginTop: -25,
+    paddingHorizontal: 14,
+    paddingTop: 20,
+  },
 
   headerGradient: {
     paddingBottom: 35,
@@ -478,16 +487,38 @@ const styles = StyleSheet.create({
   subTitle: { fontSize: 11, fontFamily: Fonts.Medium, color: "rgba(255,255,255,0.6)", marginTop: 2 },
   qrCircle: { width: 36, height: 36, backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 18, justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.15)" },
 
+  modernCard: {
+    backgroundColor: Colors.cardbg,
+    borderRadius: 18,
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  cardHighlightHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: 'rgb(46, 46, 46)',
+    gap: 8,
+  },
+  cardHighlightTitle: {
+    fontSize: 10,
+    fontFamily: Fonts.Bold,
+    color: Colors.finance_accent,
+    letterSpacing: 0.5,
+  },
+  cardBody: {
+    padding: 12,
+  },
+
   reminderCard: {
-    marginTop: -20,
+    marginTop: 10,
     backgroundColor: Colors.cardbg || "rgb(255, 255, 255)",
     borderRadius: 16,
     padding: 15,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.02)",
   },
   smallText: { color: "rgb(102, 102, 102)", fontSize: 11, fontFamily: Fonts.Medium },
   mainText: { color: Colors.primary, fontSize: 14, fontFamily: Fonts.Bold, marginTop: 4 },
@@ -497,34 +528,15 @@ const styles = StyleSheet.create({
   banner: {
     borderRadius: 16,
     padding: 14,
-    marginTop: 15,
+    marginTop: 25,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "rgba(212,176,106,0.12)",
+    backgroundColor: Colors.white,
   },
   bannerText: { fontSize: 12, color: Colors.slate_700, fontFamily: Fonts.Medium, lineHeight: 18 },
   postpe: { fontSize: 18, fontFamily: Fonts.Bold, color: ACCENT, marginTop: 4 },
   bannerImage: { width: 70, height: 70, resizeMode: "contain" },
-
-  bigCard: {
-    marginTop: 15,
-    marginBottom: 40,
-    backgroundColor: Colors.cardbg || "rgb(255, 255, 255)",
-    borderRadius: 20,
-    paddingTop: 16,
-    paddingBottom: 8,
-    paddingHorizontal: 12,   // = CARD_H_PAD / 2 each side
-    borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.03)",
-  },
-
-  cardHeaderRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 2 },
-  cardHeaderLeft: { flexDirection: "row", alignItems: "center", gap: 6 },
-  cardHeaderDot: { width: 4, height: 16, borderRadius: 2, backgroundColor: ACCENT },
-  sectionTitle: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.primary, letterSpacing: 0.6 },
-
 
   loaderBox: { paddingVertical: 40, alignItems: "center", justifyContent: "center", gap: 10 },
   loaderTxt: { color: "rgb(102, 102, 102)", fontSize: 13, fontFamily: Fonts.Medium },

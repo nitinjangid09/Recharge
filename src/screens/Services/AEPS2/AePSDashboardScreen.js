@@ -30,6 +30,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '../../../constants/Colors';
+import Fonts from '../../../constants/Fonts';
 import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
 import { fetchUserProfile, getWalletBalance, fetchUserWallet, fetchEBankList, initiateAepsTransaction } from '../../../api/AuthApi';
 import { AlertService } from '../../../componets/Alerts/CustomAlert';
@@ -45,20 +46,21 @@ const rs = (n, lo = n * 0.82, hi = n * 1.28) =>
   Math.min(Math.max(scale(n), lo), hi);
 
 // ─── Section Card ─────────────────────────────────────────────────
-const SectionCard = ({ children, style }) => (
-  <View style={[cardStyles.card, { backgroundColor: Colors.beige }, style]}>{children}</View>
+const SectionCard = ({ children, style, title, icon }) => (
+  <View style={[styles.modernCard, style]}>
+    {title && (
+      <View style={styles.cardHighlightHeader}>
+        <Icon name={icon} size={16} color={Colors.finance_accent} />
+        <Text style={styles.cardHighlightTitle}>{title.toUpperCase()}</Text>
+      </View>
+    )}
+    <View style={styles.cardBody}>
+      {children}
+    </View>
+  </View>
 );
 
-const cardStyles = StyleSheet.create({
-  card: {
-    backgroundColor: Colors.beige,
-    borderRadius: rs(20),
-    padding: rs(18),
-    marginBottom: rs(14),
-    borderWidth: 1,
-    borderColor: "rgba(245,158,11,0.30)",
-  },
-});
+
 
 // ─── Field Input ──────────────────────────────────────────────────
 const FormField = ({ label, placeholder, value, onChangeText, keyboardType, icon, editable = true, error, maxLength }) => (
@@ -69,7 +71,7 @@ const FormField = ({ label, placeholder, value, onChangeText, keyboardType, icon
       <TextInput
         style={[fieldStyles.input, !editable && fieldStyles.disabled]}
         placeholder={placeholder}
-        placeholderTextColor={Colors.slate_400}
+        placeholderTextColor={Colors.slate_500}
         value={value}
         onChangeText={onChangeText}
         keyboardType={keyboardType || 'default'}
@@ -83,7 +85,7 @@ const FormField = ({ label, placeholder, value, onChangeText, keyboardType, icon
 
 const fieldStyles = StyleSheet.create({
   wrap: { marginBottom: rs(12) },
-  label: { fontSize: rs(10), fontWeight: '700', color: Colors.text_secondary, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: rs(5) },
+  label: { fontSize: rs(10), fontWeight: '700', color: Colors.slate_700, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: rs(5) },
   inputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -130,7 +132,7 @@ const dropStyles = StyleSheet.create({
     paddingHorizontal: rs(18),
     paddingVertical: rs(14),
   },
-  text: { fontSize: rs(14), color: Colors.slate_400 },
+  text: { fontSize: rs(14), color: Colors.slate_500 },
   arrow: { fontSize: rs(12), color: Colors.text_secondary },
 });
 
@@ -180,7 +182,7 @@ const tabStyles = StyleSheet.create({
     borderColor: 'rgba(212,176,106,0.15)',
   },
   activeTab: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  label: { fontSize: rs(10), fontWeight: '700', color: Colors.text_secondary, textAlign: 'center', lineHeight: rs(13) },
+  label: { fontSize: rs(10), fontWeight: '700', color: Colors.slate_700, textAlign: 'center', lineHeight: rs(13) },
   activeLabel: { color: Colors.white },
 });
 
@@ -215,7 +217,7 @@ const txnStyles = StyleSheet.create({
   dot: { width: rs(8), height: rs(8), borderRadius: rs(4), marginTop: rs(2) },
   info: { flex: 1 },
   type: { fontSize: rs(13), fontWeight: '600', color: Colors.black },
-  meta: { fontSize: rs(11), color: Colors.text_secondary, marginTop: rs(2) },
+  meta: { fontSize: rs(11), color: Colors.slate_700, marginTop: rs(2) },
   amount: { fontSize: rs(14), fontWeight: '700', color: Colors.black },
   badge: { borderRadius: rs(8), paddingHorizontal: rs(8), paddingVertical: rs(2), marginTop: rs(2) },
   badgeText: { fontSize: rs(10), fontWeight: '700' },
@@ -280,7 +282,7 @@ const SelectorModal = ({ visible, title, items, onSelect, onClose }) => {
 
 const selStyles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' },
-  sheet: { position: 'absolute', bottom: 0, width: '100%', backgroundColor: Colors.cardbg, borderTopLeftRadius: rs(25), borderTopRightRadius: rs(25), maxHeight: '80%', paddingBottom: rs(30) },
+  sheet: { position: 'absolute', bottom: 0, width: '100%', backgroundColor: Colors.white, borderTopLeftRadius: rs(25), borderTopRightRadius: rs(25), maxHeight: '80%', paddingBottom: rs(30) },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: rs(20), borderBottomWidth: 1, borderBottomColor: Colors.input_border },
   title: { fontSize: rs(16), fontWeight: '800', color: Colors.black },
   searchWrap: { paddingHorizontal: rs(20), paddingVertical: rs(10), borderBottomWidth: 1, borderBottomColor: Colors.input_border },
@@ -515,16 +517,7 @@ export default function AePSDashboardScreen({ navigation }) {
         }
       >
         {/* ── Terminal Card ── */}
-        <SectionCard>
-          <View style={styles.terminalHeader}>
-            <View>
-              <View style={styles.terminalTitleRow}>
-                <Text style={styles.terminalTitle}>AEPS TERMINAL</Text>
-              </View>
-              <Text style={styles.terminalSub}>SECURE TRANSACTION ENGINE</Text>
-            </View>
-          </View>
-
+        <SectionCard title="AEPS Terminal" icon="terminal">
           <TxnTypeTabs active={txnType} onChange={setTxnType} />
 
           <DropdownField
@@ -604,13 +597,7 @@ export default function AePSDashboardScreen({ navigation }) {
         </SectionCard>
 
         {/* ── Recent Transactions ── */}
-        <SectionCard style={{ marginTop: 4 }}>
-          <View style={styles.recentHeader}>
-            <Text style={styles.recentTitle}>Recent Transactions</Text>
-            <TouchableOpacity>
-              <Text style={styles.viewAll}>View All →</Text>
-            </TouchableOpacity>
-          </View>
+        <SectionCard title="Recent Transactions" icon="history">
           {recentTxns.length > 0 ? (
             recentTxns.map((t) => <TxnRow key={t.id} item={t} />)
           ) : (
@@ -661,14 +648,38 @@ export default function AePSDashboardScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.beige },
-  scroll: { flex: 1 },
+  safe: { flex: 1, backgroundColor: Colors.primary },
+  scroll: { flex: 1, backgroundColor: Colors.beige },
   content: { paddingHorizontal: rs(16), paddingBottom: rs(10), paddingTop: rs(12) },
 
-  terminalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: rs(16) },
-  terminalTitleRow: { flexDirection: 'row', alignItems: 'center', gap: rs(8) },
-  terminalTitle: { fontSize: rs(16), fontWeight: '700', color: Colors.black },
-  terminalSub: { fontSize: rs(10), color: Colors.text_secondary, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: rs(2) },
+  cardHighlightHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: 'rgb(46, 46, 46)',
+    gap: 8,
+  },
+  cardHighlightTitle: {
+    fontSize: rs(10),
+    fontFamily: Fonts.Bold,
+    color: Colors.finance_accent,
+    letterSpacing: 0.5,
+  },
+  cardBody: {
+    padding: 16,
+  },
+  modernCard: {
+    backgroundColor: Colors.cardbg,
+    borderRadius: 18,
+    marginBottom: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.30)',
+  },
+  recentHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: rs(10) },
+  recentTitle: { fontSize: rs(15), fontWeight: '700', color: Colors.black },
+  viewAll: { fontSize: rs(12), color: Colors.kyc_accent, fontWeight: '600' },
 
   scanBtn: {
     flexDirection: 'row',
@@ -681,10 +692,6 @@ const styles = StyleSheet.create({
     marginTop: rs(8),
   },
   scanBtnText: { fontSize: rs(14), fontWeight: '800', color: Colors.white, letterSpacing: 0.5 },
-
-  recentHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: rs(10) },
-  recentTitle: { fontSize: rs(15), fontWeight: '700', color: Colors.black },
-  viewAll: { fontSize: rs(12), color: Colors.kyc_accent, fontWeight: '600' },
 
   errorText: {
     fontSize: rs(10),

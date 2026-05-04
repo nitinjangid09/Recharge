@@ -155,60 +155,64 @@ function DashboardContent({ onTransfer, onAddBank, onHistory, banks, loading, on
         </View>
       </View>
 
-      {/* ── Management Row ── */}
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Management</Text>
-      </View>
-
-      <View style={styles.managementCard}>
-        <View style={styles.manageGrid}>
-          <FeatureCard icon="plus-circle" label="Add Bank" color={Colors.kyc_accent} onPress={onAddBank} />
-          <FeatureCard icon="file-document-outline" label="Txn History" color={Colors.kyc_accent} onPress={onHistory} />
-          <FeatureCard icon="shield-check-outline" label="Verification" color={Colors.kyc_accent} />
-          <FeatureCard icon="bank-outline" label="Bulk Payout" color={Colors.kyc_accent} />
+      <View style={styles.modernCard}>
+        <View style={styles.cardHighlightHeader}>
+          <Icon name="cog-outline" size={14} color={Colors.finance_accent} />
+          <Text style={styles.cardHighlightTitle}>MANAGEMENT</Text>
+        </View>
+        <View style={styles.cardBody}>
+          <View style={styles.manageGrid}>
+            <FeatureCard icon="plus-circle" label="Add Bank" color={Colors.kyc_accent} onPress={onAddBank} />
+            <FeatureCard icon="file-document-outline" label="Txn History" color={Colors.kyc_accent} onPress={onHistory} />
+            <FeatureCard icon="shield-check-outline" label="Verification" color={Colors.kyc_accent} />
+            <FeatureCard icon="bank-outline" label="Bulk Payout" color={Colors.kyc_accent} />
+          </View>
         </View>
       </View>
 
-      {/* ── Beneficiaries ── */}
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Fast Access</Text>
-        <TouchableOpacity><Text style={styles.viewMore}>View All</Text></TouchableOpacity>
+      <View style={styles.modernCard}>
+        <View style={styles.cardHighlightHeader}>
+          <Icon name="fast-forward-outline" size={14} color={Colors.finance_accent} />
+          <Text style={styles.cardHighlightTitle}>FAST ACCESS</Text>
+        </View>
+        <View style={styles.cardBody}>
+          {displayBanks.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Icon name="bank-off-outline" size={rs(40)} color={Colors.input_border} />
+              <Text style={styles.emptyText}>No beneficiaries found</Text>
+            </View>
+          ) : (
+            displayBanks.slice(0, 5).map(bene => (
+              <TouchableOpacity key={bene._id} style={styles.beneCard} activeOpacity={0.7}>
+                <View style={[styles.beneIcon, { backgroundColor: (bene.color || Colors.accent) + '15' }]}>
+                  <Text style={{ color: bene.color || Colors.accent, fontWeight: '800', fontSize: rs(14) }}>
+                    {(bene.accountHolderName || 'U')[0]}
+                  </Text>
+                </View>
+                <View style={styles.beneInfo}>
+                  <Text style={styles.beneName}>{bene?.accountHolderName}</Text>
+                  <Text style={styles.beneDetail}>{bene?.bankName} • {bene?.accountNumber}</Text>
+                </View>
+                <View style={styles.beneRightRow}>
+                  <TouchableOpacity
+                    style={styles.deleteBtn}
+                    onPress={() => AlertService.showAlert({
+                      type: 'warning',
+                      title: 'Confirm Delete',
+                      message: `Are you sure you want to remove ${bene.accountHolderName}?`,
+                      onConfirm: () => onDeleteBank(bene._id)
+                    })}
+                  >
+                    <Icon name="delete-outline" size={rs(18)} color={Colors.red} />
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
+        </View>
       </View>
 
-      {displayBanks.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Icon name="bank-off-outline" size={rs(40)} color={Colors.input_border} />
-          <Text style={styles.emptyText}>No beneficiaries found</Text>
-        </View>
-      ) : displayBanks.slice(0, 5).map(bene => (
-        <TouchableOpacity key={bene._id} style={styles.beneCard} activeOpacity={0.7}>
-          <View style={[styles.beneIcon, { backgroundColor: (bene.color || Colors.accent) + '15' }]}>
-            <Text style={{ color: bene.color || Colors.accent, fontWeight: '800', fontSize: rs(14) }}>
-              {(bene.accountHolderName || 'U')[0]}
-            </Text>
-          </View>
-          <View style={styles.beneInfo}>
-            <Text style={styles.beneName}>{bene?.accountHolderName}</Text>
-            <Text style={styles.beneDetail}>{bene?.bankName} • {bene?.accountNumber}</Text>
-          </View>
-          <View style={styles.beneRightRow}>
-
-            <TouchableOpacity
-              style={styles.deleteBtn}
-              onPress={() => AlertService.showAlert({
-                type: 'warning',
-                title: 'Confirm Delete',
-                message: `Are you sure you want to remove ${bene.accountHolderName}?`,
-                onConfirm: () => onDeleteBank(bene._id)
-              })}
-            >
-              <Icon name="delete-outline" size={rs(18)} color={Colors.red} />
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      ))}
-
-      <View style={{ height: rs(100) }} />
+      <View style={{ height: rs(60) }} />
     </ScrollView>
   );
 }
@@ -223,9 +227,9 @@ const FeatureCard = ({ icon, label, color, onPress }) => (
 );
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.beige },
+  safe: { flex: 1, backgroundColor: Colors.primary },
   container: { flex: 1 },
-  scrollContent: { paddingHorizontal: rs(16), paddingTop: rs(16) },
+  scrollContent: { paddingHorizontal: rs(16), paddingTop: rs(16), backgroundColor: Colors.beige },
   balanceCard: {
     backgroundColor: Colors.primary,
     borderRadius: rs(24),
@@ -246,23 +250,39 @@ const styles = StyleSheet.create({
   bcStatDivider: { width: 1, height: rs(24), backgroundColor: "rgba(255,255,255,0.1)", marginHorizontal: rs(10) },
   topupBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.gold, paddingVertical: rs(8), paddingHorizontal: rs(12), borderRadius: rs(12), gap: rs(6) },
   topupText: { fontSize: rs(11), fontFamily: Fonts.Bold, color: Colors.primary },
+  modernCard: {
+    backgroundColor: Colors.cardbg,
+    borderRadius: 18,
+    marginBottom: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.30)',
+  },
+  cardHighlightHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: 'rgb(46, 46, 46)',
+    gap: 8,
+  },
+  cardHighlightTitle: {
+    fontSize: rs(10),
+    fontFamily: Fonts.Bold,
+    color: Colors.finance_accent,
+    letterSpacing: 0.5,
+  },
+  cardBody: {
+    padding: 16,
+  },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: rs(16) },
   sectionTitle: { fontSize: rs(16), fontFamily: Fonts.Bold, color: Colors.black },
   viewMore: { fontSize: rs(13), color: Colors.text_secondary, fontFamily: Fonts.Medium },
-  managementCard: {
-    backgroundColor: Colors.beige,
-    borderRadius: rs(20),
-    paddingVertical: rs(16),
-    paddingHorizontal: rs(10),
-    marginBottom: rs(28),
-    borderWidth: 1,
-    borderColor: "rgba(245,158,11,0.30)",
-  },
   manageGrid: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   fCard: { flex: 1, alignItems: 'center', gap: rs(6) },
   fIconBox: { width: rs(48), height: rs(48), borderRadius: rs(14), alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(0,0,0,0.02)' },
   fLabel: { fontSize: rs(9), fontFamily: Fonts.Bold, color: Colors.text_secondary, textAlign: 'center', letterSpacing: 0.2 },
-  beneCard: { backgroundColor: Colors.cardbg, borderRadius: rs(20), padding: rs(12), flexDirection: 'row', alignItems: 'center', marginBottom: rs(12), borderWidth: 1, borderColor: "rgba(245,158,11,0.30)" },
+  beneCard: { backgroundColor: Colors.white, borderRadius: rs(16), padding: rs(12), flexDirection: 'row', alignItems: 'center', marginBottom: rs(12), borderWidth: 1, borderColor: "rgba(0,0,0,0.05)" },
   beneIcon: { width: rs(44), height: rs(44), borderRadius: rs(15), alignItems: 'center', justifyContent: 'center' },
   beneInfo: { flex: 1, paddingHorizontal: rs(12) },
   beneName: { fontSize: rs(14), fontFamily: Fonts.Bold, color: Colors.black },
@@ -271,6 +291,6 @@ const styles = StyleSheet.create({
   statusText: { fontSize: rs(10), fontFamily: Fonts.Bold },
   beneRightRow: { flexDirection: 'row', alignItems: 'center' },
   deleteBtn: { width: rs(32), height: rs(32), borderRadius: rs(8), alignItems: 'center', justifyContent: 'center' },
-  emptyContainer: { alignItems: 'center', justifyContent: 'center', paddingVertical: rs(40), backgroundColor: Colors.cardbg, borderRadius: rs(20), borderWidth: 1, borderColor: "rgba(245,158,11,0.30)", borderStyle: 'dashed', marginBottom: rs(20) },
-  emptyText: { fontSize: rs(14), fontFamily: Fonts.Medium, color: Colors.text_secondary, marginTop: rs(10) },
+  emptyContainer: { alignItems: 'center', justifyContent: 'center', paddingVertical: rs(20) },
+  emptyText: { fontSize: rs(13), fontFamily: Fonts.Medium, color: Colors.text_secondary, marginTop: rs(10) },
 });

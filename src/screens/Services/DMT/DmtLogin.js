@@ -18,6 +18,7 @@ import Colors from "../../../constants/Colors";
 import Fonts from "../../../constants/Fonts";
 import { fadeIn, slideUp, buttonPress } from "../../../utils/ScreenAnimations";
 import CustomAlert from "../../../componets/Alerts/CustomAlert";
+import HeaderBar from "../../../componets/HeaderBar/HeaderBar";
 import { 
   fetchDmtCustomer, 
   registerDmtCustomer, 
@@ -227,6 +228,8 @@ const DmtLogin = () => {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <HeaderBar title="DMT Login" onBack={() => navigation.goBack()} />
+
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -236,12 +239,8 @@ const DmtLogin = () => {
           style={[styles.header, { opacity: headerOp, transform: [{ translateY: headerTY }] }]}
         >
           <View style={styles.secureBadge}>
-            <Text style={styles.secureBadgeIcon}>🔒</Text>
+            <Icon name="shield-check" size={14} color={Colors.finance_accent} />
             <Text style={styles.secureBadgeTxt}>SECURED BY DMT</Text>
-          </View>
-          <View style={styles.titleRow}>
-            <Text style={styles.titleAccent}>DMT </Text>
-            <Text style={styles.titleWhite}>Login</Text>
           </View>
           <Text style={styles.headerSub}>Secure Domestic Money Transfer</Text>
         </Animated.View>
@@ -255,134 +254,131 @@ const DmtLogin = () => {
         >
           {/* ─── STEP 1: Mobile ─── */}
           {step === 1 && (
-            <View style={styles.formCard}>
-              <Text style={styles.fieldHeading}>SEARCH CUSTOMER BY MOBILE</Text>
-              <View style={[styles.inputRow, error ? styles.inputError : null]}>
-                <View style={styles.searchIconBox}>
-                  <Icon name="account-search-outline" size={rs(20)} color={Colors.primary} />
-                </View>
-                <View style={styles.prefixDivider} />
-                <View style={styles.prefixBox}>
-                  <Text style={styles.prefixTxt}>+91</Text>
-                </View>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter mobile number"
-                  placeholderTextColor={Colors.gray}
-                  keyboardType="number-pad"
-                  maxLength={10}
-                  value={mobileNumber}
-                  onChangeText={(t) => {
-                    setMobileNumber(t.replace(/\D/g, ""));
-                    if (error) setError("");
-                  }}
-                />
+            <View style={styles.modernCard}>
+              <View style={styles.cardHighlightHeader}>
+                <Icon name="account-search" size={14} color={Colors.finance_accent} />
+                <Text style={styles.cardHighlightTitle}>SEARCH CUSTOMER</Text>
               </View>
-              {error ? <Text style={styles.errorText}>{error}</Text> : null}
+              <View style={styles.cardBody}>
+                <View style={[styles.modernInputWrapper, error ? { borderBottomColor: Colors.red } : null]}>
+                  <Text style={styles.floatingLabel}>Mobile Number</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={styles.prefixTxt}>+91 </Text>
+                    <TextInput
+                      style={styles.inputField}
+                      placeholder="00000 00000"
+                      placeholderTextColor={Colors.slate_500}
+                      keyboardType="number-pad"
+                      maxLength={10}
+                      value={mobileNumber}
+                      onChangeText={(t) => {
+                        setMobileNumber(t.replace(/\D/g, ""));
+                        if (error) setError("");
+                      }}
+                    />
+                  </View>
+                </View>
+                {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-              <View style={styles.hintRow}>
-                <Text style={styles.hintTxt}>Enter your 10-digit registered mobile number</Text>
+                <View style={styles.hintRow}>
+                  <Icon name="information-outline" size={12} color={Colors.finance_accent} />
+                  <Text style={styles.hintTxt}>Enter your 10-digit registered mobile number</Text>
+                </View>
+
+                <Animated.View style={{ transform: [{ scale: btnScale }], marginTop: 20 }}>
+                  <TouchableOpacity
+                    style={[styles.button, { backgroundColor: (mobileNumber.length === 10 && !isLoading) ? Colors.primary : Colors.gold }]}
+                    onPress={handleMobileSubmit}
+                    disabled={mobileNumber.length !== 10 || isLoading}
+                    activeOpacity={0.88}
+                  >
+                    {isLoading ? (
+                      <ActivityIndicator color={Colors.white} />
+                    ) : (
+                      <>
+                        <Text style={[styles.buttonText, { color: mobileNumber.length === 10 ? Colors.white : Colors.slate_500 }]}>Continue</Text>
+                        <Icon name="arrow-right" size={18} color={mobileNumber.length === 10 ? Colors.white : Colors.slate_500} />
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </Animated.View>
               </View>
-
-              <Animated.View style={{ transform: [{ scale: btnScale }], marginTop: vs(20) }}>
-                <TouchableOpacity
-                  style={[styles.button, { backgroundColor: (mobileNumber.length === 10 && !isLoading) ? Colors.primary : Colors.gold }]}
-                  onPress={handleMobileSubmit}
-                  disabled={mobileNumber.length !== 10 || isLoading}
-                  activeOpacity={0.88}
-                >
-                  {isLoading ? (
-                    <ActivityIndicator color={Colors.white} />
-                  ) : (
-                    <>
-                      <Text style={[styles.buttonText, { color: mobileNumber.length === 10 ? Colors.white : Colors.slate_500 }]}>Continue</Text>
-                      <Text style={[styles.btnArrowTxt, { color: mobileNumber.length === 10 ? Colors.white : Colors.slate_500 }]}>→</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-              </Animated.View>
             </View>
           )}
 
           {/* ─── STEP 2: Aadhaar ─── */}
           {step === 2 && (
-            <View style={styles.formCard}>
-              <View style={styles.stepIndicator}>
-                <View style={[styles.stepDot, styles.stepDotDone]}>
-                  <Text style={styles.stepDotTxt}>✓</Text>
-                </View>
-                <View style={styles.stepConnector} />
-                <View style={[styles.stepDot, styles.stepDotActive]}>
-                  <Text style={styles.stepDotTxt}>2</Text>
-                </View>
+            <View style={styles.modernCard}>
+              <View style={styles.cardHighlightHeader}>
+                <Icon name="fingerprint" size={14} color={Colors.finance_accent} />
+                <Text style={styles.cardHighlightTitle}>E-KYC VERIFICATION</Text>
               </View>
 
-              <View style={styles.mobileChip}>
-                <Text style={styles.mobileChipCode}>+91</Text>
-                <Text style={styles.mobileChipTxt}>{mobileNumber}</Text>
-                <TouchableOpacity
-                  onPress={() => setStep(1)}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Text style={styles.mobileChipEdit}>Edit</Text>
-                </TouchableOpacity>
-              </View>
+              <View style={styles.cardBody}>
+                <View style={styles.stepIndicator}>
+                  <View style={[styles.stepDot, styles.stepDotDone]}>
+                    <Icon name="check" size={14} color={Colors.white} />
+                  </View>
+                  <View style={styles.stepConnector} />
+                  <View style={[styles.stepDot, styles.stepDotActive]}>
+                    <Text style={styles.stepDotTxt}>2</Text>
+                  </View>
+                </View>
 
-              <Text style={styles.fieldHeading}>ENTER AADHAAR NUMBER</Text>
-              <View style={[styles.inputRow, error ? styles.inputError : null]}>
-                <Text style={styles.aadhaarIcon}>🪪</Text>
-                <View style={styles.prefixDivider} />
-                <TextInput
-                  style={[styles.input, { letterSpacing: scale(2) }]}
-                  placeholder="XXXX XXXX XXXX"
-                  placeholderTextColor={Colors.gray}
-                  keyboardType="number-pad"
-                  maxLength={14}
-                  value={formatAadhaar(aadhaarRaw)}
-                  onChangeText={(t) => {
-                    const raw = t.replace(/\D/g, "").slice(0, 12);
-                    setAadhaarRaw(raw);
-                    if (error) setError("");
-                  }}
-                />
-                {aadhaarRaw.length > 0 && (
+                <View style={styles.mobileChip}>
+                  <Icon name="phone" size={14} color={Colors.finance_accent} />
+                  <Text style={styles.mobileChipTxt}>+91 {mobileNumber}</Text>
                   <TouchableOpacity
-                    onPress={() => setAadhaarRaw("")}
+                    onPress={() => setStep(1)}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
-                    <Text style={styles.clearIcon}>✕</Text>
+                    <Text style={styles.mobileChipEdit}>EDIT</Text>
                   </TouchableOpacity>
-                )}
+                </View>
+
+                <View style={[styles.modernInputWrapper, error ? { borderBottomColor: Colors.red } : null]}>
+                  <Text style={styles.floatingLabel}>Aadhaar Number</Text>
+                  <TextInput
+                    style={[styles.inputField, { letterSpacing: 2 }]}
+                    placeholder="XXXX XXXX XXXX"
+                    placeholderTextColor={Colors.slate_500}
+                    keyboardType="number-pad"
+                    maxLength={14}
+                    value={formatAadhaar(aadhaarRaw)}
+                    onChangeText={(t) => {
+                      const raw = t.replace(/\D/g, "").slice(0, 12);
+                      setAadhaarRaw(raw);
+                      if (error) setError("");
+                    }}
+                  />
+                </View>
+                {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+                <View style={styles.hintRow}>
+                  <Icon name="information-outline" size={12} color={Colors.finance_accent} />
+                  <Text style={styles.hintTxt}>
+                    Enter your 12-digit Aadhaar number ({aadhaarRaw.length}/12)
+                  </Text>
+                </View>
+
+                <Animated.View style={{ transform: [{ scale: btnScale }], marginTop: 24 }}>
+                  <TouchableOpacity
+                    style={[styles.button, { backgroundColor: (aadhaarRaw.length === 12 && !isLoading) ? Colors.primary : Colors.gold }]}
+                    onPress={handleAadhaarSubmit}
+                    disabled={aadhaarRaw.length !== 12 || isLoading}
+                    activeOpacity={0.88}
+                  >
+                    {isLoading ? (
+                      <ActivityIndicator color={Colors.white} />
+                    ) : (
+                      <>
+                        <Text style={[styles.buttonText, { color: aadhaarRaw.length === 12 ? Colors.white : Colors.slate_500 }]}>Verify Aadhaar</Text>
+                        <Icon name="shield-check" size={18} color={aadhaarRaw.length === 12 ? Colors.white : Colors.slate_500} />
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </Animated.View>
               </View>
-              {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-              <View style={styles.hintRow}>
-                <Text style={styles.hintTxt}>
-                  Enter your 12-digit Aadhaar number ({aadhaarRaw.length}/12)
-                </Text>
-              </View>
-
-              <Animated.View style={{ transform: [{ scale: btnScale }], marginTop: vs(20) }}>
-                <TouchableOpacity
-                  style={[styles.button, { backgroundColor: (aadhaarRaw.length === 12 && !isLoading) ? Colors.primary : Colors.gold }]}
-                  onPress={handleAadhaarSubmit}
-                  disabled={aadhaarRaw.length !== 12 || isLoading}
-                  activeOpacity={0.88}
-                >
-                  {isLoading ? (
-                    <ActivityIndicator color={Colors.white} />
-                  ) : (
-                    <>
-                      <Text style={[styles.buttonText, { color: aadhaarRaw.length === 12 ? Colors.white : Colors.slate_500 }]}>Verify Aadhaar</Text>
-                      <Text style={[styles.btnArrowTxt, { color: aadhaarRaw.length === 12 ? Colors.white : Colors.slate_500 }]}>→</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-              </Animated.View>
-
-              <TouchableOpacity style={styles.linkBtn} onPress={() => setStep(1)}>
-                <Text style={styles.linkTxt}>← Change mobile number</Text>
-              </TouchableOpacity>
             </View>
           )}
 
@@ -401,7 +397,7 @@ const DmtLogin = () => {
               style={[styles.otpCard, { opacity: otpOpacity, transform: [{ scale: otpScale }] }]}
             >
               <View style={styles.otpIconWrap}>
-                <Text style={styles.otpIcon}>💬</Text>
+                <Icon name="message-text-outline" size={rs(26)} color={Colors.finance_accent} />
               </View>
               <Text style={styles.otpTitle}>Verify OTP</Text>
               <Text style={styles.otpSub}>
@@ -470,8 +466,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: scale(20),
     paddingTop: vs(16),
     paddingBottom: vs(30),
-    borderBottomLeftRadius: scale(28),
-    borderBottomRightRadius: scale(28),
+    borderBottomLeftRadius: scale(30),
+    borderBottomRightRadius: scale(30),
   },
   secureBadge: {
     flexDirection: "row",
@@ -486,71 +482,73 @@ const styles = StyleSheet.create({
     marginBottom: vs(14),
     gap: scale(5),
   },
-  secureBadgeIcon: { fontSize: rs(10) },
   secureBadgeTxt: {
     fontFamily: Fonts.Bold,
     color: Colors.white,
     fontSize: rs(9),
-    fontWeight: "800",
     letterSpacing: 1.1,
-  },
-  titleRow: { flexDirection: "row", alignItems: "baseline", marginBottom: vs(6) },
-  titleAccent: {
-    fontFamily: Fonts.Bold,
-    color: Colors.white,
-    fontSize: rs(32),
-    fontWeight: "900",
-    letterSpacing: 0.5,
-  },
-  titleWhite: {
-    fontFamily: Fonts.Bold,
-    color: Colors.white,
-    fontSize: rs(32),
-    fontWeight: "900",
-    letterSpacing: 0.5,
   },
   headerSub: {
     fontFamily: Fonts.Medium,
     color: "rgba(255,255,255,0.65)",
     fontSize: rs(13),
-    fontWeight: "500",
   },
-  formCard: {
+
+  modernCard: {
     backgroundColor: Colors.cardbg,
-    borderRadius: scale(20),
-    padding: scale(18),
+    borderRadius: 18,
+    marginBottom: 16,
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: "rgba(245,158,11,0.30)",
+    borderColor: 'rgba(245,158,11,0.30)',
   },
-  fieldHeading: {
-    fontFamily: Fonts.Bold,
-    fontSize: rs(9),
-    fontWeight: "800",
-    color: Colors.primary,
-    letterSpacing: 1.1,
-    marginBottom: vs(10),
-  },
-  inputRow: {
+  cardHighlightHeader: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.white,
-    borderRadius: scale(14),
-    borderWidth: 1,
-    borderColor: "rgb(235, 235, 235)",
-    paddingHorizontal: scale(14),
-    minHeight: vs(54),
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: 'rgb(46, 46, 46)',
+    gap: 8,
   },
-  inputError: {
-    borderColor: Colors.red,
-    borderWidth: 1.5,
+  cardHighlightTitle: {
+    fontSize: 11,
+    fontFamily: Fonts.Bold,
+    color: Colors.finance_accent,
+    letterSpacing: 0.5,
   },
+  cardBody: {
+    padding: 16,
+  },
+
+  modernInputWrapper: {
+    borderBottomWidth: 1.5,
+    borderBottomColor: "rgba(212,176,106,0.35)",
+    marginBottom: 12,
+    paddingVertical: 8,
+  },
+  floatingLabel: {
+    fontSize: 10,
+    fontFamily: Fonts.Bold,
+    color: Colors.finance_accent,
+    letterSpacing: 1,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  inputField: {
+    fontFamily: Fonts.Bold,
+    fontSize: 18,
+    color: Colors.primary,
+    padding: 0,
+    flex: 1,
+  },
+  prefixTxt: { fontFamily: Fonts.Bold, color: Colors.primary, fontSize: 18 },
+
   errorText: {
     fontFamily: Fonts.Bold,
     color: Colors.red,
     fontSize: rs(10),
     marginTop: vs(6),
     marginBottom: vs(4),
-    fontWeight: "600",
   },
   errorTextModal: {
     fontFamily: Fonts.Bold,
@@ -558,100 +556,75 @@ const styles = StyleSheet.create({
     fontSize: rs(10),
     marginTop: vs(2),
     marginBottom: vs(12),
-    fontWeight: "600",
     textAlign: "center",
   },
-  prefixBox: { paddingRight: scale(8) },
-  prefixTxt: { fontFamily: Fonts.Bold, color: Colors.primary, fontSize: rs(14), fontWeight: "900" },
-  prefixDivider: { width: 1, height: vs(20), backgroundColor: Colors.kyc_border, marginHorizontal: scale(10) },
-  searchIconBox: { paddingRight: scale(4) },
-  aadhaarIcon: { fontSize: rs(16), marginRight: scale(8) },
-  clearIcon: {
-    fontFamily: Fonts.Bold,
-    color: Colors.gray,
-    fontSize: rs(14),
-    fontWeight: "700",
-    marginLeft: scale(6),
-  },
-  input: {
-    fontFamily: Fonts.Bold,
-    flex: 1,
-    fontSize: rs(14),
-    color: Colors.heroEnd,
-    padding: 0,
-    fontWeight: "600",
-  },
-  hintRow: { marginTop: vs(8) },
+
+  hintRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: vs(8) },
   hintTxt: {
     fontFamily: Fonts.Medium,
     color: Colors.gray,
     fontSize: rs(10),
   },
-  stepIndicator: { flexDirection: "row", alignItems: "center", marginBottom: vs(14) },
+
+  stepIndicator: { flexDirection: "row", alignItems: "center", marginBottom: vs(20) },
   stepDot: {
-    width: scale(26),
-    height: scale(26),
-    borderRadius: scale(13),
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: Colors.kyc_border,
+    backgroundColor: "rgba(0,0,0,0.05)",
   },
-  stepDotDone: { backgroundColor: Colors.kyc_success },
+  stepDotDone: { backgroundColor: Colors.success_dark },
   stepDotActive: { backgroundColor: Colors.primary },
-  stepDotTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(10), fontWeight: "900" },
-  stepConnector: { flex: 1, height: 2, backgroundColor: Colors.primary, marginHorizontal: scale(6) },
+  stepDotTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: 12 },
+  stepConnector: { flex: 1, height: 2, backgroundColor: "rgba(0,0,0,0.05)", marginHorizontal: 8 },
+
   mobileChip: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.primary + "10",
-    borderRadius: scale(10),
-    paddingHorizontal: scale(12),
-    paddingVertical: vs(8),
-    marginBottom: vs(16),
-    gap: scale(8),
+    backgroundColor: "rgba(212,176,106,0.05)",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 20,
+    gap: 8,
     borderWidth: 1,
-    borderColor: Colors.primary + "25",
+    borderColor: "rgba(212,176,106,0.1)",
   },
-  mobileChipCode: { fontFamily: Fonts.Bold, color: Colors.primary, fontSize: rs(13), fontWeight: "900" },
   mobileChipTxt: {
     fontFamily: Fonts.Bold,
     flex: 1,
-    fontSize: rs(13),
-    fontWeight: "700",
+    fontSize: 13,
     color: Colors.primary,
   },
-  mobileChipEdit: { fontFamily: Fonts.Bold, color: Colors.primary, fontSize: rs(11), fontWeight: "800" },
+  mobileChipEdit: { fontFamily: Fonts.Bold, color: Colors.finance_accent, fontSize: 10, letterSpacing: 0.5 },
+
   button: {
-    borderRadius: scale(14),
-    paddingVertical: vs(15),
+    borderRadius: 12,
+    paddingVertical: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: scale(10),
-  },
-  btnDisabled: {
-    backgroundColor: Colors.gold,
+    gap: 10,
   },
   buttonText: {
     fontFamily: Fonts.Bold,
     color: Colors.white,
-    fontSize: rs(15),
-    fontWeight: "900",
-    letterSpacing: 0.4,
+    fontSize: 16,
+    letterSpacing: 0.5,
   },
-  btnArrowTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(14), fontWeight: "900" },
-  linkBtn: { alignItems: "center", marginTop: vs(16) },
-  linkTxt: { fontFamily: Fonts.Bold, color: Colors.primary, fontSize: rs(12), fontWeight: "700" },
+
   secureNote: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: scale(8),
     marginTop: vs(16),
-    backgroundColor: Colors.bg_F8,
+    backgroundColor: "rgba(212,176,106,0.05)",
     borderRadius: scale(12),
     padding: scale(12),
     borderWidth: 1,
-    borderColor: "rgb(235, 235, 235)",
+    borderColor: "rgba(212,176,106,0.1)",
   },
   secureNoteIcon: { fontSize: rs(14), marginTop: vs(1) },
   secureNoteTxt: {
@@ -663,7 +636,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
+    backgroundColor: "rgba(0,0,0,0.7)",
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: scale(24),
@@ -675,12 +648,14 @@ const styles = StyleSheet.create({
     paddingVertical: vs(28),
     paddingHorizontal: scale(22),
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(212,176,106,0.2)",
   },
   otpIconWrap: {
     width: scale(56),
     height: scale(56),
     borderRadius: scale(16),
-    backgroundColor: Colors.primary + "15",
+    backgroundColor: 'rgb(46, 46, 46)',
     alignItems: "center",
     justifyContent: "center",
     marginBottom: vs(12),
@@ -689,31 +664,30 @@ const styles = StyleSheet.create({
   otpTitle: {
     fontFamily: Fonts.Bold,
     fontSize: rs(18),
-    fontWeight: "900",
     color: Colors.primary,
     marginBottom: vs(4),
   },
-  otpSub: { fontFamily: Fonts.Medium, fontSize: rs(12), color: Colors.gray, textAlign: "center" },
-  otpMobile: { fontFamily: Fonts.Bold, color: Colors.primary, fontWeight: "800" },
+  otpSub: { fontFamily: Fonts.Medium, fontSize: rs(12), color: Colors.slate_700, textAlign: "center" },
+  otpMobile: { fontFamily: Fonts.Bold, color: Colors.finance_accent },
   otpInputRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.bg_F8,
+    backgroundColor: "rgba(0,0,0,0.03)",
     borderRadius: scale(14),
     borderWidth: 1,
-    borderColor: "rgb(235, 235, 235)",
+    borderColor: "rgba(0,0,0,0.05)",
     paddingHorizontal: scale(14),
     width: "100%",
+    marginTop: 16,
   },
   otpInput: {
     fontFamily: Fonts.Bold,
     width: "100%",
     paddingVertical: vs(14),
-    fontSize: rs(22),
+    fontSize: 24,
     textAlign: "center",
-    letterSpacing: scale(8),
+    letterSpacing: 10,
     color: Colors.primary,
-    fontWeight: "800",
   },
   otpBtn: {
     width: "100%",
@@ -722,17 +696,16 @@ const styles = StyleSheet.create({
     paddingVertical: vs(14),
     alignItems: "center",
     marginBottom: vs(14),
-    marginTop: vs(10),
+    marginTop: vs(20),
   },
   otpBtnTxt: {
     fontFamily: Fonts.Bold,
     color: Colors.white,
-    fontSize: rs(14),
-    fontWeight: "900",
-    letterSpacing: 0.3,
+    fontSize: 16,
+    letterSpacing: 0.5,
   },
   otpFooter: { flexDirection: "row", alignItems: "center", gap: scale(12) },
-  resendTxt: { fontFamily: Fonts.Bold, color: Colors.primary, fontSize: rs(12), fontWeight: "700" },
+  resendTxt: { fontFamily: Fonts.Bold, color: Colors.finance_accent, fontSize: rs(12) },
   otpDivider: { color: Colors.kyc_border, fontSize: rs(14) },
-  cancelTxt: { fontFamily: Fonts.Medium, color: Colors.gray, fontSize: rs(12), fontWeight: "600" },
+  cancelTxt: { fontFamily: Fonts.Medium, color: Colors.slate_700, fontSize: rs(12) },
 });

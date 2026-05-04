@@ -44,24 +44,24 @@ const WADH_MAPPING = {
 };
 
 // Theme
-const GOLD = "rgb(212, 168, 67)";
-const GOLD_LIGHT = "rgb(232, 196, 106)";
-const GOLD_DIM = "rgba(212,168,67,0.15)";
-const GOLD_BORDER = "rgba(212,168,67,0.28)";
-const BG_DEEP = "rgb(8, 7, 20)";
-const BG_MID = "rgb(14, 12, 28)";
-const BG_CARD = "rgba(255,255,255,0.04)";
-const BG_CARD2 = "rgba(255,255,255,0.07)";
+const GOLD = Colors.finance_accent;
+const GOLD_LIGHT = Colors.finance_accent;
+const GOLD_DIM = "rgba(245,158,11,0.15)";
+const GOLD_BORDER = "rgba(245,158,11,0.30)";
+const BG_DEEP = Colors.beige;
+const BG_MID = Colors.beige;
+const BG_CARD = Colors.white;
+const BG_CARD2 = Colors.white;
 const WHITE = Colors.white;
-const W05 = "rgba(255,255,255,0.05)";
-const W10 = "rgba(255,255,255,0.10)";
-const W20 = "rgba(255,255,255,0.20)";
-const W35 = "rgba(255,255,255,0.35)";
-const W55 = "rgba(255,255,255,0.55)";
-const GREEN = Colors.green;
-const GREEN_DIM = "rgba(34,197,94,0.12)";
-const GREEN_BDR = "rgba(34,197,94,0.28)";
-const RED = "rgb(247, 47, 32)";
+const W05 = "rgba(0,0,0,0.05)";
+const W10 = "rgba(0,0,0,0.10)";
+const W20 = "rgba(0,0,0,0.20)";
+const W35 = "rgba(0,0,0,0.45)";
+const W55 = "rgba(0,0,0,0.65)";
+const GREEN = Colors.success_dark;
+const GREEN_DIM = Colors.success_light;
+const GREEN_BDR = Colors.success_ring;
+const RED = Colors.error_dark;
 const AMBER = Colors.warning;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -503,7 +503,7 @@ const AEPS_OnBoard = () => {
         const bg = connected ? GREEN_DIM : scanning ? GOLD_DIM : error ? "rgba(247,47,32,0.12)" : "rgba(245,158,11,0.12)";
         const border = connected ? GREEN_BDR : scanning ? GOLD_BORDER : error ? "rgba(247,47,32,0.3)" : "rgba(245,158,11,0.3)";
         return (
-            <View style={[styles.badge, { backgroundColor: bg, borderColor: border }]}>
+            <View style={[styles.badge, { backgroundColor: bg, borderColor: border, borderWidth: 1 }]}>
                 <View style={[styles.badgeDot, { backgroundColor: color }]} />
                 <Text style={[styles.badgeTxt, { color }]}>{label}</Text>
             </View>

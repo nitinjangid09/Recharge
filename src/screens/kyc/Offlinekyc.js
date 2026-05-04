@@ -777,22 +777,22 @@ export default function Offlinekyc({ navigation, route }) {
   // ─────────────────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: Colors.beige }]} edges={["bottom"]}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.hub_dark} />
 
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + vs(10), paddingHorizontal: hs(16) }]}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.navigate("Login")} activeOpacity={0.7}>
-          <Icon name="chevron-left" size={rs(22)} color={Colors.kyc_text} />
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
+          <Icon name="arrow-left" size={rs(20)} color={Colors.white} />
         </TouchableOpacity>
 
         <View style={styles.headerCenter}>
-          <Text style={[styles.headerTitle, { fontFamily: Fonts.Bold, fontSize: rs(16) }]}>KYC Verification</Text>
-          <Text style={[styles.headerSub, { fontSize: rs(10) }]}>{(STEPS[step] || {}).label} Details — Step {step + 1} of 3</Text>
+          <Text style={[styles.headerTitle, { color: Colors.white }]}>KYC Verification</Text>
+          <Text style={[styles.headerSub, { color: "rgba(255,255,255,0.8)" }]}>{(STEPS[step] || {}).label} Details — Step {step + 1} of 3</Text>
         </View>
 
-        <View style={[styles.stepBadge, { backgroundColor: Colors.kyc_accent + "20" }]}>
-          <Text style={[styles.stepBadgeText, { color: Colors.kyc_accent, fontFamily: Fonts.Bold, fontSize: rs(11) }]}>{step + 1} / 3</Text>
+        <View style={styles.stepBadge}>
+          <Text style={styles.stepBadgeText}>{step + 1}/3</Text>
         </View>
       </View>
 
@@ -811,8 +811,8 @@ export default function Offlinekyc({ navigation, route }) {
             return (
               <View key={s.key} style={styles.stepDotItem}>
                 <LinearGradient
-                  colors={done ? [Colors.green, Colors.green] : active ? [Colors.primary, Colors.primary] : [Colors.amber + "30", Colors.amber + "10"]}
-                  style={[styles.stepDotCircle, { width: rs(active ? 36 : 28), height: rs(active ? 36 : 28), borderRadius: rs(active ? 18 : 14) }]}
+                  colors={done ? [Colors.green, Colors.green] : active ? [Colors.finance_accent, Colors.finance_accent] : ["rgba(0,0,0,0.05)", "rgba(0,0,0,0.02)"]}
+                  style={[styles.stepDotCircle, { width: rs(active ? 34 : 26), height: rs(active ? 34 : 26), borderRadius: rs(active ? 17 : 13) }]}
                 >
                   <Icon name={done ? "check" : s.icon} size={rs(done ? 14 : active ? 16 : 13)} color={done || active ? Colors.white : Colors.kyc_textMuted} />
                 </LinearGradient>
@@ -839,207 +839,209 @@ export default function Offlinekyc({ navigation, route }) {
             {/* ══ STEP 1 : PERSONAL ════════════════════════════════════ */}
             {step === 0 && (
               <View style={[styles.card, { width: isWide ? contentWidth : "100%" }]}>
-                <SectionBanner icon="account-circle-outline" title="Personal Details" sub="Your identity & contact information" />
+                <SectionBanner title="Personal Details" sub="Your identity & contact information" />
+                <View style={styles.cardBody}>
+                  <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
+                    onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.firstName = y; fieldCoords.current.lastName = y; }}>
+                    <Field icon="account-outline" label="First Name" value={personal.firstName} onChange={v => setPersonal(p => ({ ...p, firstName: v }))} error={errors.firstName} placeholder="First name" maxLength={100} locked={lockedPersonal.firstName} />
+                    <Field icon="account-outline" label="Last Name" value={personal.lastName} onChange={v => setPersonal(p => ({ ...p, lastName: v }))} error={errors.lastName} placeholder="Last name" maxLength={100} locked={lockedPersonal.lastName} />
+                  </TwoCol>
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
-                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.firstName = y; fieldCoords.current.lastName = y; }}>
-                  <Field label="First Name" value={personal.firstName} onChange={v => setPersonal(p => ({ ...p, firstName: v }))} error={errors.firstName} placeholder="First name" maxLength={100} locked={lockedPersonal.firstName} />
-                  <Field label="Last Name" value={personal.lastName} onChange={v => setPersonal(p => ({ ...p, lastName: v }))} error={errors.lastName} placeholder="Last name" maxLength={100} locked={lockedPersonal.lastName} />
-                </TwoCol>
+                  <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
+                    onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.fatherName = y; fieldCoords.current.gender = y; }}>
+                    <Field icon="account-child-outline" label="Father's Name" value={personal.fatherName} onChange={v => setPersonal(p => ({ ...p, fatherName: v }))} error={errors.fatherName} placeholder="Father's full name" maxLength={100} locked={lockedPersonal.fatherName} />
+                    <GenderSelect value={personal.gender} onChange={v => setPersonal(p => ({ ...p, gender: v }))} error={errors.gender} locked={lockedPersonal.gender} />
+                  </TwoCol>
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
-                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.fatherName = y; fieldCoords.current.gender = y; }}>
-                  <Field label="Father's Name" value={personal.fatherName} onChange={v => setPersonal(p => ({ ...p, fatherName: v }))} error={errors.fatherName} placeholder="Father's full name" maxLength={100} locked={lockedPersonal.fatherName} />
-                  <GenderSelect value={personal.gender} onChange={v => setPersonal(p => ({ ...p, gender: v }))} error={errors.gender} locked={lockedPersonal.gender} />
-                </TwoCol>
+                  <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
+                    onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.email = y; fieldCoords.current.phone = y; }}>
+                    <Field icon="email-outline" label="Email Address" value={personal.email} onChange={v => setPersonal(p => ({ ...p, email: v.toLowerCase() }))} error={errors.email} placeholder="you@email.com" keyboardType="email-address" hint="e.g. user@gmail.com" locked={lockedPersonal.email} />
+                    <Field icon="cellphone" label="Mobile Number" value={personal.phone} onChange={v => { if (/^\d*$/.test(v) && v.length <= 10) setPersonal(p => ({ ...p, phone: v })); }} error={errors.phone} placeholder="10-digit number" keyboardType="number-pad" maxLength={10} hint="Starts with 6–9" locked={lockedPersonal.phone} />
+                  </TwoCol>
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
-                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.email = y; fieldCoords.current.phone = y; }}>
-                  <Field label="Email Address" value={personal.email} onChange={v => setPersonal(p => ({ ...p, email: v.toLowerCase() }))} error={errors.email} placeholder="you@email.com" keyboardType="email-address" hint="e.g. user@gmail.com" locked={lockedPersonal.email} />
-                  <Field label="Mobile Number" value={personal.phone} onChange={v => { if (/^\d*$/.test(v) && v.length <= 10) setPersonal(p => ({ ...p, phone: v })); }} error={errors.phone} placeholder="10-digit number" keyboardType="number-pad" maxLength={10} hint="Starts with 6–9" locked={lockedPersonal.phone} />
-                </TwoCol>
+                  <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
+                    onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.dob = y; fieldCoords.current.personalPincode = y; }}>
+                    <View>
+                      <TouchableOpacity onPress={() => { if (!lockedPersonal.dob) setShowDatePicker(true); }} activeOpacity={lockedPersonal.dob ? 1 : 0.8}>
+                        <View pointerEvents="none">
+                          <Field icon="calendar-range" label="Date of Birth" value={personal.dob} onChange={() => { }} error={errors.dob} placeholder="DD-MM-YYYY" hint="Min age: 18 years" locked={lockedPersonal.dob} />
+                        </View>
+                      </TouchableOpacity>
+                      <CalendarModal
+                        visible={showDatePicker}
+                        title="Select Date of Birth"
+                        initialDate={personal.dob && RX.dob.test(personal.dob)
+                          ? (() => { const [d, m, y] = personal.dob.split("-"); return new Date(y, m - 1, d); })()
+                          : new Date()}
+                        maxDate={new Date()}
+                        onCancel={() => setShowDatePicker(false)}
+                        onConfirm={(sel) => {
+                          setShowDatePicker(false);
+                          if (sel) {
+                            const d = String(sel.getDate()).padStart(2, "0");
+                            const m = String(sel.getMonth() + 1).padStart(2, "0");
+                            const y = sel.getFullYear();
+                            setPersonal(p => ({ ...p, dob: `${d}-${m}-${y}` }));
+                          }
+                        }}
+                      />
+                    </View>
+                    <Field icon="map-marker-outline" label="Pincode" value={personal.personalPincode} onChange={v => {
+                      if (/^\d*$/.test(v) && v.length <= 6) {
+                        setPersonal(p => ({ ...p, personalPincode: v }));
+                        if (v.length === 6) fetchStateFromPincode(v, "personal");
+                      }
+                    }} error={errors.personalPincode} placeholder="6-digit pincode" keyboardType="number-pad" maxLength={6} locked={lockedPersonal.personalPincode} loading={pinLoading && personal.personalPincode.length === 6} />
+                  </TwoCol>
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
-                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.dob = y; fieldCoords.current.personalPincode = y; }}>
-                  <View>
-                    <TouchableOpacity onPress={() => { if (!lockedPersonal.dob) setShowDatePicker(true); }} activeOpacity={lockedPersonal.dob ? 1 : 0.8}>
-                      <View pointerEvents="none">
-                        <Field label="Date of Birth" value={personal.dob} onChange={() => { }} error={errors.dob} placeholder="DD-MM-YYYY" hint="Min age: 18 years" locked={lockedPersonal.dob} />
-                      </View>
-                    </TouchableOpacity>
-                    <CalendarModal
-                      visible={showDatePicker}
-                      title="Select Date of Birth"
-                      initialDate={personal.dob && RX.dob.test(personal.dob)
-                        ? (() => { const [d, m, y] = personal.dob.split("-"); return new Date(y, m - 1, d); })()
-                        : new Date()}
-                      maxDate={new Date()}
-                      onCancel={() => setShowDatePicker(false)}
-                      onConfirm={(sel) => {
-                        setShowDatePicker(false);
-                        if (sel) {
-                          const d = String(sel.getDate()).padStart(2, "0");
-                          const m = String(sel.getMonth() + 1).padStart(2, "0");
-                          const y = sel.getFullYear();
-                          setPersonal(p => ({ ...p, dob: `${d}-${m}-${y}` }));
-                        }
-                      }}
-                    />
-                  </View>
-                  <Field label="Pincode" value={personal.personalPincode} onChange={v => {
-                    if (/^\d*$/.test(v) && v.length <= 6) {
-                      setPersonal(p => ({ ...p, personalPincode: v }));
-                      if (v.length === 6) fetchStateFromPincode(v, "personal");
-                    }
-                  }} error={errors.personalPincode} placeholder="6-digit pincode" keyboardType="number-pad" maxLength={6} locked={lockedPersonal.personalPincode} loading={pinLoading && personal.personalPincode.length === 6} />
-                </TwoCol>
+                  <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
+                    onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.personalState = y; fieldCoords.current.personalCity = y; }}>
+                    <View>
+                      <TouchableOpacity onPress={() => { if (!lockedPersonal.personalState) handleOpenState("personal"); }} activeOpacity={lockedPersonal.personalState ? 1 : 0.8}>
+                        <View pointerEvents="none">
+                          <Field icon="map-outline" label="State" value={personal.personalState} onChange={() => { }} error={errors.personalState} placeholder="Select State" locked={lockedPersonal.personalState} />
+                        </View>
+                      </TouchableOpacity>
+                    </View>
+                    <View>
+                      <TouchableOpacity onPress={() => { if (!lockedPersonal.personalCity) handleOpenCity("personal"); }} activeOpacity={lockedPersonal.personalCity ? 1 : 0.8}>
+                        <View pointerEvents="none">
+                          <Field icon="city-variant-outline" label="City" value={personal.personalCity} onChange={() => { }} error={errors.personalCity} placeholder="Select City" locked={lockedPersonal.personalCity} />
+                        </View>
+                      </TouchableOpacity>
+                    </View>
+                  </TwoCol>
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
-                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.personalState = y; fieldCoords.current.personalCity = y; }}>
-                  <View>
-                    <TouchableOpacity onPress={() => { if (!lockedPersonal.personalState) handleOpenState("personal"); }} activeOpacity={lockedPersonal.personalState ? 1 : 0.8}>
-                      <View pointerEvents="none">
-                        <Field label="State" value={personal.personalState} onChange={() => { }} error={errors.personalState} placeholder="Select State" locked={lockedPersonal.personalState} />
-                      </View>
-                    </TouchableOpacity>
-                  </View>
-                  <View>
-                    <TouchableOpacity onPress={() => { if (!lockedPersonal.personalCity) handleOpenCity("personal"); }} activeOpacity={lockedPersonal.personalCity ? 1 : 0.8}>
-                      <View pointerEvents="none">
-                        <Field label="City" value={personal.personalCity} onChange={() => { }} error={errors.personalCity} placeholder="Select City" locked={lockedPersonal.personalCity} />
-                      </View>
-                    </TouchableOpacity>
-                  </View>
-                </TwoCol>
-
-                <Field onLayout={e => fieldCoords.current.personalAddress = e.nativeEvent.layout.y}
-                  label="Full Address" value={personal.personalAddress} onChange={v => setPersonal(p => ({ ...p, personalAddress: v }))}
-                  error={errors.personalAddress} multiline placeholder="House no., Street, Area, Landmark" hint="Minimum 10 characters" maxLength={500} locked={lockedPersonal.personalAddress} />
+                  <Field icon="home-outline" onLayout={e => fieldCoords.current.personalAddress = e.nativeEvent.layout.y}
+                    label="Full Address" value={personal.personalAddress} onChange={v => setPersonal(p => ({ ...p, personalAddress: v }))}
+                    error={errors.personalAddress} multiline placeholder="House no., Street, Area, Landmark" hint="Minimum 10 characters" maxLength={500} locked={lockedPersonal.personalAddress} />
+                </View>
               </View>
             )}
 
             {/* ══ STEP 2 : BUSINESS ════════════════════════════════════ */}
             {step === 1 && (
               <View style={[styles.card, { width: isWide ? contentWidth : "100%" }]}>
-                <SectionBanner icon="store-outline" title="Business Information" sub="Shop details & owner identification" />
+                <SectionBanner title="Business Information" sub="Shop details & owner identification" />
+                <View style={styles.cardBody}>
+                  <Field icon="store-outline" onLayout={e => fieldCoords.current.shopName = e.nativeEvent.layout.y} label="Shop / Business Name" value={business.shopName} onChange={v => setBusiness(b => ({ ...b, shopName: v }))} error={errors.shopName} placeholder="Your shop name" maxLength={200} locked={lockedBusiness.shopName} />
 
-                <Field onLayout={e => fieldCoords.current.shopName = e.nativeEvent.layout.y} label="Shop / Business Name" value={business.shopName} onChange={v => setBusiness(b => ({ ...b, shopName: v }))} error={errors.shopName} placeholder="Your shop name" maxLength={200} locked={lockedBusiness.shopName} />
+                  <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
+                    onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.businessPanNumber = y; fieldCoords.current.gstNumber = y; }}>
+                    <Field icon="card-text-outline" label="Business PAN" value={business.businessPanNumber} onChange={v => setBusiness(b => ({ ...b, businessPanNumber: v.toUpperCase() }))} placeholder="ABCDE1234F" maxLength={10} error={errors.businessPanNumber} hint="Optional" required={false} locked={lockedBusiness.businessPanNumber} />
+                    <Field icon="file-document-outline" label="GST Number" value={business.gstNumber} onChange={v => setBusiness(b => ({ ...b, gstNumber: v.toUpperCase() }))} placeholder="22AAAAA0000A1Z5" maxLength={15} error={errors.gstNumber} required={false} locked={lockedBusiness.gstNumber} />
+                  </TwoCol>
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
-                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.businessPanNumber = y; fieldCoords.current.gstNumber = y; }}>
-                  <Field label="Business PAN" value={business.businessPanNumber} onChange={v => setBusiness(b => ({ ...b, businessPanNumber: v.toUpperCase() }))} placeholder="ABCDE1234F" maxLength={10} error={errors.businessPanNumber} hint="Optional" required={false} locked={lockedBusiness.businessPanNumber} />
-                  <Field label="GST Number" value={business.gstNumber} onChange={v => setBusiness(b => ({ ...b, gstNumber: v.toUpperCase() }))} placeholder="22AAAAA0000A1Z5" maxLength={15} error={errors.gstNumber} required={false} locked={lockedBusiness.gstNumber} />
-                </TwoCol>
+                  <Field icon="map-outline" onLayout={e => fieldCoords.current.businessAddress = e.nativeEvent.layout.y} label="Shop Address" value={business.businessAddress} onChange={v => setBusiness(b => ({ ...b, businessAddress: v }))} error={errors.businessAddress} multiline placeholder="Full shop address with landmark" hint="Minimum 10 characters" maxLength={200} locked={lockedBusiness.businessAddress} />
 
-                <Field onLayout={e => fieldCoords.current.businessAddress = e.nativeEvent.layout.y} label="Shop Address" value={business.businessAddress} onChange={v => setBusiness(b => ({ ...b, businessAddress: v }))} error={errors.businessAddress} multiline placeholder="Full shop address with landmark" hint="Minimum 10 characters" maxLength={200} locked={lockedBusiness.businessAddress} />
+                  <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
+                    onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.businessPincode = y; fieldCoords.current.businessState = y; }}>
+                    <Field icon="map-marker-outline" label="Pincode" value={business.businessPincode} onChange={v => {
+                      if (/^\d*$/.test(v) && v.length <= 6) {
+                        setBusiness(b => ({ ...b, businessPincode: v }));
+                        if (v.length === 6) fetchStateFromPincode(v, "business");
+                      }
+                    }} error={errors.businessPincode} placeholder="6-digit pincode" keyboardType="number-pad" maxLength={6} locked={lockedBusiness.businessPincode} loading={pinLoading && business.businessPincode.length === 6} />
+                    <View>
+                      <TouchableOpacity onPress={() => { if (!lockedBusiness.businessState) handleOpenState("business"); }} activeOpacity={lockedBusiness.businessState ? 1 : 0.8}>
+                        <View pointerEvents="none">
+                          <Field icon="map-outline" label="State" value={business.businessState} onChange={() => { }} error={errors.businessState} placeholder="Select State" locked={lockedBusiness.businessState} />
+                        </View>
+                      </TouchableOpacity>
+                    </View>
+                  </TwoCol>
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
-                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.businessPincode = y; fieldCoords.current.businessState = y; }}>
-                  <Field label="Pincode" value={business.businessPincode} onChange={v => {
-                    if (/^\d*$/.test(v) && v.length <= 6) {
-                      setBusiness(b => ({ ...b, businessPincode: v }));
-                      if (v.length === 6) fetchStateFromPincode(v, "business");
-                    }
-                  }} error={errors.businessPincode} placeholder="6-digit pincode" keyboardType="number-pad" maxLength={6} locked={lockedBusiness.businessPincode} loading={pinLoading && business.businessPincode.length === 6} />
-                  <View>
-                    <TouchableOpacity onPress={() => { if (!lockedBusiness.businessState) handleOpenState("business"); }} activeOpacity={lockedBusiness.businessState ? 1 : 0.8}>
+                  <View onLayout={e => fieldCoords.current.businessCity = e.nativeEvent.layout.y}>
+                    <TouchableOpacity onPress={() => { if (!lockedBusiness.businessCity) handleOpenCity("business"); }} activeOpacity={lockedBusiness.businessCity ? 1 : 0.8}>
                       <View pointerEvents="none">
-                        <Field label="State" value={business.businessState} onChange={() => { }} error={errors.businessState} placeholder="Select State" locked={lockedBusiness.businessState} />
+                        <Field label="City" value={business.businessCity} onChange={() => { }} error={errors.businessCity} placeholder="Select City" locked={lockedBusiness.businessCity} />
                       </View>
                     </TouchableOpacity>
                   </View>
-                </TwoCol>
 
-                <View onLayout={e => fieldCoords.current.businessCity = e.nativeEvent.layout.y}>
-                  <TouchableOpacity onPress={() => { if (!lockedBusiness.businessCity) handleOpenCity("business"); }} activeOpacity={lockedBusiness.businessCity ? 1 : 0.8}>
-                    <View pointerEvents="none">
-                      <Field label="City" value={business.businessCity} onChange={() => { }} error={errors.businessCity} placeholder="Select City" locked={lockedBusiness.businessCity} />
-                    </View>
-                  </TouchableOpacity>
-                </View>
+                  <Divider label="OWNER IDENTIFICATION" />
 
-                <Divider label="OWNER IDENTIFICATION" />
+                  <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
+                    onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.panNumber = y; fieldCoords.current.aadharNumber = y; }}>
+                    <Field label="Personal PAN" value={business.panNumber} onChange={v => setBusiness(b => ({ ...b, panNumber: v.toUpperCase() }))} error={errors.panNumber} placeholder="ABCDE1234F" maxLength={10} hint="Format: AAAAA9999A" locked={lockedBusiness.panNumber} />
+                    <Field label="Aadhaar Number" value={business.aadharNumber} onChange={v => { if (/^\d*$/.test(v) && v.length <= 12) setBusiness(b => ({ ...b, aadharNumber: v })); }} error={errors.aadharNumber} placeholder="12-digit number" keyboardType="number-pad" maxLength={12} locked={lockedBusiness.aadharNumber} />
+                  </TwoCol>
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
-                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.panNumber = y; fieldCoords.current.aadharNumber = y; }}>
-                  <Field label="Personal PAN" value={business.panNumber} onChange={v => setBusiness(b => ({ ...b, panNumber: v.toUpperCase() }))} error={errors.panNumber} placeholder="ABCDE1234F" maxLength={10} hint="Format: AAAAA9999A" locked={lockedBusiness.panNumber} />
-                  <Field label="Aadhaar Number" value={business.aadharNumber} onChange={v => { if (/^\d*$/.test(v) && v.length <= 12) setBusiness(b => ({ ...b, aadharNumber: v })); }} error={errors.aadharNumber} placeholder="12-digit number" keyboardType="number-pad" maxLength={12} locked={lockedBusiness.aadharNumber} />
-                </TwoCol>
+                  <Divider label="UPLOAD DOCUMENTS" />
 
-                <Divider label="UPLOAD DOCUMENTS" />
+                  {/* ── Size hint ───────────────────────────────────────── */}
+                  <View style={styles.sizeHintBanner}>
+                    <Icon name="information-outline" size={rs(13)} color={Colors.kyc_accent} />
+                    <Text style={[styles.sizeHintText, { fontSize: rs(11) }]}>
+                      Image must be between{" "}
+                      <Text style={{ fontFamily: Fonts.Bold, color: Colors.kyc_text }}>10 KB</Text>
+                      {" "}and{" "}
+                      <Text style={{ fontFamily: Fonts.Bold, color: Colors.kyc_text }}>200 KB</Text>.
+                      {" "}Clear, well-lit JPG or PNG only.
+                    </Text>
+                  </View>
 
-                {/* ── Size hint ───────────────────────────────────────── */}
-                <View style={styles.sizeHintBanner}>
-                  <Icon name="information-outline" size={rs(13)} color={Colors.kyc_accent} />
-                  <Text style={[styles.sizeHintText, { fontSize: rs(11) }]}>
-                    Image must be between{" "}
-                    <Text style={{ fontFamily: Fonts.Bold, color: Colors.kyc_text }}>10 KB</Text>
-                    {" "}and{" "}
-                    <Text style={{ fontFamily: Fonts.Bold, color: Colors.kyc_text }}>200 KB</Text>.
-                    {" "}Clear, well-lit JPG or PNG only.
-                  </Text>
-                </View>
-
-                {/* ── Document slots ──────────────────────────────────── */}
-                <View style={[styles.docGrid, isWide && { flexDirection: "row", flexWrap: "wrap", gap: colGap }]}
-                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.aadharFile = y; fieldCoords.current.panFile = y; fieldCoords.current.shopImage = y; }}>
-                  {[
-                    { key: "aadharFile", label: "Aadhaar Card", sub: "Front side", icon: "card-account-details", color: Colors.info_dark },
-                    { key: "panFile", label: "PAN Card", sub: "Clear photo", icon: "card-account-details-outline", color: Colors.primary },
-                    { key: "shopImage", label: "Shop Photo", sub: "Front view", icon: "store-outline", color: Colors.amber },
-                  ].map((slot) => {
-                    const img = files[slot.key];
-                    const hasErr = !!errors[slot.key];
-                    return (
-                      <View key={slot.key} style={[styles.docSlotWrap, isWide && { width: halfWidth }]}>
-                        <TouchableOpacity
-                          style={[
-                            styles.docBox,
-                            img && { borderStyle: "solid", borderColor: Colors.kyc_success, backgroundColor: Colors.kyc_success + "08" },
-                            hasErr && { borderStyle: "solid", borderColor: Colors.kyc_error, backgroundColor: Colors.kyc_error + "06" },
-                          ]}
-                          onPress={() => { if (!lockedFiles[slot.key]) pickImage(slot.key); }}
-                          activeOpacity={lockedFiles[slot.key] ? 1 : 0.75}
-                        >
-                          {img ? (
-                            <>
-                              <Image source={{ uri: img.uri }} style={styles.docThumb} resizeMode="cover" />
-                              <LinearGradient colors={["transparent", "rgba(0,0,0,0.72)"]} style={styles.docOverlay}>
-                                <Icon name="check-circle" size={rs(13)} color={Colors.white} />
-                                <Text style={[styles.docDoneLabel, { fontSize: rs(9) }]}>UPLOADED</Text>
-                                <Text style={styles.docFileName} numberOfLines={1}>{img.name}</Text>
-                              </LinearGradient>
-                              {!lockedFiles[slot.key] && (
-                                <TouchableOpacity
-                                  style={[styles.docCornerBtn, { backgroundColor: Colors.kyc_error, top: -8, right: -8, width: rs(24), height: rs(24), borderRadius: rs(12), borderWidth: 1, borderColor: Colors.white, elevation: 4 }]}
-                                  onPress={() => removeFile(slot.key)}
-                                  activeOpacity={0.8}
-                                >
-                                  <Icon name="close" size={rs(12)} color={Colors.white} />
-                                </TouchableOpacity>
-                              )}
-                            </>
-                          ) : (
-                            <View style={styles.docEmptyContent}>
-                              <View style={[styles.docIconCircle, { backgroundColor: slot.color + "1C" }]}>
-                                <Icon name={slot.icon} size={rs(22)} color={slot.color} />
+                  {/* ── Document slots ──────────────────────────────────── */}
+                  <View style={[styles.docGrid, isWide && { flexDirection: "row", flexWrap: "wrap", gap: colGap }]}
+                    onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.aadharFile = y; fieldCoords.current.panFile = y; fieldCoords.current.shopImage = y; }}>
+                    {[
+                      { key: "aadharFile", label: "Aadhaar Card", sub: "Front side", icon: "card-account-details", color: Colors.info_dark },
+                      { key: "panFile", label: "PAN Card", sub: "Clear photo", icon: "card-account-details-outline", color: Colors.primary },
+                      { key: "shopImage", label: "Shop Photo", sub: "Front view", icon: "store-outline", color: Colors.amber },
+                    ].map((slot) => {
+                      const img = files[slot.key];
+                      const hasErr = !!errors[slot.key];
+                      return (
+                        <View key={slot.key} style={[styles.docSlotWrap, isWide && { width: halfWidth }]}>
+                          <TouchableOpacity
+                            style={[
+                              styles.docBox,
+                              img && { backgroundColor: Colors.kyc_success + "12" },
+                              hasErr && { backgroundColor: Colors.kyc_error + "10" },
+                            ]}
+                            onPress={() => { if (!lockedFiles[slot.key]) pickImage(slot.key); }}
+                            activeOpacity={lockedFiles[slot.key] ? 1 : 0.75}
+                          >
+                            {img ? (
+                              <>
+                                <Image source={{ uri: img.uri }} style={styles.docThumb} resizeMode="cover" />
+                                <LinearGradient colors={["transparent", "rgba(0,0,0,0.72)"]} style={styles.docOverlay}>
+                                  <Icon name="check-circle" size={rs(13)} color={Colors.white} />
+                                  <Text style={[styles.docDoneLabel, { fontSize: rs(9) }]}>UPLOADED</Text>
+                                  <Text style={styles.docFileName} numberOfLines={1}>{img.name}</Text>
+                                </LinearGradient>
+                                {!lockedFiles[slot.key] && (
+                                  <TouchableOpacity
+                                    style={[styles.docCornerBtn, { backgroundColor: Colors.kyc_error, top: -8, right: -8, width: rs(24), height: rs(24), borderRadius: rs(12), borderWidth: 1, borderColor: Colors.white, elevation: 4 }]}
+                                    onPress={() => removeFile(slot.key)}
+                                    activeOpacity={0.8}
+                                  >
+                                    <Icon name="close" size={rs(12)} color={Colors.white} />
+                                  </TouchableOpacity>
+                                )}
+                              </>
+                            ) : (
+                              <View style={styles.docEmptyContent}>
+                                <View style={[styles.docIconCircle, { backgroundColor: slot.color + "1C" }]}>
+                                  <Icon name={slot.icon} size={rs(22)} color={slot.color} />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                  <Text style={[styles.docSlotLabel, { fontFamily: Fonts.Bold, fontSize: rs(12) }]}>{slot.label}</Text>
+                                  <Text style={[styles.docSlotSub, { fontSize: rs(10) }]}>{slot.sub}</Text>
+                                  <Text style={[styles.docSizeLabel, { fontSize: rs(9) }]}>{SIZE_LABEL}</Text>
+                                </View>
+                                <View style={[styles.docUploadTag, { backgroundColor: Colors.kyc_accent + "18", borderColor: Colors.kyc_accent + "40" }]}>
+                                  <Icon name="camera-plus-outline" size={rs(11)} color={Colors.kyc_accent} />
+                                  <Text style={[styles.docUploadTagText, { color: Colors.kyc_accent, fontFamily: Fonts.Bold, fontSize: rs(9) }]}>Upload</Text>
+                                </View>
                               </View>
-                              <View style={{ flex: 1 }}>
-                                <Text style={[styles.docSlotLabel, { fontFamily: Fonts.Bold, fontSize: rs(12) }]}>{slot.label}</Text>
-                                <Text style={[styles.docSlotSub, { fontSize: rs(10) }]}>{slot.sub}</Text>
-                                <Text style={[styles.docSizeLabel, { fontSize: rs(9) }]}>{SIZE_LABEL}</Text>
-                              </View>
-                              <View style={[styles.docUploadTag, { backgroundColor: Colors.kyc_accent + "18", borderColor: Colors.kyc_accent + "40" }]}>
-                                <Icon name="camera-plus-outline" size={rs(11)} color={Colors.kyc_accent} />
-                                <Text style={[styles.docUploadTagText, { color: Colors.kyc_accent, fontFamily: Fonts.Bold, fontSize: rs(9) }]}>Upload</Text>
-                              </View>
-                            </View>
-                          )}
-                        </TouchableOpacity>
-                        {hasErr && <ErrLabel msg={errors[slot.key]} />}
-                      </View>
-                    );
-                  })}
+                            )}
+                          </TouchableOpacity>
+                          {hasErr && <ErrLabel msg={errors[slot.key]} />}
+                        </View>
+                      );
+                    })}
+                  </View>
                 </View>
               </View>
             )}
@@ -1047,145 +1049,147 @@ export default function Offlinekyc({ navigation, route }) {
             {/* ══ STEP 3 : BANKING ═════════════════════════════════════ */}
             {step === 2 && (
               <View style={[styles.card, { width: isWide ? contentWidth : "100%" }]}>
-                <SectionBanner icon="bank-outline" title="Banking Details" sub="For settlements and commissions" />
+                <SectionBanner title="Banking Details" sub="For settlements and commissions" />
 
-                <TouchableOpacity onPress={() => { if (!lockedBanking.bankName) handleOpenBank(); }} activeOpacity={lockedBanking.bankName ? 1 : 0.8}>
-                  <View pointerEvents="none">
-                    <Field onLayout={e => fieldCoords.current.bankName = e.nativeEvent.layout.y} label="Bank Name" value={banking.bankName} error={errors.bankName} placeholder="Select your Bank" locked={lockedBanking.bankName} />
-                  </View>
-                </TouchableOpacity>
-
-                <FieldWrap onLayout={e => fieldCoords.current.ifscCode = e.nativeEvent.layout.y} label="IFSC Code" required error={errors.ifscCode}>
-                  <View style={[styles.inputRow, errors.ifscCode && { borderColor: Colors.kyc_error, backgroundColor: Colors.kyc_error + "06" }, lockedBanking.ifscCode && styles.inputRowLocked]}>
-                    <TextInput style={[styles.input, { letterSpacing: 1 }, lockedBanking.ifscCode && styles.inputLocked]}
-                      value={banking.ifscCode}
-                      onChangeText={lockedBanking.ifscCode ? undefined : (v => setBanking(b => ({ ...b, ifscCode: v.toUpperCase().replace(/[^A-Z0-9]/g, "") })))}
-                      editable={!lockedBanking.ifscCode}
-                      placeholder="SBIN0001234" placeholderTextColor={Colors.kyc_textMuted} maxLength={15} autoCapitalize="characters" />
-                  </View>
-                </FieldWrap>
-
-                <FieldWrap onLayout={e => fieldCoords.current.accountNumber = e.nativeEvent.layout.y} label="Account Number" required error={errors.accountNumber}>
-                  <View style={[styles.inputRow, errors.accountNumber && { borderColor: Colors.kyc_error, backgroundColor: Colors.kyc_error + "06" }, lockedBanking.accountNumber && styles.inputRowLocked]}>
-                    <TextInput
-                      style={[styles.input, { paddingRight: hs(44) }, lockedBanking.accountNumber && styles.inputLocked]}
-                      value={banking.accountNumber} editable={!lockedBanking.accountNumber}
-                      onChangeText={lockedBanking.accountNumber ? undefined : (v => {
-                        if (/^\d*$/.test(v) && v.length <= 20)
-                          setBanking(b => ({ ...b, accountNumber: v, confirmAccountNumber: "" }));
-                      })}
-                      placeholder="Enter account number" placeholderTextColor={Colors.kyc_textMuted}
-                      keyboardType="number-pad" secureTextEntry={!showAcc} maxLength={20}
-                    />
-                    <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowAcc(p => !p)}>
-                      <Icon name={showAcc ? "eye-off-outline" : "eye-outline"} size={rs(18)} color={Colors.kyc_textMuted} />
-                    </TouchableOpacity>
-                  </View>
-                </FieldWrap>
-
-                <FieldWrap
-                  onLayout={e => fieldCoords.current.confirmAccountNumber = e.nativeEvent.layout.y}
-                  label="Confirm Account Number" required
-                  error={accMatchStatus === "mismatch" && banking.confirmAccountNumber.length > 0 ? "Account numbers don't match" : errors.confirmAccountNumber}
-                >
-                  <View style={[styles.inputRow, accMatchStatus !== "idle" && { borderColor: accMatchColor, borderWidth: 1.5 }]}>
-                    <TextInput
-                      style={[styles.input, { paddingRight: hs(44) }, lockedBanking.accountNumber && styles.inputLocked]}
-                      value={banking.confirmAccountNumber} editable={!lockedBanking.accountNumber}
-                      onChangeText={lockedBanking.accountNumber ? undefined : (v => {
-                        if (/^\d*$/.test(v) && v.length <= 20)
-                          setBanking(b => ({ ...b, confirmAccountNumber: v }));
-                      })}
-                      placeholder="Re-enter account number" placeholderTextColor={Colors.kyc_textMuted}
-                      keyboardType="number-pad" secureTextEntry={!showConfirmAcc} maxLength={20}
-                    />
-                    <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowConfirmAcc(p => !p)}>
-                      <Icon name={showConfirmAcc ? "eye-off-outline" : "eye-outline"} size={rs(18)} color={Colors.kyc_textMuted} />
-                    </TouchableOpacity>
-                  </View>
-                  {accMatchStatus !== "idle" && (
-                    <View style={[styles.accMatchStrip, { backgroundColor: accMatchColor + "12", borderColor: accMatchColor + "35" }]}>
-                      <Icon name={accMatchIcon} size={rs(13)} color={accMatchColor} />
-                      <Text style={[styles.accMatchTxt, { color: accMatchColor }]}>
-                        {accMatchStatus === "match" ? "Account numbers match ✓" : "Account numbers do not match"}
-                      </Text>
+                <View style={styles.cardBody}>
+                  <TouchableOpacity onPress={() => { if (!lockedBanking.bankName) handleOpenBank(); }} activeOpacity={lockedBanking.bankName ? 1 : 0.8}>
+                    <View pointerEvents="none">
+                      <Field onLayout={e => fieldCoords.current.bankName = e.nativeEvent.layout.y} label="Bank Name" value={banking.bankName} error={errors.bankName} placeholder="Select your Bank" locked={lockedBanking.bankName} />
                     </View>
-                  )}
-                </FieldWrap>
+                  </TouchableOpacity>
 
-                <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
-                  onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.accountHolderName = y; }}>
-                  <Field label="Account Holder Name" value={banking.accountHolderName} onChange={v => setBanking(b => ({ ...b, accountHolderName: v }))} error={errors.accountHolderName} placeholder="As per bank records" maxLength={100} locked={lockedBanking.accountHolderName} />
-                </TwoCol>
+                  <FieldWrap onLayout={e => fieldCoords.current.ifscCode = e.nativeEvent.layout.y} label="IFSC Code" required error={errors.ifscCode}>
+                    <View style={[styles.inputRow, errors.ifscCode && { borderColor: Colors.kyc_error, backgroundColor: Colors.kyc_error + "06" }, lockedBanking.ifscCode && styles.inputRowLocked]}>
+                      <TextInput style={[styles.input, { letterSpacing: 1 }, lockedBanking.ifscCode && styles.inputLocked]}
+                        value={banking.ifscCode}
+                        onChangeText={lockedBanking.ifscCode ? undefined : (v => setBanking(b => ({ ...b, ifscCode: v.toUpperCase().replace(/[^A-Z0-9]/g, "") })))}
+                        editable={!lockedBanking.ifscCode}
+                        placeholder="SBIN0001234" placeholderTextColor={Colors.kyc_textMuted} maxLength={15} autoCapitalize="characters" />
+                    </View>
+                  </FieldWrap>
 
-                <Divider label="DOCUMENTS" />
-                <View style={{ marginBottom: vs(10) }}>
-                  {[
-                    { key: "blankCheque", label: "Bank Passbook / Cancelled Cheque", sub: "Must show your name and account number", icon: "bank-transfer", color: Colors.kyc_accent },
-                  ].map((slot) => {
-                    const img = files[slot.key];
-                    const hasErr = !!errors[slot.key];
-                    return (
-                      <View key={slot.key} style={styles.docSlotWrap} onLayout={e => fieldCoords.current[slot.key] = e.nativeEvent.layout.y}>
-                        <TouchableOpacity
-                          style={[styles.docBox, hasErr && { borderColor: Colors.kyc_error, backgroundColor: Colors.kyc_error + "08" }, lockedFiles[slot.key] && { opacity: 0.8, borderStyle: "solid", backgroundColor: Colors.kyc_lockedBg }]}
-                          activeOpacity={lockedFiles[slot.key] ? 1 : 0.75}
-                          onPress={() => { if (!lockedFiles[slot.key]) pickImage(slot.key); }}
-                        >
-                          {img ? (
-                            <>
-                              <Image source={{ uri: img.uri }} style={styles.docThumb} />
-                              <LinearGradient colors={["transparent", "rgba(0,0,0,0.85)"]} style={styles.docOverlay}>
-                                <Icon name="check-decagram" size={rs(13)} color={Colors.kyc_success} />
-                                <Text style={[styles.docDoneLabel, { fontSize: rs(9) }]}>UPLOADED</Text>
-                                <Text style={styles.docFileName} numberOfLines={1}>{img.name}</Text>
-                              </LinearGradient>
-                              {!lockedFiles[slot.key] && (
-                                <TouchableOpacity
-                                  style={[styles.docCornerBtn, { backgroundColor: Colors.kyc_error, right: vs(8), width: rs(28), height: rs(28), borderRadius: rs(14) }]}
-                                  onPress={() => removeFile(slot.key)}
-                                  activeOpacity={0.8}
-                                >
-                                  <Icon name="close" size={rs(16)} color={Colors.white} />
-                                </TouchableOpacity>
-                              )}
-                            </>
-                          ) : (
-                            <View style={styles.docEmptyContent}>
-                              <View style={[styles.docIconCircle, { backgroundColor: slot.color + "1C" }]}>
-                                <Icon name={slot.icon} size={rs(22)} color={slot.color} />
-                              </View>
-                              <View style={{ flex: 1 }}>
-                                <Text style={[styles.docSlotLabel, { fontFamily: Fonts.Bold, fontSize: rs(12) }]}>{slot.label}</Text>
-                                <Text style={[styles.docSlotSub, { fontSize: rs(10) }]}>{slot.sub}</Text>
-                                <Text style={[styles.docSizeLabel, { fontSize: rs(9) }]}>{SIZE_LABEL}</Text>
-                              </View>
-                              <View style={[styles.docUploadTag, { backgroundColor: Colors.kyc_accent + "18", borderColor: Colors.kyc_accent + "40" }]}>
-                                <Icon name="camera-plus-outline" size={rs(11)} color={Colors.kyc_accent} />
-                                <Text style={[styles.docUploadTagText, { color: Colors.kyc_accent, fontFamily: Fonts.Bold, fontSize: rs(9) }]}>Upload</Text>
-                              </View>
-                            </View>
-                          )}
-                        </TouchableOpacity>
-                        {hasErr && <ErrLabel msg={errors[slot.key]} />}
+                  <FieldWrap onLayout={e => fieldCoords.current.accountNumber = e.nativeEvent.layout.y} label="Account Number" required error={errors.accountNumber}>
+                    <View style={[styles.inputRow, errors.accountNumber && { borderColor: Colors.kyc_error, backgroundColor: Colors.kyc_error + "06" }, lockedBanking.accountNumber && styles.inputRowLocked]}>
+                      <TextInput
+                        style={[styles.input, { paddingRight: hs(44) }, lockedBanking.accountNumber && styles.inputLocked]}
+                        value={banking.accountNumber} editable={!lockedBanking.accountNumber}
+                        onChangeText={lockedBanking.accountNumber ? undefined : (v => {
+                          if (/^\d*$/.test(v) && v.length <= 20)
+                            setBanking(b => ({ ...b, accountNumber: v, confirmAccountNumber: "" }));
+                        })}
+                        placeholder="Enter account number" placeholderTextColor={Colors.kyc_textMuted}
+                        keyboardType="number-pad" secureTextEntry={!showAcc} maxLength={20}
+                      />
+                      <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowAcc(p => !p)}>
+                        <Icon name={showAcc ? "eye-off-outline" : "eye-outline"} size={rs(18)} color={Colors.kyc_textMuted} />
+                      </TouchableOpacity>
+                    </View>
+                  </FieldWrap>
+
+                  <FieldWrap
+                    onLayout={e => fieldCoords.current.confirmAccountNumber = e.nativeEvent.layout.y}
+                    label="Confirm Account Number" required
+                    error={accMatchStatus === "mismatch" && banking.confirmAccountNumber.length > 0 ? "Account numbers don't match" : errors.confirmAccountNumber}
+                  >
+                    <View style={[styles.inputRow, accMatchStatus !== "idle" && { backgroundColor: accMatchColor + "12" }]}>
+                      <TextInput
+                        style={[styles.input, { paddingRight: hs(44) }, lockedBanking.accountNumber && styles.inputLocked]}
+                        value={banking.confirmAccountNumber} editable={!lockedBanking.accountNumber}
+                        onChangeText={lockedBanking.accountNumber ? undefined : (v => {
+                          if (/^\d*$/.test(v) && v.length <= 20)
+                            setBanking(b => ({ ...b, confirmAccountNumber: v }));
+                        })}
+                        placeholder="Re-enter account number" placeholderTextColor={Colors.kyc_textMuted}
+                        keyboardType="number-pad" secureTextEntry={!showConfirmAcc} maxLength={20}
+                      />
+                      <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowConfirmAcc(p => !p)}>
+                        <Icon name={showConfirmAcc ? "eye-off-outline" : "eye-outline"} size={rs(18)} color={Colors.kyc_textMuted} />
+                      </TouchableOpacity>
+                    </View>
+                    {accMatchStatus !== "idle" && (
+                      <View style={[styles.accMatchStrip, { backgroundColor: accMatchColor + "12", borderColor: accMatchColor + "35" }]}>
+                        <Icon name={accMatchIcon} size={rs(13)} color={accMatchColor} />
+                        <Text style={[styles.accMatchTxt, { color: accMatchColor }]}>
+                          {accMatchStatus === "match" ? "Account numbers match ✓" : "Account numbers do not match"}
+                        </Text>
                       </View>
-                    );
-                  })}
-                </View>
+                    )}
+                  </FieldWrap>
 
-                <LinearGradient colors={[Colors.kyc_accent + "1A", Colors.kyc_accent + "08"]} style={styles.securityBanner}>
-                  <View style={[styles.securityIcon, { backgroundColor: Colors.kyc_accent + "25" }]}>
-                    <Icon name="shield-lock-outline" size={rs(20)} color={Colors.kyc_accent} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.securityTitle, { color: Colors.kyc_accent, fontFamily: Fonts.Bold, fontSize: rs(12) }]}>256-bit Encrypted</Text>
-                    <Text style={[styles.securityBody, { fontSize: rs(11), fontFamily: Fonts.Regular }]}>Banking details are encrypted and used only for payouts.</Text>
-                  </View>
-                </LinearGradient>
+                  <TwoCol isWide={isWide} halfWidth={halfWidth} gap={colGap}
+                    onLayout={e => { const y = e.nativeEvent.layout.y; fieldCoords.current.accountHolderName = y; }}>
+                    <Field label="Account Holder Name" value={banking.accountHolderName} onChange={v => setBanking(b => ({ ...b, accountHolderName: v }))} error={errors.accountHolderName} placeholder="As per bank records" maxLength={100} locked={lockedBanking.accountHolderName} />
+                  </TwoCol>
 
-                <View style={styles.reviewBanner}>
-                  <Icon name="information-outline" size={rs(13)} color={Colors.info_dark} />
-                  <Text style={[styles.reviewText, { fontSize: rs(11), fontFamily: Fonts.Regular }]}>Review all details before submitting. Changes after submission may delay approval.</Text>
+                  <Divider label="DOCUMENTS" />
+                  <View style={{ marginBottom: vs(10) }}>
+                    {[
+                      { key: "blankCheque", label: "Bank Passbook / Cancelled Cheque", sub: "Must show your name and account number", icon: "bank-transfer", color: Colors.kyc_accent },
+                    ].map((slot) => {
+                      const img = files[slot.key];
+                      const hasErr = !!errors[slot.key];
+                      return (
+                        <View key={slot.key} style={styles.docSlotWrap} onLayout={e => fieldCoords.current[slot.key] = e.nativeEvent.layout.y}>
+                          <TouchableOpacity
+                            style={[styles.docBox, hasErr && { borderColor: Colors.kyc_error, backgroundColor: Colors.kyc_error + "08" }, lockedFiles[slot.key] && { opacity: 0.8, borderStyle: "solid", backgroundColor: Colors.kyc_lockedBg }]}
+                            activeOpacity={lockedFiles[slot.key] ? 1 : 0.75}
+                            onPress={() => { if (!lockedFiles[slot.key]) pickImage(slot.key); }}
+                          >
+                            {img ? (
+                              <>
+                                <Image source={{ uri: img.uri }} style={styles.docThumb} />
+                                <LinearGradient colors={["transparent", "rgba(0,0,0,0.85)"]} style={styles.docOverlay}>
+                                  <Icon name="check-decagram" size={rs(13)} color={Colors.kyc_success} />
+                                  <Text style={[styles.docDoneLabel, { fontSize: rs(9) }]}>UPLOADED</Text>
+                                  <Text style={styles.docFileName} numberOfLines={1}>{img.name}</Text>
+                                </LinearGradient>
+                                {!lockedFiles[slot.key] && (
+                                  <TouchableOpacity
+                                    style={[styles.docCornerBtn, { backgroundColor: Colors.kyc_error, right: vs(8), width: rs(28), height: rs(28), borderRadius: rs(14) }]}
+                                    onPress={() => removeFile(slot.key)}
+                                    activeOpacity={0.8}
+                                  >
+                                    <Icon name="close" size={rs(16)} color={Colors.white} />
+                                  </TouchableOpacity>
+                                )}
+                              </>
+                            ) : (
+                              <View style={styles.docEmptyContent}>
+                                <View style={[styles.docIconCircle, { backgroundColor: slot.color + "1C" }]}>
+                                  <Icon name={slot.icon} size={rs(22)} color={slot.color} />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                  <Text style={[styles.docSlotLabel, { fontFamily: Fonts.Bold, fontSize: rs(12) }]}>{slot.label}</Text>
+                                  <Text style={[styles.docSlotSub, { fontSize: rs(10) }]}>{slot.sub}</Text>
+                                  <Text style={[styles.docSizeLabel, { fontSize: rs(9) }]}>{SIZE_LABEL}</Text>
+                                </View>
+                                <View style={[styles.docUploadTag, { backgroundColor: Colors.kyc_accent + "18", borderColor: Colors.kyc_accent + "40" }]}>
+                                  <Icon name="camera-plus-outline" size={rs(11)} color={Colors.kyc_accent} />
+                                  <Text style={[styles.docUploadTagText, { color: Colors.kyc_accent, fontFamily: Fonts.Bold, fontSize: rs(9) }]}>Upload</Text>
+                                </View>
+                              </View>
+                            )}
+                          </TouchableOpacity>
+                          {hasErr && <ErrLabel msg={errors[slot.key]} />}
+                        </View>
+                      );
+                    })}
+                  </View>
+
+                  <LinearGradient colors={[Colors.kyc_accent + "1A", Colors.kyc_accent + "08"]} style={styles.securityBanner}>
+                    <View style={[styles.securityIcon, { backgroundColor: Colors.kyc_accent + "25" }]}>
+                      <Icon name="shield-lock-outline" size={rs(20)} color={Colors.kyc_accent} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.securityTitle, { color: Colors.kyc_accent, fontFamily: Fonts.Bold, fontSize: rs(12) }]}>256-bit Encrypted</Text>
+                      <Text style={[styles.securityBody, { fontSize: rs(11), fontFamily: Fonts.Regular }]}>Banking details are encrypted and used only for payouts.</Text>
+                    </View>
+                  </LinearGradient>
+
+                  <View style={styles.reviewBanner}>
+                    <Icon name="information-outline" size={rs(13)} color={Colors.info_dark} />
+                    <Text style={[styles.reviewText, { fontSize: rs(11), fontFamily: Fonts.Regular }]}>Review all details before submitting. Changes after submission may delay approval.</Text>
+                  </View>
                 </View>
               </View>
             )}
@@ -1310,9 +1314,9 @@ function SearchModal({ visible, title, loading, search, setSearch, items, getLab
               <Icon name="refresh" size={rs(22)} color={loading ? Colors.kyc_textMuted : Colors.kyc_accent} />
             </TouchableOpacity>
           </View>
-          <View style={{ width: "100%", paddingBottom: vs(12), borderBottomWidth: 1, borderBottomColor: Colors.kyc_border, marginBottom: vs(8) }}>
+          <View style={{ width: "100%", paddingBottom: vs(12), borderBottomWidth: 1, borderBottomColor: "rgba(212,176,106,0.30)", marginBottom: vs(8) }}>
             <TextInput
-              style={{ borderWidth: 1, borderColor: Colors.kyc_border, borderRadius: hs(8), paddingHorizontal: hs(12), paddingVertical: Platform.OS === "ios" ? vs(12) : Math.max(8, vs(8)), color: Colors.kyc_text, fontSize: rs(13), fontFamily: Fonts.Regular }}
+              style={{ borderWidth: 1, borderColor: "rgba(212,176,106,0.30)", borderRadius: hs(8), paddingHorizontal: hs(12), paddingVertical: Platform.OS === "ios" ? vs(12) : Math.max(8, vs(8)), color: Colors.kyc_text, fontSize: rs(13), fontFamily: Fonts.Regular }}
               placeholder={`Search ${title.split(" ")[1]?.toLowerCase() || ""}…`}
               placeholderTextColor={Colors.kyc_textMuted} value={search} onChangeText={setSearch}
             />
@@ -1358,18 +1362,18 @@ function FieldWrap({ label, required = true, error, hint, children, onLayout }) 
     </View>
   );
 }
-
-function Field({ label, value, onChange, placeholder, error, keyboardType, multiline, required = true, maxLength, hint, secureTextEntry, onLayout, locked = false, loading = false }) {
+function Field({ label, value, onChange, placeholder, error, keyboardType, multiline, required = true, maxLength, hint, secureTextEntry, onLayout, locked = false, loading = false, icon }) {
   return (
     <FieldWrap label={label} required={required} error={error} hint={locked ? undefined : hint} onLayout={onLayout}>
       <View style={[
         styles.inputRow,
-        error && !locked && { borderColor: Colors.kyc_error, backgroundColor: Colors.kyc_error + "06" },
+        error && !locked && { backgroundColor: Colors.kyc_error + "08" },
         locked && styles.inputRowLocked,
         multiline && { alignItems: "flex-start" },
       ]}>
+        {!!icon && <Icon name={icon} size={rs(16)} color={Colors.kyc_textMuted} style={[{ marginRight: hs(10) }, multiline && { marginTop: vs(14) }]} />}
         <TextInput
-          style={[styles.input, { fontSize: rs(13) }, multiline && { height: vs(72), textAlignVertical: "top", paddingTop: vs(10) }, locked && styles.inputLocked]}
+          style={[styles.input, { fontSize: rs(13) }, multiline && { height: vs(80), textAlignVertical: "top", paddingTop: vs(12) }, locked && styles.inputLocked]}
           value={value} onChangeText={locked ? undefined : onChange} editable={!locked}
           placeholder={placeholder ?? ""} placeholderTextColor={Colors.kyc_textMuted}
           keyboardType={keyboardType ?? "default"} multiline={multiline} maxLength={maxLength}
@@ -1377,7 +1381,7 @@ function Field({ label, value, onChange, placeholder, error, keyboardType, multi
         />
         {loading && <ActivityIndicator size="small" color={Colors.kyc_accent} style={{ marginRight: hs(8) }} />}
         {locked && (
-          <View style={styles.lockedBadge}>
+          <View style={[styles.lockedBadge, multiline && { marginTop: vs(14) }]}>
             <Icon name="lock-outline" size={rs(10)} color={Colors.kyc_accent} />
             <Text style={[styles.lockedBadgeTxt, { fontSize: rs(9) }]}>Auto-filled</Text>
           </View>
@@ -1418,15 +1422,13 @@ function GenderSelect({ value, onChange, error, onLayout, locked = false }) {
   );
 }
 
-function SectionBanner({ icon, title, sub }) {
+function SectionBanner({ title, sub }) {
   return (
     <View style={styles.sectionBanner}>
-      <LinearGradient colors={[Colors.kyc_accent + "30", Colors.kyc_accent + "10"]} style={styles.sectionBannerIcon}>
-        <Icon name={icon} size={rs(20)} color={Colors.kyc_accent} />
-      </LinearGradient>
+      <Icon name="shield-check-outline" size={rs(16)} color={Colors.finance_accent} />
       <View style={{ flex: 1 }}>
-        <Text style={[styles.sectionBannerTitle, { fontFamily: Fonts.Bold, fontSize: rs(16) }]}>{title}</Text>
-        <Text style={[styles.sectionBannerSub, { fontSize: rs(11) }]}>{sub}</Text>
+        <Text style={styles.sectionBannerTitle}>{title}</Text>
+        {!!sub && <Text style={styles.sectionBannerSub}>{sub}</Text>}
       </View>
     </View>
   );
@@ -1456,56 +1458,82 @@ function ErrLabel({ msg }) {
 // ─────────────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Colors.beige },
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingBottom: vs(12), backgroundColor: Colors.beige },
-  backBtn: { width: hs(36), height: hs(36), borderRadius: hs(12), backgroundColor: Colors.white, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: Colors.kyc_border },
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingBottom: vs(12), backgroundColor: Colors.hub_dark },
+  backBtn: { width: hs(36), height: hs(36), borderRadius: hs(12), backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" },
   headerCenter: { flex: 1, alignItems: "center", justifyContent: "center" },
-  headerTitle: { color: Colors.kyc_text, textAlign: "center" },
-  headerSub: { color: Colors.kyc_textSub, marginTop: 1, textAlign: "center" },
-  stepBadge: { paddingHorizontal: hs(10), paddingVertical: vs(4), borderRadius: hs(10) },
-  stepBadgeText: { letterSpacing: 0.4 },
+  headerTitle: { fontSize: rs(17), fontFamily: Fonts.Bold, color: Colors.black, textAlign: "center" },
+  headerSub: { fontSize: rs(11), fontFamily: Fonts.Medium, color: Colors.text_secondary, marginTop: 1, textAlign: "center" },
+  stepBadge: { backgroundColor: "rgba(212,176,106,0.15)", paddingHorizontal: hs(12), paddingVertical: vs(5), borderRadius: hs(10) },
+  stepBadgeText: { color: Colors.finance_accent, fontFamily: Fonts.Bold, fontSize: rs(11), letterSpacing: 0.4 },
   progressWrap: { paddingBottom: vs(12), backgroundColor: Colors.beige },
-  progressTrack: { height: 2.5, backgroundColor: "rgba(201, 168, 76, 0.15)", borderRadius: 2, marginBottom: vs(10), overflow: "hidden" },
-  progressFill: { height: "100%", borderRadius: 2 },
+  progressTrack: { height: 3, backgroundColor: "rgba(212,176,106,0.12)", borderRadius: 2, marginBottom: vs(12), overflow: "hidden" },
+  progressFill: { height: "100%", borderRadius: 2, backgroundColor: Colors.finance_accent },
   stepDots: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   stepDotItem: { alignItems: "center", flex: 1 },
-  stepDotCircle: { alignItems: "center", justifyContent: "center", marginBottom: vs(4) },
+  stepDotCircle: { alignItems: "center", justifyContent: "center", marginBottom: vs(4), backgroundColor: "rgba(212,176,106,0.1)" },
   stepDotLabel: { color: Colors.kyc_textMuted, textAlign: "center", letterSpacing: 0.4 },
   scrollContent: { paddingTop: vs(2), backgroundColor: Colors.beige },
   card: {
-    backgroundColor: Colors.beige,
-    borderRadius: hs(16),
-    padding: hs(18),
+    backgroundColor: Colors.cardbg,
+    borderRadius: hs(18),
     marginBottom: vs(16),
-    borderWidth: 1,
-    borderColor: "rgba(201, 168, 76, 0.25)",
-    elevation: 0,
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0,
-    shadowRadius: 10
+    overflow: "hidden",
   },
-  sectionBanner: { flexDirection: "row", alignItems: "center", gap: hs(12), marginBottom: vs(18), padding: hs(12), backgroundColor: "rgba(201, 168, 76, 0.12)", borderRadius: hs(14), borderLeftWidth: 3, borderLeftColor: Colors.amber },
-  sectionBannerIcon: { width: hs(42), height: hs(42), borderRadius: hs(12), alignItems: "center", justifyContent: "center" },
-  sectionBannerTitle: { color: Colors.kyc_text },
-  sectionBannerSub: { color: Colors.kyc_textSub, marginTop: 2 },
+  sectionBanner: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    gap: hs(10), 
+    backgroundColor: "rgb(46, 46, 46)",
+    paddingHorizontal: hs(16),
+    paddingVertical: vs(12),
+  },
+  sectionBannerTitle: { 
+    color: Colors.finance_accent,
+    fontSize: rs(12),
+    fontFamily: Fonts.Bold,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  sectionBannerSub: { 
+    color: "rgba(255,255,255,0.6)", 
+    fontSize: rs(10),
+    fontFamily: Fonts.Medium,
+    marginTop: 1 
+  },
+  cardBody: {
+    padding: hs(18),
+  },
   fieldWrap: { marginBottom: vs(12) },
-  fieldLabel: { color: Colors.kyc_textSub, fontFamily: Fonts.Bold, letterSpacing: 0.7, marginBottom: vs(5), textTransform: "uppercase" },
-  inputRow: { flexDirection: "row", alignItems: "center", backgroundColor: "#FAFAFA", borderWidth: 1.2, borderColor: Colors.kyc_border, borderRadius: hs(10), paddingHorizontal: hs(12) },
-  input: { flex: 1, paddingVertical: vs(10), color: Colors.kyc_text, fontFamily: Fonts.Medium },
+  fieldLabel: { color: Colors.black, fontFamily: Fonts.Bold, letterSpacing: 0.5, marginBottom: vs(6), textTransform: "uppercase" },
+  inputRow: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    backgroundColor: "#F8F8F8", 
+    borderRadius: hs(12), 
+    paddingHorizontal: hs(14),
+    minHeight: vs(52),
+  },
+  input: { 
+    flex: 1, 
+    fontSize: rs(14),
+    color: Colors.black, 
+    fontFamily: Fonts.Medium,
+    paddingVertical: vs(10),
+  },
   fieldHint: { color: Colors.kyc_textMuted, marginTop: vs(3), fontFamily: Fonts.Regular },
   errRow: { flexDirection: "row", alignItems: "center", marginTop: vs(3) },
   errText: { fontFamily: Fonts.Medium },
-  inputRowLocked: { backgroundColor: "#FAFAFA", borderColor: Colors.kyc_border },
+  inputRowLocked: { backgroundColor: "#EEEEEE" },
   inputLocked: { color: Colors.kyc_text },
   lockedBadge: { flexDirection: "row", alignItems: "center", gap: 3, backgroundColor: Colors.kyc_accent + "18", borderRadius: hs(6), paddingHorizontal: hs(6), paddingVertical: vs(3), marginRight: hs(2) },
   lockedBadgeTxt: { color: Colors.kyc_accent, fontFamily: Fonts.Bold, letterSpacing: 0.2 },
   lockedHintRow: { flexDirection: "row", alignItems: "center", gap: hs(4), marginTop: vs(3) },
   lockedHintTxt: { color: Colors.kyc_success, fontFamily: Fonts.Regular, flex: 1 },
   eyeBtn: { padding: hs(4) },
-  accMatchStrip: { flexDirection: "row", alignItems: "center", gap: hs(6), marginTop: vs(5), paddingHorizontal: hs(10), paddingVertical: vs(6), borderRadius: hs(8), borderWidth: 1 },
+  accMatchStrip: { flexDirection: "row", alignItems: "center", gap: hs(6), marginTop: vs(5), paddingHorizontal: hs(10), paddingVertical: vs(6), borderRadius: hs(8) },
   accMatchTxt: { fontSize: rs(10), fontFamily: Fonts.Bold, flex: 1, letterSpacing: 0.2, includeFontPadding: false, lineHeight: rs(14) },
   genderRow: { flexDirection: "row", gap: hs(5) },
-  genderBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: vs(9), borderRadius: hs(8), backgroundColor: "#FAFAFA", borderWidth: 1.2, borderColor: Colors.kyc_border, gap: hs(4) },
+  genderBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: vs(11), borderRadius: hs(8), backgroundColor: "#F8F8F8", gap: hs(4) },
   genderBtnText: { color: Colors.kyc_textMuted },
   divider: { flexDirection: "row", alignItems: "center", marginVertical: vs(14), gap: hs(8) },
   dividerLine: { flex: 1, height: 1.2, backgroundColor: "rgba(201, 168, 76, 0.15)" },
@@ -1514,8 +1542,8 @@ const styles = StyleSheet.create({
   sizeHintText: { flex: 1, color: Colors.kyc_textSub, fontFamily: Fonts.Regular, lineHeight: rs(16) },
   docGrid: {},
   docSlotWrap: { marginBottom: vs(10) },
-  docBox: { height: vs(90), borderRadius: hs(14), borderWidth: 1.5, borderStyle: "dashed", borderColor: Colors.kyc_border, backgroundColor: "#FAFAFA" },
-  docThumb: { width: "100%", height: "100%", borderRadius: hs(12) },
+  docBox: { height: vs(95), borderRadius: hs(16), backgroundColor: "#F8F8F8", overflow: "hidden" },
+  docThumb: { width: "100%", height: "100%", borderRadius: hs(16) },
   docOverlay: { position: "absolute", bottom: 0, left: 0, right: 0, flexDirection: "row", alignItems: "center", paddingHorizontal: hs(10), paddingVertical: vs(6), gap: hs(6) },
   docDoneLabel: { color: Colors.white, fontFamily: Fonts.Bold, letterSpacing: 0.4 },
   docFileName: { flex: 1, color: Colors.white, fontFamily: Fonts.Regular, fontSize: rs(9) },
@@ -1534,18 +1562,18 @@ const styles = StyleSheet.create({
   reviewBanner: { flexDirection: "row", alignItems: "flex-start", backgroundColor: Colors.info_light, borderRadius: hs(10), borderLeftWidth: 3, borderLeftColor: Colors.info_dark, padding: hs(10), marginTop: vs(10), gap: hs(8) },
   reviewText: { flex: 1, color: Colors.info_dark, lineHeight: rs(16) },
   actionRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: vs(4), marginBottom: vs(8), gap: hs(12) },
-  prevBtn: { flexDirection: "row", alignItems: "center", paddingVertical: vs(12), paddingHorizontal: hs(18), borderRadius: hs(12), borderWidth: 1.2, borderColor: Colors.kyc_border, backgroundColor: Colors.white, gap: hs(6), elevation: 1 },
+  prevBtn: { flexDirection: "row", alignItems: "center", paddingVertical: vs(12), paddingHorizontal: hs(18), borderRadius: hs(12), backgroundColor: "#F5F5F5", gap: hs(6) },
   prevBtnText: { color: Colors.kyc_text },
-  nextBtnOuter: { borderRadius: hs(14), overflow: "hidden", elevation: 5, shadowColor: Colors.kyc_accent, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
+  nextBtnOuter: { borderRadius: hs(14), overflow: "hidden" },
   nextBtnGrad: { flexDirection: "row", alignItems: "center", paddingVertical: vs(14), paddingHorizontal: hs(26) },
   nextBtnText: {},
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", paddingHorizontal: hs(24) },
-  modalCard: { backgroundColor: Colors.white, width: "100%", borderRadius: hs(24), padding: hs(24), alignItems: "center", elevation: 10, shadowColor: Colors.black, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12 },
+  modalCard: { backgroundColor: Colors.white, width: "100%", borderRadius: hs(24), padding: hs(24), alignItems: "center" },
   modalIconWrap: { width: rs(72), height: rs(72), borderRadius: rs(36), backgroundColor: Colors.kyc_success + "15", justifyContent: "center", alignItems: "center", marginBottom: vs(16) },
   modalTitle: { color: Colors.kyc_text, fontSize: rs(18), fontFamily: Fonts.Bold, textAlign: "center", marginBottom: vs(8) },
   modalSub: { color: Colors.kyc_textSub, fontSize: rs(12), fontFamily: Fonts.Regular, textAlign: "center", lineHeight: rs(18), marginBottom: vs(24) },
   modalBtn: { width: "100%", borderRadius: hs(12), overflow: "hidden" },
   modalBtnGrad: { paddingVertical: vs(14), alignItems: "center", justifyContent: "center" },
   modalBtnText: { color: Colors.white, fontFamily: Fonts.Bold, fontSize: rs(14) },
-  modalListItem: { paddingVertical: vs(14), borderBottomWidth: 1, borderBottomColor: Colors.kyc_border },
+  modalListItem: { paddingVertical: vs(14) },
 });

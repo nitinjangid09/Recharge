@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     flexDirection: "row", justifyContent: "space-between", alignItems: "center",
     paddingVertical: 11,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(245,158,11,0.15)",
+    borderBottomColor: "rgba(0,0,0,0.05)",
   },
   detailLabel: { fontSize: 13, fontFamily: Fonts.Regular, color: Colors.slate_500, flex: 1 },
   detailValue: {

@@ -1701,20 +1701,22 @@ const S = StyleSheet.create({
   newsMarqueeContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(245,158,11,0.15)",
-    paddingVertical: rs(8),
+    backgroundColor: "rgb(46, 46, 46)", // Wallet card dark theme
+    paddingVertical: rs(7),
     paddingHorizontal: rs(14),
-    borderRadius: rs(8),
+    borderRadius: rs(30), // Pill shape for modern look
     borderWidth: 1,
-    borderColor: "rgba(245,158,11,0.30)",
+    borderColor: "rgba(212,176,106,0.35)", // Amber tint to match wallet
     overflow: "hidden",
     marginBottom: rs(12),
+    marginHorizontal: rs(2),
   },
   newsMarqueeText: {
-    color: Colors.finance_accent,
-    fontSize: rs(12),
-    fontFamily: Fonts.Medium,
+    color: Colors.finance_accent, // Gold text on dark background
+    fontSize: rs(11),
+    fontFamily: Fonts.Bold,
     flexShrink: 0,
+    letterSpacing: 0.3,
   },
 
   // ── BANNERS (dynamic) ──

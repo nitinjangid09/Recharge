@@ -21,6 +21,7 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { Alert } from "react-native";
 import { AlertService } from "../../../componets/Alerts/CustomAlert";
 import FullScreenLoader from "../../../componets/Loader/FullScreenLoader";
+import HeaderBar from "../../../componets/HeaderBar/HeaderBar";
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -68,58 +69,59 @@ const AccountCard = ({ item, index, onTransfer, onDelete }) => {
   }, []);
 
   return (
-    <Animated.View style={[styles.card, { opacity: cardOp, transform: [{ translateY: cardTY }] }]}>
-
-
-      <View style={styles.cardMain}>
-        {/* Avatar Section */}
-        <View style={styles.avatarSection}>
-          <View style={[styles.avatar, { backgroundColor: Colors.kyc_accent }]}>
-            <Text style={styles.avatarTxt}>{getInitials(item.name)}</Text>
-          </View>
-          <View style={styles.avatarDecoration} />
+    <Animated.View style={[styles.modernCard, { opacity: cardOp, transform: [{ translateY: cardTY }] }]}>
+      <View style={styles.cardHighlightHeader}>
+        <View style={styles.historyHeaderLeft}>
+          <Icon name="bank-outline" size={14} color={Colors.finance_accent} />
+          <Text style={styles.cardHighlightTitle}>{item.bank.toUpperCase()}</Text>
         </View>
+        <View style={styles.verifiedBadge}>
+          <Icon name="check-decagram" size={rs(12)} color={Colors.finance_accent} />
+        </View>
+      </View>
 
-        {/* Info Section */}
-        <View style={styles.cardContent}>
-          <View style={styles.nameRow}>
+      <View style={styles.cardBody}>
+        <View style={styles.cardMain}>
+          {/* Avatar Section */}
+          <View style={styles.avatarSection}>
+            <View style={[styles.avatar, { backgroundColor: 'rgb(46, 46, 46)' }]}>
+              <Text style={styles.avatarTxt}>{getInitials(item.name)}</Text>
+            </View>
+          </View>
+
+          {/* Info Section */}
+          <View style={styles.cardContent}>
             <Text style={styles.cardName} numberOfLines={1}>{item.name}</Text>
-            <View style={styles.verifiedBadge}>
-              <Icon name="check-decagram" size={rs(12)} color={Colors.kyc_accent} />
+            <View style={styles.detailsGrid}>
+              <View style={styles.detailItem}>
+                <Text style={styles.detailLabel}>ACCOUNT</Text>
+                <Text style={styles.detailValue}>{item.accountNumber}</Text>
+              </View>
+              <View style={[styles.detailItem, { borderLeftWidth: 1, borderLeftColor: "rgba(245,158,11,0.15)" }]}>
+                <Text style={styles.detailLabel}>IFSC</Text>
+                <Text style={styles.detailValue}>{item.ifsc}</Text>
+              </View>
             </View>
           </View>
 
-          <Text style={styles.cardBank} numberOfLines={1}>{item.bank}</Text>
+          {/* Actions Section */}
+          <View style={styles.actionRowInline}>
+            <TouchableOpacity
+              style={styles.transferBtn}
+              onPress={() => onTransfer(item)}
+              activeOpacity={0.8}
+            >
+              <Icon name="send" size={rs(14)} color={Colors.primary} />
+            </TouchableOpacity>
 
-          <View style={styles.detailsGrid}>
-            <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>ACCOUNT</Text>
-              <Text style={styles.detailValue}>{item.accountNumber}</Text>
-            </View>
-            <View style={[styles.detailItem, { borderLeftWidth: 1, borderLeftColor: "rgb(240, 240, 240)" }]}>
-              <Text style={styles.detailLabel}>IFSC</Text>
-              <Text style={styles.detailValue}>{item.ifsc}</Text>
-            </View>
+            <TouchableOpacity
+              onPress={() => onDelete && onDelete(item)}
+              activeOpacity={0.7}
+              style={{ marginLeft: 10 }}
+            >
+              <Icon name="delete-outline" size={rs(20)} color={Colors.red} />
+            </TouchableOpacity>
           </View>
-        </View>
-
-        {/* Actions Section */}
-        <View style={styles.actionRowInline}>
-          <TouchableOpacity
-            style={styles.transferBtn}
-            onPress={() => onTransfer(item)}
-            activeOpacity={0.8}
-          >
-            <Icon name="send" size={rs(14)} color={Colors.white} />
-            <Text style={styles.transferBtnTxt}>Transfer</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => onDelete && onDelete(item)}
-            activeOpacity={0.7}
-          >
-            <Icon name="delete-outline" size={rs(20)} color={Colors.error_dark} />
-          </TouchableOpacity>
         </View>
       </View>
     </Animated.View>
@@ -338,6 +340,7 @@ const DmtHome = () => {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <HeaderBar title="Money Transfer" onBack={() => navigation.goBack()} />
 
       {/* ══ DARK HEADER ══ */}
       <Animated.View
@@ -390,32 +393,32 @@ const DmtHome = () => {
 
       {/* ══ BODY ══ */}
       <View style={styles.body}>
-          <FlatList
-            data={accounts}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item, index }) => (
-              <AccountCard
-                item={item}
-                index={index}
-                onTransfer={handleTransfer}
-                onDelete={handleDelete}
-              />
-            )}
-            ListHeaderComponent={ListHeader}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.listContent}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
-            }
-            ListEmptyComponent={
-              !loading && (
-                <View style={styles.emptyWrap}>
-                  <Text style={styles.emptyTxt}>No beneficiaries found.</Text>
-                  <Text style={styles.emptySub}>Add your first beneficiary to get started.</Text>
-                </View>
-              )
-            }
-          />
+        <FlatList
+          data={accounts}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item, index }) => (
+            <AccountCard
+              item={item}
+              index={index}
+              onTransfer={handleTransfer}
+              onDelete={handleDelete}
+            />
+          )}
+          ListHeaderComponent={ListHeader}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
+          }
+          ListEmptyComponent={
+            !loading && (
+              <View style={styles.emptyWrap}>
+                <Text style={styles.emptyTxt}>No beneficiaries found.</Text>
+                <Text style={styles.emptySub}>Add your first beneficiary to get started.</Text>
+              </View>
+            )
+          }
+        />
       </View>
       <FullScreenLoader visible={loading} label="Fetching Beneficiaries..." />
     </SafeAreaView>
@@ -430,7 +433,35 @@ export default DmtHome;
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.primary },
   body: { flex: 1, backgroundColor: Colors.beige },
-  listContent: { paddingHorizontal: scale(16), paddingBottom: vs(30) },
+  listContent: { paddingHorizontal: 12, paddingBottom: vs(30) },
+
+  modernCard: {
+    backgroundColor: Colors.cardbg,
+    borderRadius: 18,
+    marginBottom: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.30)',
+  },
+  cardHighlightHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: 'rgb(46, 46, 46)',
+    gap: 8,
+    justifyContent: 'space-between',
+  },
+  cardHighlightTitle: {
+    fontSize: 11,
+    fontFamily: Fonts.Bold,
+    color: Colors.finance_accent,
+    letterSpacing: 0.5,
+  },
+  cardBody: {
+    padding: 16,
+  },
+  historyHeaderLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
 
   // ── Header ──
   header: {
@@ -438,6 +469,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: scale(20),
     paddingTop: vs(12),
     paddingBottom: vs(22),
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
   headerTopRow: {
     flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start",
@@ -447,10 +480,10 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Bold, color: "rgba(255,255,255,0.65)", fontSize: rs(10), letterSpacing: 0.8,
   },
   budgetAmount: {
-    fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(36), letterSpacing: -0.5, marginTop: vs(2),
+    fontFamily: Fonts.Bold, color: Colors.finance_accent, fontSize: rs(36), letterSpacing: -0.5, marginTop: vs(2),
   },
   userId: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(15), marginTop: vs(2) },
-  senderNameTxt: { fontFamily: Fonts.Medium, color: Colors.kyc_accent, fontSize: rs(12), marginTop: vs(2) },
+  senderNameTxt: { fontFamily: Fonts.Medium, color: Colors.finance_accent, fontSize: rs(12), marginTop: vs(2) },
 
   remainingRow: {
     flexDirection: "row", alignItems: "center", gap: scale(10), marginBottom: vs(10),
@@ -462,15 +495,15 @@ const styles = StyleSheet.create({
     borderRadius: scale(20), paddingHorizontal: scale(10), paddingVertical: vs(4),
     gap: scale(5),
   },
-  remainingDot: { width: scale(7), height: scale(7), borderRadius: scale(4), backgroundColor: Colors.kyc_accent },
+  remainingDot: { width: scale(7), height: scale(7), borderRadius: scale(4), backgroundColor: Colors.finance_accent },
   remainingLabel: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(9), letterSpacing: 0.8 },
-  remainingAmt: { fontFamily: Fonts.Bold, color: Colors.kyc_accent, fontSize: rs(20) },
+  remainingAmt: { fontFamily: Fonts.Bold, color: Colors.finance_accent, fontSize: rs(20) },
 
   progressTrack: {
     height: vs(5), backgroundColor: "rgba(255,255,255,0.18)",
     borderRadius: scale(4), overflow: "hidden", marginBottom: vs(6),
   },
-  progressFill: { height: "100%", backgroundColor: Colors.kyc_accent, borderRadius: scale(4) },
+  progressFill: { height: "100%", backgroundColor: Colors.finance_accent, borderRadius: scale(4) },
   progressInfoRow: { flexDirection: "row", justifyContent: "space-between" },
   progressInfoTxt: { fontFamily: Fonts.Medium, color: "rgba(255,255,255,0.65)", fontSize: rs(10) },
 
@@ -484,55 +517,31 @@ const styles = StyleSheet.create({
     justifyContent: "center", gap: scale(6),
     paddingVertical: vs(13), borderRadius: scale(14),
   },
-  // Add Beneficiary — primary color
   actionBtnAdd: {
     backgroundColor: Colors.primary,
     borderWidth: 1, borderColor: "rgba(255,255,255,0.15)",
   },
-  // Fetch Beneficiary — primary dark color
   actionBtnFetch: {
-    backgroundColor: Colors.kyc_accent,
+    backgroundColor: Colors.finance_accent,
     borderWidth: 1, borderColor: "rgba(255,255,255,0.1)",
-  },
-  actionBtnPayout: {
-    backgroundColor: Colors.primary,
-    borderWidth: 1, borderColor: "rgba(245,158,11,0.30)",
-    marginTop: vs(8),
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: scale(8),
-    paddingVertical: vs(13),
-    borderRadius: scale(14),
   },
   actionBtnIcon: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(15) },
   actionBtnTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(12) },
 
-  // ── Section header ──
   sectionRow: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
     marginTop: vs(20), marginBottom: vs(10),
   },
-  sectionTitle: { fontFamily: Fonts.Bold, fontSize: rs(16), color: Colors.kyc_accent },
+  sectionTitle: { fontFamily: Fonts.Bold, fontSize: rs(16), color: Colors.primary },
   countBadge: {
-    backgroundColor: Colors.kyc_accent + "18",
+    backgroundColor: Colors.finance_accent + "18",
     borderRadius: scale(20), paddingHorizontal: scale(10), paddingVertical: vs(4),
-    borderWidth: 1, borderColor: Colors.kyc_accent + "30",
+    borderWidth: 1, borderColor: Colors.finance_accent + "30",
   },
   countTxt: { fontFamily: Fonts.Bold, color: Colors.primary, fontSize: rs(10) },
 
-  // ── Account Card Redesign ──
-  card: {
-    backgroundColor: Colors.beige,
-    borderRadius: scale(20),
-    marginBottom: vs(16),
-    borderWidth: 1,
-    borderColor: 'rgba(245,158,11,0.30)',
-    overflow: 'hidden',
-  },
   cardMain: {
     flexDirection: "row",
-    padding: scale(14),
     alignItems: "center",
   },
   avatarSection: {
@@ -541,52 +550,30 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   avatar: {
-    width: scale(52),
-    height: scale(52),
-    borderRadius: scale(16),
+    width: scale(48),
+    height: scale(48),
+    borderRadius: scale(12),
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 2,
   },
   avatarTxt: {
     fontFamily: Fonts.Bold,
-    color: Colors.white,
+    color: Colors.finance_accent,
     fontSize: rs(16),
-  },
-  avatarDecoration: {
-    position: 'absolute',
-    bottom: -scale(4),
-    right: -scale(4),
-    width: scale(20),
-    height: scale(20),
-    borderRadius: scale(8),
-    backgroundColor: 'rgba(212,176,106,0.1)',
-    zIndex: 1,
   },
   cardContent: {
     flex: 1,
     justifyContent: "center",
   },
-  nameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: vs(2),
-  },
   cardName: {
     fontFamily: Fonts.Bold,
     fontSize: rs(14),
-    color: Colors.slate_900,
-    marginRight: scale(4),
-  },
-  cardBank: {
-    fontFamily: Fonts.Medium,
-    fontSize: rs(11),
-    color: Colors.slate_500,
-    marginBottom: vs(8),
+    color: Colors.primary,
+    marginBottom: 4,
   },
   detailsGrid: {
     flexDirection: "row",
-    backgroundColor: Colors.bg_F8,
+    backgroundColor: "rgba(0,0,0,0.03)",
     borderRadius: scale(10),
     paddingVertical: vs(6),
     paddingHorizontal: scale(8),
@@ -599,47 +586,36 @@ const styles = StyleSheet.create({
   detailLabel: {
     fontSize: rs(7),
     fontFamily: Fonts.Bold,
-    color: Colors.gray,
+    color: Colors.slate_700,
     letterSpacing: 0.5,
     marginBottom: vs(1),
   },
   detailValue: {
     fontSize: rs(10),
-    fontFamily: Fonts.Medium,
-    color: Colors.slate_700,
+    fontFamily: Fonts.Bold,
+    color: Colors.primary,
   },
   actionRowInline: {
     flexDirection: "row",
     alignItems: "center",
+    marginLeft: 10,
   },
 
   transferBtn: {
-    backgroundColor: Colors.primary,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: vs(8),
-    paddingHorizontal: scale(12),
-    borderRadius: scale(10),
-    gap: scale(4),
-  },
-  transferBtnTxt: {
-    fontFamily: Fonts.Bold,
-    color: Colors.white,
-    fontSize: rs(10),
+    backgroundColor: Colors.finance_accent,
+    padding: 10,
+    borderRadius: 10,
   },
 
   verifiedBadge: {
     backgroundColor: 'rgba(212,176,106,0.1)',
     borderRadius: scale(6),
-    width: scale(18),
-    height: scale(18),
-    alignItems: "center",
-    justifyContent: "center",
+    padding: 2,
   },
 
   center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: Colors.beige },
-  loadingTxt: { fontFamily: Fonts.Medium, color: Colors.gray, marginTop: vs(10), fontSize: rs(13) },
+  loadingTxt: { fontFamily: Fonts.Medium, color: Colors.slate_700, marginTop: vs(10), fontSize: rs(13) },
   emptyWrap: { alignItems: "center", justifyContent: "center", marginTop: vs(60) },
   emptyTxt: { fontFamily: Fonts.Bold, color: Colors.primary, fontSize: rs(16) },
-  emptySub: { fontFamily: Fonts.Medium, color: Colors.gray, fontSize: rs(13), marginTop: vs(4) },
+  emptySub: { fontFamily: Fonts.Medium, color: Colors.slate_700, fontSize: rs(13), marginTop: vs(4) },
 });

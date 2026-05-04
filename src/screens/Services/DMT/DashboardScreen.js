@@ -10,6 +10,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Colors from '../../../constants/Colors';
+import Fonts from '../../../constants/Fonts';
+import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // ─── Responsive  Scaling ──────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -25,7 +28,7 @@ const FontSize = { title: rs(22), lg: rs(18), md: rs(16), base: rs(14), sm: rs(1
 const StatCard = ({ label, amount, txnCount, amountColor }) => (
   <View style={{
     flex: 1,
-    backgroundColor: Colors.beige,
+    backgroundColor: Colors.cardbg,
     borderRadius: Radius.lg,
     padding: Spacing.md,
     borderWidth: 1,
@@ -63,7 +66,7 @@ const ActionButton = ({ title, variant, onPress }) => (
     activeOpacity={0.7}
     onPress={onPress}
     style={{
-      backgroundColor: variant === 'dark' ? Colors.primary : Colors.beige,
+      backgroundColor: variant === 'dark' ? Colors.primary : Colors.white,
       paddingHorizontal: rs(10),
       paddingVertical: rs(6),
       borderRadius: Radius.sm,
@@ -81,15 +84,19 @@ const ActionButton = ({ title, variant, onPress }) => (
   </TouchableOpacity>
 );
 
-const ExportChip = ({ label }) => (
+const ExportChip = ({ label, icon }) => (
   <TouchableOpacity style={{
     paddingVertical: rs(7),
     paddingHorizontal: rs(14),
     borderRadius: Radius.xl,
-    backgroundColor: Colors.beige,
+    backgroundColor: Colors.white,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     borderWidth: 1,
     borderColor: 'rgba(245,158,11,0.30)'
   }}>
+    {icon && <Icon name={icon} size={14} color={Colors.primary} />}
     <Text style={{ fontSize: rs(10), fontWeight: '700', color: Colors.primary }}>{label}</Text>
   </TouchableOpacity>
 );
@@ -98,7 +105,7 @@ const beneficiaries = [
   {
     id: '1',
     bank: 'Axis Bank',
-    icon: '🏛',
+    icon: 'bank',
     name: 'ABHISHEK SHARMA',
     ifsc: 'UTIB0002878',
     account: '9220100...978',
@@ -108,7 +115,7 @@ const beneficiaries = [
   {
     id: '2',
     bank: 'HDFC Bank',
-    icon: '🏦',
+    icon: 'office-building',
     name: 'ROHIT KUMAR',
     ifsc: 'HDFC0001234',
     account: '4560120...234',
@@ -118,7 +125,7 @@ const beneficiaries = [
   {
     id: '3',
     bank: 'SBI',
-    icon: '🏧',
+    icon: 'atm',
     name: 'PRIYA SHARMA',
     ifsc: 'SBIN0005678',
     account: '3310240...567',
@@ -130,7 +137,7 @@ const beneficiaries = [
 const BeneficiaryRow = ({ item, onTransfer, onView }) => (
   <View style={[styles.tableRow, item.status === 'pending' && { opacity: 0.5 }]}>
     <View style={styles.bankIcon}>
-      <Text style={{ fontSize: 16 }}>{item.icon}</Text>
+      <Icon name={item.icon} size={18} color={Colors.finance_accent} />
     </View>
     <View style={styles.rowContent}>
       <Text style={styles.rowTitle}>{item.bank}</Text>
@@ -164,7 +171,8 @@ const DashboardScreen = ({ navigation }) => {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.beige || 'rgb(241, 245, 249)' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.primary }}>
+      <HeaderBar title="DMT Dashboard" onBack={() => navigation.goBack()} />
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
@@ -172,7 +180,10 @@ const DashboardScreen = ({ navigation }) => {
       >
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.pageTitle}>DMT Dashboard</Text>
+            <View style={styles.secureBadge}>
+              <Icon name="shield-check" size={12} color={Colors.finance_accent} />
+              <Text style={styles.secureBadgeTxt}>SECURED DASHBOARD</Text>
+            </View>
             <Text style={styles.pageSub}>Institutional Money Transfer</Text>
           </View>
           <TouchableOpacity
@@ -180,7 +191,7 @@ const DashboardScreen = ({ navigation }) => {
             activeOpacity={0.85}
             onPress={() => navigation?.navigate('DMTRegister')}
           >
-            <Text style={styles.addBtnIcon}>＋</Text>
+            <Icon name="plus" size={14} color={Colors.white} />
             <Text style={styles.addBtnText}>Add Account</Text>
           </TouchableOpacity>
         </View>
@@ -191,14 +202,16 @@ const DashboardScreen = ({ navigation }) => {
           <StatCard label="Per Txn" amount="₹5k" txnCount={0} amountColor={Colors.black} />
         </View>
 
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionBar} />
-            <Text style={styles.sectionTitle}>Account Details</Text>
+        <View style={styles.modernCard}>
+          <View style={styles.cardHighlightHeader}>
+            <Icon name="account-details" size={14} color={Colors.finance_accent} />
+            <Text style={styles.cardHighlightTitle}>ACCOUNT DETAILS</Text>
           </View>
+          
+          <View style={styles.cardBody}>
 
           <View style={styles.searchWrap}>
-            <Text style={styles.searchIcon}>🔍</Text>
+            <Icon name="magnify" size={16} color={Colors.gray} />
             <TextInput
               style={styles.searchInput}
               placeholder="Search beneficiary by name..."
@@ -209,29 +222,31 @@ const DashboardScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.exportRow}>
-            <ExportChip label="📋 Copy" />
-            <ExportChip label="📊 Excel" />
-            <ExportChip label="📄 PDF" />
+            <ExportChip label="Copy" icon="content-copy" />
+            <ExportChip label="Excel" icon="file-excel" />
+            <ExportChip label="PDF" icon="file-pdf" />
             <TouchableOpacity style={styles.colChip} activeOpacity={0.8}>
-              <Text style={styles.colChipText}>Columns ▾</Text>
+              <Text style={styles.colChipText}>Columns</Text>
+              <Icon name="chevron-down" size={14} color={Colors.white} />
             </TouchableOpacity>
           </View>
 
-          <View style={styles.tableCard}>
-            {filtered.length === 0 ? (
-              <View style={styles.emptyState}>
-                <Text style={styles.emptyText}>No beneficiaries found</Text>
-              </View>
-            ) : (
-              filtered.map((item, idx) => (
-                <BeneficiaryRow
-                  key={item.id}
-                  item={item}
-                  onTransfer={(b) => navigation?.navigate('DMTMoneyTransfer', { beneficiary: b })}
-                  onView={(b) => navigation?.navigate('DMTKYC', { beneficiary: b })}
-                />
-              ))
-            )}
+            <View style={styles.tableCard}>
+                {filtered.length === 0 ? (
+                <View style={styles.emptyState}>
+                    <Text style={styles.emptyText}>No beneficiaries found</Text>
+                </View>
+                ) : (
+                filtered.map((item, idx) => (
+                    <BeneficiaryRow
+                    key={item.id}
+                    item={item}
+                    onTransfer={(b) => navigation?.navigate('DMTMoneyTransfer', { beneficiary: b })}
+                    onView={(b) => navigation?.navigate('DMTKYC', { beneficiary: b })}
+                    />
+                ))
+                )}
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -240,108 +255,139 @@ const DashboardScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.beige || 'rgb(241, 245, 249)' },
+  container: { flex: 1, backgroundColor: Colors.beige },
   content: { paddingBottom: 40 },
   header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    backgroundColor: Colors.primary,
     paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.xl,
-    paddingBottom: 4,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.xl,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 10,
   },
-  pageTitle: {
-    fontSize: FontSize.title,
-    fontWeight: '800',
-    color: Colors.black,
-    lineHeight: 26,
+  secureBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    alignSelf: "flex-start",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 20,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.18)",
+  },
+  secureBadgeTxt: {
+    color: Colors.white,
+    fontSize: 8,
+    fontFamily: Fonts.Bold,
+    letterSpacing: 1,
   },
   pageSub: {
-    fontSize: FontSize.base,
-    color: 'rgb(100, 116, 139)',
-    marginTop: 3,
+    fontSize: rs(12),
+    color: Colors.slate_700,
+    marginTop: 2,
+    fontFamily: Fonts.Medium,
   },
   addBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.primary,
-    paddingVertical: 9,
-    paddingHorizontal: 14,
-    borderRadius: 24,
+    backgroundColor: Colors.finance_accent,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 12,
     gap: 5,
-    marginTop: 4,
   },
-  addBtnIcon: { color: Colors.white, fontSize: 14, fontWeight: '400' },
   addBtnText: {
     color: Colors.white,
     fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.3,
+    fontFamily: Fonts.Bold,
   },
-  statRow: { flexDirection: 'row', gap: 8, paddingHorizontal: Spacing.xl, marginTop: 14 },
-  section: { paddingHorizontal: Spacing.xl, marginTop: 20 },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 },
-  sectionBar: { width: 3, height: 12, backgroundColor: Colors.primary, borderRadius: 2 },
-  sectionTitle: {
-    fontSize: FontSize.sm,
-    fontWeight: '800',
-    color: Colors.slate_500,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+  statRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, marginTop: -20 },
+  
+  modernCard: {
+    backgroundColor: Colors.cardbg,
+    borderRadius: 18,
+    margin: 16,
+    overflow: 'hidden',
   },
+  cardHighlightHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: 'rgb(46, 46, 46)',
+    gap: 8,
+  },
+  cardHighlightTitle: {
+    fontSize: 11,
+    fontFamily: Fonts.Bold,
+    color: Colors.finance_accent,
+    letterSpacing: 0.5,
+  },
+  cardBody: {
+    padding: 16,
+  },
+
   searchWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.white,
-    borderRadius: 14,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(245,158,11,0.30)',
+    borderColor: 'rgba(245,158,11,0.15)',
     paddingHorizontal: 12,
     marginBottom: 12,
     gap: 8,
   },
   searchIcon: { fontSize: 14 },
-  searchInput: { flex: 1, paddingVertical: 10, fontSize: FontSize.base, color: Colors.black },
-  exportRow: { flexDirection: 'row', gap: 8, marginBottom: 12, flexWrap: 'wrap' },
+  searchInput: { flex: 1, paddingVertical: 10, fontSize: 13, color: Colors.primary, fontFamily: Fonts.Medium },
+  exportRow: { flexDirection: 'row', gap: 8, marginBottom: 16, flexWrap: 'wrap' },
   colChip: {
     paddingVertical: 7,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     borderRadius: 20,
     backgroundColor: Colors.primary,
-    borderWidth: 1,
-    borderColor: 'rgba(245,158,11,0.30)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
-  colChipText: { fontSize: 10, fontWeight: '700', color: Colors.white },
+  colChipText: { fontSize: 10, fontFamily: Fonts.Bold, color: Colors.white },
+  labelStyle: { fontSize: rs(8), fontFamily: Fonts.Bold, color: Colors.primary, opacity: 0.6, letterSpacing: 1 },
   tableCard: {
-    backgroundColor: Colors.beige,
-    borderRadius: 16,
+    backgroundColor: Colors.white,
+    borderRadius: 12,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(245,158,11,0.30)',
+    borderColor: 'rgba(245,158,11,0.08)',
   },
   tableRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 13,
+    padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgb(241, 245, 249)',
+    borderBottomColor: 'rgba(0,0,0,0.03)',
     gap: 10,
   },
   bankIcon: {
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: 'rgb(241, 245, 249)',
+    backgroundColor: 'rgba(0,0,0,0.03)',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
   rowContent: { flex: 1, minWidth: 0 },
-  rowTitle: { fontSize: 12, fontWeight: '800', color: Colors.black },
-  rowSub: { fontSize: 10, color: 'rgb(100, 116, 139)', marginTop: 1 },
+  rowTitle: { fontSize: 12, fontFamily: Fonts.Bold, color: Colors.primary },
+  rowSub: { fontSize: 11, fontFamily: Fonts.Medium, color: Colors.slate_700, marginTop: 1 },
   rowActions: { alignItems: 'flex-end' },
   emptyState: { padding: 24, alignItems: 'center' },
-  emptyText: { fontSize: FontSize.base, color: 'rgb(100, 116, 139)' },
+  emptyText: { fontSize: 14, color: Colors.slate_700, fontFamily: Fonts.Medium },
 });
 
 export default DashboardScreen;

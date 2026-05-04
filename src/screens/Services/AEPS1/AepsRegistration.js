@@ -326,11 +326,11 @@ const AepsRegistration = () => {
         setShowCalendar(false);
     };
 
-    const renderInput = (label, value, onChangeText, placeholder, icon, error, keyboardType = "default", maxLength) => (
+    const renderInput = (label, value, onChangeText, placeholder, icon, error, keyboardType = "default", maxLength, iconRight = false) => (
         <View style={styles.inputContainer}>
             <Text style={styles.label}>{label}</Text>
             <View style={[styles.inputWrapper, error && styles.inputError]}>
-                <Icon name={icon} size={20 * S} color={Colors.primary} style={styles.inputIcon} />
+                {!iconRight && <Icon name={icon} size={20 * S} color={Colors.primary} style={styles.inputIcon} />}
                 <TextInput
                     style={styles.input}
                     value={value}
@@ -340,6 +340,7 @@ const AepsRegistration = () => {
                     keyboardType={keyboardType}
                     maxLength={maxLength}
                 />
+                {iconRight && <Icon name={icon} size={22 * S} color={Colors.primary} style={{ marginLeft: 8 * S }} />}
                 {error && <Icon name="alert-circle" size={18 * S} color={Colors.red} />}
             </View>
             {error && <Text style={styles.errorText}>{error}</Text>}
@@ -365,114 +366,124 @@ const AepsRegistration = () => {
                     contentContainerStyle={styles.scrollContent}
                     keyboardShouldPersistTaps="handled"
                 >
-                    {/* ── Hero Title ── */}
-                    <View style={styles.heroWrap}>
-                        <View style={styles.heroBadge}>
-                            <View style={styles.heroBadgeDot} />
-                            <Text style={styles.heroBadgeTxt}>LIVE · AEPS Registration</Text>
+
+                    <View style={styles.modernCard}>
+                        <View style={styles.cardHighlightHeader}>
+                            <Icon name="account-details-outline" size={16} color={Colors.finance_accent} />
+                            <Text style={styles.cardHighlightTitle}>PERSONAL DETAILS</Text>
                         </View>
-                        <Text style={styles.heroTitle}>{"Aadhaar Enabled\nPayment System"}</Text>
-                        <Text style={styles.heroSub}>Modernized Biometric Authentication Gateway</Text>
+
+                        <View style={styles.cardBody}>
+
+                            {renderInput("FULL NAME", formData.name, (t) => {
+                                const filtered = t.replace(/[^A-Za-z\s]/g, "");
+                                setFormData({ ...formData, name: filtered });
+                            }, "Enter your full name", "account-outline", errors.name, "default", 100)}
+
+                            {renderInput("EMAIL ADDRESS", formData.email, (t) => setFormData({ ...formData, email: t }), "example@mail.com", "email-outline", errors.email, "email-address")}
+
+                            {renderInput("MOBILE NUMBER", formData.mobile, (t) => {
+                                const filtered = t.replace(/[^0-9]/g, "");
+                                setFormData({ ...formData, mobile: filtered });
+                            }, "9876543210", "phone-outline", errors.mobile, "phone-pad", 10)}
+
+                            <View style={styles.row}>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={styles.label}>GENDER</Text>
+                                    <TouchableOpacity
+                                        style={[styles.inputWrapper, errors.gender && styles.inputError]}
+                                        onPress={() => setGenderModal(true)}
+                                    >
+                                        <Icon name="account-group-outline" size={18 * S} color={Colors.primary} style={styles.inputIcon} />
+                                        <Text style={[styles.input, !formData.gender && { color: Colors.gray }]} numberOfLines={1} ellipsizeMode="tail">
+                                            {selectedGender ? selectedGender.label : "Select Gender"}
+                                        </Text>
+                                        <Icon name="chevron-down" size={16} color={Colors.gray} />
+                                    </TouchableOpacity>
+                                    {errors.gender && <Text style={styles.errorText}>{errors.gender}</Text>}
+                                </View>
+                                <View style={{ flex: 1, marginLeft: 16 * S }}>
+                                    <Text style={styles.label}>DATE OF BIRTH</Text>
+                                    <TouchableOpacity
+                                        style={[styles.inputWrapper, errors.dob && styles.inputError]}
+                                        onPress={() => setShowCalendar(true)}
+                                    >
+                                        <Icon name="calendar-outline" size={18 * S} color={Colors.primary} style={styles.inputIcon} />
+                                        <Text style={[styles.input, !formData.dateOfBirth && { color: Colors.gray }]} numberOfLines={1} ellipsizeMode="tail">
+                                            {formData.dateOfBirth || "YYYY-MM-DD"}
+                                        </Text>
+                                    </TouchableOpacity>
+                                    {errors.dob && <Text style={styles.errorText}>{errors.dob}</Text>}
+                                </View>
+                            </View>
+                        </View>
                     </View>
-                    <View style={styles.card}>
-                        <Text style={styles.sectionTitle}>Personal Details</Text>
 
-                        {renderInput("FULL NAME", formData.name, (t) => {
-                            const filtered = t.replace(/[^A-Za-z\s]/g, "");
-                            setFormData({ ...formData, name: filtered });
-                        }, "Enter your full name", "account-outline", errors.name, "default", 100)}
+                    <View style={styles.modernCard}>
+                        <View style={styles.cardHighlightHeader}>
+                            <Icon name="shield-check-outline" size={16} color={Colors.finance_accent} />
+                            <Text style={styles.cardHighlightTitle}>VERIFICATION DETAILS</Text>
+                        </View>
 
-                        {renderInput("EMAIL ADDRESS", formData.email, (t) => setFormData({ ...formData, email: t }), "example@mail.com", "email-outline", errors.email, "email-address")}
+                        <View style={styles.cardBody}>
 
-                        {renderInput("MOBILE NUMBER", formData.mobile, (t) => {
-                            const filtered = t.replace(/[^0-9]/g, "");
-                            setFormData({ ...formData, mobile: filtered });
-                        }, "9876543210", "phone-outline", errors.mobile, "phone-pad", 10)}
-
-                        <View style={styles.row}>
-                            <View style={{ flex: 1 }}>
-                                <Text style={styles.label}>GENDER</Text>
+                            <View style={{ marginBottom: 15 * S }}>
+                                <Text style={styles.label}>SELECT BANK</Text>
                                 <TouchableOpacity
-                                    style={[styles.inputWrapper, errors.gender && styles.inputError]}
-                                    onPress={() => setGenderModal(true)}
+                                    style={[styles.inputWrapper, errors.bank && styles.inputError]}
+                                    onPress={() => setBankModal(true)}
                                 >
-                                    <Icon name="account-group-outline" size={18 * S} color={Colors.primary} style={styles.inputIcon} />
-                                    <Text style={[styles.input, !formData.gender && { color: Colors.gray }]} numberOfLines={1} ellipsizeMode="tail">
-                                        {selectedGender ? selectedGender.label : "Select Gender"}
+                                    <Icon name="bank-outline" size={20 * S} color={Colors.primary} style={styles.inputIcon} />
+                                    <Text style={[styles.input, !formData.bankCode && { color: Colors.gray }]} numberOfLines={1}>
+                                        {selectedBank ? selectedBank.name : "Choose your bank"}
                                     </Text>
-                                    <Icon name="chevron-down" size={16} color={Colors.gray} />
+                                    <Icon name="chevron-down" size={20} color={Colors.gray} />
                                 </TouchableOpacity>
-                                {errors.gender && <Text style={styles.errorText}>{errors.gender}</Text>}
+                                {errors.bank && <Text style={styles.errorText}>{errors.bank}</Text>}
                             </View>
-                            <View style={{ flex: 1, marginLeft: 16 * S }}>
-                                <Text style={styles.label}>DATE OF BIRTH</Text>
-                                <TouchableOpacity
-                                    style={[styles.inputWrapper, errors.dob && styles.inputError]}
-                                    onPress={() => setShowCalendar(true)}
-                                >
-                                    <Icon name="calendar-outline" size={18 * S} color={Colors.primary} style={styles.inputIcon} />
-                                    <Text style={[styles.input, !formData.dateOfBirth && { color: Colors.gray }]} numberOfLines={1} ellipsizeMode="tail">
-                                        {formData.dateOfBirth || "YYYY-MM-DD"}
-                                    </Text>
-                                </TouchableOpacity>
-                                {errors.dob && <Text style={styles.errorText}>{errors.dob}</Text>}
-                            </View>
+
+                            {renderInput("AADHAAR NUMBER", formData.aadhaar, (t) => {
+                                const filtered = t.replace(/[^0-9]/g, "");
+                                setFormData({ ...formData, aadhaar: filtered });
+                            }, "1234 5678 9012", "card-account-details-outline", errors.aadhaar, "number-pad", 12, true)}
+
+                            {renderInput("PAN CARD NUMBER", formData.pan, (t) => {
+                                const filtered = t.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+                                setFormData({ ...formData, pan: filtered });
+                            }, "ABCDE1234F", "card-text-outline", errors.pan, "default", 10, true)}
                         </View>
                     </View>
 
-                    <View style={styles.card}>
-                        <Text style={styles.sectionTitle}>Verification Details</Text>
-
-                        <View style={{ marginBottom: 15 * S }}>
-                            <Text style={styles.label}>SELECT BANK</Text>
-                            <TouchableOpacity
-                                style={[styles.inputWrapper, errors.bank && styles.inputError]}
-                                onPress={() => setBankModal(true)}
-                            >
-                                <Icon name="bank-outline" size={20 * S} color={Colors.primary} style={styles.inputIcon} />
-                                <Text style={[styles.input, !formData.bankCode && { color: Colors.gray }]} numberOfLines={1}>
-                                    {selectedBank ? selectedBank.name : "Choose your bank"}
-                                </Text>
-                                <Icon name="chevron-down" size={20} color={Colors.gray} />
-                            </TouchableOpacity>
-                            {errors.bank && <Text style={styles.errorText}>{errors.bank}</Text>}
+                    <View style={styles.modernCard}>
+                        <View style={styles.cardHighlightHeader}>
+                            <Icon name="map-marker-radius-outline" size={16} color={Colors.finance_accent} />
+                            <Text style={styles.cardHighlightTitle}>ADDRESS DETAILS</Text>
                         </View>
 
-                        {renderInput("AADHAAR NUMBER", formData.aadhaar, (t) => {
-                            const filtered = t.replace(/[^0-9]/g, "");
-                            setFormData({ ...formData, aadhaar: filtered });
-                        }, "1234 5678 9012", "card-account-details-outline", errors.aadhaar, "number-pad", 12)}
+                        <View style={styles.cardBody}>
 
-                        {renderInput("PAN CARD NUMBER", formData.pan, (t) => {
-                            const filtered = t.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
-                            setFormData({ ...formData, pan: filtered });
-                        }, "ABCDE1234F", "card-text-outline", errors.pan, "default", 10)}
-                    </View>
+                            {renderInput("FULL ADDRESS", formData.address.full, (t) => updateNestedField("address", "full", t), "Shop No, Street, Area", "map-marker-outline", errors.addrFull, "default", 200)}
 
-                    <View style={styles.card}>
-                        <Text style={styles.sectionTitle}>Address Details</Text>
-
-                        {renderInput("FULL ADDRESS", formData.address.full, (t) => updateNestedField("address", "full", t), "Shop No, Street, Area", "map-marker-outline", errors.addrFull, "default", 200)}
-
-                        <View style={styles.row}>
-                            <View style={{ flex: 1 }}>
-                                {renderInput("CITY", formData.address.city, (t) => {
-                                    const filtered = t.replace(/[^A-Za-z\s]/g, "");
-                                    updateNestedField("address", "city", filtered);
-                                }, "Jaipur", "city-variant-outline", errors.city)}
-                            </View>
-                            <View style={{ flex: 1, marginLeft: 16 * S }}>
-                                {renderInput("PINCODE", formData.address.pincode, (t) => {
-                                    const filtered = t.replace(/[^0-9]/g, "");
-                                    updateNestedField("address", "pincode", filtered);
-                                }, "302001", "mailbox-outline", errors.pincode, "number-pad", 6)}
+                            <View style={styles.row}>
+                                <View style={{ flex: 1 }}>
+                                    {renderInput("CITY", formData.address.city, (t) => {
+                                        const filtered = t.replace(/[^A-Za-z\s]/g, "");
+                                        updateNestedField("address", "city", filtered);
+                                    }, "Jaipur", "city-variant-outline", errors.city)}
+                                </View>
+                                <View style={{ flex: 1, marginLeft: 16 * S }}>
+                                    {renderInput("PINCODE", formData.address.pincode, (t) => {
+                                        const filtered = t.replace(/[^0-9]/g, "");
+                                        updateNestedField("address", "pincode", filtered);
+                                    }, "302001", "mailbox-outline", errors.pincode, "number-pad", 6)}
+                                </View>
                             </View>
                         </View>
                     </View>
 
                     <TouchableOpacity
                         style={[
-                            styles.submitBtn, 
+                            styles.submitBtn,
                             (!formData.merchantName || !formData.mobile || !formData.email || !formData.aadhaar || !formData.pan || !formData.bankCode || !formData.address.full || !formData.address.city || !formData.address.pincode) && styles.submitBtnDisabled
                         ]}
                         onPress={handleSubmit}
@@ -483,14 +494,14 @@ const AepsRegistration = () => {
                         ) : (
                             <>
                                 <Text style={[
-                                    styles.submitBtnTxt, 
+                                    styles.submitBtnTxt,
                                     (!formData.merchantName || !formData.mobile || !formData.email || !formData.aadhaar || !formData.pan || !formData.bankCode || !formData.address.full || !formData.address.city || !formData.address.pincode) && { color: Colors.slate_500 }
                                 ]}>Register To AEPS</Text>
-                                <Icon 
-                                    name="arrow-right" 
-                                    size={20 * S} 
-                                    color={(!formData.merchantName || !formData.mobile || !formData.email || !formData.aadhaar || !formData.pan || !formData.bankCode || !formData.address.full || !formData.address.city || !formData.address.pincode) ? Colors.slate_500 : Colors.white} 
-                                    style={{ marginLeft: 8 * S }} 
+                                <Icon
+                                    name="arrow-right"
+                                    size={20 * S}
+                                    color={(!formData.merchantName || !formData.mobile || !formData.email || !formData.aadhaar || !formData.pan || !formData.bankCode || !formData.address.full || !formData.address.city || !formData.address.pincode) ? Colors.slate_500 : Colors.white}
+                                    style={{ marginLeft: 8 * S }}
                                 />
                             </>
                         )}
@@ -573,10 +584,10 @@ const bs = StyleSheet.create({
     closeBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: Colors.bg_F8, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: Colors.slate_100 },
     sheetSearchRow: {
         flexDirection: "row", alignItems: "center",
-        backgroundColor: Colors.bg_F8,
+        backgroundColor: Colors.white,
         borderRadius: 12, paddingHorizontal: 12,
         marginBottom: 4, height: 48,
-        borderWidth: 1, borderColor: Colors.slate_100,
+        borderWidth: 1, borderColor: "rgba(0,0,0,0.05)",
     },
     sheetSearchInput: { flex: 1, fontSize: 14, fontFamily: Fonts.Medium, color: Colors.primary, padding: 0 },
     sheetListItem: {
@@ -607,63 +618,28 @@ const styles = StyleSheet.create({
     scrollContent: {
         padding: 20 * S,
     },
-    // Hero
-    heroWrap: {
-        marginBottom: 20 * S,
+    modernCard: {
+        backgroundColor: Colors.cardbg,
+        borderRadius: 18,
+        marginBottom: 16,
+        overflow: 'hidden',
     },
-    heroBadge: {
+    cardHighlightHeader: {
         flexDirection: "row",
         alignItems: "center",
-        alignSelf: "flex-start",
-        backgroundColor: Colors.beige,
-        borderRadius: 999,
-        paddingVertical: 6,
-        paddingHorizontal: 14,
-        borderWidth: 1,
-        borderColor: "rgba(212,168,67,0.2)",
-        marginBottom: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        backgroundColor: 'rgb(46, 46, 46)',
+        gap: 8,
     },
-    heroBadgeDot: {
-        width: 6, height: 6, borderRadius: 3,
-        backgroundColor: Colors.green,
-        marginRight: 8,
-    },
-    heroBadgeTxt: {
+    cardHighlightTitle: {
         fontSize: 11,
         fontFamily: Fonts.Bold,
         color: Colors.finance_accent,
-        letterSpacing: 0.06,
-        textTransform: "uppercase",
-    },
-    heroTitle: {
-        fontSize: 26 * S,
-        fontFamily: Fonts.Bold,
-        color: Colors.primary,
-        letterSpacing: -0.5,
-        lineHeight: 30 * S,
-        marginBottom: 6,
-    },
-    heroSub: {
-        fontSize: 13,
-        color: Colors.text_secondary,
-        fontFamily: Fonts.Regular,
-        lineHeight: 18,
-    },
-    card: {
-        backgroundColor: Colors.beige,
-        borderRadius: 20 * S,
-        padding: 18 * S,
-        marginBottom: 20 * S,
-        borderWidth: 1,
-        borderColor: "rgba(245,158,11,0.30)",
-    },
-    sectionTitle: {
-        fontFamily: Fonts.Bold,
-        fontSize: 16 * S,
-        color: Colors.primary,
-        marginBottom: 15 * S,
-        textTransform: "uppercase",
         letterSpacing: 0.5,
+    },
+    cardBody: {
+        padding: 16,
     },
     inputContainer: {
         marginBottom: 15 * S,
@@ -681,7 +657,7 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.white,
         borderRadius: 15 * S,
         borderWidth: 0.5,
-        borderColor: Colors.finance_accent,
+        borderColor: "rgba(212,176,106,0.30)",
         paddingHorizontal: 12 * S,
         height: 48 * S,
     },

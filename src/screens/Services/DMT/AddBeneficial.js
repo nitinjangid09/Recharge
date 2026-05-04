@@ -22,6 +22,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { AlertService } from "../../../componets/Alerts/CustomAlert";
 import Colors from "../../../constants/Colors";
 import Fonts from "../../../constants/Fonts";
+import HeaderBar from "../../../componets/HeaderBar/HeaderBar";
 
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
@@ -68,7 +69,7 @@ const SelectPicker = ({
         <View style={sp.triggerLeft}>
           {selected ? (
             <>
-              <Text style={sp.triggerIcon}>{selected.icon}</Text>
+              <Icon name={selected.icon} size={rs(18)} color={Colors.finance_accent} style={{ marginRight: scale(8) }} />
               <Text style={sp.triggerValue}>{selected.label}</Text>
             </>
           ) : (
@@ -105,13 +106,13 @@ const SelectPicker = ({
             <View style={sp.sheetTitleRow}>
               <Text style={sp.sheetTitle}>{label}</Text>
               <TouchableOpacity onPress={handleClose} style={sp.closeBtn}>
-                <Text style={sp.closeBtnTxt}>✕</Text>
+                <Icon name="close" size={rs(20)} color={Colors.white} />
               </TouchableOpacity>
             </View>
 
             {searchable && (
               <View style={sp.searchRow}>
-                <Text style={sp.searchIcon}>🔍</Text>
+                <Icon name="magnify" size={rs(16)} color={Colors.gray} style={{ marginRight: scale(6) }} />
                 <TextInput
                   style={sp.searchInput}
                   placeholder={`Search ${label.toLowerCase()}...`}
@@ -121,7 +122,7 @@ const SelectPicker = ({
                 />
                 {search.length > 0 && (
                   <TouchableOpacity onPress={() => setSearch("")}>
-                    <Text style={sp.searchClear}>✕</Text>
+                    <Icon name="close-circle" size={rs(16)} color={Colors.gray} />
                   </TouchableOpacity>
                 )}
               </View>
@@ -143,14 +144,14 @@ const SelectPicker = ({
                   activeOpacity={0.75}
                 >
                   <View style={[sp.listIconBox, isSel && sp.listIconBoxSel]}>
-                    <Text style={sp.listIcon}>{item.icon}</Text>
+                    <Icon name={item.icon} size={rs(18)} color={isSel ? Colors.white : Colors.finance_accent} />
                   </View>
                   <Text style={[sp.listTxt, isSel && sp.listTxtSel]}>
                     {item.label}
                   </Text>
                   {isSel && (
                     <View style={sp.checkCircle}>
-                      <Text style={sp.checkMark}>✓</Text>
+                      <Icon name="check" size={rs(12)} color={Colors.white} />
                     </View>
                   )}
                 </TouchableOpacity>
@@ -199,7 +200,7 @@ const AddBeneficiary = () => {
         const mapped = res.data.map((b) => ({
           label: b.bankName,
           value: b.bankName,
-          icon: "🏦",
+          icon: "bank-outline",
         }));
         setBanks(mapped.sort((a, b) => a.label.localeCompare(b.label)));
       }
@@ -317,15 +318,13 @@ const AddBeneficiary = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* HEADER */}
+      <HeaderBar title="Add Beneficiary" onBack={() => navigation.goBack()} />
+
       <View style={styles.header}>
         <View style={styles.badge}>
+          <Icon name="shield-check" size={14} color={Colors.finance_accent} />
           <Text style={styles.badgeText}>SECURE DMT</Text>
         </View>
-
-        <Text style={styles.title}>
-          <Text style={styles.titleAccent}>Add</Text> Beneficiary
-        </Text>
 
         <Text style={styles.subtitle}>Secure Domestic Money Transfer</Text>
       </View>
@@ -338,81 +337,84 @@ const AddBeneficiary = () => {
 
 
         {/* FORM CARD */}
-        <View style={styles.card}>
-          <SectionTitle title="BANK DETAILS" />
+        <View style={styles.modernCard}>
+          <View style={styles.cardHighlightHeader}>
+            <Icon name="bank-plus" size={14} color={Colors.finance_accent} />
+            <Text style={styles.cardHighlightTitle}>BENEFICIARY DETAILS</Text>
+          </View>
 
-          <SelectPicker
-            label="Bank Name"
-            placeholder={loadingBanks ? "Loading Banks..." : "Select Bank"}
-            required
-            items={banks}
-            value={formData.bankName}
-            onChange={(v) => handleInputChange("bankName", v)}
-            error={errors.bankName}
-            searchable
-          />
+          <View style={styles.cardBody}>
+            <SelectPicker
+              label="Bank Name"
+              placeholder={loadingBanks ? "Loading Banks..." : "Select Bank"}
+              required
+              items={banks}
+              value={formData.bankName}
+              onChange={(v) => handleInputChange("bankName", v)}
+              error={errors.bankName}
+              searchable
+            />
 
-          <FormInput
-            label="Account Number"
-            placeholder="Enter Account Number"
-            keyboardType="numeric"
-            maxLength={18}
-            required
-            value={formData.accountNumber}
-            onChangeText={(t) => handleInputChange("accountNumber", t.replace(/\D/g, ""))}
-            error={errors.accountNumber}
-          />
+            <FormInput
+              label="Account Number"
+              placeholder="Enter Account Number"
+              keyboardType="numeric"
+              maxLength={18}
+              required
+              value={formData.accountNumber}
+              onChangeText={(t) => handleInputChange("accountNumber", t.replace(/\D/g, ""))}
+              error={errors.accountNumber}
+            />
 
-          <FormInput
-            label="IFSC Code"
-            placeholder="E.g. SBIN0001234"
-            autoCapitalize="characters"
-            maxLength={11}
-            required
-            value={formData.ifscCode}
-            onChangeText={(t) => handleInputChange("ifscCode", t.toUpperCase())}
-            error={errors.ifscCode}
-          />
+            <FormInput
+              label="IFSC Code"
+              placeholder="E.g. SBIN0001234"
+              autoCapitalize="characters"
+              maxLength={11}
+              required
+              value={formData.ifscCode}
+              onChangeText={(t) => handleInputChange("ifscCode", t.toUpperCase())}
+              error={errors.ifscCode}
+            />
 
-          <SectionTitle title="ACCOUNT HOLDER" />
+            <FormInput
+              label="Account Holder Name"
+              placeholder="Enter Name"
+              required
+              value={formData.holderName}
+              onChangeText={(t) => handleInputChange("holderName", t)}
+              error={errors.holderName}
+            />
 
-          <FormInput
-            label="Account Holder Name"
-            placeholder="Enter Name"
-            required
-            value={formData.holderName}
-            onChangeText={(t) => handleInputChange("holderName", t)}
-            error={errors.holderName}
-          />
+            <FormInput
+              label="Mobile Number"
+              placeholder="Enter 10-digit mobile"
+              keyboardType="numeric"
+              maxLength={10}
+              required
+              value={formData.mobileNumber}
+              onChangeText={(t) => handleInputChange("mobileNumber", t.replace(/\D/g, ""))}
+              error={errors.mobileNumber}
+            />
 
-          <FormInput
-            label="Mobile Number"
-            placeholder="Enter 10-digit mobile"
-            keyboardType="numeric"
-            maxLength={10}
-            required
-            value={formData.mobileNumber}
-            onChangeText={(t) => handleInputChange("mobileNumber", t.replace(/\D/g, ""))}
-            error={errors.mobileNumber}
-          />
-
-          {/* BUTTON */}
-          {(() => {
-            const allFilled = !!formData.bankName && !!formData.accountNumber && !!formData.ifscCode && !!formData.holderName && !!formData.mobileNumber && !submitting;
-            return (
-              <TouchableOpacity
-                style={[styles.button, { backgroundColor: allFilled ? Colors.primary : Colors.gold }]}
-                onPress={handleAddBeneficiary}
-                disabled={!allFilled}
-              >
-                {submitting ? (
-                  <ActivityIndicator color={Colors.white} />
-                ) : (
-                  <Text style={[styles.buttonText, { color: allFilled ? Colors.white : Colors.slate_500 }]}>Add Beneficiary</Text>
-                )}
-              </TouchableOpacity>
-            );
-          })()}
+            {/* BUTTON */}
+            {(() => {
+              const allFilled = !!formData.bankName && !!formData.accountNumber && !!formData.ifscCode && !!formData.holderName && !!formData.mobileNumber && !submitting;
+              return (
+                <TouchableOpacity
+                  style={[styles.button, { backgroundColor: allFilled ? Colors.primary : Colors.gold }]}
+                  onPress={handleAddBeneficiary}
+                  disabled={!allFilled}
+                >
+                  {submitting ? (
+                    <ActivityIndicator color={Colors.white} />
+                  ) : (
+                    <Text style={[styles.buttonText, { color: allFilled ? Colors.white : Colors.slate_500 }]}>Add Beneficiary</Text>
+                  )}
+                </TouchableOpacity>
+              );
+            })()}
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -442,17 +444,14 @@ const FormInput = ({
   error,
   ...props
 }) => (
-  <View style={styles.inputContainer}>
-    <View style={styles.labelRow}>
-      <Text style={styles.label}>{label}</Text>
-      {required && <Text style={styles.required}>Required</Text>}
-      {optional && <Text style={styles.optional}>Optional</Text>}
-    </View>
-
+  <View style={styles.modernInputWrapper}>
+    <Text style={styles.floatingLabel}>
+      {label} {required && <Text style={{ color: Colors.red }}>*</Text>}
+    </Text>
     <TextInput
-      style={[styles.input, error && styles.inputError]}
+      style={styles.inputField}
       placeholder={placeholder}
-      placeholderTextColor={Colors.gray}
+      placeholderTextColor={Colors.slate_500}
       keyboardType={keyboardType}
       value={value}
       onChangeText={onChangeText}
@@ -469,156 +468,111 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.primary,
   },
-
   scrollContainer: {
     paddingBottom: 40,
     flexGrow: 1,
   },
-
   scrollBody: {
     flex: 1,
     backgroundColor: Colors.beige,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    overflow: "hidden",
   },
-
-  /* HEADER */
-
   header: {
     padding: 20,
+    backgroundColor: Colors.primary,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
-
   badge: {
-    backgroundColor: Colors.kyc_accent + "18",
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: "rgba(255,255,255,0.1)",
     alignSelf: "flex-start",
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 20,
     marginBottom: 10,
-  },
-
-  badgeText: {
-    color: Colors.kyc_accent,
-    fontSize: 12,
-    fontWeight: "600",
-  },
-
-  title: {
-    color: Colors.white,
-    fontSize: 26,
-    fontWeight: "700",
-  },
-
-  titleAccent: {
-    color: Colors.kyc_accent,
-  },
-
-  subtitle: {
-    color: "rgba(255,255,255,0.80)",
-    marginTop: 4,
-    fontSize: 13,
-  },
-
-  /* CARD */
-
-  card: {
-    backgroundColor: Colors.cardbg,
-    padding: 20,
     borderWidth: 1,
-    borderColor: "rgba(245,158,11,0.30)",
-    borderRadius: 20,
-    margin: 16,
+    borderColor: "rgba(255,255,255,0.18)",
   },
-
-  /* SECTION */
-
-  section: {
-    marginTop: 20,
-    marginBottom: 10,
-  },
-
-  sectionText: {
-    fontSize: 12,
-    color: Colors.gray,
-    fontWeight: "700",
+  badgeText: {
+    color: Colors.white,
+    fontSize: 10,
+    fontFamily: Fonts.Bold,
     letterSpacing: 1,
   },
-
-  /* INPUT */
-
-  inputContainer: {
-    marginBottom: 16,
-  },
-
-  labelRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 6,
-  },
-
-  label: {
+  subtitle: {
+    color: "rgba(255,255,255,0.65)",
+    marginTop: 4,
     fontSize: 13,
-    fontWeight: "500",
-    color: Colors.black,
+    fontFamily: Fonts.Medium,
   },
 
-  required: {
-    fontSize: 11,
-    color: Colors.kyc_accent,
-  },
-
-  optional: {
-    fontSize: 11,
-    color: Colors.gray,
-  },
-
-  input: {
-    height: 50,
-    backgroundColor: Colors.white,
-    borderRadius: 14,
-    paddingHorizontal: 15,
-    fontSize: 14,
+  modernCard: {
+    backgroundColor: Colors.cardbg,
+    borderRadius: 18,
+    margin: 16,
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: "transparent",
+    borderColor: 'rgba(245,158,11,0.30)',
+  },
+  cardHighlightHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: 'rgb(46, 46, 46)',
+    gap: 8,
+  },
+  cardHighlightTitle: {
+    fontSize: 11,
+    fontFamily: Fonts.Bold,
+    color: Colors.finance_accent,
+    letterSpacing: 0.5,
+  },
+  cardBody: {
+    padding: 16,
   },
 
-  inputError: {
-    borderColor: Colors.red,
-    borderWidth: 1,
+  modernInputWrapper: {
+    borderBottomWidth: 1.5,
+    borderBottomColor: "rgba(212,176,106,0.40)",
+    marginBottom: 16,
+    paddingVertical: 8,
   },
-
+  floatingLabel: {
+    fontSize: 10,
+    fontFamily: Fonts.Bold,
+    color: Colors.finance_accent,
+    letterSpacing: 1,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  inputField: {
+    fontFamily: Fonts.Bold,
+    fontSize: 16,
+    color: Colors.primary,
+    padding: 0,
+  },
   errorText: {
     color: Colors.red,
     fontSize: 11,
     marginTop: 4,
-    fontWeight: "600",
+    fontFamily: Fonts.Bold,
   },
-
-  /* PICKER */
-  pickerContainer: {
-    height: 50,
-    backgroundColor: Colors.white,
-    borderRadius: 14,
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "transparent",
-  },
-  /* BUTTON */
 
   button: {
-    marginTop: 30,
-    borderRadius: 30,
+    marginTop: 20,
+    borderRadius: 12,
     paddingVertical: 16,
     alignItems: "center",
-  },
-  buttonDisabled: {
-    backgroundColor: Colors.gold,
+    justifyContent: "center",
   },
   buttonText: {
     color: Colors.white,
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: Fonts.Bold,
+    letterSpacing: 0.5,
   },
 });
 
@@ -634,27 +588,28 @@ const sp = StyleSheet.create({
     marginBottom: 6,
   },
   labelText: {
-    fontSize: 13,
-    fontWeight: "500",
-    color: Colors.black,
-    marginBottom: vs(6),
+    fontSize: 10,
+    fontFamily: Fonts.Bold,
+    color: Colors.finance_accent,
+    letterSpacing: 1,
+    marginBottom: 4,
+    textTransform: 'uppercase',
   },
-  required: { color: Colors.kyc_accent },
+  required: { color: Colors.red },
 
   // Trigger
   trigger: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    backgroundColor: Colors.white,
-    borderRadius: scale(14),
-    borderWidth: 1, borderColor: "transparent",
-    paddingHorizontal: scale(15),
-    minHeight: vs(50),
+    backgroundColor: "transparent",
+    borderBottomWidth: 1.5, borderBottomColor: "rgba(212,176,106,0.40)",
+    paddingVertical: 8,
+    minHeight: 45,
   },
   triggerError: { borderColor: Colors.red, borderWidth: 1 },
   triggerLeft: { flexDirection: "row", alignItems: "center", flex: 1 },
   triggerIcon: { fontSize: rs(18), marginRight: scale(8) },
-  triggerValue: { fontFamily: Fonts.Bold, fontSize: rs(14), color: Colors.heroEnd, fontWeight: "600" },
-  triggerPlaceholder: { fontFamily: Fonts.Medium, fontSize: rs(14), color: Colors.gray },
+  triggerValue: { fontFamily: Fonts.Bold, fontSize: 16, color: Colors.primary },
+  triggerPlaceholder: { fontFamily: Fonts.Medium, fontSize: 16, color: Colors.slate_500 },
 
   errorTxt: { fontFamily: Fonts.Light, color: Colors.red, fontSize: rs(10.5), marginTop: vs(4), fontWeight: "300" },
 
@@ -667,7 +622,7 @@ const sp = StyleSheet.create({
   // Sheet
   sheet: {
     position: "absolute", bottom: 0, left: 0, right: 0,
-    backgroundColor: Colors.cardbg,
+    backgroundColor: Colors.white,
     borderTopLeftRadius: scale(24), borderTopRightRadius: scale(24),
     maxHeight: SH * 0.68,
   },
@@ -724,10 +679,10 @@ const sp = StyleSheet.create({
   listTxtSel: { fontFamily: Fonts.Bold, color: Colors.kyc_accent, fontWeight: "700" },
 
   checkCircle: {
-    width: scale(22), height: scale(22), borderRadius: scale(11),
-    backgroundColor: Colors.kyc_accent, alignItems: "center", justifyContent: "center",
+    width: 22, height: 22, borderRadius: 11,
+    backgroundColor: Colors.finance_accent, alignItems: "center", justifyContent: "center",
   },
-  checkMark: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(12), fontWeight: "900" },
+  checkMark: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: 12 },
 
   emptyWrap: { alignItems: "center", paddingVertical: vs(30) },
   emptyTxt: { fontFamily: Fonts.Regular, color: Colors.gray, fontSize: rs(14) },

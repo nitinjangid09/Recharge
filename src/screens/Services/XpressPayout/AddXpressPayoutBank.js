@@ -157,100 +157,106 @@ export default function AddXpressPayoutBank({ navigation }) {
       />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.formCard}>
-          <Text style={styles.formTitle}>Xpress Bank Registration</Text>
-          <Text style={styles.formSub}>Add a new account for instant Xpress Payout settlements.</Text>
+        <View style={styles.modernCard}>
+          <View style={styles.cardHighlightHeader}>
+            <Icon name="bank-plus" size={14} color={Colors.finance_accent} />
+            <Text style={styles.cardHighlightTitle}>BANK REGISTRATION</Text>
+          </View>
 
-          <TouchableOpacity
-            style={[styles.inputWrapper, errors.bankId && styles.inputWrapperError]}
-            onPress={() => {
-              setSearchQuery('');
-              setFilteredBanks(bankList);
-              setIsModalVisible(true);
-              setErrors({ ...errors, bankId: null });
-            }}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.inputLabel}>Bank Name</Text>
-            <View style={[styles.inputBox, errors.bankId && { borderColor: Colors.red }]}>
-              <Icon name="bank" size={rs(18)} color={errors.bankId ? Colors.red : Colors.text_secondary} />
-              <Text
-                style={[
-                  styles.field,
-                  { color: form.bankName ? Colors.black : Colors.gray }
-                ]}
-                numberOfLines={1}
-              >
-                {form.bankName || "Select Bank"}
-              </Text>
-              <Icon name={isModalVisible ? "chevron-up" : "chevron-down"} size={rs(20)} color={Colors.text_secondary} />
-            </View>
-            {!!errors.bankId && <Text style={styles.errorText}>{errors.bankId}</Text>}
-          </TouchableOpacity>
+          <View style={styles.cardBody}>
+            <Text style={styles.formSub}>Add a new account for instant Xpress Payout settlements.</Text>
 
-          <FormInput
-            label="Account Holder Name"
-            icon="account"
-            placeholder="As per bank records"
-            value={form.accountHolderName}
-            onChangeText={(t) => {
-              const filtered = t.replace(/[^a-zA-Z\s]/g, '');
-              setForm({ ...form, accountHolderName: filtered });
-              setErrors({ ...errors, accountHolderName: null });
-            }}
-            maxLength={100}
-            error={errors.accountHolderName}
-          />
+            <TouchableOpacity
+              style={[styles.inputWrapper, errors.bankId && styles.inputWrapperError]}
+              onPress={() => {
+                setSearchQuery('');
+                setFilteredBanks(bankList);
+                setIsModalVisible(true);
+                setErrors({ ...errors, bankId: null });
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.inputLabel}>Bank Name</Text>
+              <View style={[styles.inputBox, errors.bankId && { borderColor: Colors.red }]}>
+                <Icon name="bank" size={rs(18)} color={errors.bankId ? Colors.red : Colors.text_secondary} />
+                <Text
+                  style={[
+                    styles.field,
+                    { color: form.bankName ? Colors.black : Colors.gray }
+                  ]}
+                  numberOfLines={1}
+                >
+                  {form.bankName || "Select Bank"}
+                </Text>
+                <Icon name={isModalVisible ? "chevron-up" : "chevron-down"} size={rs(20)} color={Colors.text_secondary} />
+              </View>
+              {!!errors.bankId && <Text style={styles.errorText}>{errors.bankId}</Text>}
+            </TouchableOpacity>
 
-          <FormInput
-            label="Account Number"
-            icon="numeric"
-            placeholder="00000000000"
-            value={form.accountNumber}
-            onChangeText={(t) => {
-              const filtered = t.replace(/\D/g, '');
-              setForm({ ...form, accountNumber: filtered });
-              setErrors({ ...errors, accountNumber: null });
-            }}
-            keyboardType="numeric"
-            maxLength={20}
-            error={errors.accountNumber}
-          />
+            <FormInput
+              label="Account Holder Name"
+              icon="account"
+              placeholder="As per bank records"
+              value={form.accountHolderName}
+              onChangeText={(t) => {
+                const filtered = t.replace(/[^a-zA-Z\s]/g, '');
+                setForm({ ...form, accountHolderName: filtered });
+                setErrors({ ...errors, accountHolderName: null });
+              }}
+              maxLength={100}
+              error={errors.accountHolderName}
+            />
 
-          <FormInput
-            label="IFSC Code"
-            icon="barcode-scan"
-            placeholder="SBIN0001234"
-            value={form.ifscCode}
-            onChangeText={(t) => {
-              const filtered = t.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-              setForm({ ...form, ifscCode: filtered });
-              setErrors({ ...errors, ifscCode: null });
-            }}
-            maxLength={15}
-            error={errors.ifscCode}
-          />
+            <FormInput
+              label="Account Number"
+              icon="numeric"
+              placeholder="00000000000"
+              value={form.accountNumber}
+              onChangeText={(t) => {
+                const filtered = t.replace(/\D/g, '');
+                setForm({ ...form, accountNumber: filtered });
+                setErrors({ ...errors, accountNumber: null });
+              }}
+              keyboardType="numeric"
+              maxLength={20}
+              error={errors.accountNumber}
+            />
+
+            <FormInput
+              label="IFSC Code"
+              icon="barcode-scan"
+              placeholder="SBIN0001234"
+              value={form.ifscCode}
+              onChangeText={(t) => {
+                const filtered = t.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+                setForm({ ...form, ifscCode: filtered });
+                setErrors({ ...errors, ifscCode: null });
+              }}
+              maxLength={15}
+              error={errors.ifscCode}
+            />
 
 
-          {(() => {
-            const isReady = !!form.bankId && !!form.accountHolderName && !!form.accountNumber && !!form.ifscCode && !loading;
-            return (
-              <TouchableOpacity
-                style={[styles.submitBtn, { backgroundColor: isReady ? Colors.primary : Colors.gold }]}
-                onPress={handleSubmit}
-                disabled={!isReady}
-              >
-                {loading ? (
-                  <ActivityIndicator color={Colors.white} />
-                ) : (
-                  <>
-                    <Text style={[styles.submitBtnText, { color: isReady ? Colors.white : Colors.slate_500 }]}>Submit Xpress Bank</Text>
-                    <Icon name="check-circle" size={rs(18)} color={isReady ? Colors.white : Colors.slate_500} />
-                  </>
-                )}
-              </TouchableOpacity>
-            );
-          })()}
+            {(() => {
+              const isReady = !!form.bankId && !!form.accountHolderName && !!form.accountNumber && !!form.ifscCode && !loading;
+              return (
+                <TouchableOpacity
+                  style={[styles.submitBtn, { backgroundColor: isReady ? Colors.primary : Colors.gold }]}
+                  onPress={handleSubmit}
+                  disabled={!isReady}
+                >
+                  {loading ? (
+                    <ActivityIndicator color={Colors.white} />
+                  ) : (
+                    <>
+                      <Text style={[styles.submitBtnText, { color: isReady ? Colors.white : Colors.slate_500 }]}>Submit Xpress Bank</Text>
+                      <Icon name="check-circle" size={rs(18)} color={isReady ? Colors.white : Colors.slate_500} />
+                    </>
+                  )}
+                </TouchableOpacity>
+              );
+            })()}
+          </View>
         </View>
         <View style={{ height: rs(40) }} />
       </ScrollView>
@@ -337,11 +343,35 @@ function FormInput({ label, icon, placeholder, value, onChangeText, error, ...pr
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.beige },
-  scrollContent: { paddingHorizontal: rs(16), paddingTop: rs(16) },
-  formCard: { backgroundColor: Colors.cardbg, borderRadius: rs(28), padding: rs(28), borderWidth: 1, borderColor: "rgba(245,158,11,0.30)" },
+  safe: { flex: 1, backgroundColor: Colors.primary },
+  scrollContent: { paddingHorizontal: rs(16), paddingTop: rs(16), backgroundColor: Colors.beige },
+  modernCard: {
+    backgroundColor: Colors.cardbg,
+    borderRadius: 18,
+    marginBottom: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.30)',
+  },
+  cardHighlightHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: 'rgb(46, 46, 46)',
+    gap: 8,
+  },
+  cardHighlightTitle: {
+    fontSize: rs(10),
+    fontFamily: Fonts.Bold,
+    color: Colors.finance_accent,
+    letterSpacing: 0.5,
+  },
+  cardBody: {
+    padding: 16,
+  },
   formTitle: { fontSize: rs(20), fontFamily: Fonts.Bold, color: Colors.black },
-  formSub: { fontSize: rs(13), fontFamily: Fonts.Medium, color: Colors.text_secondary, marginTop: rs(4), marginBottom: rs(28) },
+  formSub: { fontSize: rs(13), fontFamily: Fonts.Medium, color: Colors.text_secondary, marginTop: rs(4), marginBottom: rs(20) },
   inputWrapper: { marginBottom: rs(20) },
   inputLabel: { fontSize: rs(12), fontFamily: Fonts.Bold, color: Colors.black, marginBottom: rs(6), marginLeft: rs(4) },
   imageHint: { fontSize: rs(10), fontFamily: Fonts.Medium, color: Colors.gray, marginTop: rs(-4), marginBottom: rs(10), marginLeft: rs(4) },
@@ -358,7 +388,7 @@ const styles = StyleSheet.create({
   submitBtn: { height: rs(60), borderRadius: rs(20), flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: rs(10), marginTop: rs(12) },
   submitBtnText: { fontSize: rs(16), fontFamily: Fonts.Bold, color: Colors.white },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: Colors.cardbg, borderTopLeftRadius: rs(30), borderTopRightRadius: rs(30), height: '80%', padding: rs(20) },
+  modalContent: { backgroundColor: Colors.white, borderTopLeftRadius: rs(30), borderTopRightRadius: rs(30), height: '80%', padding: rs(20) },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: rs(20), paddingHorizontal: rs(5) },
   modalTitle: { fontSize: rs(20), fontFamily: Fonts.Bold, color: Colors.black },
   searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: rs(15), paddingHorizontal: rs(15), height: rs(50), borderWidth: 1, borderColor: Colors.input_border, marginBottom: rs(20), gap: rs(10) },

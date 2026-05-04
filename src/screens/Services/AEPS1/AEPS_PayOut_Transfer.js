@@ -132,94 +132,100 @@ export default function AEPS_Transfer({ navigation, route }) {
       />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.formCard}>
-          <Text style={styles.formTitle}>Instant Settlement</Text>
-          <Text style={styles.formSub}>Funds will be credited within seconds.</Text>
-
-          <View style={styles.inputWrapper}>
-            <Text style={styles.inputLabel}>Select Beneficiary Account</Text>
-            <TouchableOpacity
-              style={[styles.selector, errors.bank && { borderColor: Colors.red }]}
-              onPress={() => {
-                setIsModalVisible(true);
-                setErrors(prev => ({ ...prev, bank: null }));
-              }}
-            >
-              <Icon name="bank" size={rs(18)} color={errors.bank ? Colors.red : Colors.text_secondary} />
-              <Text style={[styles.selectorText, selectedBank && { color: Colors.black }, errors.bank && { color: Colors.red }]}>
-                {selectedBank ? `${selectedBank.bankName} (${selectedBank.accountNumber.slice(-4)})` : "Choose destination bank"}
-              </Text>
-              <Icon name="chevron-down" size={rs(20)} color={errors.bank ? Colors.red : Colors.text_secondary} />
-            </TouchableOpacity>
-            {!!errors.bank && <Text style={styles.errorText}>{errors.bank}</Text>}
-            {approved.length === 0 && (
-              <Text style={{ fontSize: rs(10), color: Colors.red, marginTop: rs(4), marginLeft: rs(4) }}>
-                No approved payout banks available.
-              </Text>
-            )}
+        <View style={styles.modernCard}>
+          <View style={styles.cardHighlightHeader}>
+            <Icon name="bank-transfer" size={16} color={Colors.finance_accent} />
+            <Text style={styles.cardHighlightTitle}>INSTANT SETTLEMENT</Text>
           </View>
 
-          <View style={styles.inputWrapper}>
-            <Text style={styles.inputLabel}>Payout Amount</Text>
-            <View style={[styles.amountInput, errors.amount && { borderColor: Colors.red }]}>
-              <Text style={[styles.currencySymbol, errors.amount && { color: Colors.red }]}>₹</Text>
-              <TextInput
-                style={[styles.field, errors.amount && { color: Colors.red }]}
-                placeholder="0.00"
-                keyboardType="numeric"
-                value={amount}
-                onChangeText={(val) => {
-                  let cleaned = val.replace(/[^0-9]/g, "");
-                  if (cleaned.startsWith("0")) cleaned = cleaned.replace(/^0+/, "");
-                  setAmount(cleaned);
-                  setErrors(prev => ({ ...prev, amount: null }));
-                }}
-                placeholderTextColor={Colors.gray}
-              />
-            </View>
-            {!!errors.amount && <Text style={styles.errorText}>{errors.amount}</Text>}
-          </View>
+          <View style={styles.cardBody}>
+            <Text style={styles.formSub}>Funds will be credited within seconds.</Text>
 
-          <View style={styles.inputWrapper}>
-            <Text style={styles.inputLabel}>Remarks / Purpose</Text>
-            <View style={[styles.remarkBox, errors.purpose && { borderColor: Colors.red }]}>
-              <TextInput
-                style={[styles.remarkField, errors.purpose && { color: Colors.red }]}
-                placeholder="e.g. Self Transfer"
-                value={purpose}
-                onChangeText={(val) => {
-                  setPurpose(val);
-                  setErrors(prev => ({ ...prev, purpose: null }));
-                }}
-                placeholderTextColor={Colors.gray}
-              />
-            </View>
-            {!!errors.purpose && <Text style={styles.errorText}>{errors.purpose}</Text>}
-          </View>
-
-          {(() => {
-            const isReady = !!selectedBank && !!amount && Number(amount) > 0 && !!purpose.trim() && !loading;
-            return (
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel}>Select Beneficiary Account</Text>
               <TouchableOpacity
-                style={[styles.transferBtn, { backgroundColor: isReady ? Colors.primary : Colors.gold }]}
-                onPress={handleTransfer}
-                disabled={!isReady}
+                style={[styles.selector, errors.bank && { borderColor: Colors.red }]}
+                onPress={() => {
+                  setIsModalVisible(true);
+                  setErrors(prev => ({ ...prev, bank: null }));
+                }}
               >
-                {loading ? (
-                  <ActivityIndicator color={Colors.white} />
-                ) : (
-                  <>
-                    <Text style={[styles.transferBtnText, { color: isReady ? Colors.white : Colors.slate_500 }]}>Transfer Now</Text>
-                    <Icon name="arrow-right" size={rs(18)} color={isReady ? Colors.white : Colors.slate_500} />
-                  </>
-                )}
+                <Icon name="bank" size={rs(18)} color={errors.bank ? Colors.red : Colors.finance_accent} />
+                <Text style={[styles.selectorText, selectedBank && { color: Colors.black }, errors.bank && { color: Colors.red }]}>
+                  {selectedBank ? `${selectedBank.bankName} (${selectedBank.accountNumber.slice(-4)})` : "Choose destination bank"}
+                </Text>
+                <Icon name="chevron-down" size={rs(20)} color={errors.bank ? Colors.red : Colors.text_secondary} />
               </TouchableOpacity>
-            );
-          })()}
+              {!!errors.bank && <Text style={styles.errorText}>{errors.bank}</Text>}
+              {approved.length === 0 && (
+                <Text style={{ fontSize: rs(10), color: Colors.red, marginTop: rs(4), marginLeft: rs(4) }}>
+                  No approved payout banks available.
+                </Text>
+              )}
+            </View>
 
-          <View style={styles.securityNote}>
-            <Icon name="lock-outline" size={rs(14)} color={Colors.text_secondary} />
-            <Text style={styles.securityText}>Secured by 256-bit SSL encryption</Text>
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel}>Payout Amount</Text>
+              <View style={[styles.amountInput, errors.amount && { borderColor: Colors.red }]}>
+                <Text style={[styles.currencySymbol, errors.amount && { color: Colors.red }]}>₹</Text>
+                <TextInput
+                  style={[styles.field, errors.amount && { color: Colors.red }]}
+                  placeholder="0.00"
+                  keyboardType="numeric"
+                  value={amount}
+                  onChangeText={(val) => {
+                    let cleaned = val.replace(/[^0-9]/g, "");
+                    if (cleaned.startsWith("0")) cleaned = cleaned.replace(/^0+/, "");
+                    setAmount(cleaned);
+                    setErrors(prev => ({ ...prev, amount: null }));
+                  }}
+                  placeholderTextColor={Colors.gray}
+                />
+              </View>
+              {!!errors.amount && <Text style={styles.errorText}>{errors.amount}</Text>}
+            </View>
+
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel}>Remarks / Purpose</Text>
+              <View style={[styles.remarkBox, errors.purpose && { borderColor: Colors.red }]}>
+                <TextInput
+                  style={[styles.remarkField, errors.purpose && { color: Colors.red }]}
+                  placeholder="e.g. Self Transfer"
+                  value={purpose}
+                  onChangeText={(val) => {
+                    setPurpose(val);
+                    setErrors(prev => ({ ...prev, purpose: null }));
+                  }}
+                  placeholderTextColor={Colors.gray}
+                />
+              </View>
+              {!!errors.purpose && <Text style={styles.errorText}>{errors.purpose}</Text>}
+            </View>
+
+            {(() => {
+              const isReady = !!selectedBank && !!amount && Number(amount) > 0 && !!purpose.trim() && !loading;
+              return (
+                <TouchableOpacity
+                  style={[styles.transferBtn, { backgroundColor: isReady ? Colors.primary : Colors.gold }]}
+                  onPress={handleTransfer}
+                  disabled={!isReady}
+                >
+                  {loading ? (
+                    <ActivityIndicator color={Colors.white} />
+                  ) : (
+                    <>
+                      <Text style={[styles.transferBtnText, { color: isReady ? Colors.white : Colors.slate_500 }]}>Transfer Now</Text>
+                      <Icon name="arrow-right" size={rs(18)} color={isReady ? Colors.white : Colors.slate_500} />
+                    </>
+                  )}
+                </TouchableOpacity>
+              );
+            })()}
+
+            <View style={styles.securityNote}>
+              <Icon name="lock-outline" size={rs(14)} color={Colors.text_secondary} />
+              <Text style={styles.securityText}>Secured by 256-bit SSL encryption</Text>
+            </View>
           </View>
         </View>
         <View style={{ height: rs(40) }} />
@@ -297,24 +303,35 @@ const styles = StyleSheet.create({
     paddingHorizontal: rs(16),
     paddingTop: rs(16),
   },
-  formCard: {
-    backgroundColor: Colors.beige,
-    borderRadius: rs(28),
-    padding: rs(28),
+  modernCard: {
+    backgroundColor: Colors.cardbg,
+    borderRadius: 18,
+    overflow: 'hidden',
     borderWidth: 1,
     borderColor: "rgba(245,158,11,0.30)",
   },
-  formTitle: {
-    fontSize: rs(20),
+  cardHighlightHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: 'rgb(46, 46, 46)',
+    gap: 8,
+  },
+  cardHighlightTitle: {
+    fontSize: rs(10),
     fontFamily: Fonts.Bold,
-    color: Colors.black,
+    color: Colors.finance_accent,
+    letterSpacing: 0.5,
+  },
+  cardBody: {
+    padding: rs(20),
   },
   formSub: {
-    fontSize: rs(13),
+    fontSize: rs(12),
     fontFamily: Fonts.Medium,
     color: Colors.text_secondary,
-    marginTop: rs(4),
-    marginBottom: rs(28),
+    marginBottom: rs(20),
   },
   inputWrapper: {
     marginBottom: rs(20),

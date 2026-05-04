@@ -183,23 +183,23 @@ const AEPS_Services = () => {
                 {/* ── Quick Services ── */}
                 <Text style={styles.sectionLabel}>QUICK SERVICES</Text>
                 <View style={styles.grid}>
-                <View style={styles.gridRow}>
-                    <ServiceCard
-                        title="Cash Withdrawal"
-                        Svg={CashWithdrawIcon}
-                        onPress={() => NavigationService.navigate("CashWithdraw")}
-                    />
-                    <ServiceCard
-                        title="Balance Enquiry"
-                        Svg={BalanceEnquiryIcon}
-                        onPress={() => NavigationService.navigate("BalanceEnquiry")}
-                    />
-                    <ServiceCard
-                        title="Mini Statement"
-                        Svg={MiniStatementIcon}
-                        onPress={() => NavigationService.navigate("MiniStatement")}
-                    />
-                </View>
+                    <View style={styles.gridRow}>
+                        <ServiceCard
+                            title="Cash Withdrawal"
+                            Svg={CashWithdrawIcon}
+                            onPress={() => NavigationService.navigate("CashWithdraw")}
+                        />
+                        <ServiceCard
+                            title="Balance Enquiry"
+                            Svg={BalanceEnquiryIcon}
+                            onPress={() => NavigationService.navigate("BalanceEnquiry")}
+                        />
+                        <ServiceCard
+                            title="Mini Statement"
+                            Svg={MiniStatementIcon}
+                            onPress={() => NavigationService.navigate("MiniStatement")}
+                        />
+                    </View>
                 </View>
 
                 {/* ── Recent Activity ── */}

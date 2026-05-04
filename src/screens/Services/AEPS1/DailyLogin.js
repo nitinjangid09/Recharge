@@ -34,6 +34,7 @@ import * as NavigationService from '../../../utils/NavigationService';
 import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
 import { fadeIn, slideUp, buttonPress } from '../../../utils/ScreenAnimations';
 import Colors from '../../../constants/Colors';
+import Fonts from '../../../constants/Fonts';
 import FullScreenLoader from '../../../componets/Loader/FullScreenLoader';
 
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -388,17 +389,7 @@ const DailyLogin = () => {
   // ─────────────────────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={styles.container}>
-      {/* ── Custom Header ───────────────────────────────────────────────── */}
-      <View style={styles.customHeader}>
-        <TouchableOpacity
-          style={styles.backCircle}
-          onPress={() => NavigationService.goBack()}
-        >
-          <MaterialCommunityIcons name="chevron-left" size={28} color="rgb(0, 0, 0)" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>NPCI Daily Login</Text>
-        <View style={{ width: 44 }} />
-      </View>
+        <HeaderBar title="Daily Login" onBack={() => NavigationService.goBack()} />
 
       <ScrollView
         contentContainerStyle={styles.scroll}
@@ -422,7 +413,13 @@ const DailyLogin = () => {
             transform: [{ translateY: slideAnim }],
           }}
         >
-          <View style={styles.card}>
+          <View style={styles.modernCard}>
+            <View style={styles.cardHighlightHeader}>
+              <MaterialCommunityIcons name="shield-lock" size={16} color={Colors.finance_accent} />
+              <Text style={styles.cardHighlightTitle}>MERCHANT IDENTITY</Text>
+            </View>
+
+            <View style={styles.cardBody}>
             {/* ── Aadhaar ─────────────────────────────────────────────── */}
             <Text style={styles.label}>AADHAAR NUMBER</Text>
             <View style={[styles.inputContainer, errors.aadhaar && styles.inputError]}>
@@ -588,6 +585,7 @@ const DailyLogin = () => {
                 </Text>
               </TouchableOpacity>
             </Animated.View>
+            </View>
           </View>
         </Animated.View>
 
@@ -609,29 +607,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.beige,
-  },
-  customHeader: {
-    height: rs(60),
-    backgroundColor: Colors.primary,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: rs(15),
-    borderBottomLeftRadius: rs(20),
-    borderBottomRightRadius: rs(20),
-  },
-  backCircle: {
-    width: rs(40),
-    height: rs(40),
-    borderRadius: rs(20),
-    backgroundColor: Colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    color: 'rgb(255, 255, 255)',
-    fontSize: rs(16),
-    fontWeight: '700',
   },
   scroll: {
     paddingBottom: rs(40),
@@ -664,13 +639,31 @@ const styles = StyleSheet.create({
     maxWidth: '85%',
     lineHeight: rs(18),
   },
-  card: {
-    backgroundColor: Colors.beige,
-    marginHorizontal: rs(15),
-    padding: rs(20),
-    borderRadius: rs(30),
+  modernCard: {
+    backgroundColor: Colors.cardbg,
+    borderRadius: 18,
+    marginHorizontal: 15,
+    marginBottom: 16,
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: "rgba(245,158,11,0.30)",
+    borderColor: 'rgba(245,158,11,0.30)',
+  },
+  cardHighlightHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: 'rgb(46, 46, 46)',
+    gap: 8,
+  },
+  cardHighlightTitle: {
+    fontSize: rs(10),
+    fontFamily: Fonts.Bold,
+    color: Colors.finance_accent,
+    letterSpacing: 0.5,
+  },
+  cardBody: {
+    padding: 16,
   },
   label: {
     fontSize: rs(10),
@@ -680,6 +673,7 @@ const styles = StyleSheet.create({
     marginBottom: rs(8),
     letterSpacing: 0.8,
   },
+  // ── Inputs ──
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -28,7 +28,7 @@ const rs = (n) => Math.round(scale(n));
 export default function Xpress_PayOut_Transfer({ navigation, route }) {
   const { banks = [] } = route.params || {};
   const [amount, setAmount] = useState('');
-  const [mode, setMode] = useState('IMPS'); 
+  const [mode, setMode] = useState('IMPS');
   const [selectedBank, setSelectedBank] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -155,94 +155,100 @@ export default function Xpress_PayOut_Transfer({ navigation, route }) {
       />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.formCard}>
-          <Text style={styles.formTitle}>Instant Settlement</Text>
-          <Text style={styles.formSub}>Funds will be credited within seconds via Xpress Payout.</Text>
-
-          <View style={styles.inputWrapper}>
-            <Text style={styles.inputLabel}>Select Beneficiary Account</Text>
-            <TouchableOpacity
-              style={[styles.selector, errors.bank && { borderColor: Colors.red }]}
-              onPress={() => {
-                setIsModalVisible(true);
-                setErrors(prev => ({ ...prev, bank: null }));
-              }}
-            >
-              <Icon name="bank" size={rs(18)} color={errors.bank ? Colors.red : Colors.text_secondary} />
-              <Text style={[styles.selectorText, selectedBank && { color: Colors.black }, errors.bank && { color: Colors.red }]}>
-                {selectedBank ? `${selectedBank?.bankName} (${selectedBank?.accountNumber?.slice(-4) || '....'})` : "Choose destination bank"}
-              </Text>
-              <Icon name="chevron-down" size={rs(20)} color={errors.bank ? Colors.red : Colors.text_secondary} />
-            </TouchableOpacity>
-            {!!errors.bank && <Text style={styles.errorText}>{errors.bank}</Text>}
-            {approved.length === 0 && (
-              <Text style={{ fontSize: rs(10), color: Colors.red, marginTop: rs(4), marginLeft: rs(4) }}>
-                No payout banks available.
-              </Text>
-            )}
+        <View style={styles.modernCard}>
+          <View style={styles.cardHighlightHeader}>
+            <Icon name="cash-fast" size={14} color={Colors.finance_accent} />
+            <Text style={styles.cardHighlightTitle}>TRANSFER DETAILS</Text>
           </View>
+          
+          <View style={styles.cardBody}>
+            <Text style={styles.formSub}>Funds will be credited within seconds via Xpress Payout.</Text>
 
-          <View style={styles.inputWrapper}>
-            <Text style={styles.inputLabel}>Payout Amount</Text>
-            <View style={[styles.amountInput, errors.amount && { borderColor: Colors.red }]}>
-              <Text style={[styles.currencySymbol, errors.amount && { color: Colors.red }]}>₹</Text>
-              <TextInput
-                style={[styles.field, errors.amount && { color: Colors.red }]}
-                placeholder="0.00"
-                keyboardType="numeric"
-                value={amount}
-                onChangeText={(val) => {
-                  let cleaned = val.replace(/[^0-9]/g, "");
-                  if (cleaned.startsWith("0")) cleaned = cleaned.replace(/^0+/, "");
-                  setAmount(cleaned);
-                  setErrors(prev => ({ ...prev, amount: null }));
-                }}
-                placeholderTextColor={Colors.gray}
-              />
-            </View>
-            {!!errors.amount && <Text style={styles.errorText}>{errors.amount}</Text>}
-          </View>
-
-          <View style={styles.inputWrapper}>
-            <Text style={styles.inputLabel}>Remarks / Purpose</Text>
-            <View style={[styles.remarkBox, errors.purpose && { borderColor: Colors.red }]}>
-              <TextInput
-                style={[styles.remarkField, errors.purpose && { color: Colors.red }]}
-                placeholder="e.g. Xpress Payout"
-                value={purpose}
-                onChangeText={(val) => {
-                  setPurpose(val);
-                  setErrors(prev => ({ ...prev, purpose: null }));
-                }}
-                placeholderTextColor={Colors.gray}
-              />
-            </View>
-            {!!errors.purpose && <Text style={styles.errorText}>{errors.purpose}</Text>}
-          </View>
-
-          {(() => {
-            const isReady = !!selectedBank && !!amount && Number(amount) > 0 && !!purpose.trim() && !loading;
-            return (
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel}>Select Beneficiary Account</Text>
               <TouchableOpacity
-                style={[styles.transferBtn, { backgroundColor: isReady ? Colors.primary : Colors.gold }]}
-                onPress={handleTransfer}
-                disabled={!isReady}
+                style={[styles.selector, errors.bank && { borderColor: Colors.red }]}
+                onPress={() => {
+                  setIsModalVisible(true);
+                  setErrors(prev => ({ ...prev, bank: null }));
+                }}
               >
-                {loading ? (
-                  <ActivityIndicator color={Colors.white} />
-                ) : (
-                  <>
-                    <Text style={[styles.transferBtnText, { color: isReady ? Colors.white : Colors.slate_500 }]}>Transfer Now</Text>
-                    <Icon name="arrow-right" size={rs(18)} color={isReady ? Colors.white : Colors.slate_500} />
-                  </>
-                )}
+                <Icon name="bank" size={rs(18)} color={errors.bank ? Colors.red : Colors.text_secondary} />
+                <Text style={[styles.selectorText, selectedBank && { color: Colors.black }, errors.bank && { color: Colors.red }]}>
+                  {selectedBank ? `${selectedBank?.bankName} (${selectedBank?.accountNumber?.slice(-4) || '....'})` : "Choose destination bank"}
+                </Text>
+                <Icon name="chevron-down" size={rs(20)} color={errors.bank ? Colors.red : Colors.text_secondary} />
               </TouchableOpacity>
-            );
-          })()}
+              {!!errors.bank && <Text style={styles.errorText}>{errors.bank}</Text>}
+              {approved.length === 0 && (
+                <Text style={{ fontSize: rs(10), color: Colors.red, marginTop: rs(4), marginLeft: rs(4) }}>
+                  No payout banks available.
+                </Text>
+              )}
+            </View>
 
-          <View style={styles.securityNote}>
-            <Icon name="lock-outline" size={rs(14)} color={Colors.text_secondary} />
-            <Text style={styles.securityText}>Secured by 256-bit SSL encryption</Text>
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel}>Payout Amount</Text>
+              <View style={[styles.amountInput, errors.amount && { borderColor: Colors.red }]}>
+                <Text style={[styles.currencySymbol, errors.amount && { color: Colors.red }]}>₹</Text>
+                <TextInput
+                  style={[styles.field, errors.amount && { color: Colors.red }]}
+                  placeholder="0.00"
+                  keyboardType="numeric"
+                  value={amount}
+                  onChangeText={(val) => {
+                    let cleaned = val.replace(/[^0-9]/g, "");
+                    if (cleaned.startsWith("0")) cleaned = cleaned.replace(/^0+/, "");
+                    setAmount(cleaned);
+                    setErrors(prev => ({ ...prev, amount: null }));
+                  }}
+                  placeholderTextColor={Colors.gray}
+                />
+              </View>
+              {!!errors.amount && <Text style={styles.errorText}>{errors.amount}</Text>}
+            </View>
+
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel}>Remarks / Purpose</Text>
+              <View style={[styles.remarkBox, errors.purpose && { borderColor: Colors.red }]}>
+                <TextInput
+                  style={[styles.remarkField, errors.purpose && { color: Colors.red }]}
+                  placeholder="e.g. Xpress Payout"
+                  value={purpose}
+                  onChangeText={(val) => {
+                    setPurpose(val);
+                    setErrors(prev => ({ ...prev, purpose: null }));
+                  }}
+                  placeholderTextColor={Colors.gray}
+                />
+              </View>
+              {!!errors.purpose && <Text style={styles.errorText}>{errors.purpose}</Text>}
+            </View>
+
+            {(() => {
+              const isReady = !!selectedBank && !!amount && Number(amount) > 0 && !!purpose.trim() && !loading;
+              return (
+                <TouchableOpacity
+                  style={[styles.transferBtn, { backgroundColor: isReady ? Colors.primary : Colors.gold }]}
+                  onPress={handleTransfer}
+                  disabled={!isReady}
+                >
+                  {loading ? (
+                    <ActivityIndicator color={Colors.white} />
+                  ) : (
+                    <>
+                      <Text style={[styles.transferBtnText, { color: isReady ? Colors.white : Colors.slate_500 }]}>Transfer Now</Text>
+                      <Icon name="arrow-right" size={rs(18)} color={isReady ? Colors.white : Colors.slate_500} />
+                    </>
+                  )}
+                </TouchableOpacity>
+              );
+            })()}
+
+            <View style={styles.securityNote}>
+              <Icon name="lock-outline" size={rs(14)} color={Colors.text_secondary} />
+              <Text style={styles.securityText}>Secured by 256-bit SSL encryption</Text>
+            </View>
           </View>
         </View>
         <View style={{ height: rs(40) }} />
@@ -315,17 +321,35 @@ export default function Xpress_PayOut_Transfer({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.beige },
-  scrollContent: { paddingHorizontal: rs(16), paddingTop: rs(16) },
-  formCard: {
-    backgroundColor: Colors.beige,
-    borderRadius: rs(28),
-    padding: rs(28),
+  safe: { flex: 1, backgroundColor: Colors.primary },
+  scrollContent: { paddingHorizontal: rs(16), paddingTop: rs(16), backgroundColor: Colors.beige },
+  modernCard: {
+    backgroundColor: Colors.cardbg,
+    borderRadius: 18,
+    marginBottom: 16,
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: "rgba(245,158,11,0.30)",
+    borderColor: 'rgba(245,158,11,0.30)',
+  },
+  cardHighlightHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: 'rgb(46, 46, 46)',
+    gap: 8,
+  },
+  cardHighlightTitle: {
+    fontSize: rs(10),
+    fontFamily: Fonts.Bold,
+    color: Colors.finance_accent,
+    letterSpacing: 0.5,
+  },
+  cardBody: {
+    padding: 16,
   },
   formTitle: { fontSize: rs(20), fontFamily: Fonts.Bold, color: Colors.black },
-  formSub: { fontSize: rs(13), fontFamily: Fonts.Medium, color: Colors.text_secondary, marginTop: rs(4), marginBottom: rs(28) },
+  formSub: { fontSize: rs(13), fontFamily: Fonts.Medium, color: Colors.text_secondary, marginTop: rs(4), marginBottom: rs(20) },
   inputWrapper: { marginBottom: rs(20) },
   inputLabel: { fontSize: rs(12), fontFamily: Fonts.Bold, color: Colors.black, marginBottom: rs(10), marginLeft: rs(4) },
   selector: { height: rs(58), backgroundColor: Colors.white, borderRadius: rs(18), borderWidth: 1, borderColor: Colors.input_border, flexDirection: 'row', alignItems: 'center', paddingHorizontal: rs(16), gap: rs(12) },
@@ -349,7 +373,7 @@ const styles = StyleSheet.create({
   remarkBox: { height: rs(54), backgroundColor: Colors.white, borderRadius: rs(15), borderWidth: 1, borderColor: Colors.input_border, paddingHorizontal: rs(15), justifyContent: 'center' },
   remarkField: { fontSize: rs(14), fontFamily: Fonts.Medium, color: Colors.black, padding: 0 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: Colors.cardbg, borderTopLeftRadius: rs(30), borderTopRightRadius: rs(30), height: '60%', padding: rs(20) },
+  modalContent: { backgroundColor: Colors.white, borderTopLeftRadius: rs(30), borderTopRightRadius: rs(30), height: '60%', padding: rs(20) },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: rs(20) },
   modalTitle: { fontSize: rs(20), fontFamily: Fonts.Bold, color: Colors.black },
   bankItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: rs(16), borderBottomWidth: 1, borderBottomColor: Colors.input_border, gap: rs(15) },

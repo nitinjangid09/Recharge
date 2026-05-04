@@ -185,8 +185,8 @@ const DocUploadCard = ({ label, onPress, uri, onDelete }) => (
       <Text style={docStyles.hint}>JPG, JPEG, PNG (Max 200KB)</Text>
     </TouchableOpacity>
     {uri && onDelete && (
-      <TouchableOpacity 
-        style={docStyles.deleteBtn} 
+      <TouchableOpacity
+        style={docStyles.deleteBtn}
         onPress={onDelete}
       >
         <Text style={docStyles.deleteIconText}>✕</Text>

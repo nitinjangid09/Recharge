@@ -665,7 +665,12 @@ export default function OfflineTopup({ navigation }) {
         <HeaderBar title="Topup Request" onBack={() => navigation.goBack()} />
 
         <View style={st.card}>
-          <Text style={st.cardTitle}>Submit Topup Request</Text>
+          <View style={st.cardHighlightHeader}>
+            <Text style={st.cardHeaderTitle}>Submit Topup Request</Text>
+            <Icon name="bank-transfer-in" size={S(16)} color={Colors.finance_accent} />
+          </View>
+
+          <View style={st.cardBody}>
 
           {/* ── Amount ── */}
           <InputBox
@@ -838,6 +843,7 @@ export default function OfflineTopup({ navigation }) {
             );
           })()}
         </View>
+      </View>
 
         {/* ── Topup Stats ── */}
         {topupStats && (
@@ -1069,10 +1075,27 @@ const st = StyleSheet.create({
     width: "92%",
     backgroundColor: CARD_BG,
     borderRadius: S(18),
-    padding: S(18),
     marginTop: S(16),
     borderWidth: 1,
-    borderColor: "rgba(245,158,11,0.30)",
+    borderColor: "rgba(212,176,106,0.30)",
+    overflow: "hidden",
+  },
+  cardHighlightHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: S(16),
+    paddingVertical: S(12),
+    backgroundColor: "rgb(46, 46, 46)", // Standard dark header
+  },
+  cardHeaderTitle: {
+    fontSize: S(14),
+    fontFamily: Fonts.Bold,
+    color: Colors.finance_accent,
+    letterSpacing: 0.3,
+  },
+  cardBody: {
+    padding: S(16),
   },
   cardTitle: {
     fontSize: S(15),
@@ -1317,16 +1340,11 @@ const st = StyleSheet.create({
 
   transactionCard: {
     backgroundColor: SURFACE,
-    borderRadius: S(16),
+    borderRadius: S(18),
     padding: S(14),
     marginBottom: S(12),
-    elevation: 2,
-    shadowColor: "rgb(0, 0, 0)",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: S(6),
     borderWidth: 1,
-    borderColor: "rgba(245,158,11,0.30)"
+    borderColor: "rgba(212,176,106,0.30)",
   },
   cardHeaderTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   amtColumn: { gap: S(2) },
@@ -1369,17 +1387,12 @@ const statsGridStyles = StyleSheet.create({
   card: {
     flex: 1,
     backgroundColor: Colors.white,
-    borderRadius: S(12),
+    borderRadius: S(16),
     padding: S(10),
     borderLeftWidth: 3,
     borderLeftColor: ACCENT,
     borderWidth: 1,
-    borderColor: "rgba(245,158,11,0.30)",
-    elevation: 2,
-    shadowColor: "rgb(0, 0, 0)",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    borderColor: "rgba(212,176,106,0.30)",
   },
   val: {
     fontSize: S(14),

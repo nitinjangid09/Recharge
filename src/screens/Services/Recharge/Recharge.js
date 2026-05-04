@@ -554,7 +554,7 @@ export default function TopUpScreen({ navigation, route }) {
                         }
                       }}
                       placeholder="0"
-                      placeholderTextColor={Colors.ink3}
+                      placeholderTextColor={Colors.slate_500}
                       keyboardType="numeric"
                       style={styles.hugeInput}
                     />
@@ -747,8 +747,8 @@ export default function TopUpScreen({ navigation, route }) {
                   style={[styles.sliderThumb, { transform: [{ translateX: pan }] }]}
                   {...panResponder.panHandlers}
                 >
-                  <LinearGradient colors={[Colors.finance_accent, Colors.amber]} style={styles.thumbGrad}>
-                    <Icon name="chevron-right" size={28} color={Colors.white} />
+                  <LinearGradient colors={[Colors.finance_accent, Colors.gold]} style={styles.thumbGrad}>
+                    <Icon name="chevron-right" size={28} color={Colors.primary} />
                   </LinearGradient>
                 </Animated.View>
               </View>
@@ -986,7 +986,7 @@ const styles = StyleSheet.create({
   selectedPlanDesc: { color: "rgba(255,255,255,0.75)", fontSize: 12, fontFamily: Fonts.Medium, lineHeight: 18 },
   suggestionsWrapper: { marginBottom: 12 },
   suggestionsContainer: { flexDirection: "row", alignItems: "center", gap: 8 },
-  suggestionChip: { backgroundColor: "rgba(255,255,255,0.05)", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
+  suggestionChip: { backgroundColor: "rgba(255,255,255,0.05)", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: "rgba(212,176,106,0.30)" },
   suggestionChipActive: { backgroundColor: "rgba(212,176,106,0.2)", borderColor: Colors.finance_accent },
   suggestionText: { color: "rgba(255,255,255,0.7)", fontSize: 12, fontFamily: Fonts.Medium },
   suggestionTextActive: { color: Colors.finance_accent, fontFamily: Fonts.Bold },
@@ -1003,7 +1003,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     zIndex: 100,
   },
-  sliderWrapper: { height: 60, backgroundColor: Colors.white, borderRadius: 30, borderWidth: 1.5, borderColor: Colors.finance_accent, justifyContent: "center", overflow: "hidden" },
+  sliderWrapper: { height: 60, backgroundColor: Colors.beige, borderRadius: 30, borderWidth: 1.5, borderColor: Colors.finance_accent, justifyContent: "center", overflow: "hidden" },
   sliderBackground: { ...StyleSheet.absoluteFillObject, justifyContent: "center", alignItems: "center" },
   swipeText: { color: Colors.primary, fontSize: 14, fontFamily: Fonts.Bold, letterSpacing: 2 },
   sliderThumb: { width: 52, height: 52, borderRadius: 26, position: "absolute", left: 4 },

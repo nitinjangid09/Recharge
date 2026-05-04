@@ -14,6 +14,8 @@ import {
   Modal,
   FlatList,
 } from "react-native";
+import HeaderBar from "../../../componets/HeaderBar/HeaderBar";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import Colors from "../../../constants/Colors";
@@ -288,7 +290,7 @@ const CashWithdraw = () => {
       }
 
       buttonPress(btnScale).start();
- 
+
       // 2. Check Device Connection
       const conn = await RDService.checkConnection(device);
       if (!conn.success) {
@@ -300,7 +302,7 @@ const CashWithdraw = () => {
         setLoading(false);
         return;
       }
- 
+
       // 3. Capture Fingerprint
       const pidData = await RDService.capture(device);
       if (!pidData) {
@@ -390,28 +392,7 @@ const CashWithdraw = () => {
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        {/* ══ HEADER ══ */}
-        <Animated.View
-          style={[styles.header, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}
-        >
-          <View style={styles.titleBlock}>
-            <Text style={styles.titleWhite}>Cash</Text>
-            <Text style={styles.titleAccent}>Withdraw</Text>
-          </View>
-          <Text style={styles.headerSub}>
-            Instant cash withdrawal via{"\n"}Aadhaar-linked bank account
-          </Text>
-          <View style={styles.trustRow}>
-            <View style={styles.trustPill}>
-              <Text style={styles.trustIcon}>🔒</Text>
-              <Text style={styles.trustTxt}>256-BIT ENCRYPTED</Text>
-            </View>
-            <View style={styles.trustPill}>
-              <Text style={styles.trustIcon}>✚</Text>
-              <Text style={styles.trustTxt}>RBI APPROVED</Text>
-            </View>
-          </View>
-        </Animated.View>
+        <HeaderBar title="Cash Withdrawal" onBack={() => navigation.goBack()} />
 
         {/* ══ SCROLL BODY ══ */}
         <ScrollView
@@ -421,155 +402,151 @@ const CashWithdraw = () => {
           showsVerticalScrollIndicator={false}
         >
           {/* ─── CONTAINER 1: Customer & Amount ─── */}
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <View style={[styles.cardIconWrap, { backgroundColor: Colors.accent + "18" }]}>
-                <Text style={styles.cardIcon}>💸</Text>
-              </View>
-              <View>
-                <Text style={styles.cardTitle}>Withdrawal Details</Text>
-                <Text style={styles.cardSub}>Customer & amount information</Text>
-              </View>
-            </View>
-            <View style={styles.divider} />
-
-            {/* Mobile */}
-            <View style={styles.fieldWrap}>
-              <Text style={styles.label}>
-                <Text style={styles.required}>* </Text>MOBILE NUMBER
-              </Text>
-              <View style={[styles.inputRow, errors.mobile && styles.inputRowError]}>
-                <Text style={styles.prefix}>+91</Text>
-                <View style={styles.inputDivider} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter 10-digit mobile number"
-                  placeholderTextColor={Colors.gray}
-                  keyboardType="number-pad"
-                  maxLength={10}
-                  value={mobileNumber}
-                  onChangeText={(t) => setMobileNumber(t.replace(/[^0-9]/g, ""))}
-                />
-                <Text style={styles.inputSuffix}>📱</Text>
-              </View>
-              {errors.mobile && <Text style={styles.errorTxt}>{errors.mobile}</Text>}
+          <View style={styles.modernCard}>
+            <View style={styles.cardHighlightHeader}>
+              <Icon name="cash-multiple" size={16} color={Colors.finance_accent} />
+              <Text style={styles.cardHighlightTitle}>WITHDRAWAL DETAILS</Text>
             </View>
 
-            {/* Aadhaar */}
-            <View style={styles.fieldWrap}>
-              <Text style={styles.label}>
-                <Text style={styles.required}>* </Text>AADHAAR NUMBER
-              </Text>
-              <View style={[styles.inputRow, errors.aadhaar && styles.inputRowError]}>
-                <TextInput
-                  style={[styles.input, { flex: 1 }]}
-                  placeholder="XXXX XXXX XXXX"
-                  placeholderTextColor={Colors.gray}
-                  keyboardType="number-pad"
-                  maxLength={12}
-                  value={aadhaarNumber}
-                  onChangeText={(t) => setAadhaarNumber(t.replace(/[^0-9]/g, ""))}
-                />
-                <Text style={styles.inputSuffix}>🪪</Text>
+            <View style={styles.cardBody}>
+              <View style={styles.divider} />
+
+              {/* Mobile */}
+              <View style={styles.fieldWrap}>
+                <Text style={styles.label}>
+                  <Text style={styles.required}>* </Text>MOBILE NUMBER
+                </Text>
+                <View style={[styles.inputRow, errors.mobile && styles.inputRowError]}>
+                  <Text style={styles.prefix}>+91</Text>
+                  <View style={styles.inputDivider} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter 10-digit mobile number"
+                    placeholderTextColor={Colors.gray}
+                    keyboardType="number-pad"
+                    maxLength={10}
+                    value={mobileNumber}
+                    onChangeText={(t) => setMobileNumber(t.replace(/[^0-9]/g, ""))}
+                  />
+                  <Text style={styles.inputSuffix}>📱</Text>
+                </View>
+                {errors.mobile && <Text style={styles.errorTxt}>{errors.mobile}</Text>}
               </View>
-              {errors.aadhaar && <Text style={styles.errorTxt}>{errors.aadhaar}</Text>}
-            </View>
 
-            {/* Amount */}
-            <View style={styles.fieldWrap}>
-              <Text style={styles.label}>
-                <Text style={styles.required}>* </Text>WITHDRAWAL AMOUNT
-              </Text>
-              <View style={[styles.inputRow, errors.amount && styles.inputRowError]}>
-                <Text style={styles.prefix}>₹</Text>
-                <View style={styles.inputDivider} />
-                <TextInput
-                  style={[styles.input, { flex: 1 }]}
-                  placeholder="Enter amount"
-                  placeholderTextColor={Colors.gray}
-                  keyboardType="number-pad"
-                  value={amount}
-                  onChangeText={(t) => {
-                    let val = t.replace(/[^0-9]/g, "");
-                    if (val.startsWith("0")) val = val.replace(/^0+/, "");
-                    if (val !== "" && Number(val) > 1000000) {
-                      setErrors(prev => ({ ...prev, amount: "Max amount allowed is ₹10,00,000" }));
-                      return;
-                    }
-                    setAmount(val);
-                    if (errors.amount) setErrors(prev => ({ ...prev, amount: null }));
-                  }}
-                />
-                {amount.length > 0 && (
-                  <TouchableOpacity onPress={() => setAmount("")} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                    <Text style={styles.clearIcon}>✕</Text>
-                  </TouchableOpacity>
-                )}
+              {/* Aadhaar */}
+              <View style={styles.fieldWrap}>
+                <Text style={styles.label}>
+                  <Text style={styles.required}>* </Text>AADHAAR NUMBER
+                </Text>
+                <View style={[styles.inputRow, errors.aadhaar && styles.inputRowError]}>
+                  <TextInput
+                    style={[styles.input, { flex: 1 }]}
+                    placeholder="XXXX XXXX XXXX"
+                    placeholderTextColor={Colors.gray}
+                    keyboardType="number-pad"
+                    maxLength={12}
+                    value={aadhaarNumber}
+                    onChangeText={(t) => setAadhaarNumber(t.replace(/[^0-9]/g, ""))}
+                  />
+                  <Icon name="card-account-details-outline" size={rs(20)} color={Colors.primary} />
+                </View>
+                {errors.aadhaar && <Text style={styles.errorTxt}>{errors.aadhaar}</Text>}
               </View>
-              {errors.amount && <Text style={styles.errorTxt}>{errors.amount}</Text>}
 
-              {/* Quick amount chips */}
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.quickRow}
-                contentContainerStyle={{ gap: scale(8), paddingRight: scale(4) }}
-              >
-                {QUICK_AMOUNTS.map((q) => (
-                  <TouchableOpacity
-                    key={q}
-                    style={[styles.quickChip, amount === q && styles.quickChipActive]}
-                    onPress={() => setAmount(q)}
-                    activeOpacity={0.75}
-                  >
-                    <Text style={[styles.quickChipTxt, amount === q && styles.quickChipTxtActive]}>
-                      ₹{Number(q).toLocaleString("en-IN")}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+              {/* Amount */}
+              <View style={styles.fieldWrap}>
+                <Text style={styles.label}>
+                  <Text style={styles.required}>* </Text>WITHDRAWAL AMOUNT
+                </Text>
+                <View style={[styles.inputRow, errors.amount && styles.inputRowError]}>
+                  <Text style={styles.prefix}>₹</Text>
+                  <View style={styles.inputDivider} />
+                  <TextInput
+                    style={[styles.input, { flex: 1 }]}
+                    placeholder="Enter amount"
+                    placeholderTextColor={Colors.gray}
+                    keyboardType="number-pad"
+                    value={amount}
+                    onChangeText={(t) => {
+                      let val = t.replace(/[^0-9]/g, "");
+                      if (val.startsWith("0")) val = val.replace(/^0+/, "");
+                      if (val !== "" && Number(val) > 1000000) {
+                        setErrors(prev => ({ ...prev, amount: "Max amount allowed is ₹10,00,000" }));
+                        return;
+                      }
+                      setAmount(val);
+                      if (errors.amount) setErrors(prev => ({ ...prev, amount: null }));
+                    }}
+                  />
+                  {amount.length > 0 && (
+                    <TouchableOpacity onPress={() => setAmount("")} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                      <Text style={styles.clearIcon}>✕</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+                {errors.amount && <Text style={styles.errorTxt}>{errors.amount}</Text>}
+
+                {/* Quick amount chips */}
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.quickRow}
+                  contentContainerStyle={{ gap: scale(8), paddingRight: scale(4) }}
+                >
+                  {QUICK_AMOUNTS.map((q) => (
+                    <TouchableOpacity
+                      key={q}
+                      style={[styles.quickChip, amount === q && styles.quickChipActive]}
+                      onPress={() => setAmount(q)}
+                      activeOpacity={0.75}
+                    >
+                      <Text style={[styles.quickChipTxt, amount === q && styles.quickChipTxtActive]}>
+                        ₹{Number(q).toLocaleString("en-IN")}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+
+              {/* Bank */}
+              <SelectPicker
+                label="SELECT BANK"
+                required
+                placeholder={banksLoading ? "Loading banks..." : "Choose your bank"}
+                items={bankList}
+                value={bank}
+                onChange={setBank}
+                error={errors.bank}
+                searchable
+              />
             </View>
-
-            {/* Bank */}
-            <SelectPicker
-              label="SELECT BANK"
-              required
-              placeholder={banksLoading ? "Loading banks..." : "Choose your bank"}
-              items={bankList}
-              value={bank}
-              onChange={setBank}
-              error={errors.bank}
-              searchable
-            />
           </View>
 
           {/* ─── CONTAINER 2: Biometric Device ─── */}
-          <View style={[styles.card, { marginTop: vs(14) }]}>
-            <View style={styles.cardHeader}>
-              <View style={[styles.cardIconWrap, { backgroundColor: Colors.primary + "14" }]}>
-                <Text style={styles.cardIcon}>🖐</Text>
-              </View>
-              <View>
-                <Text style={styles.cardTitle}>Biometric Device</Text>
-                <Text style={styles.cardSub}>Select your fingerprint scanner</Text>
-              </View>
+          <View style={[styles.modernCard, { marginTop: vs(14) }]}>
+            <View style={styles.cardHighlightHeader}>
+              <Icon name="fingerprint" size={16} color={Colors.finance_accent} />
+              <Text style={styles.cardHighlightTitle}>BIOMETRIC DEVICE</Text>
             </View>
-            <View style={styles.divider} />
 
-            <SelectPicker
-              label="SELECT DEVICE"
-              required
-              placeholder="Choose biometric device"
-              items={DEVICE_LIST}
-              value={device}
-              onChange={setDevice}
-              error={errors.device}
-            />
+            <View style={styles.cardBody}>
+              <View style={styles.divider} />
 
-            <View style={styles.deviceInfo}>
-              <Text style={styles.deviceInfoTxt}>
-                🔒  Biometric data is processed locally and never stored on any server
-              </Text>
+              <SelectPicker
+                label="SELECT DEVICE"
+                required
+                placeholder="Choose biometric device"
+                items={DEVICE_LIST}
+                value={device}
+                onChange={setDevice}
+                error={errors.device}
+              />
+
+              <View style={styles.deviceInfo}>
+                <Text style={styles.deviceInfoTxt}>
+                  🔒  Biometric data is processed locally and never stored on any server
+                </Text>
+              </View>
             </View>
           </View>
 
@@ -650,50 +627,29 @@ const styles = StyleSheet.create({
   scrollContent: { padding: scale(16), paddingBottom: vs(40) },
 
   // ── Header ──
-  header: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: scale(18),
-    paddingTop: vs(14),
-    paddingBottom: vs(22),
+  modernCard: {
+    backgroundColor: Colors.cardbg,
+    borderRadius: 18,
+    marginBottom: 16,
+    overflow: 'hidden',
   },
-  titleBlock: { flexDirection: "row", alignItems: "baseline", gap: scale(6), marginBottom: vs(6) },
-  titleWhite: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(32), letterSpacing: 0.4 },
-  titleAccent: { fontFamily: Fonts.Bold, color: Colors.kyc_accent, fontSize: rs(32), letterSpacing: 0.4 },
-  headerSub: {
-    fontFamily: Fonts.Medium,
-    color: "rgba(255,255,255,0.65)", fontSize: rs(13),
-    lineHeight: rs(20), marginBottom: vs(16),
+  cardHighlightHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: 'rgb(46, 46, 46)',
+    gap: 8,
   },
-  trustRow: { flexDirection: "row", gap: scale(8) },
-  trustPill: {
-    flexDirection: "row", alignItems: "center", gap: scale(5),
-    backgroundColor: "rgba(255,255,255,0.1)",
-    borderWidth: 1, borderColor: "rgba(255,255,255,0.18)",
-    borderRadius: scale(20),
-    paddingHorizontal: scale(10), paddingVertical: vs(5),
+  cardHighlightTitle: {
+    fontSize: 11,
+    fontFamily: Fonts.Bold,
+    color: Colors.finance_accent,
+    letterSpacing: 0.5,
   },
-  trustIcon: { fontSize: rs(11) },
-  trustTxt: { fontFamily: Fonts.Bold, color: "rgba(255,255,255,0.80)", fontSize: rs(10), fontWeight: "700", letterSpacing: 0.8 },
-
-  // ── Cards ──
-  card: {
-    backgroundColor: Colors.beige, borderRadius: scale(18), padding: scale(16),
-    borderWidth: 1,
-    borderColor: "rgba(245,158,11,0.30)",
+  cardBody: {
+    padding: 16,
   },
-  cardHeader: {
-    flexDirection: "row", alignItems: "center",
-    gap: scale(10), marginBottom: vs(12),
-  },
-  cardIconWrap: {
-    width: scale(40), height: scale(40), borderRadius: scale(12),
-    alignItems: "center", justifyContent: "center",
-  },
-  cardIcon: { fontSize: rs(20) },
-  cardTitle: { fontFamily: Fonts.Bold, fontSize: rs(15), color: Colors.primary },
-  cardSub: { fontFamily: Fonts.Medium, fontSize: rs(12), color: Colors.gray, marginTop: 1 },
-  divider: { height: 1, backgroundColor: "rgba(0,0,0,0.05)", marginBottom: vs(14) },
-
   // ── Inputs ──
   fieldWrap: { marginBottom: vs(14) },
   label: {
@@ -703,15 +659,15 @@ const styles = StyleSheet.create({
   required: { color: Colors.accent },
   inputRow: {
     flexDirection: "row", alignItems: "center",
-    backgroundColor: Colors.cardbg,
+    backgroundColor: Colors.white,
     borderRadius: scale(12),
-    borderWidth: 1, borderColor: "rgb(235, 235, 235)",
+    borderWidth: 1, borderColor: "rgba(212,176,106,0.15)",
     paddingHorizontal: scale(12),
     minHeight: vs(50),
   },
   inputRowError: { borderColor: Colors.red, borderWidth: 1 },
   prefix: { fontFamily: Fonts.Bold, color: Colors.primary, fontSize: rs(14), fontWeight: "700", marginRight: scale(4) },
-  inputDivider: { width: 1, height: vs(18), backgroundColor: Colors.kyc_border, marginRight: scale(10) },
+  inputDivider: { width: 1, height: vs(18), backgroundColor: "rgba(0,0,0,0.08)", marginRight: scale(10) },
   input: { fontFamily: Fonts.Medium, flex: 1, fontSize: rs(14), color: Colors.heroEnd, padding: 0 },
   inputSuffix: { fontSize: rs(18), marginLeft: scale(6) },
   clearIcon: { fontFamily: Fonts.Bold, color: Colors.gray, fontSize: rs(16), fontWeight: "700", marginLeft: scale(6) },
@@ -722,7 +678,7 @@ const styles = StyleSheet.create({
   quickChip: {
     paddingHorizontal: scale(12), paddingVertical: vs(6),
     borderRadius: scale(20),
-    borderWidth: 1, borderColor: Colors.kyc_border,
+    borderWidth: 1, borderColor: "rgba(212,176,106,0.30)",
   },
   quickChipActive: { backgroundColor: Colors.accent + "18", borderColor: Colors.accent },
   quickChipTxt: { fontFamily: Fonts.Medium, fontSize: rs(12), color: "rgb(117, 117, 117)", fontWeight: "600" },
@@ -817,9 +773,9 @@ const sp = StyleSheet.create({
   },
   sheet: {
     position: "absolute", bottom: 0, left: 0, right: 0,
-    backgroundColor: Colors.cardbg,
+    backgroundColor: Colors.white,
     borderTopLeftRadius: scale(24), borderTopRightRadius: scale(24),
-    maxHeight: SH * 0.68,
+    maxHeight: SH * 0.7,
   },
   sheetHeader: {
     paddingHorizontal: scale(16),
@@ -844,9 +800,10 @@ const sp = StyleSheet.create({
 
   searchRow: {
     flexDirection: "row", alignItems: "center",
-    backgroundColor: Colors.bg_F8, borderRadius: scale(10),
+    backgroundColor: Colors.white, borderRadius: scale(10),
     paddingHorizontal: scale(10), marginBottom: vs(4),
     minHeight: vs(42),
+    borderWidth: 1, borderColor: "rgba(0,0,0,0.05)",
   },
   searchIcon: { fontSize: rs(15), marginRight: scale(6) },
   searchInput: { fontFamily: Fonts.Medium, flex: 1, fontSize: rs(14), color: Colors.heroEnd, padding: 0 },

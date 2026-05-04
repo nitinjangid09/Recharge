@@ -16,7 +16,8 @@ import {
   Dimensions,
   RefreshControl,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import LinearGradient from "react-native-linear-gradient";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -426,6 +427,7 @@ const DynamicField = ({ field, value, onChangeText, totalFields, index, onOpenCa
 const BbpsDynamicServiceScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const insets = useSafeAreaInsets();
   const { serviceType } = route.params || {};
 
   const [services, setServices] = useState([]);
@@ -553,7 +555,7 @@ const BbpsDynamicServiceScreen = () => {
     // For general fields, we allow Alphanumeric and spaces.
     // However, if it's explicitly an EMAIL field (though we mostly get TEXT/NUMERIC), we should be careful.
     // For now, let's implement the restriction as requested.
-    
+
     if (field.type === "NUMERIC" || field.type === "NUM") {
       sanitizedText = text.replace(/[^0-9]/g, "");
     } else {
@@ -761,17 +763,23 @@ const BbpsDynamicServiceScreen = () => {
       />
 
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>BBPS Services</Text>
-        <Text style={styles.headerSub}>Bharat Bill Payment System</Text>
-      </View>
+      {/* Custom Header */}
+      <LinearGradient
+        colors={[Colors.primary, Colors.primary]}
+        style={[{ paddingBottom: 35, paddingTop: insets.top + 10 }]}
+      >
+        <View style={{ paddingHorizontal: 16, alignItems: "center", justifyContent: "center" }}>
+          <Text style={{ fontSize: 20, fontFamily: Fonts.Bold, color: Colors.white, letterSpacing: 0.5 }}>BBPS Services</Text>
+          <Text style={{ fontSize: 13, fontFamily: Fonts.Medium, color: "rgba(255,255,255,0.7)", marginTop: 4 }}>Bharat Bill Payment System</Text>
+        </View>
+      </LinearGradient>
 
       {/* Body */}
       <View style={styles.body}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ paddingBottom: 80 }}
+          contentContainerStyle={{ paddingBottom: 80, paddingHorizontal: 16 }}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -798,176 +806,186 @@ const BbpsDynamicServiceScreen = () => {
             </View>
           )}
 
-          {/* Service selector (only shown if no serviceType passed via route) */}
-          {!serviceType && (
-            <Dropdown
-              label="SELECT SERVICE"
-              value={serviceDisplayName}
-              placeholder="Choose a service"
-              items={services}
-              keyExtractor={(item) => String(item.id || item.cat_key)}
-              renderLabel={(item) => item.name}
-              onSelect={handleSelectService}
-              loading={servicesLoading}
-              disabled={servicesLoading}
-              searchable
-              searchPlaceholder="Search services…"
-              emptyLabel="No services found"
-            />
-          )}
+          <View style={{ height: 20 }} />
 
-          {/* Biller selector */}
-          {selectedService && (
-            <Dropdown
-              label="SELECT BILLER"
-              value={billerDisplayName}
-              placeholder="Choose a biller"
-              items={billers}
-              keyExtractor={(item, i) => String(item.biller_id || item.billerId || item.id || i)}
-              renderLabel={(item) => item.biller_name || item.billerName || item.name || ""}
-              onSelect={handleSelectBiller}
-              loading={billersLoading}
-              disabled={billersLoading || billers.length === 0}
-              searchable
-              searchPlaceholder="Search billers…"
-              emptyLabel="No billers found"
-            />
-          )}
-
-          {selectedService && !billersLoading && billers.length === 0 && (
-            <Text style={styles.infoTxt}>No billers found for "{selectedService.name}".</Text>
-          )}
-
-          {/* Error state */}
-          {!detailsLoading && detailsError && (
-            <View style={styles.errorBox}>
-              <Text style={styles.errorTxt}>⚠  {detailsError}</Text>
-              <TouchableOpacity style={styles.retryBtn} onPress={() => selectedBiller && loadBillerDetails(selectedBiller)}>
-                <Text style={styles.retryTxt}>Retry</Text>
-              </TouchableOpacity>
+          <View style={styles.modernCard}>
+            <View style={styles.cardHighlightHeader}>
+              <Icon name="form-select" size={14} color={Colors.finance_accent} />
+              <Text style={styles.cardHighlightTitle}>BILL DETAILS</Text>
             </View>
-          )}
 
-          {/* Dynamic fields */}
-          {!detailsLoading && !detailsError && dynamicFields.length > 0 && (
-            <View style={styles.fieldsWrap}>
-              <Text style={styles.sectionTitle}>ENTER DETAILS</Text>
-              {dynamicFields.map((field, idx) => (
-                <DynamicField
-                  key={`${field.name}_${idx}`}
-                  field={field}
-                  value={formData[field.name] || ""}
-                  onChangeText={(text) => handleFieldChange(field.name, text, field)}
-                  index={idx}
-                  totalFields={dynamicFields.length}
-                  onOpenCalendar={() => handleOpenCalendar(field)}
-                  dobError={dobErrors[field.name] || null}
+            <View style={styles.cardBody}>
+              {/* Service selector (only shown if no serviceType passed via route) */}
+              {!serviceType && (
+                <Dropdown
+                  label="SELECT SERVICE"
+                  value={serviceDisplayName}
+                  placeholder="Choose a service"
+                  items={services}
+                  keyExtractor={(item) => String(item.id || item.cat_key)}
+                  renderLabel={(item) => item.name}
+                  onSelect={handleSelectService}
+                  loading={servicesLoading}
+                  disabled={servicesLoading}
+                  searchable
+                  searchPlaceholder="Search services…"
+                  emptyLabel="No services found"
                 />
-              ))}
-            </View>
-          )}
+              )}
 
-          {!detailsLoading && !detailsError && selectedBiller && dynamicFields.length === 0 && !detailsError && (
-            <Text style={styles.infoTxt}>No input fields required for this biller.</Text>
-          )}
+              {/* Biller selector */}
+              {selectedService && (
+                <Dropdown
+                  label="SELECT BILLER"
+                  value={billerDisplayName}
+                  placeholder="Choose a biller"
+                  items={billers}
+                  keyExtractor={(item, i) => String(item.biller_id || item.billerId || item.id || i)}
+                  renderLabel={(item) => item.biller_name || item.billerName || item.name || ""}
+                  onSelect={handleSelectBiller}
+                  loading={billersLoading}
+                  disabled={billersLoading || billers.length === 0}
+                  searchable
+                  searchPlaceholder="Search billers…"
+                  emptyLabel="No billers found"
+                />
+              )}
 
-          {/* Bill summary */}
-          {!detailsLoading && !detailsError && fetchedBill && (
-            <View style={styles.billDetailsCard}>
-              <Text style={styles.billTitle}>Bill Summary</Text>
-              {[
-                ["Customer Name", fetchedBill.data?.billerResponse?.customerName || fetchedBill.customerName || "N/A"],
-                ["Bill Date", fetchedBill.data?.billerResponse?.billDate || fetchedBill.billDate || "N/A"],
-                ["Due Date", fetchedBill.data?.billerResponse?.dueDate || fetchedBill.dueDate || "N/A"],
-                ["Ref ID", fetchedBill.refid || "N/A"],
-              ].map(([lbl, val]) => (
-                <View key={lbl} style={styles.billRow}>
-                  <Text style={styles.billLabel}>{lbl}</Text>
-                  <Text style={[styles.billValue, lbl === "Ref ID" && { fontSize: 11, color: Colors.kyc_textSub }]} numberOfLines={1}>{val}</Text>
-                </View>
-              ))}
+              {selectedService && !billersLoading && billers.length === 0 && (
+                <Text style={styles.infoTxt}>No billers found for "{selectedService.name}".</Text>
+              )}
 
-              <Text style={[styles.billTitle, { marginTop: 12, borderBottomWidth: 0, paddingBottom: 0 }]}>Select Amount to Pay</Text>
-
-              {(() => {
-                const defaultAmt = (Number((fetchedBill.data?.billerResponse?.billAmount || fetchedBill.billAmount) || 0) / 100).toFixed(2);
-                const isSel = !isCustomAmount && selectedPayAmount === defaultAmt;
-                return (
-                  <TouchableOpacity style={[styles.payOption, isSel && styles.payOptionSelected]} onPress={() => { setIsCustomAmount(false); setSelectedPayAmount(defaultAmt); }} activeOpacity={0.8}>
-                    <View style={[styles.radioOut, isSel && styles.radioOutSelected]}>{isSel && <View style={styles.radioIn} />}</View>
-                    <View style={styles.payOptionContent}>
-                      <Text style={[styles.payOptionLabel, isSel && styles.payOptionLabelSelected]}>Total Bill Amount</Text>
-                      <Text style={[styles.payOptionValue, isSel && styles.payOptionValueSelected]}>₹ {defaultAmt}</Text>
-                    </View>
+              {/* Error state */}
+              {!detailsLoading && detailsError && (
+                <View style={styles.errorBox}>
+                  <Text style={styles.errorTxt}>⚠  {detailsError}</Text>
+                  <TouchableOpacity style={styles.retryBtn} onPress={() => selectedBiller && loadBillerDetails(selectedBiller)}>
+                    <Text style={styles.retryTxt}>Retry</Text>
                   </TouchableOpacity>
-                );
-              })()}
-
-              {(fetchedBill.data?.additionalInfo?.info || fetchedBill.additionalInfo?.info || []).map((info, idx) => {
-                const isNum = !isNaN(Number(info.infoValue)) && info.infoValue.trim() !== "";
-                // Exception for Balance fields: show as static row, not radio button
-                const lowerName = (info.infoName || "").toLowerCase();
-                const isBalanceField = lowerName.includes("balance") || lowerName.includes("fast tag") || lowerName.includes("fastag");
-                const isStatic = !isNum || isBalanceField;
-                if (isStatic) return (
-                  <View key={`info_${idx}`} style={[styles.billRow, { paddingHorizontal: 14 }]}>
-                    <Text style={styles.billLabel}>{info.infoName}</Text>
-                    <Text style={styles.billValue}>{info.infoValue}</Text>
-                  </View>
-                );
-                const amt = Number(info.infoValue).toFixed(2);
-                const isSel = !isCustomAmount && selectedPayAmount === amt;
-                return (
-                  <TouchableOpacity key={`info_${idx}`} style={[styles.payOption, isSel && styles.payOptionSelected]} onPress={() => { setIsCustomAmount(false); setSelectedPayAmount(amt); }} activeOpacity={0.8}>
-                    <View style={[styles.radioOut, isSel && styles.radioOutSelected]}>{isSel && <View style={styles.radioIn} />}</View>
-                    <View style={styles.payOptionContent}>
-                      <Text style={[styles.payOptionLabel, isSel && styles.payOptionLabelSelected]}>{info.infoName}</Text>
-                      <Text style={[styles.payOptionValue, isSel && styles.payOptionValueSelected]}>₹ {amt}</Text>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-
-              <TouchableOpacity style={[styles.payOption, isCustomAmount && styles.payOptionSelected, { borderBottomWidth: isCustomAmount ? 0 : 1 }]} onPress={() => { setIsCustomAmount(true); setSelectedPayAmount(customAmountStr || "0"); }} activeOpacity={0.8}>
-                <View style={[styles.radioOut, isCustomAmount && styles.radioOutSelected]}>{isCustomAmount && <View style={styles.radioIn} />}</View>
-                <View style={styles.payOptionContent}>
-                  <Text style={[styles.payOptionLabel, isCustomAmount && styles.payOptionLabelSelected]}>Custom Amount</Text>
-                </View>
-              </TouchableOpacity>
-
-              {isCustomAmount && (
-                <View style={styles.customAmountContainer}>
-                  <Text style={styles.rsPrefix}>₹</Text>
-                  <TextInput
-                    style={styles.customAmountInput}
-                    placeholder="Enter amount"
-                    placeholderTextColor={Colors.kyc_textMuted}
-                    keyboardType="numeric"
-                    value={customAmountStr}
-                    onChangeText={(txt) => {
-                      let cleaned = txt.replace(/[^0-9]/g, '');
-                      if (cleaned.startsWith("0")) cleaned = cleaned.replace(/^0+/, "");
-                      setCustomAmountStr(cleaned);
-                      setSelectedPayAmount(cleaned || "0");
-                    }}
-                  />
                 </View>
               )}
 
-              <View style={[styles.billRow, styles.billAmountRow]}>
-                <Text style={styles.billAmountLabel}>Payable Amount</Text>
-                <Text style={styles.billAmountValue}>₹ {selectedPayAmount || "0.00"}</Text>
-              </View>
-            </View>
-          )}
+              {/* Dynamic fields */}
+              {!detailsLoading && !detailsError && dynamicFields.length > 0 && (
+                <View style={styles.fieldsWrap}>
+                  <Text style={styles.sectionTitle}>ENTER DETAILS</Text>
+                  {dynamicFields.map((field, idx) => (
+                    <DynamicField
+                      key={`${field.name}_${idx}`}
+                      field={field}
+                      value={formData[field.name] || ""}
+                      onChangeText={(text) => handleFieldChange(field.name, text, field)}
+                      index={idx}
+                      totalFields={dynamicFields.length}
+                      onOpenCalendar={() => handleOpenCalendar(field)}
+                      dobError={dobErrors[field.name] || null}
+                    />
+                  ))}
+                </View>
+              )}
 
-          {/* Submit button */}
-          {selectedBiller && !detailsLoading && !detailsError && (
-            <TouchableOpacity style={styles.payBtn} onPress={handleSubmit} activeOpacity={0.85}>
-              <Text style={styles.payBtnTxt}>{buttonLabel}</Text>
-              {!!buttonSub && <Text style={styles.payBtnSub}>{buttonSub}</Text>}
-            </TouchableOpacity>
-          )}
+              {!detailsLoading && !detailsError && selectedBiller && dynamicFields.length === 0 && !detailsError && (
+                <Text style={styles.infoTxt}>No input fields required for this biller.</Text>
+              )}
+
+              {/* Bill summary */}
+              {!detailsLoading && !detailsError && fetchedBill && (
+                <View style={styles.billDetailsCard}>
+                  <Text style={styles.billTitle}>Bill Summary</Text>
+                  {[
+                    ["Customer Name", fetchedBill.data?.billerResponse?.customerName || fetchedBill.customerName || "N/A"],
+                    ["Bill Date", fetchedBill.data?.billerResponse?.billDate || fetchedBill.billDate || "N/A"],
+                    ["Due Date", fetchedBill.data?.billerResponse?.dueDate || fetchedBill.dueDate || "N/A"],
+                    ["Ref ID", fetchedBill.refid || "N/A"],
+                  ].map(([lbl, val]) => (
+                    <View key={lbl} style={styles.billRow}>
+                      <Text style={styles.billLabel}>{lbl}</Text>
+                      <Text style={[styles.billValue, lbl === "Ref ID" && { fontSize: 11, color: Colors.kyc_textSub }]} numberOfLines={1}>{val}</Text>
+                    </View>
+                  ))}
+
+                  <Text style={[styles.billTitle, { marginTop: 12, borderBottomWidth: 0, paddingBottom: 0 }]}>Select Amount to Pay</Text>
+
+                  {(() => {
+                    const defaultAmt = (Number((fetchedBill.data?.billerResponse?.billAmount || fetchedBill.billAmount) || 0) / 100).toFixed(2);
+                    const isSel = !isCustomAmount && selectedPayAmount === defaultAmt;
+                    return (
+                      <TouchableOpacity style={[styles.payOption, isSel && styles.payOptionSelected]} onPress={() => { setIsCustomAmount(false); setSelectedPayAmount(defaultAmt); }} activeOpacity={0.8}>
+                        <View style={[styles.radioOut, isSel && styles.radioOutSelected]}>{isSel && <View style={styles.radioIn} />}</View>
+                        <View style={styles.payOptionContent}>
+                          <Text style={[styles.payOptionLabel, isSel && styles.payOptionLabelSelected]}>Total Bill Amount</Text>
+                          <Text style={[styles.payOptionValue, isSel && styles.payOptionValueSelected]}>₹ {defaultAmt}</Text>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })()}
+
+                  {(fetchedBill.data?.additionalInfo?.info || fetchedBill.additionalInfo?.info || []).map((info, idx) => {
+                    const isNum = !isNaN(Number(info.infoValue)) && info.infoValue.trim() !== "";
+                    const lowerName = (info.infoName || "").toLowerCase();
+                    const isBalanceField = lowerName.includes("balance") || lowerName.includes("fast tag") || lowerName.includes("fastag");
+                    const isStatic = !isNum || isBalanceField;
+                    if (isStatic) return (
+                      <View key={`info_${idx}`} style={[styles.billRow, { paddingHorizontal: 14 }]}>
+                        <Text style={styles.billLabel}>{info.infoName}</Text>
+                        <Text style={styles.billValue}>{info.infoValue}</Text>
+                      </View>
+                    );
+                    const amt = Number(info.infoValue).toFixed(2);
+                    const isSel = !isCustomAmount && selectedPayAmount === amt;
+                    return (
+                      <TouchableOpacity key={`info_${idx}`} style={[styles.payOption, isSel && styles.payOptionSelected]} onPress={() => { setIsCustomAmount(false); setSelectedPayAmount(amt); }} activeOpacity={0.8}>
+                        <View style={[styles.radioOut, isSel && styles.radioOutSelected]}>{isSel && <View style={styles.radioIn} />}</View>
+                        <View style={styles.payOptionContent}>
+                          <Text style={[styles.payOptionLabel, isSel && styles.payOptionLabelSelected]}>{info.infoName}</Text>
+                          <Text style={[styles.payOptionValue, isSel && styles.payOptionValueSelected]}>₹ {amt}</Text>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+
+                  <TouchableOpacity style={[styles.payOption, isCustomAmount && styles.payOptionSelected, { borderBottomWidth: isCustomAmount ? 0 : 1 }]} onPress={() => { setIsCustomAmount(true); setSelectedPayAmount(customAmountStr || "0"); }} activeOpacity={0.8}>
+                    <View style={[styles.radioOut, isCustomAmount && styles.radioOutSelected]}>{isCustomAmount && <View style={styles.radioIn} />}</View>
+                    <View style={styles.payOptionContent}>
+                      <Text style={[styles.payOptionLabel, isCustomAmount && styles.payOptionLabelSelected]}>Custom Amount</Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  {isCustomAmount && (
+                    <View style={styles.customAmountContainer}>
+                      <Text style={styles.rsPrefix}>₹</Text>
+                      <TextInput
+                        style={styles.customAmountInput}
+                        placeholder="Enter amount"
+                        placeholderTextColor={Colors.kyc_textMuted}
+                        keyboardType="numeric"
+                        value={customAmountStr}
+                        onChangeText={(txt) => {
+                          let cleaned = txt.replace(/[^0-9]/g, '');
+                          if (cleaned.startsWith("0")) cleaned = cleaned.replace(/^0+/, "");
+                          setCustomAmountStr(cleaned);
+                          setSelectedPayAmount(cleaned || "0");
+                        }}
+                      />
+                    </View>
+                  )}
+
+                  <View style={[styles.billRow, styles.billAmountRow]}>
+                    <Text style={styles.billAmountLabel}>Payable Amount</Text>
+                    <Text style={styles.billAmountValue}>₹ {selectedPayAmount || "0.00"}</Text>
+                  </View>
+                </View>
+              )}
+
+              {/* Submit button */}
+              {selectedBiller && !detailsLoading && !detailsError && (
+                <TouchableOpacity style={styles.payBtn} onPress={handleSubmit} activeOpacity={0.85}>
+                  <Text style={styles.payBtnTxt}>{buttonLabel}</Text>
+                  {!!buttonSub && <Text style={styles.payBtnSub}>{buttonSub}</Text>}
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
         </ScrollView>
       </View>
 
@@ -990,12 +1008,12 @@ const ddStyles = StyleSheet.create({
   wrap: { marginBottom: 18 },
   label: { fontSize: 11, fontWeight: "700", color: Colors.primary, letterSpacing: 0.8, marginBottom: 8 },
   trigger: {
-    borderWidth: 1, borderColor: Colors.gray,
+    borderWidth: 0,
     borderRadius: 14, paddingHorizontal: 16, paddingVertical: 15,
     backgroundColor: Colors.white,
     minHeight: 54, justifyContent: "center",
   },
-  triggerOpen: { borderColor: Colors.gray, borderWidth: 1 },
+  triggerOpen: { borderWidth: 0 },
   triggerDisabled: { opacity: 0.4 },
   row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   triggerTxt: { fontSize: 15, color: Colors.black, flex: 1 },
@@ -1005,7 +1023,7 @@ const ddStyles = StyleSheet.create({
   loadingTxt: { fontSize: 14, color: Colors.gray },
 
   dropdown: {
-    backgroundColor: Colors.cardbg,
+    backgroundColor: Colors.white,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     width: "100%",
@@ -1032,7 +1050,7 @@ const ddStyles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.bg_F8,
+    borderBottomColor: "rgba(212,176,106,0.15)",
   },
   sheetTitle: {
     fontSize: 14,
@@ -1066,7 +1084,7 @@ const ddStyles = StyleSheet.create({
     flexDirection: "row", alignItems: "center",
     paddingHorizontal: 14, paddingVertical: 13,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "rgb(240, 242, 248)",
+    borderBottomColor: "rgba(212,176,106,0.15)",
   },
   itemSelected: { backgroundColor: Colors.primary + "0D" },
   itemIconBox: {
@@ -1088,7 +1106,7 @@ const ddStyles = StyleSheet.create({
 // ─────────────────────────────────────────────────────────────────────────────
 const calStyles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", paddingHorizontal: 20 },
-  card: { width: "100%", backgroundColor: Colors.cardbg, borderRadius: 22, overflow: "hidden" },
+  card: { width: "100%", backgroundColor: Colors.white, borderRadius: 22, overflow: "hidden" },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: Colors.primary, paddingVertical: 16, paddingHorizontal: 18 },
   navBtn: { padding: 4 },
   navTxt: { fontSize: 26, color: Colors.white, fontWeight: "300", lineHeight: 30 },
@@ -1123,16 +1141,44 @@ const calStyles = StyleSheet.create({
 // ─────────────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Colors.primary },
-  header: { paddingVertical: 22, alignItems: "center" },
-  headerTitle: { fontSize: 22, fontFamily: Fonts.Bold, color: Colors.white, letterSpacing: 0.3 },
-  headerSub: { fontSize: 12, fontFamily: Fonts.Regular, color: "rgba(255,255,255,0.60)", marginTop: 3 },
-  body: { flex: 1, backgroundColor: Colors.beige || "rgb(244, 246, 251)", paddingHorizontal: 20, paddingTop: 22, borderTopLeftRadius: 26, borderTopRightRadius: 26 },
+  body: {
+    flex: 1,
+    backgroundColor: Colors.beige,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    marginTop: -25,
+    paddingHorizontal: 16,
+    paddingTop: 20,
+  },
+  modernCard: {
+    backgroundColor: Colors.cardbg,
+    borderRadius: 18,
+    marginBottom: 15,
+    overflow: 'hidden',
+  },
+  cardHighlightHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: 'rgb(46, 46, 46)',
+    gap: 8,
+  },
+  cardHighlightTitle: {
+    fontSize: 10,
+    fontFamily: Fonts.Bold,
+    color: Colors.finance_accent,
+    letterSpacing: 0.5,
+  },
+  cardBody: {
+    padding: 12,
+  },
 
   serviceBanner: {
     flexDirection: "row", alignItems: "center",
     backgroundColor: Colors.cardbg,
     paddingHorizontal: 16, paddingVertical: 14,
-    borderRadius: 16, marginBottom: 20,
+    borderRadius: 16, marginBottom: 15,
     borderWidth: 1, borderColor: "rgba(0,0,0,0.02)",
   },
   bannerBbpsLogo: { width: 70, height: 60, resizeMode: "contain", marginLeft: 10 },
@@ -1163,12 +1209,12 @@ const styles = StyleSheet.create({
   errorTxt: { fontSize: 13, color: Colors.error_dark, textAlign: "center", lineHeight: 20 },
   retryBtn: { marginTop: 12, paddingHorizontal: 24, paddingVertical: 8, backgroundColor: Colors.primary, borderRadius: 8 },
   retryTxt: { color: Colors.white, fontSize: 13, fontFamily: Fonts.SemiBold },
-  payBtn: { marginTop: 8, backgroundColor: Colors.finance_accent || Colors.primary, paddingVertical: 12, borderRadius: 16, alignItems: "center" },
+  payBtn: { marginTop: 35, backgroundColor: Colors.finance_accent || Colors.primary, paddingVertical: 12, borderRadius: 16, alignItems: "center" },
   payBtnTxt: { color: Colors.white, fontSize: 16, fontFamily: Fonts.Bold, letterSpacing: 0.3 },
   payBtnSub: { color: "rgba(255,255,255,0.7)", fontSize: 11, marginTop: 3 },
 
-  billDetailsCard: { backgroundColor: Colors.cardbg, padding: 18, borderRadius: 16, borderWidth: 1, borderColor: Colors.input_border, marginTop: 18 },
-  billTitle: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.black, marginBottom: 14, borderBottomWidth: 1, borderBottomColor: Colors.bg_F8, paddingBottom: 8 },
+  billDetailsCard: { backgroundColor: Colors.cardbg, padding: 18, borderRadius: 16, borderWidth: 1, borderColor: Colors.input_border, marginTop: 15 },
+  billTitle: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.black, marginBottom: 14, borderBottomWidth: 1, borderBottomColor: "rgba(212,176,106,0.15)", paddingBottom: 8 },
   billRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 7 },
   billLabel: { fontSize: 13, fontFamily: Fonts.Regular, color: Colors.slate_500 },
   billValue: { fontSize: 14, fontFamily: Fonts.SemiBold, color: Colors.primary, flex: 1, textAlign: "right", marginLeft: 10 },
@@ -1200,7 +1246,7 @@ const styles = StyleSheet.create({
 
 const alertStyles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", padding: 30 },
-  card: { backgroundColor: Colors.cardbg, borderRadius: 24, padding: 25, width: "100%", alignItems: "center" },
+  card: { backgroundColor: Colors.white, borderRadius: 24, padding: 25, width: "100%", alignItems: "center" },
   iconWrap: { width: 60, height: 60, borderRadius: 30, backgroundColor: Colors.error_light, alignItems: "center", justifyContent: "center", marginBottom: 15 },
   iconWrapSuccess: { backgroundColor: Colors.success_light },
   icon: { fontSize: 30 },

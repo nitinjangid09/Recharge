@@ -22,15 +22,16 @@ import Colors from '../../../constants/Colors';
 import Fonts from '../../../constants/Fonts';
 import { getAllOnlineServices, BASE_URL } from '../../../api/AuthApi';
 import FullScreenLoader from '../../../componets/Loader/FullScreenLoader';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import OnlineServicesIconSVG from "../../../assets/ServicesIcons/online service.svg";
 
 const { width } = Dimensions.get('window');
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const STATS = [
-    { id: '1', label: 'TOTAL\nREQUESTS', value: '0' },
-    { id: '2', label: 'ACTIVE', value: '0' },
-    { id: '3', label: 'RESOLVED', value: '0' },
+    { id: '1', label: 'TOTAL\nREQUESTS', value: '0', icon: 'file-send-outline' },
+    { id: '2', label: 'ACTIVE', value: '0', icon: 'progress-clock' },
+    { id: '3', label: 'RESOLVED', value: '0', icon: 'file-check-outline' },
 ];
 
 const PROTOCOLS_MOCK = [];
@@ -68,30 +69,38 @@ const SectionDivider = ({ label, badge }) => (
 
 const ProtocolCard = ({ item, onPress }) => (
     <TouchableOpacity
-        style={styles.protocolCard}
+        style={styles.modernCard}
         activeOpacity={0.82}
         onPress={() => onPress?.(item)}
     >
-        <View style={styles.pcHeader}>
-            <View style={styles.pcNoBox}>
-                <Text style={styles.pcNo}>{item.no}</Text>
-            </View>
-            <Text style={styles.pcDate}>{item.date}</Text>
-        </View>
-        <Text style={styles.pcTitle}>{item.title}</Text>
-        <Text style={styles.pcRef}>{item.ref}</Text>
-        <View style={styles.pcDivider} />
-        <View style={styles.pcFooter}>
-            <View style={styles.pcUser}>
-                <View style={styles.userAvatar}>
-                    <Text style={styles.userAvatarText}>{item.user.charAt(0)}</Text>
+        <View style={styles.cardHighlightHeader}>
+            <View style={styles.historyHeaderLeft}>
+                <View style={styles.pcNoBox}>
+                    <Text style={styles.pcNo}>{item.no}</Text>
                 </View>
-                <Text style={styles.userName}>{item.user}</Text>
-                <Text style={styles.userId}> ({item.userId})</Text>
+                <Text style={styles.pcDate}>{item.date}</Text>
             </View>
-            <View style={styles.pcRight}>
-                <Text style={styles.pcAmount}>{item.amount}</Text>
-                <StatusBadge status={item.status} />
+            <View style={styles.historyCountBadge}>
+                <Text style={styles.historyCountText}>{item.status}</Text>
+            </View>
+        </View>
+
+        <View style={styles.cardBody}>
+            <Text style={styles.pcTitle}>{item.title}</Text>
+            <Text style={styles.pcRef}>{item.ref}</Text>
+            <View style={styles.pcDivider} />
+            <View style={styles.pcFooter}>
+                <View style={styles.pcUser}>
+                    <View style={styles.userAvatar}>
+                        <Text style={styles.userAvatarText}>{item.user.charAt(0)}</Text>
+                    </View>
+                    <Text style={styles.userName}>{item.user}</Text>
+                    <Text style={styles.userId}> ({item.userId})</Text>
+                </View>
+                <View style={styles.pcRight}>
+                    <Text style={styles.pcAmount}>{item.amount}</Text>
+                    <StatusBadge status={item.status} />
+                </View>
             </View>
         </View>
     </TouchableOpacity>
@@ -186,8 +195,13 @@ export default function OnlineServices({ navigation }) {
                 >
                     {STATS.map((s) => (
                         <View key={s.id} style={styles.statCard}>
-                            <Text style={styles.statValue}>{s.value}</Text>
-                            <Text style={styles.statLabel}>{s.label}</Text>
+                            <View style={styles.statIconBox}>
+                                <Icon name={s.icon} size={20} color={Colors.finance_accent} />
+                            </View>
+                            <View>
+                                <Text style={styles.statValue}>{s.value}</Text>
+                                <Text style={styles.statLabel}>{s.label}</Text>
+                            </View>
                         </View>
                     ))}
                 </ScrollView>
@@ -195,56 +209,68 @@ export default function OnlineServices({ navigation }) {
                 {/* Available Services Section */}
                 <SectionDivider label="AVAILABLE SERVICES" />
 
-                {services.length === 0 && !loading ? (
-                    <View style={styles.emptyState}>
-                        <Text style={styles.emptyText}>No services available</Text>
-                    </View>
-                ) : (
-                    services.map((svc) => (
-                        <View key={svc._id} style={styles.itrCard}>
-                            <View style={styles.itrMainRow}>
-                                {svc.serviceImageUrl ? (
-                                    <Image
-                                        source={{ uri: `${BASE_URL}${svc.serviceImageUrl}` }}
-                                        style={styles.svcImage}
-                                        resizeMode="cover"
-                                    />
-                                ) : (
-                                    <View style={styles.itrIconWrap}>
-                                        <OnlineServicesIconSVG width={24} height={24} />
-                                    </View>
-                                )}
-                                <View style={styles.itrInfo}>
-                                    <Text style={styles.itrTitle}>{svc.serviceName?.toUpperCase() || "SERVICE"}</Text>
-                                    <Text style={styles.itrDesc} numberOfLines={2}>
-                                        {svc.description || "Access this online service directly."}
-                                    </Text>
-                                </View>
-                            </View>
-                            <View style={styles.itrFooter}>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={styles.itrFeeLabel}>DIGITAL SERVICE</Text>
-                                    <Text style={styles.itrUrl} numberOfLines={1}>{svc.serviceUrl}</Text>
-                                </View>
-                                <TouchableOpacity
-                                    style={styles.proceedBtn}
-                                    activeOpacity={0.8}
-                                    onPress={() => {
-                                        if (svc.serviceUrl) {
-                                            Linking.openURL(svc.serviceUrl).catch(err => {
-                                                Alert.alert("Error", "Could not open service link.");
-                                            });
-                                        } else {
-                                            Alert.alert("Not Available", "This service does not have a valid URL.");
-                                        }
-                                    }}
-                                >
-                                    <Text style={styles.proceedBtnText}>OPEN SERVICE →</Text>
-                                </TouchableOpacity>
-                            </View>
+                <View style={{ paddingHorizontal: 16 }}>
+                    {services.length === 0 && !loading ? (
+                        <View style={styles.emptyState}>
+                            <Text style={styles.emptyText}>No services available</Text>
                         </View>
-                    ))
-                )}
+                    ) : (
+                        services.map((svc) => (
+                            <View key={svc._id} style={styles.modernCard}>
+                                <View style={styles.cardHighlightHeader}>
+                                    <Icon name="earth" size={14} color={Colors.finance_accent} />
+                                    <Text style={styles.cardHighlightTitle}>{svc.serviceName?.toUpperCase() || "SERVICE"}</Text>
+                                </View>
+                                <View style={styles.cardBody}>
+                                    <View style={styles.itrMainRow}>
+                                        {svc.serviceImageUrl ? (
+                                            <Image
+                                                source={{ uri: `${BASE_URL}${svc.serviceImageUrl}` }}
+                                                style={styles.svcImage}
+                                                resizeMode="cover"
+                                            />
+                                        ) : (
+                                            <View style={styles.serviceIconBox}>
+                                                <OnlineServicesIconSVG width={24} height={24} />
+                                            </View>
+                                        )}
+                                        <View style={styles.itrInfo}>
+                                            <Text style={styles.itrTitle}>{svc.serviceName?.toUpperCase() || "SERVICE"}</Text>
+                                            <Text style={styles.itrDesc} numberOfLines={2}>
+                                                {svc.description || "Access this online service directly."}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                    <View style={styles.pcDivider} />
+                                    <View style={styles.itrFooter}>
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={styles.itrFeeLabel}>DIGITAL SERVICE</Text>
+                                            <Text style={styles.itrUrl} numberOfLines={1}>{svc.serviceUrl}</Text>
+                                        </View>
+                                        <TouchableOpacity
+                                            style={styles.proceedBtn}
+                                            activeOpacity={0.8}
+                                            onPress={() => {
+                                                if (svc.serviceUrl) {
+                                                    Linking.openURL(svc.serviceUrl).catch(err => {
+                                                        Alert.alert("Error", "Could not open service link.");
+                                                    });
+                                                } else {
+                                                    Alert.alert("Not Available", "This service does not have a valid URL.");
+                                                }
+                                            }}
+                                        >
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                <Text style={styles.proceedBtnText}>OPEN SERVICE</Text>
+                                                <Icon name="open-in-new" size={14} color={Colors.white} />
+                                            </View>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            </View>
+                        ))
+                    )}
+                </View>
 
                 {/* Handled Protocols Section */}
                 {PROTOCOLS_MOCK.length > 0 && (
@@ -304,7 +330,7 @@ const styles = StyleSheet.create({
     },
     heroSubtitle: {
         fontSize: 13,
-        color: Colors.text_secondary,
+        color: Colors.slate_700,
         marginTop: 5,
         lineHeight: 19,
         fontFamily: Fonts.Medium,
@@ -316,24 +342,35 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     statCard: {
-        width: width * 0.40,
+        width: width * 0.44,
         borderRadius: 18,
-        padding: 18,
+        padding: 16,
         backgroundColor: Colors.cardbg,
         borderWidth: 1,
         borderColor: "rgba(245,158,11,0.30)",
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    statIconBox: {
+        width: 38,
+        height: 38,
+        borderRadius: 12,
+        backgroundColor: 'rgba(245,158,11,0.1)',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     statValue: {
-        fontSize: 34,
+        fontSize: 22,
         color: Colors.primary,
         fontFamily: Fonts.Bold,
     },
     statLabel: {
-        fontSize: 9,
-        color: Colors.text_secondary,
-        letterSpacing: 0.9,
-        marginTop: 5,
-        lineHeight: 13,
+        fontSize: 8,
+        color: Colors.primary,
+        letterSpacing: 0.8,
+        marginTop: 2,
+        opacity: 0.7,
         fontFamily: Fonts.Bold,
     },
 
@@ -367,15 +404,45 @@ const styles = StyleSheet.create({
         fontFamily: Fonts.Bold,
     },
 
-    itrCard: {
-        marginHorizontal: 20,
-        marginBottom: 16,
+    modernCard: {
         backgroundColor: Colors.cardbg,
-        borderRadius: 22,
-        padding: 22,
-        borderWidth: 1,
-        borderColor: "rgba(245,158,11,0.30)",
+        borderRadius: 18,
+        marginBottom: 16,
+        overflow: 'hidden',
     },
+    cardHighlightHeader: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        backgroundColor: 'rgb(46, 46, 46)',
+        gap: 8,
+    },
+    cardHighlightTitle: {
+        fontSize: 11,
+        fontFamily: Fonts.Bold,
+        color: Colors.finance_accent,
+        letterSpacing: 0.5,
+    },
+    cardBody: {
+        padding: 16,
+    },
+    historyHeaderLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
+    historyCountBadge: {
+        backgroundColor: "rgba(212,176,106,0.2)",
+        borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2,
+        borderWidth: 1, borderColor: "rgba(212,176,106,0.4)",
+    },
+    historyCountText: { fontSize: 11, fontFamily: Fonts.Bold, color: Colors.finance_accent },
+    serviceIconBox: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        backgroundColor: 'rgb(46, 46, 46)',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
     itrMainRow: {
         flexDirection: 'row',
         alignItems: 'flex-start',
@@ -386,17 +453,6 @@ const styles = StyleSheet.create({
         height: 70,
         borderRadius: 14,
     },
-    itrIconWrap: {
-        width: 60,
-        height: 60,
-        borderRadius: 14,
-        backgroundColor: Colors.gold,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 1,
-        borderColor: "rgba(245,158,11,0.30)",
-    },
-    itrIconEmoji: { fontSize: 26 },
     itrInfo: {
         flex: 1,
         marginLeft: 18,
@@ -411,7 +467,7 @@ const styles = StyleSheet.create({
     },
     itrDesc: {
         fontSize: 12,
-        color: Colors.text_secondary,
+        color: Colors.slate_700,
         lineHeight: 18,
         fontFamily: Fonts.Regular,
     },
@@ -449,20 +505,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         gap: 10,
     },
-    protocolCard: {
-        backgroundColor: Colors.cardbg,
-        borderRadius: 18,
-        padding: 16,
-        borderWidth: 1,
-        borderColor: "rgba(245,158,11,0.30)",
-        marginBottom: 2,
-    },
-    pcHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 8,
-        gap: 10,
-    },
+
     pcNoBox: {
         backgroundColor: Colors.primary,
         borderRadius: 8,

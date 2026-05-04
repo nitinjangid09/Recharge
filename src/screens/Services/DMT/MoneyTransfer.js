@@ -24,6 +24,8 @@ import { transferDmtFund, generateDmtTotp } from "../../../api/AuthApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AlertService } from "../../../componets/Alerts/CustomAlert";
 import { ActivityIndicator } from "react-native";
+import HeaderBar from "../../../componets/HeaderBar/HeaderBar";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
@@ -254,7 +256,7 @@ const MoneyTransferScreen = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+      <HeaderBar title="Money Transfer" onBack={() => navigation.goBack()} />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -265,14 +267,10 @@ const MoneyTransferScreen = ({ route, navigation }) => {
           style={[styles.header, { opacity: headerOp, transform: [{ translateY: headerTY }] }]}
         >
           <View style={styles.secureBadge}>
-            <Text style={styles.secureBadgeIcon}>💸</Text>
+            <Icon name="shield-check" size={14} color={Colors.finance_accent} />
             <Text style={styles.secureBadgeTxt}>SECURED TRANSFER</Text>
           </View>
-          <View style={styles.titleRow}>
-            <Text style={styles.titleAccent}>DMT </Text>
-            <Text style={styles.titleWhite}>Transfer</Text>
-          </View>
-          <Text style={styles.headerSub}>Secure Domestic Money Transfer</Text>
+          
           <View style={styles.recipientChip}>
             <View style={styles.recipientAvatar}>
               <Text style={styles.recipientAvatarTxt}>
@@ -289,7 +287,7 @@ const MoneyTransferScreen = ({ route, navigation }) => {
               <Text style={styles.recipientBank}>{account.bank} • {account.accountNumber}</Text>
             </View>
             <View style={styles.verifiedBadge}>
-              <Text style={styles.verifiedTxt}>✓</Text>
+              <Icon name="check-decagram" size={16} color={Colors.white} />
             </View>
           </View>
         </Animated.View>
@@ -301,103 +299,99 @@ const MoneyTransferScreen = ({ route, navigation }) => {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.formCard}>
-            <Text style={styles.fieldHeading}>ENTER TRANSFER AMOUNT</Text>
-            <View style={[styles.inputRow, error ? styles.inputError : null]}>
-              <Text style={styles.currencySymbol}>₹</Text>
-              <View style={styles.inputDivider} />
-              <TextInput
-                style={styles.input}
-                placeholder="Enter Amount"
-                placeholderTextColor={Colors.gray}
-                keyboardType="numeric"
-                value={amount}
-                onChangeText={(t) => {
-                  let v = t.replace(/[^0-9]/g, "");
-                  if (v.startsWith("0")) v = v.replace(/^0+/, "");
-                  setAmount(v);
-                  if (error) setError("");
-                }}
-                maxLength={10}
-              />
-              {amount.length > 0 && (
-                <TouchableOpacity
-                  onPress={() => setAmount("")}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Text style={styles.clearIcon}>✕</Text>
-                </TouchableOpacity>
-              )}
+          <View style={styles.modernCard}>
+            <View style={styles.cardHighlightHeader}>
+                <Icon name="cash-multiple" size={14} color={Colors.finance_accent} />
+                <Text style={styles.cardHighlightTitle}>ENTER TRANSFER AMOUNT</Text>
             </View>
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+            <View style={styles.cardBody}>
+                <View style={[styles.modernInputWrapper, error ? { borderBottomColor: Colors.red } : null]}>
+                    <Text style={styles.floatingLabel}>Amount (₹)</Text>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="0.00"
+                        placeholderTextColor={Colors.slate_500}
+                        keyboardType="numeric"
+                        value={amount}
+                        onChangeText={(t) => {
+                            let v = t.replace(/[^0-9]/g, "");
+                            if (v.startsWith("0")) v = v.replace(/^0+/, "");
+                            setAmount(v);
+                            if (error) setError("");
+                        }}
+                        maxLength={10}
+                    />
+                </View>
+                {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-            <View style={styles.hintRow}>
-              <Text style={styles.hintDot}>•</Text>
-              <Text style={styles.hintTxt}>Daily limit: ₹25,000 per transaction</Text>
-            </View>
+                <View style={styles.hintRow}>
+                    <Icon name="information-outline" size={12} color={Colors.finance_accent} />
+                    <Text style={styles.hintTxt}>Daily limit: ₹25,000 per transaction</Text>
+                </View>
 
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.quickRow}
-              contentContainerStyle={{ gap: scale(8), paddingRight: scale(4) }}
-            >
-              {QUICK_AMOUNTS.map((q) => (
-                <TouchableOpacity
-                  key={q}
-                  style={[styles.quickChip, amount === q && styles.quickChipActive]}
-                  onPress={() => {
-                    setAmount(q);
-                    if (error) setError("");
-                  }}
-                  activeOpacity={0.75}
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.quickRow}
+                    contentContainerStyle={{ gap: 8, paddingVertical: 10 }}
                 >
-                  <Text style={[styles.quickChipTxt, amount === q && styles.quickChipTxtActive]}>
-                    ₹{Number(q).toLocaleString("en-IN")}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+                    {QUICK_AMOUNTS.map((q) => (
+                        <TouchableOpacity
+                            key={q}
+                            style={[styles.quickChip, amount === q && styles.quickChipActive]}
+                            onPress={() => {
+                                setAmount(q);
+                                if (error) setError("");
+                            }}
+                            activeOpacity={0.75}
+                        >
+                            <Text style={[styles.quickChipTxt, amount === q && styles.quickChipTxtActive]}>
+                                ₹{Number(q).toLocaleString("en-IN")}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
 
-            {amount.length > 0 && Number(amount) > 0 && (
-              <View style={styles.summaryBox}>
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLbl}>Transfer Amount</Text>
-                  <Text style={styles.summaryVal}>₹{Number(amount).toLocaleString("en-IN")}</Text>
-                </View>
-                <View style={styles.summaryDivider} />
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLbl}>Service Charge</Text>
-                  <Text style={styles.summaryVal}>₹0.00</Text>
-                </View>
-                <View style={styles.summaryDivider} />
-                <View style={styles.summaryRow}>
-                  <Text style={[styles.summaryLbl, { color: Colors.primary, fontWeight: "800" }]}>
-                    Total Debit
-                  </Text>
-                  <Text
-                    style={[
-                      styles.summaryVal,
-                      { color: Colors.accent, fontWeight: "900", fontSize: rs(14) },
-                    ]}
-                  >
-                    ₹{Number(amount).toLocaleString("en-IN")}
-                  </Text>
-                </View>
-              </View>
-            )}
+                {amount.length > 0 && Number(amount) > 0 && (
+                    <View style={styles.summaryBox}>
+                        <View style={styles.summaryRow}>
+                            <Text style={styles.summaryLbl}>Transfer Amount</Text>
+                            <Text style={styles.summaryVal}>₹{Number(amount).toLocaleString("en-IN")}</Text>
+                        </View>
+                        <View style={styles.summaryDivider} />
+                        <View style={styles.summaryRow}>
+                            <Text style={styles.summaryLbl}>Service Charge</Text>
+                            <Text style={styles.summaryVal}>₹0.00</Text>
+                        </View>
+                        <View style={styles.summaryDivider} />
+                        <View style={styles.summaryRow}>
+                            <Text style={[styles.summaryLbl, { color: Colors.primary, fontFamily: Fonts.Bold }]}>
+                                Total Debit
+                            </Text>
+                            <Text
+                                style={[
+                                    styles.summaryVal,
+                                    { color: Colors.finance_accent, fontFamily: Fonts.Bold, fontSize: rs(14) },
+                                ]}
+                            >
+                                ₹{Number(amount).toLocaleString("en-IN")}
+                            </Text>
+                        </View>
+                    </View>
+                )}
 
-            <Animated.View style={{ transform: [{ scale: btnScale }], marginTop: vs(20) }}>
-              <TouchableOpacity
-                style={[styles.button, { backgroundColor: (amount.length > 0 && Number(amount) > 0) ? Colors.primary : Colors.gold }]}
-                onPress={handleConfirm}
-                disabled={!amount || Number(amount) <= 0}
-                activeOpacity={0.88}
-              >
-                <Text style={[styles.buttonText, { color: (amount.length > 0 && Number(amount) > 0) ? Colors.white : Colors.slate_500 }]}>Proceed Transfer</Text>
-                <Text style={[styles.btnArrowTxt, { color: (amount.length > 0 && Number(amount) > 0) ? Colors.white : Colors.slate_500 }]}>→</Text>
-              </TouchableOpacity>
-            </Animated.View>
+                <Animated.View style={{ transform: [{ scale: btnScale }], marginTop: 24 }}>
+                    <TouchableOpacity
+                        style={[styles.button, { backgroundColor: (amount.length > 0 && Number(amount) > 0) ? Colors.primary : Colors.gold }]}
+                        onPress={handleConfirm}
+                        disabled={!amount || Number(amount) <= 0}
+                        activeOpacity={0.88}
+                    >
+                        <Text style={[styles.buttonText, { color: (amount.length > 0 && Number(amount) > 0) ? Colors.white : Colors.slate_500 }]}>Proceed Transfer</Text>
+                        <Icon name="arrow-right" size={18} color={(amount.length > 0 && Number(amount) > 0) ? Colors.white : Colors.slate_500} />
+                    </TouchableOpacity>
+                </Animated.View>
+            </View>
           </View>
 
           <View style={styles.secureNote}>
@@ -460,7 +454,7 @@ const MoneyTransferScreen = ({ route, navigation }) => {
             style={[styles.modalCard, { opacity: otpOp, transform: [{ scale: otpScale }] }]}
           >
             <View style={[styles.modalIconWrap, { backgroundColor: "rgba(255,255,255,0.1)" }]}>
-              <Text style={styles.modalIcon}>💬</Text>
+              <Icon name="message-text-outline" size={rs(26)} color={Colors.finance_accent} />
             </View>
             <Text style={styles.modalTitle}>Verify OTP</Text>
             <Text style={styles.modalSub}>OTP sent to your registered mobile number</Text>
@@ -545,8 +539,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: scale(20),
     paddingTop: vs(16),
     paddingBottom: vs(26),
-    borderBottomLeftRadius: scale(28),
-    borderBottomRightRadius: scale(28),
+    borderBottomLeftRadius: scale(30),
+    borderBottomRightRadius: scale(30),
   },
   secureBadge: {
     flexDirection: "row",
@@ -561,35 +555,11 @@ const styles = StyleSheet.create({
     marginBottom: vs(14),
     gap: scale(5),
   },
-  secureBadgeIcon: { fontSize: rs(10) },
   secureBadgeTxt: {
     fontFamily: Fonts.Bold,
     color: Colors.white,
     fontSize: rs(9),
-    fontWeight: "800",
     letterSpacing: 1.1,
-  },
-  titleRow: { flexDirection: "row", alignItems: "baseline", marginBottom: vs(6) },
-  titleAccent: {
-    fontFamily: Fonts.Bold,
-    color: Colors.white,
-    fontSize: rs(32),
-    fontWeight: "900",
-    letterSpacing: 0.5,
-  },
-  titleWhite: {
-    fontFamily: Fonts.Bold,
-    color: Colors.white,
-    fontSize: rs(32),
-    fontWeight: "900",
-    letterSpacing: 0.5,
-  },
-  headerSub: {
-    fontFamily: Fonts.Medium,
-    color: "rgba(255,255,255,0.65)",
-    fontSize: rs(13),
-    fontWeight: "500",
-    marginBottom: vs(18),
   },
   recipientChip: {
     flexDirection: "row",
@@ -605,12 +575,12 @@ const styles = StyleSheet.create({
     width: scale(38),
     height: scale(38),
     borderRadius: scale(10),
-    backgroundColor: Colors.accent,
+    backgroundColor: 'rgb(46, 46, 46)',
     alignItems: "center",
     justifyContent: "center",
   },
-  recipientAvatarTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(13), fontWeight: "900" },
-  recipientName: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(13), fontWeight: "800" },
+  recipientAvatarTxt: { fontFamily: Fonts.Bold, color: Colors.finance_accent, fontSize: rs(13) },
+  recipientName: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(13) },
   recipientBank: {
     fontFamily: Fonts.Regular,
     color: "rgba(255,255,255,0.65)",
@@ -621,93 +591,85 @@ const styles = StyleSheet.create({
     width: scale(24),
     height: scale(24),
     borderRadius: scale(12),
-    backgroundColor: Colors.kyc_success,
+    backgroundColor: Colors.finance_accent,
     alignItems: "center",
     justifyContent: "center",
   },
-  verifiedTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(10), fontWeight: "900" },
-  formCard: {
+
+  modernCard: {
     backgroundColor: Colors.cardbg,
-    borderRadius: scale(20),
-    padding: scale(18),
+    borderRadius: 18,
+    marginBottom: 16,
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: "rgba(245,158,11,0.30)",
+    borderColor: 'rgba(245,158,11,0.30)',
   },
-  fieldHeading: {
-    fontFamily: Fonts.Bold,
-    fontSize: rs(9),
-    fontWeight: "800",
-    color: Colors.primary,
-    letterSpacing: 1.1,
-    marginBottom: vs(10),
-  },
-  inputRow: {
+  cardHighlightHeader: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.white,
-    borderRadius: scale(14),
-    borderWidth: 1,
-    borderColor: "rgb(235, 235, 235)",
-    paddingHorizontal: scale(14),
-    minHeight: vs(54),
-    marginBottom: vs(8),
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: 'rgb(46, 46, 46)',
+    gap: 8,
   },
-  inputError: {
-    borderColor: Colors.red,
+  cardHighlightTitle: {
+    fontSize: 11,
+    fontFamily: Fonts.Bold,
+    color: Colors.finance_accent,
+    letterSpacing: 0.5,
   },
+  cardBody: {
+    padding: 16,
+  },
+  modernInputWrapper: {
+    borderBottomWidth: 1.5,
+    borderBottomColor: "rgba(212,176,106,0.40)",
+    marginBottom: 12,
+    paddingVertical: 8,
+  },
+  floatingLabel: {
+    fontSize: 10,
+    fontFamily: Fonts.Bold,
+    color: Colors.finance_accent,
+    letterSpacing: 1,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+
   errorText: {
     fontFamily: Fonts.Bold,
     color: Colors.red,
     fontSize: rs(10),
     marginTop: vs(2),
     marginBottom: vs(12),
-    fontWeight: "600",
   },
-  currencySymbol: {
-    fontFamily: Fonts.Bold,
-    color: Colors.primary,
-    fontSize: rs(20),
-    fontWeight: "900",
-    marginRight: scale(4),
-  },
-  inputDivider: { width: 1, height: vs(20), backgroundColor: Colors.kyc_border, marginRight: scale(10) },
   input: {
     fontFamily: Fonts.Bold,
     flex: 1,
-    fontSize: rs(15),
-    color: Colors.heroEnd,
+    fontSize: 18,
+    color: Colors.primary,
     padding: 0,
-    fontWeight: "700",
   },
-  clearIcon: {
-    fontFamily: Fonts.Bold,
-    color: Colors.gray,
-    fontSize: rs(14),
-    fontWeight: "700",
-    marginLeft: scale(6),
-  },
-  hintRow: { flexDirection: "row", alignItems: "flex-start", gap: scale(5), marginBottom: vs(2) },
-  hintDot: { color: Colors.accent, fontSize: rs(12), lineHeight: rs(16), marginTop: vs(1) },
-  hintTxt: { fontFamily: Fonts.Regular, color: Colors.gray, fontSize: rs(10), lineHeight: rs(16), flex: 1 },
-  quickRow: { marginTop: vs(12), marginBottom: vs(4) },
+  hintRow: { flexDirection: "row", alignItems: "center", gap: 5, marginBottom: 12 },
+  hintTxt: { fontFamily: Fonts.Medium, color: Colors.slate_700, fontSize: rs(10) },
+  quickRow: { marginBottom: 16 },
   quickChip: {
-    paddingHorizontal: scale(12),
-    paddingVertical: vs(7),
-    borderRadius: scale(20),
-    backgroundColor: "rgb(240, 240, 240)",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: "rgba(0,0,0,0.04)",
     borderWidth: 1,
-    borderColor: Colors.kyc_border,
+    borderColor: "rgba(0,0,0,0.05)",
   },
-  quickChipActive: { backgroundColor: Colors.accent + "18", borderColor: Colors.accent },
-  quickChipTxt: { fontFamily: Fonts.Medium, fontSize: rs(11), color: "rgb(117, 117, 117)", fontWeight: "600" },
-  quickChipTxtActive: { fontFamily: Fonts.Bold, color: Colors.accent, fontWeight: "800" },
+  quickChipActive: { backgroundColor: "rgba(212,176,106,0.1)", borderColor: Colors.finance_accent },
+  quickChipTxt: { fontFamily: Fonts.Bold, fontSize: rs(11), color: Colors.slate_700 },
+  quickChipTxtActive: { color: Colors.finance_accent },
   summaryBox: {
-    marginTop: vs(16),
-    backgroundColor: Colors.bg_F8,
-    borderRadius: scale(12),
-    padding: scale(12),
+    backgroundColor: "rgba(0,0,0,0.02)",
+    borderRadius: 12,
+    padding: 12,
     borderWidth: 1,
-    borderColor: "rgb(235, 235, 235)",
+    borderColor: "rgba(0,0,0,0.04)",
   },
   summaryRow: {
     flexDirection: "row",
@@ -715,55 +677,45 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: vs(5),
   },
-  summaryDivider: { height: 1, backgroundColor: "rgb(235, 235, 235)" },
-  summaryLbl: { fontFamily: Fonts.Medium, fontSize: rs(11), color: Colors.gray, fontWeight: "600" },
-  summaryVal: { fontFamily: Fonts.Bold, fontSize: rs(12), color: Colors.primary, fontWeight: "700" },
+  summaryDivider: { height: 1, backgroundColor: "rgba(0,0,0,0.04)" },
+  summaryLbl: { fontFamily: Fonts.Medium, fontSize: rs(11), color: Colors.slate_700 },
+  summaryVal: { fontFamily: Fonts.Bold, fontSize: rs(12), color: Colors.primary },
   button: {
-    borderRadius: scale(14),
-    padding: vs(15),
+    borderRadius: 12,
+    padding: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: scale(10),
+    gap: 10,
   },
   buttonText: {
     fontFamily: Fonts.Bold,
     color: Colors.white,
-    fontSize: rs(15),
-    fontWeight: "900",
-    letterSpacing: 0.4,
+    fontSize: 16,
+    letterSpacing: 0.5,
   },
-  btnArrow: {
-    width: scale(26),
-    height: scale(26),
-    borderRadius: scale(13),
-    backgroundColor: "rgba(255,255,255,0.1)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  btnArrowTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(13), fontWeight: "900" },
   secureNote: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: scale(8),
     marginTop: vs(16),
-    backgroundColor: Colors.bg_F8,
+    backgroundColor: "rgba(212,176,106,0.05)",
     borderRadius: scale(12),
     padding: scale(12),
     borderWidth: 1,
-    borderColor: "rgb(235, 235, 235)",
+    borderColor: "rgba(212,176,106,0.1)",
   },
   secureNoteIcon: { fontSize: rs(14), marginTop: vs(1) },
   secureNoteTxt: {
     fontFamily: Fonts.Regular,
     flex: 1,
-    color: Colors.gray,
+    color: Colors.slate_700,
     fontSize: rs(10),
     lineHeight: rs(16),
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
+    backgroundColor: "rgba(0,0,0,0.7)",
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: scale(24),
@@ -775,11 +727,14 @@ const styles = StyleSheet.create({
     paddingVertical: vs(28),
     paddingHorizontal: scale(22),
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(212,176,106,0.2)",
   },
   modalIconWrap: {
     width: scale(56),
     height: scale(56),
     borderRadius: scale(16),
+    backgroundColor: 'rgb(46, 46, 46)',
     alignItems: "center",
     justifyContent: "center",
     marginBottom: vs(12),
@@ -788,60 +743,59 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontFamily: Fonts.Bold,
     fontSize: rs(18),
-    fontWeight: "900",
     color: Colors.primary,
     marginBottom: vs(4),
   },
   modalSub: {
     fontFamily: Fonts.Medium,
     fontSize: rs(12),
-    color: Colors.gray,
+    color: Colors.slate_700,
     marginBottom: vs(12),
     textAlign: "center",
   },
   modalRecipient: {
     fontFamily: Fonts.Regular,
     fontSize: rs(13),
-    color: Colors.gray,
+    color: Colors.slate_700,
     textAlign: "center",
     marginBottom: vs(4),
   },
   modalBankInfo: {
     fontFamily: Fonts.Regular,
     fontSize: rs(11),
-    color: Colors.gray,
+    color: Colors.slate_700,
     marginBottom: vs(20),
     textAlign: "center",
   },
   amountHighlight: {
-    backgroundColor: Colors.accent + "12",
+    backgroundColor: "rgba(212,176,106,0.1)",
     borderRadius: scale(12),
     paddingHorizontal: scale(20),
     paddingVertical: vs(10),
-    marginBottom: vs(8),
+    marginBottom: vs(16),
     borderWidth: 1,
-    borderColor: Colors.accent + "25",
+    borderColor: "rgba(212,176,106,0.3)",
   },
-  amountHighlightTxt: { fontFamily: Fonts.Bold, color: Colors.accent, fontSize: rs(28), fontWeight: "900" },
+  amountHighlightTxt: { fontFamily: Fonts.Bold, color: Colors.finance_accent, fontSize: rs(28) },
   modalBtnRow: { flexDirection: "row", gap: scale(10), width: "100%", marginTop: vs(4) },
   modalCancelBtn: {
     flex: 1,
     paddingVertical: vs(13),
     borderRadius: scale(12),
-    backgroundColor: "rgb(244, 244, 244)",
+    backgroundColor: "rgba(0,0,0,0.05)",
     alignItems: "center",
   },
-  modalCancelTxt: { fontFamily: Fonts.Bold, color: "rgb(117, 117, 117)", fontSize: rs(13), fontWeight: "700" },
+  modalCancelTxt: { fontFamily: Fonts.Bold, color: Colors.slate_700, fontSize: rs(13) },
   modalConfirmBtn: {
     flex: 2,
     paddingVertical: vs(13),
     borderRadius: scale(12),
-    backgroundColor: Colors.accent,
+    backgroundColor: Colors.primary,
     alignItems: "center",
   },
-  modalConfirmTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(13), fontWeight: "900" },
+  modalConfirmTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(13) },
   otpFooter: { flexDirection: "row", alignItems: "center", gap: scale(12), marginTop: vs(14) },
-  resendTxt: { fontFamily: Fonts.Bold, color: Colors.accent, fontSize: rs(12), fontWeight: "700" },
+  resendTxt: { fontFamily: Fonts.Bold, color: Colors.finance_accent, fontSize: rs(12) },
   otpDivider: { color: Colors.kyc_border, fontSize: rs(14) },
-  cancelTxt: { fontFamily: Fonts.Medium, color: Colors.gray, fontSize: rs(12), fontWeight: "600" },
+  cancelTxt: { fontFamily: Fonts.Medium, color: Colors.slate_700, fontSize: rs(12) },
 });

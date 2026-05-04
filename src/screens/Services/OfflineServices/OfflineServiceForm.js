@@ -242,79 +242,95 @@ export default function OfflineServiceForm({ navigation, route }) {
                 >
                     {/* Dynamic Required Fields */}
                     {formConfig?.requiredFields?.length > 0 && (
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Required Information</Text>
-                            {formConfig.requiredFields.map((field) => (
-                                <View key={field._id} style={styles.inputWrap}>
-                                    <Text style={styles.label}>{field.label}</Text>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder={`Enter ${field.label.toLowerCase()}`}
-                                        placeholderTextColor={Colors.gray}
-                                        value={formValues[field.key]}
-                                        onChangeText={(val) => handleFieldChange(field.key, val)}
-                                    />
-                                </View>
-                            ))}
-                        </View>
-                    )}
-
-                    {/* Dynamic Required Documents */}
-                    {formConfig?.requiredDocuments?.length > 0 && (
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Required Documents</Text>
-                            <View style={styles.docGrid}>
-                                {formConfig.requiredDocuments.map((doc) => (
-                                    <View key={doc._id} style={styles.docItem}>
-                                        <Text style={styles.docLabel}>{doc.label}</Text>
-                                        <TouchableOpacity
-                                            style={[
-                                                styles.docBox,
-                                                documents[doc.key] && { borderStyle: "solid", borderColor: Colors.kyc_success, backgroundColor: Colors.kyc_success + "08" }
-                                            ]}
-                                            onPress={() => handlePickDocument(doc.key, doc.label)}
-                                            activeOpacity={0.75}
-                                        >
-                                            {documents[doc.key] ? (
-                                                <View style={{ width: '100%', height: '100%' }}>
-                                                    <Image source={{ uri: documents[doc.key].uri }} style={styles.docThumb} resizeMode="cover" />
-                                                    <LinearGradient colors={["transparent", "rgba(0,0,0,0.72)"]} style={styles.docOverlay} start={{ x: 0, y: 0.5 }} end={{ x: 0, y: 1 }}>
-                                                        <Icon name="check-circle" size={S(10)} color={Colors.white} />
-                                                        <Text style={styles.docDoneLabel}>UPLOADED</Text>
-                                                    </LinearGradient>
-                                                    <TouchableOpacity
-                                                        style={styles.cornerDelete}
-                                                        onPress={() => removeDocument(doc.key)}
-                                                    >
-                                                        <Icon name="close" size={S(11)} color={Colors.white} />
-                                                    </TouchableOpacity>
-                                                </View>
-                                            ) : (
-                                                <View style={styles.docEmptyContent}>
-                                                    <View style={[styles.docIconCircle, { backgroundColor: Colors.finance_accent + "12" }]}>
-                                                        <Icon name="file-document-outline" size={S(18)} color={Colors.finance_accent} />
-                                                    </View>
-                                                    <Text style={styles.docSlotLabel}>{doc.label}</Text>
-                                                    <View style={styles.docUploadTag}>
-                                                        <Icon name="plus" size={S(10)} color={Colors.finance_accent} />
-                                                        <Text style={styles.docUploadTagText}>Upload</Text>
-                                                    </View>
-                                                </View>
-                                            )}
-                                        </TouchableOpacity>
+                        <View style={styles.modernCard}>
+                            <View style={styles.cardHighlightHeader}>
+                                <Icon name="account-details-outline" size={16} color={Colors.finance_accent} />
+                                <Text style={styles.cardHighlightTitle}>REQUIRED INFORMATION</Text>
+                            </View>
+                            <View style={styles.cardBody}>
+                                {formConfig.requiredFields.map((field) => (
+                                    <View key={field._id} style={styles.modernInputWrapper}>
+                                        <Text style={styles.floatingLabel}>{field.label}</Text>
+                                        <TextInput
+                                            style={styles.bigInput}
+                                            placeholder={`Enter ${field.label.toLowerCase()}`}
+                                            placeholderTextColor={Colors.slate_500}
+                                            value={formValues[field.key]}
+                                            onChangeText={(val) => handleFieldChange(field.key, val)}
+                                        />
                                     </View>
                                 ))}
                             </View>
                         </View>
                     )}
 
+                    {/* Dynamic Required Documents */}
+                    {formConfig?.requiredDocuments?.length > 0 && (
+                        <View style={styles.modernCard}>
+                            <View style={styles.cardHighlightHeader}>
+                                <Icon name="file-document-outline" size={16} color={Colors.finance_accent} />
+                                <Text style={styles.cardHighlightTitle}>REQUIRED DOCUMENTS</Text>
+                            </View>
+                            <View style={styles.cardBody}>
+                                <View style={styles.docGrid}>
+                                    {formConfig.requiredDocuments.map((doc) => (
+                                        <View key={doc._id} style={styles.docItem}>
+                                            <Text style={styles.docLabel}>{doc.label}</Text>
+                                            <TouchableOpacity
+                                                style={[
+                                                    styles.docBox,
+                                                    documents[doc.key] && { borderStyle: "solid", borderColor: Colors.kyc_success, backgroundColor: Colors.kyc_success + "08" }
+                                                ]}
+                                                onPress={() => handlePickDocument(doc.key, doc.label)}
+                                                activeOpacity={0.75}
+                                            >
+                                                {documents[doc.key] ? (
+                                                    <View style={{ width: '100%', height: '100%' }}>
+                                                        <Image source={{ uri: documents[doc.key].uri }} style={styles.docThumb} resizeMode="cover" />
+                                                        <LinearGradient colors={["transparent", "rgba(0,0,0,0.72)"]} style={styles.docOverlay} start={{ x: 0, y: 0.5 }} end={{ x: 0, y: 1 }}>
+                                                            <Icon name="check-circle" size={14} color={Colors.white} />
+                                                            <Text style={styles.docDoneLabel}>UPLOADED</Text>
+                                                        </LinearGradient>
+                                                        <TouchableOpacity
+                                                            style={styles.cornerDelete}
+                                                            onPress={() => removeDocument(doc.key)}
+                                                        >
+                                                            <Icon name="close" size={11} color={Colors.white} />
+                                                        </TouchableOpacity>
+                                                    </View>
+                                                ) : (
+                                                    <View style={styles.docEmptyContent}>
+                                                        <View style={[styles.docIconCircle, { backgroundColor: Colors.finance_accent + "12" }]}>
+                                                            <Icon name="file-document-outline" size={18} color={Colors.finance_accent} />
+                                                        </View>
+                                                        <Text style={styles.docSlotLabel}>{doc.label}</Text>
+                                                        <View style={styles.docUploadTag}>
+                                                            <Icon name="plus" size={10} color={Colors.finance_accent} />
+                                                            <Text style={styles.docUploadTagText}>Upload</Text>
+                                                        </View>
+                                                    </View>
+                                                )}
+                                            </TouchableOpacity>
+                                        </View>
+                                    ))}
+                                </View>
+                            </View>
+                        </View>
+                    )}
+
                     {/* Hero Information */}
-                    <View style={styles.infoCard}>
-                        <Text style={styles.infoTitle}>Service Details</Text>
-                        <Text style={styles.infoDesc}>{service.description || "Instruction protocol for offline processing."}</Text>
-                        <View style={styles.feeTag}>
-                            <Text style={styles.feeLabel}>SERVICE FEE:</Text>
-                            <Text style={styles.feeAmount}>₹{service.amount}</Text>
+                    <View style={styles.modernCard}>
+                        <View style={styles.cardHighlightHeader}>
+                            <Icon name="information-outline" size={16} color={Colors.finance_accent} />
+                            <Text style={styles.cardHighlightTitle}>SERVICE DETAILS</Text>
+                        </View>
+                        <View style={styles.cardBody}>
+                            <Text style={styles.infoTitle}>{service.serviceName?.toUpperCase() || "SERVICE"}</Text>
+                            <Text style={styles.infoDesc}>{service.description || "Instruction protocol for offline processing."}</Text>
+                            <View style={styles.feeTag}>
+                                <Text style={styles.feeLabel}>SERVICE FEE:</Text>
+                                <Text style={styles.feeAmount}>₹{service.amount}</Text>
+                            </View>
                         </View>
                     </View>
 
@@ -381,14 +397,6 @@ const styles = StyleSheet.create({
     scroll: { flex: 1 },
     content: { padding: 20 },
 
-    infoCard: {
-        backgroundColor: Colors.cardbg,
-        borderRadius: 20,
-        padding: 20,
-        marginBottom: 20,
-        borderWidth: 1,
-        borderColor: "rgba(245,158,11,0.30)",
-    },
     infoTitle: {
         fontSize: 18,
         color: Colors.primary,
@@ -423,34 +431,32 @@ const styles = StyleSheet.create({
         fontFamily: Fonts.Bold,
     },
 
-    section: { marginBottom: 25 },
-    sectionTitle: {
-        fontSize: 16,
-        color: Colors.primary,
-        marginBottom: 15,
+    modernCard: {
+        backgroundColor: Colors.cardbg,
+        borderRadius: 18,
+        marginBottom: 16,
+        overflow: 'hidden',
+    },
+    cardHighlightHeader: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        backgroundColor: 'rgb(46, 46, 46)',
+        gap: 8,
+    },
+    cardHighlightTitle: {
+        fontSize: 11,
         fontFamily: Fonts.Bold,
-        textTransform: 'uppercase',
-        letterSpacing: 1,
+        color: Colors.finance_accent,
+        letterSpacing: 0.5,
     },
-
-    inputWrap: { marginBottom: 15 },
-    label: {
-        fontSize: 13,
-        color: Colors.primary,
-        marginBottom: 8,
-        fontFamily: Fonts.Bold,
+    cardBody: {
+        padding: 16,
     },
-    input: {
-        backgroundColor: Colors.white,
-        borderRadius: 12,
-        paddingHorizontal: 15,
-        paddingVertical: 12,
-        fontSize: 14,
-        color: Colors.black,
-        borderWidth: 1,
-        borderColor: "rgba(245,158,11,0.30)",
-        fontFamily: Fonts.Regular,
-    },
+    modernInputWrapper: { borderBottomWidth: 1.5, borderBottomColor: Colors.finance_accent + "30", paddingBottom: 6, marginBottom: 16 },
+    floatingLabel: { fontSize: 10, color: Colors.ink2, fontFamily: Fonts.Medium, marginBottom: 2 },
+    bigInput: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.finance_text, padding: 0, height: 34 },
 
     docGrid: {
         flexDirection: 'row',

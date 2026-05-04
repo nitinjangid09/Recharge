@@ -16,10 +16,12 @@ import {
   PermissionsAndroid,
   Alert,
 } from "react-native";
-import Geolocation from '@react-native-community/geolocation';
 import { SafeAreaView } from "react-native-safe-area-context";
+import Geolocation from '@react-native-community/geolocation';
+import HeaderBar from "../../../componets/HeaderBar/HeaderBar";
 import Colors from "../../../constants/Colors";
 import Fonts from "../../../constants/Fonts";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { fadeIn, slideUp, buttonPress } from "../../../utils/ScreenAnimations";
 import { fetchAepsBanks, aepsBalanceEnquiry } from "../../../api/AuthApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -197,7 +199,7 @@ const SelectPicker = ({
 // ══════════════════════════════════════════════════════════════════════════════
 //  MAIN SCREEN
 // ══════════════════════════════════════════════════════════════════════════════
-const BalanceEnquiry = () => {
+const BalanceEnquiry = ({ navigation }) => {
   const [mobileNumber, setMobileNumber] = useState("");
   const [aadhaarNumber, setAadhaarNumber] = useState("");
   const [bank, setBank] = useState(null);
@@ -393,35 +395,7 @@ const BalanceEnquiry = () => {
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        {/* ══════════════════════════════════
-            HEADER — title + subtitle + trust pills only
-        ══════════════════════════════════ */}
-        <Animated.View
-          style={[
-            styles.header,
-            { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
-          ]}
-        >
-          <View style={styles.titleBlock}>
-            <Text style={styles.titleWhite}>Balance</Text>
-            <Text style={styles.titleAccent}>Enquiry</Text>
-          </View>
-
-          <Text style={styles.headerSub}>
-            Check customer balance securely{"\n"}via Aadhaar-linked bank account
-          </Text>
-
-          <View style={styles.trustRow}>
-            <View style={styles.trustPill}>
-              <Text style={styles.trustIcon}>🔒</Text>
-              <Text style={styles.trustTxt}>256-BIT ENCRYPTED</Text>
-            </View>
-            <View style={styles.trustPill}>
-              <Text style={styles.trustIcon}>✚</Text>
-              <Text style={styles.trustTxt}>RBI APPROVED</Text>
-            </View>
-          </View>
-        </Animated.View>
+        <HeaderBar title="Balance Enquiry" onBack={() => navigation.goBack()} />
 
         {/* ══════════════════════════════════
             SCROLL BODY
@@ -433,102 +407,97 @@ const BalanceEnquiry = () => {
           showsVerticalScrollIndicator={false}
         >
           {/* ─── CONTAINER 1: Customer Information ─── */}
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <View style={[styles.cardIconWrap, { backgroundColor: Colors.accent + "18" }]}>
-                <Text style={styles.cardIcon}>👤</Text>
-              </View>
-              <View>
-                <Text style={styles.cardTitle}>Customer Information</Text>
-                <Text style={styles.cardSub}>Primary identity details</Text>
-              </View>
+          <View style={styles.modernCard}>
+            <View style={styles.cardHighlightHeader}>
+              <Icon name="account-details-outline" size={16} color={Colors.finance_accent} />
+              <Text style={styles.cardHighlightTitle}>CUSTOMER INFORMATION</Text>
             </View>
 
-            <View style={styles.divider} />
+            <View style={styles.cardBody}>
 
-            {/* Mobile */}
-            <View style={styles.fieldWrap}>
-              <Text style={styles.label}>
-                <Text style={styles.required}>* </Text>MOBILE NUMBER
-              </Text>
-              <View style={[styles.inputRow, errors.mobile && styles.inputRowError]}>
-                <Text style={styles.prefix}>+91</Text>
-                <View style={styles.inputDivider} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter 10-digit mobile number"
-                  placeholderTextColor={Colors.gray}
-                  keyboardType="number-pad"
-                  maxLength={10}
-                  value={mobileNumber}
-                  onChangeText={(t) => setMobileNumber(t.replace(/[^0-9]/g, ""))}
-                />
-                <Text style={styles.inputSuffix}>📱</Text>
+
+              {/* Mobile */}
+              <View style={styles.fieldWrap}>
+                <Text style={styles.label}>
+                  <Text style={styles.required}>* </Text>MOBILE NUMBER
+                </Text>
+                <View style={[styles.inputRow, errors.mobile && styles.inputRowError]}>
+                  <Text style={styles.prefix}>+91</Text>
+                  <View style={styles.inputDivider} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter 10-digit mobile number"
+                    placeholderTextColor={Colors.gray}
+                    keyboardType="number-pad"
+                    maxLength={10}
+                    value={mobileNumber}
+                    onChangeText={(t) => setMobileNumber(t.replace(/[^0-9]/g, ""))}
+                  />
+                  <Text style={styles.inputSuffix}>📱</Text>
+                </View>
+                {errors.mobile && <Text style={styles.errorTxt}>{errors.mobile}</Text>}
               </View>
-              {errors.mobile && <Text style={styles.errorTxt}>{errors.mobile}</Text>}
-            </View>
 
-            {/* Aadhaar */}
-            <View style={styles.fieldWrap}>
-              <Text style={styles.label}>
-                <Text style={styles.required}>* </Text>AADHAAR NUMBER
-              </Text>
-              <View style={[styles.inputRow, errors.aadhaar && styles.inputRowError]}>
-                <TextInput
-                  style={[styles.input, { flex: 1 }]}
-                  placeholder="XXXX XXXX XXXX"
-                  placeholderTextColor={Colors.gray}
-                  keyboardType="number-pad"
-                  maxLength={12}
-                  value={aadhaarNumber}
-                  onChangeText={(t) => setAadhaarNumber(t.replace(/[^0-9]/g, ""))}
-                />
-                <Text style={styles.inputSuffix}>🪪</Text>
+              {/* Aadhaar */}
+              <View style={styles.fieldWrap}>
+                <Text style={styles.label}>
+                  <Text style={styles.required}>* </Text>AADHAAR NUMBER
+                </Text>
+                <View style={[styles.inputRow, errors.aadhaar && styles.inputRowError]}>
+                  <TextInput
+                    style={[styles.input, { flex: 1 }]}
+                    placeholder="XXXX XXXX XXXX"
+                    placeholderTextColor={Colors.gray}
+                    keyboardType="number-pad"
+                    maxLength={12}
+                    value={aadhaarNumber}
+                    onChangeText={(t) => setAadhaarNumber(t.replace(/[^0-9]/g, ""))}
+                  />
+                  <Icon name="card-account-details-outline" size={rs(20)} color={Colors.primary} />
+                </View>
+                {errors.aadhaar && <Text style={styles.errorTxt}>{errors.aadhaar}</Text>}
               </View>
-              {errors.aadhaar && <Text style={styles.errorTxt}>{errors.aadhaar}</Text>}
-            </View>
 
-            {/* Bank select */}
-            <SelectPicker
-              label="SELECT BANK"
-              required
-              placeholder={banksLoading ? "Loading banks..." : "Choose your bank"}
-              items={bankList}
-              value={bank}
-              onChange={setBank}
-              error={errors.bank}
-              searchable
-            />
+              {/* Bank select */}
+              <SelectPicker
+                label="SELECT BANK"
+                required
+                placeholder={banksLoading ? "Loading banks..." : "Choose your bank"}
+                items={bankList}
+                value={bank}
+                onChange={setBank}
+                error={errors.bank}
+                searchable
+              />
+            </View>
           </View>
 
           {/* ─── CONTAINER 2: Biometric Device ─── */}
-          <View style={[styles.card, { marginTop: vs(14) }]}>
-            <View style={styles.cardHeader}>
-              <View style={[styles.cardIconWrap, { backgroundColor: Colors.primary + "14" }]}>
-                <Text style={styles.cardIcon}>🖐</Text>
-              </View>
-              <View>
-                <Text style={styles.cardTitle}>Biometric Device</Text>
-                <Text style={styles.cardSub}>Select your fingerprint scanner</Text>
-              </View>
+          <View style={[styles.modernCard, { marginTop: vs(14) }]}>
+            <View style={styles.cardHighlightHeader}>
+              <Icon name="fingerprint" size={16} color={Colors.finance_accent} />
+              <Text style={styles.cardHighlightTitle}>BIOMETRIC DEVICE</Text>
             </View>
 
-            <View style={styles.divider} />
+            <View style={styles.cardBody}>
 
-            <SelectPicker
-              label="SELECT DEVICE"
-              required
-              placeholder="Choose biometric device"
-              items={DEVICE_LIST}
-              value={device}
-              onChange={setDevice}
-              error={errors.device}
-            />
+              <View style={styles.divider} />
 
-            <View style={styles.deviceInfo}>
-              <Text style={styles.deviceInfoTxt}>
-                🔒  Biometric data is processed locally and never stored on any server
-              </Text>
+              <SelectPicker
+                label="SELECT DEVICE"
+                required
+                placeholder="Choose biometric device"
+                items={DEVICE_LIST}
+                value={device}
+                onChange={setDevice}
+                error={errors.device}
+              />
+
+              <View style={styles.deviceInfo}>
+                <Text style={styles.deviceInfoTxt}>
+                  🔒  Biometric data is processed locally and never stored on any server
+                </Text>
+              </View>
             </View>
           </View>
 
@@ -666,29 +635,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: scale(10), paddingVertical: vs(5),
   },
   trustIcon: { fontSize: rs(11) },
-  trustTxt: { fontFamily: Fonts.Bold, color: "rgba(255,255,255,0.80)", fontSize: rs(10), fontWeight: "700", letterSpacing: 0.8 },
-
-  // ── Cards ──
-  card: {
-    backgroundColor: Colors.beige,
-    borderRadius: scale(18),
-    padding: scale(16),
-    borderWidth: 1,
-    borderColor: "rgba(245,158,11,0.30)",
+  modernCard: {
+    backgroundColor: Colors.cardbg,
+    borderRadius: 18,
+    marginBottom: 16,
+    overflow: 'hidden',
   },
-  cardHeader: {
-    flexDirection: "row", alignItems: "center",
-    gap: scale(10), marginBottom: vs(12),
+  cardHighlightHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: 'rgb(46, 46, 46)',
+    gap: 8,
   },
-  cardIconWrap: {
-    width: scale(40), height: scale(40), borderRadius: scale(12),
-    alignItems: "center", justifyContent: "center",
+  cardHighlightTitle: {
+    fontSize: 11,
+    fontFamily: Fonts.Bold,
+    color: Colors.finance_accent,
+    letterSpacing: 0.5,
   },
-  cardIcon: { fontSize: rs(20) },
-  cardTitle: { fontFamily: Fonts.Bold, fontSize: rs(15), color: Colors.primary },
-  cardSub: { fontFamily: Fonts.Medium, fontSize: rs(12), color: Colors.gray, marginTop: 1 },
-  divider: { height: 1, backgroundColor: "rgba(0,0,0,0.05)", marginBottom: vs(14) },
-
+  cardBody: {
+    padding: 16,
+  },
   // ── Inputs ──
   fieldWrap: { marginBottom: vs(14) },
   label: {
@@ -698,15 +667,15 @@ const styles = StyleSheet.create({
   required: { color: Colors.accent },
   inputRow: {
     flexDirection: "row", alignItems: "center",
-    backgroundColor: Colors.cardbg,
+    backgroundColor: Colors.white,
     borderRadius: scale(12),
-    borderWidth: 1, borderColor: "rgb(235, 235, 235)",
+    borderWidth: 1, borderColor: "rgba(212,176,106,0.15)",
     paddingHorizontal: scale(12),
     minHeight: vs(50),
   },
   inputRowError: { borderColor: Colors.red, borderWidth: 1 },
   prefix: { fontFamily: Fonts.Bold, color: Colors.primary, fontSize: rs(14), fontWeight: "700", marginRight: scale(4) },
-  inputDivider: { width: 1, height: vs(18), backgroundColor: Colors.kyc_border, marginRight: scale(10) },
+  inputDivider: { width: 1, height: vs(18), backgroundColor: "rgba(0,0,0,0.08)", marginRight: scale(10) },
   input: { fontFamily: Fonts.Medium, flex: 1, fontSize: rs(14), color: Colors.heroEnd, padding: 0 },
   inputSuffix: { fontSize: rs(18), marginLeft: scale(6) },
   errorTxt: { fontFamily: Fonts.Light, color: Colors.red, fontSize: rs(10.5), marginTop: vs(3), fontWeight: "300" },
@@ -900,9 +869,9 @@ const sp = StyleSheet.create({
   // Sheet
   sheet: {
     position: "absolute", bottom: 0, left: 0, right: 0,
-    backgroundColor: Colors.cardbg,
+    backgroundColor: Colors.white,
     borderTopLeftRadius: scale(24), borderTopRightRadius: scale(24),
-    maxHeight: SH * 0.68,
+    maxHeight: SH * 0.7,
   },
 
   sheetHeader: {
@@ -929,9 +898,10 @@ const sp = StyleSheet.create({
   // Search
   searchRow: {
     flexDirection: "row", alignItems: "center",
-    backgroundColor: Colors.bg_F8, borderRadius: scale(10),
+    backgroundColor: Colors.white, borderRadius: scale(10),
     paddingHorizontal: scale(10), marginBottom: vs(4),
     minHeight: vs(42),
+    borderWidth: 1, borderColor: "rgba(0,0,0,0.05)",
   },
   searchIcon: { fontSize: rs(15), marginRight: scale(6) },
   searchInput: { fontFamily: Fonts.Medium, flex: 1, fontSize: rs(14), color: Colors.heroEnd, padding: 0 },
