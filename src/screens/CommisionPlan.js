@@ -278,7 +278,9 @@ export default function CommissionPlanScreen({ navigation }) {
                     <View style={s.planCard}>
                         <View style={s.planGradBar} />
                         <View style={s.planTop}>
-
+                            <View style={s.planIcon}>
+                                <MaterialCommunityIcons name="file-document-outline" size={22} color={Colors.primary} />
+                            </View>
                             <View style={s.planInfo}>
                                 <Text style={s.planName}>My Commission Plan</Text>
                                 <Text style={s.planOrg}>Fetched successfully</Text>

@@ -1561,6 +1561,23 @@ export const payBbpsBill = async (payload) => {
 
     const { headerToken, ...bodyObj } = payload;
 
+    // Multiply amount fields by 100 as per requirement
+    if (bodyObj.amount) bodyObj.amount = Number(bodyObj.amount) * 100;
+    if (bodyObj.billAmount) bodyObj.billAmount = Number(bodyObj.billAmount) * 100;
+    if (bodyObj.billamount) bodyObj.billamount = Number(bodyObj.billamount) * 100;
+
+    // Check minimum and maximum amount if provided in the payload (values are now in paise)
+    const minAmt = Number(bodyObj.minBillAmount || bodyObj.minAmount || 0);
+    const maxAmt = Number(bodyObj.maxBillAmount || bodyObj.maxAmount || 0);
+    const currentPayAmt = Number(bodyObj.billAmount || bodyObj.billamount || bodyObj.amount || 0);
+
+    if (minAmt > 0 && currentPayAmt < minAmt) {
+      return { success: false, message: `amount must be equal or greater then minimum amount ₹${(minAmt / 100).toFixed(2)}` };
+    }
+    if (maxAmt > 0 && currentPayAmt > maxAmt) {
+      return { success: false, message: `Maximum amount allowed is ₹${(maxAmt / 100).toFixed(2)}` };
+    }
+
     let response = await fetch(url, {
       method: "POST",
       headers: {

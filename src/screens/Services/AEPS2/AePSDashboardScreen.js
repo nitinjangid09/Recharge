@@ -422,7 +422,7 @@ export default function AePSDashboardScreen({ navigation }) {
         AlertService.showAlert({
           type: "warning",
           title: "Device Not Ready",
-          message: `The ${RDService.getDeviceLabel(device)} is not connected or not ready. Please check the cable and try again.`
+          message: `${conn.message || "The device is not connected or not ready"}. Please check your OTG connection and ensure the RD service is running.`
         });
         setSubmitting(false);
         return;
@@ -574,17 +574,19 @@ export default function AePSDashboardScreen({ navigation }) {
           )}
 
           <Text style={fieldStyles.label}>RD SERVICE DEVICE</Text>
-          <View style={[styles.deviceGrid, { marginBottom: rs(18) }]}>
-            {['MANTRA', 'MORPHO', 'STARTEK'].map((d) => (
-              <TouchableOpacity
-                key={d}
-                onPress={() => setDevice(d)}
-                style={[styles.chip, device === d && styles.chipActive]}
-              >
-                <Text style={[styles.chipText, device === d && styles.chipTextActive]}>{d}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: rs(18) }}>
+            <View style={styles.deviceGrid}>
+              {RDService.DEVICE_LIST.map((d) => (
+                <TouchableOpacity
+                  key={d.value}
+                  onPress={() => setDevice(d.value)}
+                  style={[styles.chip, device === d.value && styles.chipActive]}
+                >
+                  <Text style={[styles.chipText, device === d.value && styles.chipTextActive]}>{d.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
 
           <TouchableOpacity
             activeOpacity={0.88}

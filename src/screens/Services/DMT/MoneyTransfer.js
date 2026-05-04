@@ -23,7 +23,8 @@ import { transferDmtFund, generateDmtTotp } from "../../../api/AuthApi";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AlertService } from "../../../componets/Alerts/CustomAlert";
-import { ActivityIndicator } from "react-native";
+import Geolocation from '@react-native-community/geolocation';
+import { PermissionsAndroid, ActivityIndicator } from "react-native";
 
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────
@@ -119,8 +120,8 @@ const MoneyTransferScreen = ({ route, navigation }) => {
       setOtpError("Please enter the OTP");
       return false;
     }
-    if (!/^\d{6}$/.test(otp)) {
-      setOtpError("OTP must be exactly 6 digits");
+    if (!/^\d{4}$/.test(otp)) {
+      setOtpError("OTP must be exactly 4 digits");
       return false;
     }
     setOtpError("");
@@ -133,9 +134,84 @@ const MoneyTransferScreen = ({ route, navigation }) => {
     }
   };
 
+  const getLocation = () =>
+    new Promise((resolve) => {
+      // First try with high accuracy
+      Geolocation.getCurrentPosition(
+        (pos) => resolve(pos.coords),
+        (err) => {
+          console.log('[GEOLOCATION] High Accuracy Error:', err);
+          // Fallback to low accuracy (useful for indoors)
+          Geolocation.getCurrentPosition(
+            (pos2) => resolve(pos2.coords),
+            (err2) => {
+              console.log('[GEOLOCATION] Low Accuracy Error:', err2);
+              resolve(null);
+            },
+            { enableHighAccuracy: false, timeout: 10000, maximumAge: 10000 }
+          );
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 10000 }
+      );
+    });
+
+  const getPublicIp = async () => {
+    try {
+      // Use multiple services for better reliability
+      const response = await fetch("https://api.ipify.org?format=json");
+      const data = await response.json();
+      return data.ip;
+    } catch (e) {
+      console.log("[IP] Service 1 Error:", e);
+      try {
+        const response = await fetch("https://ifconfig.me/all.json");
+        const data = await response.json();
+        return data.ip_addr;
+      } catch (e2) {
+        console.log("[IP] Service 2 Error:", e2);
+        return null;
+      }
+    }
+  };
+
   const handleSendOtp = async () => {
     try {
       setSubmitting(true);
+
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          AlertService.showAlert({ type: "error", title: "Permission Denied", message: "Location permission is required." });
+          setSubmitting(false);
+          return;
+        }
+      }
+
+      const coords = await getLocation();
+      const ip = await getPublicIp();
+
+      if (!coords) {
+        AlertService.showAlert({
+          type: "error",
+          title: "Location Error",
+          message: "Unable to retrieve your current location. Please ensure GPS is ON and you are in a good signal area."
+        });
+        setSubmitting(false);
+        return;
+      }
+
+      if (!ip) {
+        AlertService.showAlert({
+          type: "error",
+          title: "Network Error",
+          message: "Unable to retrieve your device IP address. Please check your internet connection."
+        });
+        setSubmitting(false);
+        return;
+      }
+
       const headerToken = await AsyncStorage.getItem("header_token");
       const idempotencyKey = `OTP_${Date.now()}`;
 
@@ -143,7 +219,10 @@ const MoneyTransferScreen = ({ route, navigation }) => {
         data: {
           mobileNumber: account.mobile || "7877239670",
           beneficiaryId: account.id || account._id || account.beneficiaryId,
-          amount: amount
+          amount: amount,
+          latitude: String(coords.latitude),
+          longitude: String(coords.longitude),
+          publicIp: ip
         },
         headerToken,
         idempotencyKey
@@ -181,19 +260,42 @@ const MoneyTransferScreen = ({ route, navigation }) => {
 
     try {
       setSubmitting(true);
+
+      const coords = await getLocation();
+      const ip = await getPublicIp();
+
+      if (!coords) {
+        AlertService.showAlert({
+          type: "error",
+          title: "Location Error",
+          message: "Unable to retrieve your current location. Please ensure GPS is ON and you are in a good signal area."
+        });
+        setSubmitting(false);
+        return;
+      }
+
+      if (!ip) {
+        AlertService.showAlert({
+          type: "error",
+          title: "Network Error",
+          message: "Unable to retrieve your device IP address. Please check your internet connection."
+        });
+        setSubmitting(false);
+        return;
+      }
+
       const headerToken = await AsyncStorage.getItem("header_token");
       const idempotencyKey = `DMT_${Date.now()}`;
 
-      // In a real app, these would come from state/geolocation
       const payload = {
-        mobileNumber: account.mobile || "7877239670", // Fallback to user's sample if missing
-        latitude: "26.8881633",
-        longitude: "75.7362708",
-        publicIp: "122.161.207.99",
+        mobileNumber: account.mobile,
+        latitude: String(coords.latitude),
+        longitude: String(coords.longitude),
+        publicIp: ip,
         otp: otp,
         amount: amount,
         beneficiaryId: account.id || account._id || account.beneficiaryId,
-        accountNumber: account.accountNumber,
+        beneficiaryAccount: account.accountNumber,
         ifsc: account.ifsc,
         name: account.name
       };
@@ -209,7 +311,7 @@ const MoneyTransferScreen = ({ route, navigation }) => {
         const finalAmount = amount;
         setAmount("");
         setOtp("");
-        
+
         setReceiptData({
           status: "success",
           title: "Transfer Successful",
@@ -470,7 +572,7 @@ const MoneyTransferScreen = ({ route, navigation }) => {
                   styles.input,
                   { flex: 1, textAlign: "center", fontSize: rs(22), letterSpacing: scale(8), fontWeight: "800" },
                 ]}
-                placeholder="• • • • • •"
+                placeholder="• • • •"
                 placeholderTextColor={Colors.gray}
                 keyboardType="number-pad"
                 value={otp}
@@ -478,7 +580,7 @@ const MoneyTransferScreen = ({ route, navigation }) => {
                   setOtp(t.replace(/[^0-9]/g, ""));
                   if (otpError) setOtpError("");
                 }}
-                maxLength={6}
+                maxLength={4}
                 autoFocus
               />
             </View>
@@ -486,19 +588,19 @@ const MoneyTransferScreen = ({ route, navigation }) => {
 
             <View style={styles.hintRow}>
               <Text style={styles.hintDot}>•</Text>
-              <Text style={styles.hintTxt}>Enter 6-digit OTP sent to your mobile</Text>
+              <Text style={styles.hintTxt}>Enter 4-digit OTP sent to your mobile</Text>
             </View>
 
             <TouchableOpacity
-              style={[styles.button, { marginTop: vs(16), backgroundColor: (otp.length === 6 && !submitting) ? Colors.primary : Colors.gold }]}
+              style={[styles.button, { marginTop: vs(16), backgroundColor: (otp.length === 4 && !submitting) ? Colors.primary : Colors.gold }]}
               onPress={handleTransfer}
               activeOpacity={0.88}
-              disabled={otp.length !== 6 || submitting}
+              disabled={otp.length !== 4 || submitting}
             >
               {submitting ? (
                 <ActivityIndicator color={Colors.white} />
               ) : (
-                <Text style={[styles.buttonText, { color: otp.length === 6 ? Colors.white : Colors.slate_500 }]}>Verify &amp; Transfer</Text>
+                <Text style={[styles.buttonText, { color: otp.length === 4 ? Colors.white : Colors.slate_500 }]}>Verify &amp; Transfer</Text>
               )}
             </TouchableOpacity>
 
