@@ -106,7 +106,7 @@ const fpStyles = StyleSheet.create({
     width: rs(64),
     height: rs(64),
     borderRadius: rs(32),
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
@@ -441,7 +441,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: rs(10),
     borderRadius: rs(12),
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     borderWidth: 1,
     borderColor: Colors.finance_accent + "33",
     alignItems: 'center'

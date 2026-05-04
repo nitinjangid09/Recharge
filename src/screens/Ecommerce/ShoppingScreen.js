@@ -229,16 +229,11 @@ const s = StyleSheet.create({
   card: {
     width: (width - 55) / 2,
     marginBottom: 25,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     borderRadius: 24,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(212,176,106,0.2)',
-    elevation: 4,
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
   },
   cardGradient: {
     flex: 1,

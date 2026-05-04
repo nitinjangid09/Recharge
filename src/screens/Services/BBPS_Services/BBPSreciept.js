@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
   // Receipt card
   card: {
     width: "100%",
-    backgroundColor: Colors.white || "rgb(255, 255, 255)",
+    backgroundColor: Colors.cardbg || "rgb(255, 255, 255)",
     borderRadius: 20,
     marginTop: 22,
     overflow: "hidden",
@@ -291,8 +291,8 @@ const styles = StyleSheet.create({
   detailRow: {
     flexDirection: "row", justifyContent: "space-between", alignItems: "center",
     paddingVertical: 11,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.bg_F8,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(245,158,11,0.15)",
   },
   detailLabel: { fontSize: 13, fontFamily: Fonts.Regular, color: Colors.slate_500, flex: 1 },
   detailValue: {
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
   // Buttons
   btnGroup: { width: "100%", marginTop: 28, gap: 12 },
   retryBtn: {
-    backgroundColor: Colors.white || "rgb(255, 255, 255)",
+    backgroundColor: Colors.cardbg || "rgb(255, 255, 255)",
     borderWidth: 1.5, borderColor: FAILED_RED,
     paddingVertical: 16, borderRadius: 16, alignItems: "center",
   },

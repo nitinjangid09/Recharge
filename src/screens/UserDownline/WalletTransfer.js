@@ -571,7 +571,7 @@ const styles = StyleSheet.create({
     paddingVertical: scale(36),
     paddingHorizontal: scale(24),
     alignItems: 'center',
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     borderRadius: scale(18),
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.06)',
@@ -594,7 +594,7 @@ const styles = StyleSheet.create({
   historyCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     padding: scale(14),
     borderRadius: scale(16),
     marginBottom: scale(10),

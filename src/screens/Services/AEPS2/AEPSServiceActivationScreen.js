@@ -34,7 +34,7 @@ const SectionCard = ({ children, style }) => (
 
 const cardStyles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     borderRadius: rs(20),
     padding: rs(18),
     marginBottom: rs(14),
@@ -72,7 +72,7 @@ const fieldStyles = StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     borderRadius: rs(14),
     borderWidth: 1,
     borderColor: 'rgba(212,176,106,0.32)',
@@ -108,7 +108,7 @@ const dropStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     borderRadius: rs(14),
     borderWidth: 1,
     borderColor: 'rgba(212,176,106,0.32)',
@@ -198,7 +198,7 @@ const DocUploadCard = ({ label, onPress, uri, onDelete }) => (
 const docStyles = StyleSheet.create({
   card: {
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     borderRadius: rs(16),
     padding: rs(16),
     alignItems: 'center',
@@ -333,7 +333,7 @@ const SelectorModal = ({ visible, title, items, onSelect, onClose }) => {
 
 const selStyles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' },
-  sheet: { position: 'absolute', bottom: 0, width: '100%', backgroundColor: Colors.white, borderTopLeftRadius: rs(25), borderTopRightRadius: rs(25), maxHeight: '75%', paddingBottom: rs(30) },
+  sheet: { position: 'absolute', bottom: 0, width: '100%', backgroundColor: Colors.cardbg, borderTopLeftRadius: rs(25), borderTopRightRadius: rs(25), maxHeight: '75%', paddingBottom: rs(30) },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: rs(20), borderBottomWidth: 1, borderBottomColor: 'rgb(241, 245, 249)' },
   title: { fontSize: rs(16), fontWeight: '800', color: Colors.black },
   close: { fontSize: rs(18), color: 'rgb(148, 163, 184)' },

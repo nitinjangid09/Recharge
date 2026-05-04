@@ -178,7 +178,7 @@ const SH_S = StyleSheet.create({
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.45)" },
   sheet: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     borderTopLeftRadius: 30, borderTopRightRadius: 30,
     maxHeight: SH * 0.85,
     paddingTop: 12,

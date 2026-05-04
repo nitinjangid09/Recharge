@@ -661,7 +661,7 @@ const styles = StyleSheet.create({
     marginTop: 30 * scale, paddingHorizontal: 30 * scale, marginBottom: 10 * scale,
   },
   dividerRow: { flexDirection: "row", alignItems: "center", marginBottom: 16 * scale },
-  divider: { flex: 1, height: 1, backgroundColor: Colors.input_border },
+  divider: { flex: 1, height: 1, backgroundColor: "rgba(245,158,11,0.25)" },
   orText: {
     marginHorizontal: 10 * scale, fontSize: 11 * scale,
     fontFamily: Fonts.Bold, color: Colors.black,

@@ -360,7 +360,7 @@ const s = StyleSheet.create({
   scrollContent: { padding: 20, paddingBottom: 100 },
 
   section: {
-    backgroundColor: Colors.beige,
+    backgroundColor: Colors.cardbg,
     borderRadius: 20,
     padding: 16,
     marginBottom: 16,

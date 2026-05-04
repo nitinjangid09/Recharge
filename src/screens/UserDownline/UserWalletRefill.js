@@ -770,7 +770,7 @@ const styles = StyleSheet.create({
         top: 60, // height of selectField (56) + small gap
         left: 0,
         right: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.cardbg,
         borderRadius: 12,
         borderWidth: 1,
         borderColor: Colors.input_border,
@@ -873,7 +873,7 @@ const styles = StyleSheet.create({
     quickBtn: {
         flex: 1,
         height: 44,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.cardbg,
         borderRadius: 14,
         alignItems: 'center',
         justifyContent: 'center',
@@ -1015,7 +1015,7 @@ const styles = StyleSheet.create({
         width: 48,
         height: 48,
         borderRadius: 14,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.cardbg,
         alignItems: 'center',
         justifyContent: 'center',
 

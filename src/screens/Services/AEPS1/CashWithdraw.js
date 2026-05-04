@@ -703,7 +703,7 @@ const styles = StyleSheet.create({
   required: { color: Colors.accent },
   inputRow: {
     flexDirection: "row", alignItems: "center",
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     borderRadius: scale(12),
     borderWidth: 1, borderColor: "rgb(235, 235, 235)",
     paddingHorizontal: scale(12),
@@ -737,7 +737,7 @@ const styles = StyleSheet.create({
 
   // Amount summary
   summaryStrip: {
-    marginTop: vs(14), backgroundColor: Colors.white,
+    marginTop: vs(14), backgroundColor: Colors.cardbg,
     borderRadius: scale(14), padding: scale(14),
   },
   summaryRow: {
@@ -817,7 +817,7 @@ const sp = StyleSheet.create({
   },
   sheet: {
     position: "absolute", bottom: 0, left: 0, right: 0,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     borderTopLeftRadius: scale(24), borderTopRightRadius: scale(24),
     maxHeight: SH * 0.68,
   },

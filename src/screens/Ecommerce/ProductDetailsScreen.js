@@ -276,7 +276,7 @@ const s = StyleSheet.create({
   descText: { fontFamily: Fonts.Medium, fontSize: 13, color: Colors.kyc_textSub, lineHeight: 20 },
 
   extraInfoGrid: { flexDirection: 'row', gap: 12, marginTop: 5 },
-  infoBox: { flex: 1, backgroundColor: Colors.beige, padding: 12, borderRadius: 10, borderWidth: 1, borderColor: Colors.kyc_accent + "40" },
+  infoBox: { flex: 1, backgroundColor: Colors.cardbg, padding: 12, borderRadius: 10, borderWidth: 1, borderColor: Colors.kyc_accent + "40" },
   infoLabel: { fontFamily: Fonts.Medium, fontSize: 10, color: Colors.kyc_textSub, marginBottom: 2 },
   infoVal: { fontFamily: Fonts.Bold, fontSize: 13, color: Colors.kyc_text },
 
@@ -303,7 +303,7 @@ const s = StyleSheet.create({
 
   // New UI Elements
   mainContentCard: {
-    backgroundColor: Colors.gold,
+    backgroundColor: Colors.cardbg,
     borderRadius: 20,
     padding: 20,
     marginBottom: 25,
@@ -316,7 +316,7 @@ const s = StyleSheet.create({
     marginVertical: 20,
   },
   specsCard: {
-    backgroundColor: 'rgba(212,176,106,0.05)',
+    backgroundColor: Colors.cardbg,
     borderRadius: 20,
     padding: 15,
     borderWidth: 1.5,
@@ -333,7 +333,7 @@ const s = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: Colors.gold,
+    backgroundColor: Colors.cardbg,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,

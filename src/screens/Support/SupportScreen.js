@@ -384,7 +384,7 @@ const st = StyleSheet.create({
 
   // ── Contact card ──────────────────────────────────────────────────────
   contactCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     borderRadius: S(16),
     paddingHorizontal: S(16),
     paddingVertical: S(4),
@@ -411,7 +411,7 @@ const st = StyleSheet.create({
     color: Colors.finance_text, includeFontPadding: false, lineHeight: S(20),
   },
   contactAction: { padding: S(6) },
-  divider: { height: 1, backgroundColor: Colors.input_border, marginLeft: S(52) },
+  divider: { height: 1, backgroundColor: "rgba(245,158,11,0.15)", marginLeft: S(52) },
 
   // ── Quick help ────────────────────────────────────────────────────────
   sectionTitle: {
@@ -427,7 +427,7 @@ const st = StyleSheet.create({
   },
   quickCard: {
     width: "47%",
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     borderRadius: S(14),
     padding: S(14),
     borderTopWidth: 3,

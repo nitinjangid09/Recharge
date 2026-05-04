@@ -256,7 +256,7 @@ const s = StyleSheet.create({
   payStatusTxt: { color: Colors.finance_accent, fontSize: 10, fontFamily: Fonts.Bold },
 
   // Timeline
-  timelineSection: { backgroundColor: Colors.white, borderRadius: 24, padding: 20, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)' },
+  timelineSection: { backgroundColor: Colors.cardbg, borderRadius: 24, padding: 20, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)' },
   timelineItem: { flexDirection: 'row', gap: 15, paddingBottom: 20 },
   timelineDot: { width: 12, height: 12, borderRadius: 6, zIndex: 1, marginTop: 4 },
   timelineLine: { position: 'absolute', left: 5.5, top: 16, bottom: 0, width: 1, backgroundColor: Colors.slate_100 },
@@ -266,7 +266,7 @@ const s = StyleSheet.create({
   timelineSub: { fontSize: 11, fontFamily: Fonts.Medium, color: Colors.slate_400, marginTop: 2 },
 
   section: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     borderRadius: 24,
     marginBottom: 16,
     borderWidth: 1.2,

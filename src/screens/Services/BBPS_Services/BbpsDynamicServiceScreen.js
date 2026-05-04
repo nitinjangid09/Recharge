@@ -1005,7 +1005,7 @@ const ddStyles = StyleSheet.create({
   loadingTxt: { fontSize: 14, color: Colors.gray },
 
   dropdown: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     width: "100%",
@@ -1088,7 +1088,7 @@ const ddStyles = StyleSheet.create({
 // ─────────────────────────────────────────────────────────────────────────────
 const calStyles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", paddingHorizontal: 20 },
-  card: { width: "100%", backgroundColor: Colors.white, borderRadius: 22, overflow: "hidden" },
+  card: { width: "100%", backgroundColor: Colors.cardbg, borderRadius: 22, overflow: "hidden" },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: Colors.primary, paddingVertical: 16, paddingHorizontal: 18 },
   navBtn: { padding: 4 },
   navTxt: { fontSize: 26, color: Colors.white, fontWeight: "300", lineHeight: 30 },
@@ -1130,7 +1130,7 @@ const styles = StyleSheet.create({
 
   serviceBanner: {
     flexDirection: "row", alignItems: "center",
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     paddingHorizontal: 16, paddingVertical: 14,
     borderRadius: 16, marginBottom: 20,
     borderWidth: 1, borderColor: "rgba(0,0,0,0.02)",
@@ -1167,7 +1167,7 @@ const styles = StyleSheet.create({
   payBtnTxt: { color: Colors.white, fontSize: 16, fontFamily: Fonts.Bold, letterSpacing: 0.3 },
   payBtnSub: { color: "rgba(255,255,255,0.7)", fontSize: 11, marginTop: 3 },
 
-  billDetailsCard: { backgroundColor: Colors.white, padding: 18, borderRadius: 16, borderWidth: 1, borderColor: Colors.input_border, marginTop: 18 },
+  billDetailsCard: { backgroundColor: Colors.cardbg, padding: 18, borderRadius: 16, borderWidth: 1, borderColor: Colors.input_border, marginTop: 18 },
   billTitle: { fontSize: 16, fontFamily: Fonts.Bold, color: Colors.black, marginBottom: 14, borderBottomWidth: 1, borderBottomColor: Colors.bg_F8, paddingBottom: 8 },
   billRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 7 },
   billLabel: { fontSize: 13, fontFamily: Fonts.Regular, color: Colors.slate_500 },
@@ -1200,7 +1200,7 @@ const styles = StyleSheet.create({
 
 const alertStyles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", padding: 30 },
-  card: { backgroundColor: Colors.white, borderRadius: 24, padding: 25, width: "100%", alignItems: "center" },
+  card: { backgroundColor: Colors.cardbg, borderRadius: 24, padding: 25, width: "100%", alignItems: "center" },
   iconWrap: { width: 60, height: 60, borderRadius: 30, backgroundColor: Colors.error_light, alignItems: "center", justifyContent: "center", marginBottom: 15 },
   iconWrapSuccess: { backgroundColor: Colors.success_light },
   icon: { fontSize: 30 },

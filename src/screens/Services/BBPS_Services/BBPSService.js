@@ -143,7 +143,7 @@ const tileStyles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 14,
-    backgroundColor: Colors.beige || "rgb(247, 244, 239)",
+    backgroundColor: Colors.cardbg || "rgb(247, 244, 239)",
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
 
   reminderCard: {
     marginTop: -20,
-    backgroundColor: Colors.beige || "rgb(255, 255, 255)",
+    backgroundColor: Colors.cardbg || "rgb(255, 255, 255)",
     borderRadius: 16,
     padding: 15,
     flexDirection: "row",
@@ -511,7 +511,7 @@ const styles = StyleSheet.create({
   bigCard: {
     marginTop: 15,
     marginBottom: 40,
-    backgroundColor: Colors.beige || "rgb(255, 255, 255)",
+    backgroundColor: Colors.cardbg || "rgb(255, 255, 255)",
     borderRadius: 20,
     paddingTop: 16,
     paddingBottom: 8,

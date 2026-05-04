@@ -698,7 +698,7 @@ const styles = StyleSheet.create({
   required: { color: Colors.accent },
   inputRow: {
     flexDirection: "row", alignItems: "center",
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     borderRadius: scale(12),
     borderWidth: 1, borderColor: "rgb(235, 235, 235)",
     paddingHorizontal: scale(12),
@@ -752,7 +752,7 @@ const rm = StyleSheet.create({
     padding: scale(20),
   },
   card: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     width: '100%',
     borderRadius: scale(24),
     padding: scale(24),
@@ -900,7 +900,7 @@ const sp = StyleSheet.create({
   // Sheet
   sheet: {
     position: "absolute", bottom: 0, left: 0, right: 0,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     borderTopLeftRadius: scale(24), borderTopRightRadius: scale(24),
     maxHeight: SH * 0.68,
   },

@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   fCard: { flex: 1, alignItems: 'center', gap: rs(6) },
   fIconBox: { width: rs(48), height: rs(48), borderRadius: rs(14), alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(0,0,0,0.02)' },
   fLabel: { fontSize: rs(9), fontFamily: Fonts.Bold, color: Colors.text_secondary, textAlign: 'center', letterSpacing: 0.2 },
-  beneCard: { backgroundColor: Colors.beige, borderRadius: rs(20), padding: rs(12), flexDirection: 'row', alignItems: 'center', marginBottom: rs(12), borderWidth: 1, borderColor: "rgba(245,158,11,0.30)" },
+  beneCard: { backgroundColor: Colors.cardbg, borderRadius: rs(20), padding: rs(12), flexDirection: 'row', alignItems: 'center', marginBottom: rs(12), borderWidth: 1, borderColor: "rgba(245,158,11,0.30)" },
   beneIcon: { width: rs(44), height: rs(44), borderRadius: rs(15), alignItems: 'center', justifyContent: 'center' },
   beneInfo: { flex: 1, paddingHorizontal: rs(12) },
   beneName: { fontSize: rs(14), fontFamily: Fonts.Bold, color: Colors.black },
@@ -271,6 +271,6 @@ const styles = StyleSheet.create({
   statusText: { fontSize: rs(10), fontFamily: Fonts.Bold },
   beneRightRow: { flexDirection: 'row', alignItems: 'center' },
   deleteBtn: { width: rs(32), height: rs(32), borderRadius: rs(8), alignItems: 'center', justifyContent: 'center' },
-  emptyContainer: { alignItems: 'center', justifyContent: 'center', paddingVertical: rs(40), backgroundColor: Colors.beige, borderRadius: rs(20), borderWidth: 1, borderColor: "rgba(245,158,11,0.30)", borderStyle: 'dashed', marginBottom: rs(20) },
+  emptyContainer: { alignItems: 'center', justifyContent: 'center', paddingVertical: rs(40), backgroundColor: Colors.cardbg, borderRadius: rs(20), borderWidth: 1, borderColor: "rgba(245,158,11,0.30)", borderStyle: 'dashed', marginBottom: rs(20) },
   emptyText: { fontSize: rs(14), fontFamily: Fonts.Medium, color: Colors.text_secondary, marginTop: rs(10) },
 });

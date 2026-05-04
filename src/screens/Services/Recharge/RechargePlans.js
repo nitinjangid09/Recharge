@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
     height: 38 * S,
     paddingHorizontal: 18 * S,
     borderRadius: 100,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: Colors.finance_accent + "66",
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     maxWidth: 130 * S,
   },
   validityTxt: {

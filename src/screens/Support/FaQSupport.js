@@ -613,7 +613,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: Platform.OS === "ios" ? 14 : 10,
-    backgroundColor: "#FAFAFA",
+    backgroundColor: Colors.white,
     justifyContent: "space-between",
   },
   inputBoxFocused: { borderColor: Colors.red },
