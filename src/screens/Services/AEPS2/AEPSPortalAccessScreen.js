@@ -254,6 +254,7 @@ export default function AEPSPortalAccessScreen({ navigation }) {
               <TextInput
                 style={styles.aadhaarInput}
                 value={aadhaar}
+                selection={{ start: aadhaar.length, end: aadhaar.length }}
                 onChangeText={(t) => {
                   setAadhaar(formatAadhaar(t));
                   if (error) setError('');
@@ -384,11 +385,12 @@ const styles = StyleSheet.create({
   },
   aadhaarInput: {
     flex: 1,
-    fontSize: rs(20),
+    fontSize: rs(16),
     fontWeight: '700',
     color: Colors.black,
     letterSpacing: rs(5),
-    textAlign: 'center',
+    textAlign: 'left',
+    paddingLeft: rs(20),
     padding: 0,
   },
 

@@ -413,6 +413,7 @@ const DmtLogin = () => {
                   keyboardType="number-pad"
                   maxLength={6}
                   value={otp}
+                  selection={{ start: otp.length, end: otp.length }}
                   onChangeText={(t) => {
                     setOtp(t.replace(/[^0-9]/g, ""));
                     if (otpError) setOtpError("");
@@ -712,6 +713,7 @@ const styles = StyleSheet.create({
     fontSize: rs(22),
     textAlign: "center",
     letterSpacing: scale(8),
+    paddingLeft: scale(8),
     color: Colors.primary,
     fontWeight: "800",
   },

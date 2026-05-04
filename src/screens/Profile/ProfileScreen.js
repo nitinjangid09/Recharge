@@ -214,14 +214,13 @@ export default function ProfileScreen({ navigation }) {
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [alertVisible, setAlertVisible] = useState(false);
-  const [alertTitle, setAlertTitle] = useState("");
-  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("info");
   const [alertAction, setAlertAction] = useState(null);
 
-  const showAlert = (title, message, action = null) => {
+  const showAlert = (title, message, type = "info", action = null) => {
     setAlertTitle(title);
     setAlertMessage(message);
+    setAlertType(type);
     setAlertAction(() => action);
     setAlertVisible(true);
   };
@@ -249,16 +248,16 @@ export default function ProfileScreen({ navigation }) {
     try {
       setLoading(true);
       const headerToken = await AsyncStorage.getItem("header_token");
-      if (!headerToken) { setLoading(false); showAlert("Error", "Unable to load profile"); return; }
+      if (!headerToken) { setLoading(false); showAlert("Error", "Unable to load profile", "error"); return; }
       const result = await fetchUserProfile({ headerToken });
       if (result?.success === true) {
         setProfileData(result.data);
         await AsyncStorage.setItem("profile_data", JSON.stringify(result.data));
       } else {
-        showAlert("Error", result?.message || "Profile fetch failed");
+        showAlert("Error", result?.message || "Profile fetch failed", "error");
       }
     } catch {
-      showAlert("Error", "Network or server issue");
+      showAlert("Error", "Network or server issue", "error");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -278,7 +277,7 @@ export default function ProfileScreen({ navigation }) {
       if (!headerToken || !headerKey) { forceLogout(); return; }
       const result = await logoutUser({ headerToken, headerKey });
       if (result?.status === "SUCCESS") forceLogout();
-      else showAlert("Logout", result?.message || "Logged out", forceLogout);
+      else showAlert("Logout", result?.message || "Logged out", "info", forceLogout);
     } catch {
       forceLogout();
     }
@@ -475,6 +474,7 @@ export default function ProfileScreen({ navigation }) {
       {/* Custom alert */}
       <CustomAlert
         visible={alertVisible}
+        type={alertType}
         title={alertTitle}
         message={alertMessage}
         onClose={() => {

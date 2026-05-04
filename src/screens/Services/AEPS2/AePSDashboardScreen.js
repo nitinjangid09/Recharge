@@ -31,7 +31,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '../../../constants/Colors';
 import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
-import { fetchUserProfile, getWalletBalance, fetchUserWallet, fetchEBankList, initiateAepsTransaction } from '../../../api/AuthApi';
+import { fetchUserProfile, getWalletBalance, fetchUserWallet, fetchEBankList, initiateAepsTransaction, getAeps2Stats, getAeps2History } from '../../../api/AuthApi';
 import { AlertService } from '../../../componets/Alerts/CustomAlert';
 import RDService from '../../../utils/RDService';
 import AEPS2Receipt from './AEPS2Receipt';
@@ -69,7 +69,7 @@ const FormField = ({ label, placeholder, value, onChangeText, keyboardType, icon
       <TextInput
         style={[fieldStyles.input, !editable && fieldStyles.disabled]}
         placeholder={placeholder}
-        placeholderTextColor={Colors.slate_400}
+        placeholderTextColor={Colors.gray}
         value={value}
         onChangeText={onChangeText}
         keyboardType={keyboardType || 'default'}
@@ -309,6 +309,7 @@ export default function AePSDashboardScreen({ navigation }) {
   const [receiptVisible, setReceiptVisible] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
   const [txnDetails, setTxnDetails] = useState(null);
+  const [reportStats, setReportStats] = useState(null);
 
 
   useEffect(() => {
@@ -338,9 +339,11 @@ export default function AePSDashboardScreen({ navigation }) {
       const headerToken = await AsyncStorage.getItem("header_token");
       const headerKey = await AsyncStorage.getItem("header_key");
 
-      const [profRes, balRes] = await Promise.all([
+      const [profRes, balRes, statsRes, histRes] = await Promise.all([
         fetchUserProfile({ headerToken }),
-        getWalletBalance({ headerToken, headerKey })
+        getWalletBalance({ headerToken, headerKey }),
+        getAeps2Stats({ headerToken }),
+        getAeps2History({ headerToken })
       ]);
 
       if (profRes?.success) setUser(profRes.data);
@@ -352,7 +355,24 @@ export default function AePSDashboardScreen({ navigation }) {
           avgAmt: `₹${balRes.data?.avgTxnAmount || "0"}`
         });
       }
-      setRecentTxns([]);
+      if (statsRes?.success && statsRes.data) {
+        setReportStats(statsRes.data);
+      }
+
+      if (histRes?.success && Array.isArray(histRes.data)) {
+        const mapped = histRes.data.slice(0, 8).map(t => ({
+          id: t._id,
+          type: t.serviceType || "AEPS Transaction",
+          bank: t.bankName || "AEPS 2",
+          mobile: t.referenceId?.slice(-10) || "---",
+          time: new Date(t.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          amount: t.amount > 0 ? `₹${t.amount}` : null,
+          status: (t.status || 'FAILED').toLowerCase()
+        }));
+        setRecentTxns(mapped);
+      } else {
+        setRecentTxns([]);
+      }
     } catch (error) {
       console.log("Load AEPS Data Error:", error);
     } finally {
@@ -527,6 +547,27 @@ export default function AePSDashboardScreen({ navigation }) {
 
           <TxnTypeTabs active={txnType} onChange={setTxnType} />
 
+          {reportStats && (
+            <View style={styles.statsStrip}>
+              <View style={[styles.statBox, { borderLeftColor: Colors.primary }]}>
+                <Text style={styles.statVal}>{reportStats.total?.count || 0}</Text>
+                <Text style={styles.statLbl}>TOTAL</Text>
+              </View>
+              <View style={[styles.statBox, { borderLeftColor: Colors.green }]}>
+                <Text style={styles.statVal}>{reportStats.success?.count || 0}</Text>
+                <Text style={styles.statLbl}>SUCCESS</Text>
+              </View>
+              <View style={[styles.statBox, { borderLeftColor: Colors.gold }]}>
+                <Text style={styles.statVal}>{reportStats.pending?.count || 0}</Text>
+                <Text style={styles.statLbl}>PENDING</Text>
+              </View>
+              <View style={[styles.statBox, { borderLeftColor: Colors.red }]}>
+                <Text style={styles.statVal}>{reportStats.failed?.count || 0}</Text>
+                <Text style={styles.statLbl}>FAILED</Text>
+              </View>
+            </View>
+          )}
+
           <DropdownField
             label="Select Bank"
             placeholder="Choose customer's bank"
@@ -699,19 +740,55 @@ const styles = StyleSheet.create({
   deviceGrid: { flexDirection: 'row', gap: rs(8), marginTop: rs(4) },
   chip: {
     flex: 1,
-    height: rs(40),
+    minHeight: rs(42),
     borderRadius: rs(12),
     backgroundColor: Colors.cardbg,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: rs(4),
+    paddingHorizontal: rs(4),
     borderWidth: 1,
-    borderColor: 'rgba(212,176,106,0.2)'
+    borderColor: 'rgba(212,176,106,0.2)',
+    minWidth: rs(80),
   },
   chipActive: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary
   },
-  chipText: { fontSize: rs(11), fontWeight: '700', color: Colors.text_secondary },
+  chipText: {
+    fontSize: rs(10),
+    fontWeight: '400',
+    color: Colors.text_secondary,
+    textAlign: 'center',
+    lineHeight: rs(13),
+  },
   chipTextActive: { color: Colors.white },
-  disabledBtn: { backgroundColor: Colors.gold }
+  disabledBtn: { backgroundColor: Colors.gold },
+
+  statsStrip: {
+    flexDirection: 'row',
+    gap: rs(6),
+    marginBottom: rs(18),
+  },
+  statBox: {
+    flex: 1,
+    backgroundColor: Colors.white,
+    borderRadius: rs(10),
+    paddingVertical: rs(8),
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(212,176,106,0.15)',
+    borderLeftWidth: 3,
+  },
+  statVal: {
+    fontSize: rs(13),
+    fontWeight: '800',
+    color: Colors.black,
+  },
+  statLbl: {
+    fontSize: rs(7),
+    fontWeight: '700',
+    color: Colors.text_secondary,
+    marginTop: rs(2),
+  },
 });
