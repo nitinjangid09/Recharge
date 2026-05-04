@@ -63,7 +63,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white, // Light Beige
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: .5,
   },
 
   title: {

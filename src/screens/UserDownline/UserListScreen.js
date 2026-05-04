@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     width: 44 * scale,
     height: 44 * scale,
     borderRadius: 15 * scale,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
     paddingBottom: 100 * scale,
   },
   userCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     borderRadius: 20 * scale,
     padding: 16 * scale,
     marginBottom: 16 * scale,
@@ -366,9 +366,8 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: Colors.input_border,
+    backgroundColor: "rgba(245,158,11,0.25)",
     marginVertical: 14 * scale,
-    opacity: 0.5,
   },
   cardDetails: {
     marginBottom: 14 * scale,
@@ -414,7 +413,7 @@ const styles = StyleSheet.create({
     left: 20 * scale,
     right: 20 * scale,
     flexDirection: 'row',
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     borderRadius: 18 * scale,
     height: 60 * scale,
     alignItems: 'center',

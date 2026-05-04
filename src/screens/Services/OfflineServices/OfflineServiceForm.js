@@ -359,11 +359,11 @@ export default function OfflineServiceForm({ navigation, route }) {
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.beige,
     },
     loadingContainer: {
         flex: 1,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.beige,
     },
     loaderCentering: {
         flex: 1,
@@ -382,20 +382,22 @@ const styles = StyleSheet.create({
     content: { padding: 20 },
 
     infoCard: {
-        backgroundColor: Colors.primary,
+        backgroundColor: Colors.cardbg,
         borderRadius: 20,
         padding: 20,
         marginBottom: 20,
+        borderWidth: 1,
+        borderColor: "rgba(245,158,11,0.30)",
     },
     infoTitle: {
         fontSize: 18,
-        color: Colors.white,
+        color: Colors.primary,
         fontFamily: Fonts.Bold,
         marginBottom: 8,
     },
     infoDesc: {
         fontSize: 13,
-        color: "rgba(255,255,255,0.7)",
+        color: Colors.text_secondary,
         lineHeight: 18,
         fontFamily: Fonts.Regular,
         marginBottom: 15,
@@ -403,7 +405,7 @@ const styles = StyleSheet.create({
     feeTag: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: "rgba(255,255,255,0.1)",
+        backgroundColor: "rgba(0,0,0,0.05)",
         paddingHorizontal: 12,
         paddingVertical: 8,
         borderRadius: 10,
@@ -417,7 +419,7 @@ const styles = StyleSheet.create({
     },
     feeAmount: {
         fontSize: 16,
-        color: Colors.white,
+        color: Colors.primary,
         fontFamily: Fonts.Bold,
     },
 
@@ -446,7 +448,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: Colors.black,
         borderWidth: 1,
-        borderColor: Colors.input_border,
+        borderColor: "rgba(245,158,11,0.30)",
         fontFamily: Fonts.Regular,
     },
 
@@ -469,7 +471,7 @@ const styles = StyleSheet.create({
         borderWidth: 1.5,
         borderStyle: "dashed",
         borderColor: "rgba(0,0,0,0.12)",
-        backgroundColor: "#FAFAFA",
+        backgroundColor: Colors.cardbg,
     },
     docThumb: { width: "100%", height: "100%", borderRadius: 12 },
     docOverlay: {

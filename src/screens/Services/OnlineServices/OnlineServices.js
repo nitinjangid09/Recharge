@@ -288,12 +288,12 @@ const styles = StyleSheet.create({
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.cardbg,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: Colors.input_border,
+        borderColor: "rgba(245,158,11,0.30)",
     },
     heroTitle: {
         fontSize: 26,
@@ -319,9 +319,9 @@ const styles = StyleSheet.create({
         width: width * 0.40,
         borderRadius: 18,
         padding: 18,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.cardbg,
         borderWidth: 1,
-        borderColor: Colors.input_border,
+        borderColor: "rgba(245,158,11,0.30)",
     },
     statValue: {
         fontSize: 34,
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
     sectionLabelLine: {
         flex: 1,
         height: 1,
-        backgroundColor: Colors.input_border,
+        backgroundColor: "rgba(245,158,11,0.25)",
     },
     sectionLabel: {
         fontSize: 10,
@@ -370,11 +370,11 @@ const styles = StyleSheet.create({
     itrCard: {
         marginHorizontal: 20,
         marginBottom: 16,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.cardbg,
         borderRadius: 22,
         padding: 22,
         borderWidth: 1,
-        borderColor: Colors.input_border,
+        borderColor: "rgba(245,158,11,0.30)",
     },
     itrMainRow: {
         flexDirection: 'row',
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
-        borderColor: Colors.input_border,
+        borderColor: "rgba(245,158,11,0.30)",
     },
     itrIconEmoji: { fontSize: 26 },
     itrInfo: {
@@ -450,11 +450,11 @@ const styles = StyleSheet.create({
         gap: 10,
     },
     protocolCard: {
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.cardbg,
         borderRadius: 18,
         padding: 16,
         borderWidth: 1,
-        borderColor: Colors.input_border,
+        borderColor: "rgba(245,158,11,0.30)",
         marginBottom: 2,
     },
     pcHeader: {
@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
     },
     pcDivider: {
         height: 1,
-        backgroundColor: Colors.input_border,
+        backgroundColor: "rgba(245,158,11,0.15)",
         marginVertical: 10,
     },
     pcFooter: {

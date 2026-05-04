@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
   remarkBox: { height: rs(54), backgroundColor: Colors.white, borderRadius: rs(15), borderWidth: 1, borderColor: Colors.input_border, paddingHorizontal: rs(15), justifyContent: 'center' },
   remarkField: { fontSize: rs(14), fontFamily: Fonts.Medium, color: Colors.black, padding: 0 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: Colors.white, borderTopLeftRadius: rs(30), borderTopRightRadius: rs(30), height: '60%', padding: rs(20) },
+  modalContent: { backgroundColor: Colors.cardbg, borderTopLeftRadius: rs(30), borderTopRightRadius: rs(30), height: '60%', padding: rs(20) },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: rs(20) },
   modalTitle: { fontSize: rs(20), fontFamily: Fonts.Bold, color: Colors.black },
   bankItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: rs(16), borderBottomWidth: 1, borderBottomColor: Colors.input_border, gap: rs(15) },

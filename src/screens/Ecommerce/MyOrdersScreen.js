@@ -204,7 +204,7 @@ const s = StyleSheet.create({
   listContent: { padding: 16, paddingBottom: 40 },
 
   orderCard: {
-    backgroundColor: Colors.beige,
+    backgroundColor: Colors.cardbg,
     borderRadius: 24,
     marginBottom: 16,
     padding: 18,

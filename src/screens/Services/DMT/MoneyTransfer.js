@@ -729,7 +729,7 @@ const styles = StyleSheet.create({
   },
   verifiedTxt: { fontFamily: Fonts.Bold, color: Colors.white, fontSize: rs(10), fontWeight: "900" },
   formCard: {
-    backgroundColor: Colors.beige,
+    backgroundColor: Colors.cardbg,
     borderRadius: scale(20),
     padding: scale(18),
     borderWidth: 1,
@@ -746,7 +746,7 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.bg_F8,
+    backgroundColor: Colors.white,
     borderRadius: scale(14),
     borderWidth: 1,
     borderColor: "rgb(235, 235, 235)",
@@ -872,7 +872,7 @@ const styles = StyleSheet.create({
   },
   modalCard: {
     width: "100%",
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     borderRadius: scale(24),
     paddingVertical: vs(28),
     paddingHorizontal: scale(22),

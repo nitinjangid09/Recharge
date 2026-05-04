@@ -32,6 +32,7 @@ import {
   processRecharge,
   getMyRechargeHistory,
   fetchPlans,
+  getWalletBalance,
 } from "../../../api/AuthApi";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -41,10 +42,6 @@ import ReceiptModal from "../../../componets/ReceiptModal/ReceiptModal";
 import CustomAlert from "../../../componets/Alerts/CustomAlert";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
-
-
-
-
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  BottomSheetModal
@@ -202,6 +199,8 @@ export default function TopUpScreen({ navigation, route }) {
   const [rechargeHistory, setRechargeHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [walletBalance, setWalletBalance] = useState("...");
+  const [balanceLoading, setBalanceLoading] = useState(false);
 
   const [alert, setAlert] = useState({ visible: false, type: "info", title: "", message: "" });
   const toastAnim = useRef(new Animated.Value(0)).current;
@@ -233,11 +232,29 @@ export default function TopUpScreen({ navigation, route }) {
     ]).start();
     fetchOperatorCircle();
     fetchRechargeHistory();
+    fetchBalance();
   }, []);
+
+  const fetchBalance = async () => {
+    try {
+      setBalanceLoading(true);
+      const headerToken = await AsyncStorage.getItem("header_token");
+      if (headerToken) {
+        const result = await getWalletBalance({ headerToken });
+        if (result?.success) {
+          setWalletBalance(String(result.data?.mainWallet || "0.00"));
+        }
+      }
+    } catch (e) {
+      console.log("Balance fetch error", e);
+    } finally {
+      setBalanceLoading(false);
+    }
+  };
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([fetchOperatorCircle(), fetchRechargeHistory()]);
+    await Promise.all([fetchOperatorCircle(), fetchRechargeHistory(), fetchBalance()]);
     setRefreshing(false);
   }, []);
 
@@ -389,10 +406,6 @@ export default function TopUpScreen({ navigation, route }) {
           const opCode = matchedOp?.rechargeValue || fetchedData.operatorCode || "";
           setOperatorCode(opCode); setOperator(opName); setCircle(cirName);
           setAvailablePlans(fetchedData.plans || []);
-          navigation.navigate("StorePlans", {
-            mobile: num, operator: opName, circle: cirName,
-            plans: fetchedData.plans || [], operatorCode: opCode,
-          });
         } else {
           setOperator(""); setCircle("");
           showAlert("error", "Error", result?.message || "Unable to detect operator");
@@ -438,196 +451,205 @@ export default function TopUpScreen({ navigation, route }) {
 
               {/* MOBILE */}
               <View style={styles.modernCard}>
-                <View style={styles.modernCardHeader}>
-                  <Text style={styles.modernCardTitle}>Personal Details</Text>
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>MOBILE</Text>
+                <View style={styles.cardHighlightHeader}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: 8 }}>
+                    <Icon name="account-details-outline" size={16} color={Colors.finance_accent} />
+                    <Text style={styles.cardHighlightTitle}>PERSONAL DETAILS</Text>
+                  </View>
+                  <View style={styles.historyCountBadge}>
+                    <Text style={styles.historyCountText}>PREPAID</Text>
                   </View>
                 </View>
-                <View style={styles.modernInputWrapper}>
-                  <Text style={styles.floatingLabel}>Mobile Number</Text>
-                  <View style={styles.rowCenter}>
-                    <Text style={styles.prefixText}>+91</Text>
-                    <TextInput
-                      value={mobile}
-                      onChangeText={handleMobileChange}
-                      placeholder="00000 00000"
-                      placeholderTextColor={Colors.gray}
-                      keyboardType="number-pad"
-                      maxLength={10}
-                      style={styles.bigInput}
-                    />
-                    <TouchableOpacity style={styles.contactBtnRound}>
-                      <Icon name="account-search-outline" size={18} color={Colors.white} />
-                    </TouchableOpacity>
+                <View style={styles.cardBody}>
+                  <View style={styles.modernInputWrapper}>
+                    <Text style={styles.floatingLabel}>Mobile Number</Text>
+                    <View style={styles.rowCenter}>
+                      <Text style={styles.prefixText}>+91</Text>
+                      <TextInput
+                        value={mobile}
+                        onChangeText={handleMobileChange}
+                        placeholder="00000 00000"
+                        placeholderTextColor={Colors.gray}
+                        keyboardType="number-pad"
+                        maxLength={10}
+                        style={styles.bigInput}
+                      />
+                      <TouchableOpacity style={styles.contactBtnRound}>
+                        <Icon name="account-search-outline" size={18} color={Colors.white} />
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
               </View>
 
               {/* CONNECTION */}
               <View style={styles.modernCard}>
-                <Text style={styles.modernCardTitle}>Connection Details</Text>
-                <View style={styles.connectionContainer}>
-                  <TouchableOpacity
-                    style={styles.connectionRow}
-                    activeOpacity={1}
-                    onPress={() => operators.length && setShowOperatorModal(true)}
-                  >
-                    <View style={styles.iconBox}>
-                      <Icon name="sim" size={18} color={Colors.finance_accent} />
-                    </View>
-                    <View style={{ flex: 1, marginLeft: 12 }}>
-                      <Text style={styles.connectionLabel}>Operator</Text>
-                      <Text style={[styles.connectionValues, showOperatorModal && { color: Colors.finance_accent }]}>
-                        {operator || "Select Provider"}
+                <View style={styles.cardHighlightHeader}>
+                  <Icon name="access-point-network" size={16} color={Colors.finance_accent} />
+                  <Text style={styles.cardHighlightTitle}>CONNECTION DETAILS</Text>
+                </View>
+                <View style={styles.cardBody}>
+                  {/* Operator */}
+                  <View style={[styles.modernInputWrapper, { marginBottom: 16 }]}>
+                    <Text style={styles.floatingLabel}>Operator</Text>
+                    <TouchableOpacity
+                      style={styles.rowCenter}
+                      onPress={() => operators.length && setShowOperatorModal(true)}
+                    >
+                      <View style={[styles.iconBox, { marginRight: 12 }]}>
+                        <Icon name="sim" size={18} color={Colors.finance_accent} />
+                      </View>
+                      <Text style={[styles.connectionValues, { flex: 1 }]}>
+                        {operator || "Select Operator"}
                       </Text>
-                    </View>
-                    <Icon
-                      name={showOperatorModal ? "chevron-up" : "chevron-down"}
-                      size={20}
-                      color={showOperatorModal ? Colors.finance_accent : Colors.finance_text}
-                    />
-                  </TouchableOpacity>
-                  <View style={styles.dividerLine} />
-                  <TouchableOpacity
-                    style={styles.connectionRow}
-                    activeOpacity={1}
-                    onPress={() => circles.length && setShowCircleModal(true)}
-                  >
-                    <View style={styles.iconBox}>
-                      <Icon name="map-marker-radius" size={18} color={Colors.finance_accent} />
-                    </View>
-                    <View style={{ flex: 1, marginLeft: 12 }}>
-                      <Text style={styles.connectionLabel}>Circle</Text>
-                      <Text style={[styles.connectionValues, showCircleModal && { color: Colors.finance_accent }]}>
+                      <Icon
+                        name={showOperatorModal ? "chevron-up" : "chevron-down"}
+                        size={20}
+                        color={showOperatorModal ? Colors.finance_accent : Colors.finance_text}
+                      />
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Circle */}
+                  <View style={styles.modernInputWrapper}>
+                    <Text style={styles.floatingLabel}>Circle</Text>
+                    <TouchableOpacity
+                      style={styles.rowCenter}
+                      onPress={() => circles.length && setShowCircleModal(true)}
+                    >
+                      <View style={[styles.iconBox, { marginRight: 12 }]}>
+                        <Icon name="map-marker-radius" size={18} color={Colors.finance_accent} />
+                      </View>
+                      <Text style={[styles.connectionValues, { flex: 1 }]}>
                         {circle || "Select Circle"}
                       </Text>
-                    </View>
-                    <Icon
-                      name={showCircleModal ? "chevron-up" : "chevron-down"}
-                      size={20}
-                      color={showCircleModal ? Colors.finance_accent : Colors.finance_text}
-                    />
-                  </TouchableOpacity>
+                      <Icon
+                        name={showCircleModal ? "chevron-up" : "chevron-down"}
+                        size={20}
+                        color={showCircleModal ? Colors.finance_accent : Colors.finance_text}
+                      />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
 
               {/* AMOUNT */}
-              <View style={styles.premiumAmountCard}>
-                <Text style={styles.amountHeader}>Pick or Enter Amount</Text>
-                <View style={styles.amountInputRow}>
-                  <Text style={styles.currencySymbol}>₹</Text>
-                  <TextInput
-                    value={amount}
-                    onChangeText={(val) => {
-                      let cleaned = val.replace(/[^0-9]/g, "");
-                      if (cleaned.startsWith("0")) cleaned = cleaned.replace(/^0+/, "");
-                      setAmount(cleaned);
-                      // Clear plan info if user manually types amount
-                      if (route.params?.selectedAmount && cleaned !== String(route.params.selectedAmount)) {
-                        setPlanDesc("");
-                        setPlanValidity("");
+              <View style={[styles.modernCard, { padding: 0, overflow: 'hidden' }]}>
+                <View style={[styles.cardHighlightHeader, { backgroundColor: 'rgb(46, 46, 46)' }]}>
+                  <Icon name="currency-inr" size={16} color={Colors.finance_accent} />
+                  <Text style={[styles.cardHighlightTitle, { color: Colors.finance_accent }]}>RECHARGE AMOUNT</Text>
+                </View>
+                <View style={[styles.cardBody, { backgroundColor: 'rgb(46, 46, 46)' }]}>
+                  <View style={styles.amountInputRow}>
+                    <Text style={styles.currencySymbol}>₹</Text>
+                    <TextInput
+                      value={amount}
+                      onChangeText={(val) => {
+                        let cleaned = val.replace(/[^0-9]/g, "");
+                        if (cleaned.startsWith("0")) cleaned = cleaned.replace(/^0+/, "");
+                        setAmount(cleaned);
+                        if (route.params?.selectedAmount && cleaned !== String(route.params.selectedAmount)) {
+                          setPlanDesc("");
+                          setPlanValidity("");
+                        }
+                      }}
+                      placeholder="0"
+                      placeholderTextColor={Colors.ink3}
+                      keyboardType="numeric"
+                      style={styles.hugeInput}
+                    />
+                  </View>
+
+                  {planDesc ? (
+                    <View style={styles.selectedPlanWrap}>
+                      <Icon name="check-circle" size={16} color={Colors.green} style={{ marginTop: 2 }} />
+                      <View style={{ flex: 1, marginLeft: 8 }}>
+                        {!!planValidity && <Text style={styles.selectedPlanValidity}>Validity: {planValidity}</Text>}
+                        <Text style={styles.selectedPlanDesc}>{planDesc}</Text>
+                      </View>
+                    </View>
+                  ) : (
+                    <View style={styles.suggestionsWrapper}>
+                      <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.suggestionsContainer}
+                      >
+                        {["199", "299", "499", "666", "849"].map((val) => (
+                          <TouchableOpacity
+                            key={val}
+                            style={[styles.suggestionChip, amount === val && styles.suggestionChipActive]}
+                            onPress={async () => {
+                              setAmount(val);
+                              let plansToCheck = availablePlans;
+                              if (plansToCheck.length === 0 && mobile.length === 10 && operator && circle) {
+                                setLoading(true);
+                                const res = await fetchPlans(mobile, circle, operator);
+                                if (res?.status === "SUCCESS") {
+                                  plansToCheck = res.plans || [];
+                                  setAvailablePlans(plansToCheck);
+                                }
+                                setLoading(false);
+                              }
+                              const matchedPlan = plansToCheck.find((p) => String(p.price || p.amount) === val);
+                              if (matchedPlan) {
+                                setPlanDesc(matchedPlan.description || "");
+                                setPlanValidity(matchedPlan.validity || "");
+                              } else {
+                                setPlanDesc("");
+                                setPlanValidity("");
+                              }
+                            }}
+                          >
+                            <Text style={[styles.suggestionText, amount === val && styles.suggestionTextActive]}>
+                              ₹{val}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
+                  <TouchableOpacity
+                    style={styles.viewPlansBtn}
+                    onPress={async () => {
+                      if (mobile.length !== 10) { showAlert("warning", "Validation", "Enter 10-digit mobile number"); return; }
+                      if (!operator) { showAlert("warning", "Validation", "Select Operator"); return; }
+                      if (!circle) { showAlert("warning", "Validation", "Select Circle"); return; }
+                      try {
+                        setLoading(true);
+                        const headerToken = await AsyncStorage.getItem("header_token");
+                        const result = await verifyRechargeMobile({ mobile, headerToken });
+                        if (result?.success) {
+                          navigation.navigate("StorePlans", {
+                            mobile, operator, circle,
+                            plans: result.data?.plans || [], operatorCode,
+                          });
+                        } else {
+                          showAlert("error", "Error", result?.message || "Unable to load plans");
+                        }
+                      } catch {
+                        showAlert("error", "Error", "Something went wrong");
+                      } finally {
+                        setLoading(false);
                       }
                     }}
-                    placeholder="0"
-                    placeholderTextColor={Colors.beige}
-                    keyboardType="numeric"
-                    style={styles.hugeInput}
-                  />
-                </View>
-
-                {planDesc ? (
-                  <View style={styles.selectedPlanWrap}>
-                    <Icon name="check-circle" size={16} color={Colors.green} style={{ marginTop: 2 }} />
-                    <View style={{ flex: 1, marginLeft: 8 }}>
-                      {!!planValidity && <Text style={styles.selectedPlanValidity}>Validity: {planValidity}</Text>}
-                      <Text style={styles.selectedPlanDesc}>{planDesc}</Text>
-                    </View>
-                  </View>
-                ) : (
-                  <View style={styles.suggestionsWrapper}>
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      contentContainerStyle={styles.suggestionsContainer}
-                    >
-                      {["199", "299", "499", "666", "849"].map((val) => (
-                        <TouchableOpacity
-                          key={val}
-                          style={[styles.suggestionChip, amount === val && styles.suggestionChipActive]}
-                          onPress={async () => {
-                            setAmount(val);
-                            let plansToCheck = availablePlans;
-                            if (plansToCheck.length === 0 && mobile.length === 10 && operator && circle) {
-                              setLoading(true);
-                              const res = await fetchPlans(mobile, circle, operator);
-                              if (res?.status === "SUCCESS") {
-                                plansToCheck = res.plans || [];
-                                setAvailablePlans(plansToCheck);
-                              }
-                              setLoading(false);
-                            }
-                            const matchedPlan = plansToCheck.find((p) => String(p.price || p.amount) === val);
-                            if (matchedPlan) {
-                              setPlanDesc(matchedPlan.description || "");
-                              setPlanValidity(matchedPlan.validity || "");
-                            } else {
-                              setPlanDesc("");
-                              setPlanValidity("");
-                            }
-                          }}
-                        >
-                          <Text style={[styles.suggestionText, amount === val && styles.suggestionTextActive]}>
-                            ₹{val}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
-                  </View>
-                )}
-                <TouchableOpacity
-                  style={styles.viewPlansBtn}
-                  onPress={async () => {
-                    if (mobile.length !== 10) { showAlert("warning", "Validation", "Enter 10-digit mobile number"); return; }
-                    if (!operator) { showAlert("warning", "Validation", "Select Operator"); return; }
-                    if (!circle) { showAlert("warning", "Validation", "Select Circle"); return; }
-                    try {
-                      setLoading(true);
-                      const headerToken = await AsyncStorage.getItem("header_token");
-                      const result = await verifyRechargeMobile({ mobile, headerToken });
-                      if (result?.success) {
-                        navigation.navigate("StorePlans", {
-                          mobile, operator, circle,
-                          plans: result.data?.plans || [], operatorCode,
-                        });
-                      } else {
-                        showAlert("error", "Error", result?.message || "Unable to load plans");
-                      }
-                    } catch {
-                      showAlert("error", "Error", "Something went wrong");
-                    } finally {
-                      setLoading(false);
-                    }
-                  }}
-                >
-                  <LinearGradient
-                    colors={[Colors.finance_accent || Colors.finance_accent, "rgb(224, 195, 140)" || "rgb(224, 195, 140)"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.viewPlansGradient}
                   >
-                    <Text style={styles.viewPlansText}>Explore All Plans</Text>
-                    <Icon name="notebook-outline" size={18} color={Colors.black} />
-                  </LinearGradient>
-                </TouchableOpacity>
+                    <LinearGradient
+                      colors={[Colors.finance_accent, "rgb(224, 195, 140)"]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.viewPlansGradient}
+                    >
+                      <Text style={styles.viewPlansText}>Explore All Plans</Text>
+                      <Icon name="notebook-outline" size={18} color={Colors.black} />
+                    </LinearGradient>
+                  </TouchableOpacity>
+                </View>
               </View>
-
 
               {/* RECENT RECHARGE HISTORY */}
               {(historyLoading || rechargeHistory.length > 0) && (
                 <View style={styles.historyCard_Outer}>
-
-                  {/* ── Header banner (dark) ── */}
                   <View style={styles.historyHeaderGrad}>
                     <View style={styles.historyHeaderLeft}>
                       <View style={styles.historyHeaderIconBox}>
@@ -642,7 +664,6 @@ export default function TopUpScreen({ navigation, route }) {
                     )}
                   </View>
 
-                  {/* ── Cards list (scrollable) ── */}
                   <ScrollView
                     style={styles.historyCardsList}
                     nestedScrollEnabled={true}
@@ -668,12 +689,9 @@ export default function TopUpScreen({ navigation, route }) {
 
                         return (
                           <View key={item._id} style={styles.historyItemRow}>
-                            {/* Left — operator badge */}
                             <View style={[styles.historyOpBadge, { backgroundColor: Colors.finance_accent + "18" }]}>
                               <Text style={styles.historyOpInitial}>{opInitial}</Text>
                             </View>
-
-                            {/* Middle — details */}
                             <View style={{ flex: 1, marginHorizontal: 10 }}>
                               <Text style={styles.historyOpName}>
                                 {item.operatorName}
@@ -684,8 +702,6 @@ export default function TopUpScreen({ navigation, route }) {
                               </Text>
                               <Text style={styles.historyDate}>{dateStr}</Text>
                             </View>
-
-                            {/* Right — amount + status */}
                             <View style={{ alignItems: "flex-end" }}>
                               <Text style={styles.historyAmount}>₹{item.amount}</Text>
                               <View style={[styles.historyStatusPill, { backgroundColor: statusBg }]}>
@@ -700,7 +716,6 @@ export default function TopUpScreen({ navigation, route }) {
                       })
                     )}
                   </ScrollView>
-
                 </View>
               )}
 
@@ -838,9 +853,6 @@ export default function TopUpScreen({ navigation, route }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  STYLES
-// ─────────────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Colors.beige },
   container: { flex: 1, backgroundColor: Colors.beige },
@@ -848,21 +860,106 @@ const styles = StyleSheet.create({
   mainContent: { paddingHorizontal: 12, paddingBottom: 14 },
 
   modernCard: {
-    backgroundColor: Colors.beige,
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: Colors.cardbg,
+    borderRadius: 18,
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(245,158,11,0.30)',
+    overflow: 'hidden',
   },
+  cardHighlightHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: 'rgb(46, 46, 46)',
+    gap: 8,
+  },
+  cardHighlightTitle: {
+    fontSize: 11,
+    fontFamily: Fonts.Bold,
+    color: Colors.finance_accent,
+    letterSpacing: 0.5,
+  },
+  cardBody: {
+    padding: 16,
+  },
+  serviceHeaderCard: {
+    backgroundColor: Colors.cardbg,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.35)',
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  serviceHeaderTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+  },
+  serviceInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  serviceIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgb(46, 46, 46)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  serviceHeaderTitle: {
+    fontSize: 15,
+    fontFamily: Fonts.Bold,
+    color: Colors.finance_accent,
+  },
+  serviceHeaderSub: {
+    fontSize: 11,
+    fontFamily: Fonts.Medium,
+    color: Colors.ink3,
+  },
+  walletBadge: {
+    alignItems: 'flex-end',
+    backgroundColor: Colors.white,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.finance_accent + "40",
+  },
+  walletBadgeLabel: {
+    fontSize: 8,
+    fontFamily: Fonts.Bold,
+    color: Colors.ink3,
+    letterSpacing: 0.5,
+  },
+  walletBadgeValue: {
+    fontSize: 14,
+    fontFamily: Fonts.Bold,
+    color: Colors.finance_accent,
+  },
+  serviceHeaderBottom: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    gap: 6,
+  },
+  serviceNote: {
+    fontSize: 10,
+    fontFamily: Fonts.Medium,
+    color: Colors.finance_accent,
+  },
+
   modernCardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
   modernCardTitle: { fontSize: 12, fontFamily: Fonts.Bold, color: Colors.primary },
   badge: { backgroundColor: Colors.gold, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, borderWidth: 1, borderColor: Colors.finance_accent + "40" },
   badgeText: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.finance_accent },
   modernInputWrapper: { borderBottomWidth: 1.5, borderBottomColor: Colors.finance_accent + "30", paddingBottom: 6 },
-  floatingLabel: { fontSize: 10, color: Colors.primary, fontFamily: Fonts.Medium, marginBottom: 2 },
+  floatingLabel: { fontSize: 10, color: Colors.ink2, fontFamily: Fonts.Medium, marginBottom: 2 },
   rowCenter: { flexDirection: "row", alignItems: "center" },
-  prefixText: { fontSize: 16, fontFamily: Fonts.Medium, color: Colors.gray, marginRight: 8 },
+  prefixText: { fontSize: 16, fontFamily: Fonts.Medium, color: Colors.ink3, marginRight: 8 },
   bigInput: { flex: 1, fontSize: 18, fontFamily: Fonts.Bold, color: Colors.finance_text, padding: 0, height: 34 },
   contactBtnRound: { width: 30, height: 30, borderRadius: 15, backgroundColor: Colors.finance_accent, alignItems: "center", justifyContent: "center" },
 
@@ -870,14 +967,13 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.beige,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(245,158,11,0.30)',
-    marginTop: 8,
+    borderColor: Colors.finance_accent + "20",
     overflow: "hidden"
   },
   connectionRow: { flexDirection: "row", alignItems: "center", padding: 10 },
-  iconBox: { width: 30, height: 30, borderRadius: 8, backgroundColor: Colors.white, alignItems: "center", justifyContent: "center" },
-  connectionLabel: { fontSize: 9, fontFamily: Fonts.Bold, color: Colors.gray, textTransform: "uppercase" },
-  connectionValues: { fontSize: 12, fontFamily: Fonts.Medium, color: Colors.black, marginTop: 2 },
+  iconBox: { width: 30, height: 30, borderRadius: 8, backgroundColor: Colors.cardbg, alignItems: "center", justifyContent: "center" },
+  connectionLabel: { fontSize: 11, fontFamily: Fonts.Bold, color: Colors.primary, textTransform: "uppercase" },
+  connectionValues: { fontSize: 14, fontFamily: Fonts.Medium, color: Colors.primary, marginTop: 2 },
   dividerLine: { height: 1, backgroundColor: Colors.gold, marginHorizontal: 14 },
 
   premiumAmountCard: { backgroundColor: Colors.primary, borderRadius: 20, padding: 14, marginBottom: 14, borderWidth: 1.5, borderColor: Colors.finance_accent + "66" },
@@ -928,33 +1024,33 @@ const styles = StyleSheet.create({
   },
   handleBar: { width: 44, height: 4, borderRadius: 2, backgroundColor: "rgba(0,0,0,0.12)", alignSelf: "center", marginTop: 8, marginBottom: 12 },
   sheetTitleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14, paddingHorizontal: 4 },
-  sheetTitle: { fontSize: 17, fontFamily: Fonts.Bold, color: Colors.primary, letterSpacing: 0.3 },
+  sheetTitle: { fontSize: 17, fontFamily: Fonts.Bold, color: 'rgb(46, 46, 46)', letterSpacing: 0.3 },
   closeBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: "rgba(0,0,0,0.05)", alignItems: "center", justifyContent: "center" },
   sheetSearchRow: {
     flexDirection: "row", alignItems: "center",
-    backgroundColor: Colors.bg_F8,
+    backgroundColor: Colors.white,
     borderRadius: 14, paddingHorizontal: 12,
     marginBottom: 4, height: 46,
     borderWidth: 1, borderColor: "rgba(0,0,0,0.05)",
   },
-  sheetSearchInput: { flex: 1, fontSize: 14, fontFamily: Fonts.Medium, color: Colors.primary, padding: 0 },
+  sheetSearchInput: { flex: 1, fontSize: 14, fontFamily: Fonts.Medium, color: Colors.finance_text, padding: 0 },
   sheetListItem: {
     flexDirection: "row", alignItems: "center",
     paddingHorizontal: 18, paddingVertical: 14,
     borderBottomWidth: 1, borderBottomColor: "rgba(0,0,0,0.03)",
   },
-  sheetListItemSel: { backgroundColor: Colors.finance_accent + "10" },
+  sheetListItemSel: { backgroundColor: Colors.finance_accent + "15" },
   sheetListIconBox: {
     width: 36, height: 36, borderRadius: 10,
     backgroundColor: "rgba(0,0,0,0.05)",
     alignItems: "center", justifyContent: "center", marginRight: 14,
   },
-  sheetListIconBoxSel: { backgroundColor: Colors.finance_accent + "20" },
-  sheetListTxt: { flex: 1, fontSize: 14, fontFamily: Fonts.Medium, color: Colors.slate_700 },
+  sheetListIconBoxSel: { backgroundColor: Colors.finance_accent },
+  sheetListTxt: { flex: 1, fontSize: 14, fontFamily: Fonts.Medium, color: Colors.finance_text },
   sheetListTxtSel: { color: Colors.finance_accent, fontFamily: Fonts.Bold },
   checkCircle: { width: 22, height: 22, borderRadius: 11, backgroundColor: Colors.finance_accent, alignItems: "center", justifyContent: "center" },
   emptyWrap: { alignItems: "center", paddingVertical: 30 },
-  emptyTxt: { color: Colors.gray, fontSize: 13, fontFamily: Fonts.Medium },
+  emptyTxt: { color: Colors.ink3, fontSize: 13, fontFamily: Fonts.Medium },
 
   customToastBox: { position: "absolute", top: 60, left: 20, right: 20, zIndex: 9999 },
   customToastGrad: { flexDirection: "row", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, gap: 10 },
@@ -963,10 +1059,8 @@ const styles = StyleSheet.create({
 
   // ── Recent Recharges History ──
   historyCard_Outer: {
-    backgroundColor: Colors.beige,
+    backgroundColor: Colors.cardbg,
     borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(245,158,11,0.30)',
     overflow: "hidden",
     marginBottom: 20,
   },
@@ -976,7 +1070,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 14,
     paddingVertical: 11,
-    backgroundColor: Colors.hub_dark,
+    backgroundColor: 'rgb(46, 46, 46)',
   },
   historyHeaderLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
   historyHeaderIconBox: {
@@ -1010,7 +1104,7 @@ const styles = StyleSheet.create({
   historyOpName: { fontSize: 13, fontFamily: Fonts.Bold, color: Colors.finance_text },
   historyMobile: { fontSize: 11, fontFamily: Fonts.Medium, color: Colors.slate_500 },
   historyRefId: { fontSize: 10, fontFamily: Fonts.Medium, color: Colors.slate_500, marginTop: 1 },
-  historyDate: { fontSize: 10, fontFamily: Fonts.Medium, color: Colors.gray, marginTop: 2 },
+  historyDate: { fontSize: 10, fontFamily: Fonts.Medium, color: Colors.ink3, marginTop: 2 },
   historyAmount: { fontSize: 15, fontFamily: Fonts.Bold, color: Colors.finance_text, marginBottom: 4 },
   historyStatusPill: {
     flexDirection: "row", alignItems: "center", gap: 4,

@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   formCard: {
-    backgroundColor: Colors.beige,
+    backgroundColor: Colors.cardbg,
     borderRadius: scale(20),
     padding: scale(18),
     borderWidth: 1,
@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.bg_F8,
+    backgroundColor: Colors.white,
     borderRadius: scale(14),
     borderWidth: 1,
     borderColor: "rgb(235, 235, 235)",
@@ -670,7 +670,7 @@ const styles = StyleSheet.create({
   },
   otpCard: {
     width: "100%",
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     borderRadius: scale(24),
     paddingVertical: vs(28),
     paddingHorizontal: scale(22),

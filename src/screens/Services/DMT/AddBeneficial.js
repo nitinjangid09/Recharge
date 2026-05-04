@@ -523,7 +523,7 @@ const styles = StyleSheet.create({
   /* CARD */
 
   card: {
-    backgroundColor: Colors.beige,
+    backgroundColor: Colors.cardbg,
     padding: 20,
     borderWidth: 1,
     borderColor: "rgba(245,158,11,0.30)",
@@ -667,7 +667,7 @@ const sp = StyleSheet.create({
   // Sheet
   sheet: {
     position: "absolute", bottom: 0, left: 0, right: 0,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     borderTopLeftRadius: scale(24), borderTopRightRadius: scale(24),
     maxHeight: SH * 0.68,
   },

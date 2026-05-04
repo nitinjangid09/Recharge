@@ -16,6 +16,8 @@ const Colors = {
   // ─── Theme Foundations ────────────────────────────────────────────────────
   primary: "#1A1A2E",
   accent: "#FF6D1F",
+  cardbg: "#f7ebcaff",
+
 
   // ─── Backgrounds ──────────────────────────────────────────────────────────
   background_gradient: ["#F5E7C6", "#F5E7C6"],

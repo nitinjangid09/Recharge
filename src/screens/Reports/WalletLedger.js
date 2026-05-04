@@ -311,7 +311,7 @@ const FST = StyleSheet.create({
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.55)" },
   sheet: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardbg,
     borderTopLeftRadius: sc(24), borderTopRightRadius: sc(24),
     maxHeight: SH * 0.78,
   },
