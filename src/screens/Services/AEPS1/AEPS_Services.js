@@ -391,7 +391,6 @@ const styles = StyleSheet.create({
     },
     cardTitle: { fontSize: 9.5 * S, fontFamily: Fonts.Bold, color: Colors.black, textAlign: 'center', lineHeight: 12 * S },
 
-
     // ── Transaction Items ───────────────────────────────────
     txnItem: {
         backgroundColor: Colors.white,
