@@ -26,7 +26,7 @@ import Geolocation from "@react-native-community/geolocation";
 import Colors from "../../../constants/Colors";
 import Fonts from "../../../constants/Fonts";
 import * as NavigationService from "../../../utils/NavigationService";
-import { getAepsKycStatus, biometricKyc } from "../../../api/AuthApi";
+import { getAepsKycStatus, biometricKyc as aepsInstantBiometricKyc } from "../../../api/AuthApi";
 import { AlertService } from "../../../componets/Alerts/CustomAlert";
 import RD_BRIDGE, { RD_ERROR_CODES } from "../../../utils/RDService";
 
@@ -36,8 +36,12 @@ const S = SW / 375;
 
 const SCREENS = { HUB: 1, BIOMETRIC: 2, CAPTURING: 3 };
 
-// WADH constant — sent in both PidOptions XML and biometricData payload
-const WADH_VALUE = "E0jzJ/P8UopUHAieZn8CKqS4WPMi5ZSYXgfnlfkWjrc=";
+// WADH mapping — service-specific values required by UIDAI/NPCI
+const WADH_MAPPING = {
+    aeps1: "E0jzJ/P8UopUHAieZn8CKqS4WPMi5ZSYXgfnlfkWjrc=",
+    dmt: "18f4CEiXeXcfGXvgWA/blxD+w2pw7hfQPY45JMytkPw=",
+    default: "E0jzJ/P8UopUHAieZn8CKqS4WPMi5ZSYXgfnlfkWjrc=",
+};
 
 // Theme
 const GOLD = "rgb(212, 168, 67)";
@@ -109,12 +113,15 @@ const getLocation = () =>
     });
 
 /** Build PidOptions XML with the specified wadh. */
-const buildPidOptions = (wadh = WADH_VALUE) =>
-    `<PidOptions ver="1.0">` +
-    `<Opts fCount="1" fType="2" iCount="0" pCount="0" format="0" ` +
-    `pidVer="2.0" timeout="20000" otp="" posh="UNKNOWN" env="P" wadh="${wadh}" />` +
-    `<Demo></Demo><CustOpts></CustOpts>` +
-    `</PidOptions>`;
+const buildPidOptions = (service = "aeps1") => {
+    const wadh = WADH_MAPPING[service] || WADH_MAPPING.default;
+    return `<?xml version="1.0"?>` +
+           `<PidOptions ver="1.0">` +
+           `<Opts fCount="1" fType="2" iCount="0" pCount="0" format="0" ` +
+           `pidVer="2.0" timeout="10000" otp="" posh="UNKNOWN" env="P" wadh="${wadh}" />` +
+           `<Demo></Demo><CustOpts></CustOpts>` +
+           `</PidOptions>`;
+};
 
 // ─── Component ────────────────────────────────────────────────────────────────
 const AEPS_OnBoard = () => {
@@ -364,8 +371,8 @@ const AEPS_OnBoard = () => {
             transition(SCREENS.CAPTURING);
             flashCapture();
 
-            // ── 4. Build PidOptions with WADH ─────────────────────────────────────
-            const pidOptString = buildPidOptions(WADH_VALUE);
+            // ── 4. Build PidOptions with WADH for AEPS1 ─────────────────────────
+            const pidOptString = buildPidOptions("aeps1");
 
             // ── 5. Capture Biometric from RD Service ─────────────────────────────
             const pidDataXml = await RD_BRIDGE.capture(device, pidOptString);
@@ -392,25 +399,45 @@ const AEPS_OnBoard = () => {
             const headerKey = await AsyncStorage.getItem("header_key");
             const idempotencyKey = uuidv4();
 
-            // ── 9. Build payload — wadh included in pidData ────────────────
+            // ── 9. Build payload — biometricData structure as per latest API ──
+            const biometricData = {
+                adhaarNumber: String(aadhaar),
+                dpID: parsedPid.dpId || "",
+                rdsID: parsedPid.rdsId || "",
+                rdsVer: parsedPid.rdsVer || "",
+                dc: parsedPid.dc || "",
+                mi: parsedPid.mi || "",
+                mc: parsedPid.mc || "",
+                ci: parsedPid.ci || "",
+                sessionKey: parsedPid.sessionKey || "",
+                hmac: parsedPid.hmac || "",
+                pidData: parsedPid.pidData || "",
+                qScore: parsedPid.qScore || "0",
+                fCount: parsedPid.fCount || "0",
+                nmPoints: parsedPid.nmPoints || "0",
+                wadh: WADH_MAPPING["aeps1"],
+                pCount: "0",
+                iCount: "0",
+                errCode: parsedPid.errCode || "0",
+                errInfo: parsedPid.errInfo || "",
+                fType: parsedPid.fType || "0",
+                iType: "0",
+                pType: "0",
+            };
+
             const payload = {
-                aadhaarNumber: String(aadhaar),
                 latitude: Number(coords.latitude),
                 longitude: Number(coords.longitude),
                 captureType: "finger",
-                pidData: {
-                    ...parsedPid,                   // all parsed PID fields (dc, dpId, mc, mi, etc.)
-                    encryptedAadhaar,               // AES-256 encrypted Aadhaar
-                    wadh: WADH_VALUE,               // ✅ wadh sent in pidData
-                },
-                // Reference keys from initial status check to avoid "reference key expired"
+                biometricData: biometricData,
+                // Reference keys from initial status check
                 primaryKey: statusData?.primaryKey || statusData?.refId || statusData?.referenceKey,
                 referenceKey: statusData?.referenceKey || statusData?.primaryKey,
                 externalRef: statusData?.externalRef || `EXT_${Date.now()}`,
             };
 
             // ── 10. Call KYC API ──────────────────────────────────────────────────
-            const res = await biometricKyc({
+            const res = await aepsInstantBiometricKyc({
                 data: payload,
                 headerToken,
                 headerKey,
@@ -769,7 +796,7 @@ const AEPS_OnBoard = () => {
             <View style={styles.wadhStrip}>
                 <Icon name="key-chain-variant" size={13} color={GOLD} style={{ marginRight: 7 }} />
                 <Text style={styles.wadhTxt} numberOfLines={1}>
-                    WADH · {WADH_VALUE.slice(0, 20)}…
+                    WADH · {WADH_MAPPING["aeps1"].slice(0, 20)}…
                 </Text>
                 <View style={styles.wadhBadge}>
                     <Text style={styles.wadhBadgeTxt}>ACTIVE</Text>

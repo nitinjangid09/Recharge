@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import LinearGradient from 'react-native-linear-gradient';
 import Colors from '../../../constants/Colors';
 import Fonts from '../../../constants/Fonts';
 import HeaderBar from '../../../componets/HeaderBar/HeaderBar';
@@ -272,41 +273,51 @@ export default function AddPayoutBank({ navigation }) {
 
           <View style={styles.inputWrapper}>
             <Text style={styles.inputLabel}>Bank Proof (Passbook / Cheque)</Text>
-            <Text style={styles.imageHint}>JPG, JPEG, PNG (Max 200KB)</Text>
-            {passbookImage ? (
-              <View style={styles.imagePreviewContainer}>
-                <Image source={{ uri: passbookImage.uri }} style={styles.previewImg} />
-                <View style={styles.imageActions}>
+            <TouchableOpacity
+              style={[
+                styles.docBox,
+                passbookImage && { borderStyle: "solid", borderColor: Colors.kyc_success, backgroundColor: Colors.kyc_success + "08" },
+                errors.passbookImage && { borderStyle: "solid", borderColor: Colors.red, backgroundColor: Colors.red + "06" },
+              ]}
+              onPress={() => {
+                setErrors({ ...errors, passbookImage: null });
+                setIsImageModalVisible(true);
+              }}
+              activeOpacity={0.75}
+            >
+              {passbookImage ? (
+                <View style={{ width: '100%', height: '100%' }}>
+                  <Image source={{ uri: passbookImage.uri }} style={styles.docThumb} resizeMode="cover" />
+                  <LinearGradient colors={["transparent", "rgba(0,0,0,0.72)"]} style={styles.docOverlay} start={{ x: 0, y: 0.5 }} end={{ x: 0, y: 1 }}>
+                    <Icon name="check-circle" size={rs(13)} color={Colors.white} />
+                    <Text style={styles.docDoneLabel}>UPLOADED</Text>
+                    <Text style={styles.docFileName} numberOfLines={1}>Passbook_Proof.jpg</Text>
+                  </LinearGradient>
                   <TouchableOpacity
-                    style={styles.imageActionBtn}
-                    onPress={() => setIsImageModalVisible(true)}
-                  >
-                    <Icon name="pencil" size={rs(16)} color={Colors.primary} />
-                    <Text style={styles.imageActionTxt}>Change</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.imageActionBtn, { borderColor: Colors.red }]}
+                    style={styles.cornerDelete}
                     onPress={() => setPassbookImage(null)}
                   >
-                    <Icon name="trash-can-outline" size={rs(16)} color={Colors.red} />
-                    <Text style={[styles.imageActionTxt, { color: Colors.red }]}>Remove</Text>
+                    <Icon name="close" size={rs(12)} color={Colors.white} />
                   </TouchableOpacity>
                 </View>
-              </View>
-            ) : (
-              <TouchableOpacity
-                style={[styles.uploadArea, errors.passbookImage && { borderColor: Colors.red }]}
-                onPress={() => {
-                  setIsImageModalVisible(true);
-                  setErrors({ ...errors, passbookImage: null });
-                }}
-              >
-                <Icon name="cloud-upload-outline" size={rs(32)} color={errors.passbookImage ? Colors.red : Colors.primary} />
-                <Text style={[styles.uploadTxt, errors.passbookImage && { color: Colors.red }]}>
-                  {errors.passbookImage || "Click to upload image"}
-                </Text>
-              </TouchableOpacity>
-            )}
+              ) : (
+                <View style={styles.docEmptyContent}>
+                  <View style={[styles.docIconCircle, { backgroundColor: (Colors.finance_accent || Colors.gold) + "1C" }]}>
+                    <Icon name="bank-transfer" size={rs(22)} color={Colors.finance_accent || Colors.gold} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.docSlotLabel}>Bank Proof</Text>
+                    <Text style={styles.docSlotSub}>Passbook or Cancelled Cheque</Text>
+                    <Text style={styles.docSizeLabel}>JPG/PNG · Max 200KB</Text>
+                  </View>
+                  <View style={styles.docUploadTag}>
+                    <Icon name="camera-plus-outline" size={rs(11)} color={Colors.finance_accent || Colors.gold} />
+                    <Text style={styles.docUploadTagText}>Upload</Text>
+                  </View>
+                </View>
+              )}
+            </TouchableOpacity>
+            {!!errors.passbookImage && <Text style={styles.errorText}>{errors.passbookImage}</Text>}
           </View>
 
           {(() => {
@@ -465,60 +476,67 @@ const styles = StyleSheet.create({
     marginBottom: rs(10),
     marginLeft: rs(4),
   },
-  uploadArea: {
-    height: rs(70),
-    backgroundColor: Colors.white,
-    borderRadius: rs(20),
-    borderWidth: 1,
-    borderColor: Colors.input_border,
-    borderStyle: 'dashed',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: rs(8),
-  },
-  uploadAreaActive: {
-    borderColor: Colors.primary,
-    borderStyle: 'solid',
-    overflow: 'hidden',
-  },
-  uploadTxt: {
-    fontSize: rs(13),
-    fontFamily: Fonts.Medium,
-    color: Colors.text_secondary,
-  },
-  previewImg: {
-    width: '100%',
-    height: rs(120),
+  // ── Document Slot Styles (Sync with KYC) ──
+  docBox: {
+    height: rs(90),
     borderRadius: rs(14),
-    resizeMode: 'cover',
+    borderWidth: 1.5,
+    borderStyle: "dashed",
+    borderColor: "rgba(0,0,0,0.12)",
+    backgroundColor: "#FAFAFA",
   },
-  imagePreviewContainer: {
-    backgroundColor: Colors.white,
-    borderRadius: rs(20),
-    borderWidth: 1,
-    borderColor: Colors.input_border,
-    padding: rs(10),
-  },
-  imageActions: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: rs(12),
-    marginTop: rs(10),
-  },
-  imageActionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: rs(12),
+  docThumb: { width: "100%", height: "100%", borderRadius: rs(12) },
+  docOverlay: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: rs(10),
     paddingVertical: rs(6),
-    borderRadius: rs(8),
-    borderWidth: 1,
-    borderColor: Colors.primary,
     gap: rs(6),
+    borderBottomLeftRadius: rs(12),
+    borderBottomRightRadius: rs(12),
   },
-  imageActionTxt: {
-    fontSize: rs(12),
-    fontFamily: Fonts.Bold,
-    color: Colors.primary,
+  docDoneLabel: { color: Colors.finance_accent || Colors.gold, fontFamily: Fonts.Bold, fontSize: rs(9), letterSpacing: 0.4 },
+  docFileName: { flex: 1, color: "rgba(255,255,255,0.8)", fontFamily: Fonts.Regular, fontSize: rs(8) },
+  docEmptyContent: { flex: 1, flexDirection: "row", alignItems: "center", paddingHorizontal: rs(14), gap: rs(12) },
+  docIconCircle: { width: rs(42), height: rs(42), borderRadius: rs(12), alignItems: "center", justifyContent: "center" },
+  docSlotLabel: { color: Colors.black, fontFamily: Fonts.Bold, fontSize: rs(13) },
+  docSlotSub: { color: "rgb(153, 153, 153)", marginTop: rs(1), fontFamily: Fonts.Regular, fontSize: rs(10) },
+  docSizeLabel: { color: "rgb(196, 196, 196)", marginTop: rs(2), fontFamily: Fonts.Regular, fontSize: rs(9) },
+  docUploadTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: rs(8),
+    paddingVertical: rs(4),
+    borderRadius: rs(10),
+    borderWidth: 1,
+    backgroundColor: (Colors.finance_accent || Colors.gold) + "12",
+    borderColor: (Colors.finance_accent || Colors.gold) + "40",
+    gap: rs(4),
+  },
+  docUploadTagText: { color: Colors.finance_accent || Colors.gold, fontFamily: Fonts.Bold, fontSize: rs(9) },
+
+  cornerDelete: {
+    position: 'absolute',
+    top: -rs(8),
+    right: -rs(8),
+    width: rs(24),
+    height: rs(24),
+    borderRadius: rs(12),
+    backgroundColor: Colors.red,
+    borderWidth: 1,
+    borderColor: Colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    zIndex: 10,
   },
   errorText: {
     color: Colors.red,

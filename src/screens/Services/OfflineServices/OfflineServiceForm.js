@@ -13,6 +13,8 @@ import {
     KeyboardAvoidingView,
     Platform,
     PermissionsAndroid,
+    PixelRatio,
+    Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -23,6 +25,8 @@ import Fonts from '../../../constants/Fonts';
 import { getOfflineServiceForm, BASE_URL } from '../../../api/AuthApi';
 import CustomAlert from '../../../componets/Alerts/CustomAlert';
 import ImageUploadAlert from '../../../componets/Alerts/Imageuploadalert';
+import LinearGradient from 'react-native-linear-gradient';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function OfflineServiceForm({ navigation, route }) {
     const { service } = route.params; // service contains {_id, serviceName, description}
@@ -33,6 +37,9 @@ export default function OfflineServiceForm({ navigation, route }) {
     const [documents, setDocuments] = useState({});
     const [showImageModal, setShowImageModal] = useState(false);
     const [activeDoc, setActiveDoc] = useState({ key: '', label: '' });
+
+    const { width: W } = Dimensions.get("window");
+    const S = (n) => Math.round(PixelRatio.roundToNearestPixel(n * (W / 375)));
 
     // Custom Alert State
     const [alertConfig, setAlertConfig] = useState({
@@ -261,30 +268,37 @@ export default function OfflineServiceForm({ navigation, route }) {
                                     <View key={doc._id} style={styles.docItem}>
                                         <Text style={styles.docLabel}>{doc.label}</Text>
                                         <TouchableOpacity
-                                            style={[styles.uploadBox, documents[doc.key] && styles.uploadBoxActive]}
+                                            style={[
+                                                styles.docBox,
+                                                documents[doc.key] && { borderStyle: "solid", borderColor: Colors.kyc_success, backgroundColor: Colors.kyc_success + "08" }
+                                            ]}
                                             onPress={() => handlePickDocument(doc.key, doc.label)}
-                                            activeOpacity={0.7}
+                                            activeOpacity={0.75}
                                         >
                                             {documents[doc.key] ? (
-                                                <View style={styles.previewWrap}>
+                                                <View style={{ width: '100%', height: '100%' }}>
+                                                    <Image source={{ uri: documents[doc.key].uri }} style={styles.docThumb} resizeMode="cover" />
+                                                    <LinearGradient colors={["transparent", "rgba(0,0,0,0.72)"]} style={styles.docOverlay} start={{ x: 0, y: 0.5 }} end={{ x: 0, y: 1 }}>
+                                                        <Icon name="check-circle" size={S(10)} color={Colors.white} />
+                                                        <Text style={styles.docDoneLabel}>UPLOADED</Text>
+                                                    </LinearGradient>
                                                     <TouchableOpacity
-                                                        activeOpacity={0.9}
-                                                        style={{ width: '100%', height: '100%' }}
-                                                        onPress={() => handlePickDocument(doc.key, doc.label)}
-                                                    >
-                                                        <Image source={{ uri: documents[doc.key].uri }} style={styles.previewImage} />
-                                                    </TouchableOpacity>
-                                                    <TouchableOpacity
-                                                        style={styles.removeBtn}
+                                                        style={styles.cornerDelete}
                                                         onPress={() => removeDocument(doc.key)}
                                                     >
-                                                        <Text style={styles.removeText}>✕</Text>
+                                                        <Icon name="close" size={S(11)} color={Colors.white} />
                                                     </TouchableOpacity>
                                                 </View>
                                             ) : (
-                                                <View style={styles.uploadPlaceholder}>
-                                                    <Text style={styles.uploadIcon}>📷</Text>
-                                                    <Text style={styles.uploadText}>Select File</Text>
+                                                <View style={styles.docEmptyContent}>
+                                                    <View style={[styles.docIconCircle, { backgroundColor: Colors.finance_accent + "12" }]}>
+                                                        <Icon name="file-document-outline" size={S(18)} color={Colors.finance_accent} />
+                                                    </View>
+                                                    <Text style={styles.docSlotLabel}>{doc.label}</Text>
+                                                    <View style={styles.docUploadTag}>
+                                                        <Icon name="plus" size={S(10)} color={Colors.finance_accent} />
+                                                        <Text style={styles.docUploadTagText}>Upload</Text>
+                                                    </View>
                                                 </View>
                                             )}
                                         </TouchableOpacity>
@@ -448,49 +462,68 @@ const styles = StyleSheet.create({
         marginBottom: 8,
         fontFamily: Fonts.Bold,
     },
-    uploadBox: {
-        aspectRatio: 1,
-        backgroundColor: "rgba(0,0,0,0.03)",
-        borderRadius: 15,
+    // ── Document Slot Styles (Sync with KYC) ──
+    docBox: {
+        height: 110,
+        borderRadius: 14,
+        borderWidth: 1.5,
+        borderStyle: "dashed",
+        borderColor: "rgba(0,0,0,0.12)",
+        backgroundColor: "#FAFAFA",
+    },
+    docThumb: { width: "100%", height: "100%", borderRadius: 12 },
+    docOverlay: {
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 8,
+        paddingVertical: 5,
+        gap: 4,
+        borderBottomLeftRadius: 12,
+        borderBottomRightRadius: 12,
+    },
+    docDoneLabel: { color: Colors.white, fontFamily: Fonts.Bold, fontSize: 8, letterSpacing: 0.4 },
+    docEmptyContent: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 10 },
+    docIconCircle: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", marginBottom: 6 },
+    docSlotLabel: { color: Colors.primary, fontFamily: Fonts.Bold, fontSize: 11, textAlign: 'center' },
+    docUploadTag: {
+        position: 'absolute',
+        top: 6,
+        right: 6,
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 6,
+        paddingVertical: 3,
+        borderRadius: 8,
         borderWidth: 1,
-        borderStyle: 'dashed',
-        borderColor: Colors.input_border,
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: Colors.finance_accent + "12",
+        borderColor: Colors.finance_accent + "40",
+        gap: 2,
     },
-    uploadBoxActive: {
-        borderStyle: 'solid',
-        borderColor: Colors.finance_accent,
-    },
-    uploadPlaceholder: { alignItems: 'center' },
-    uploadIcon: { fontSize: 24, marginBottom: 5 },
-    uploadText: {
-        fontSize: 10,
-        color: Colors.text_secondary,
-        fontFamily: Fonts.Bold
-    },
+    docUploadTagText: { color: Colors.finance_accent, fontFamily: Fonts.Bold, fontSize: 8 },
 
-    previewWrap: { width: '100%', height: '100%' },
-    previewImage: { width: '100%', height: '100%' },
-    removeBtn: {
+    cornerDelete: {
         position: 'absolute',
         top: -8,
         right: -8,
-        width: 24,
-        height: 24,
+        width: 22,
+        height: 22,
+        borderRadius: 11,
         backgroundColor: Colors.red,
-        borderRadius: 12,
         borderWidth: 1,
         borderColor: Colors.white,
-        justifyContent: 'center',
         alignItems: 'center',
+        justifyContent: 'center',
         elevation: 4,
         shadowColor: Colors.black,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
         shadowRadius: 3,
+        zIndex: 10,
     },
-    removeText: { color: Colors.white, fontSize: 12 },
 
     submitBtnFixed: {
         position: 'absolute',

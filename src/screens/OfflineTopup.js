@@ -1108,7 +1108,7 @@ const st = StyleSheet.create({
     borderBottomLeftRadius: S(12),
     borderBottomRightRadius: S(12),
   },
-  docDoneLabel: { color: Colors.white, fontFamily: Fonts.Bold, fontSize: S(9), letterSpacing: 0.4 },
+  docDoneLabel: { color: ACCENT, fontFamily: Fonts.Bold, fontSize: S(9), letterSpacing: 0.4 },
   docFileName: { flex: 1, color: "rgba(255,255,255,0.8)", fontFamily: Fonts.Regular, fontSize: S(8) },
   docEmptyContent: { flex: 1, flexDirection: "row", alignItems: "center", paddingHorizontal: S(14), gap: S(12) },
   docIconCircle: { width: S(42), height: S(42), borderRadius: S(12), alignItems: "center", justifyContent: "center" },
