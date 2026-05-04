@@ -205,14 +205,20 @@ const checkConnection = async (deviceKey) => {
     const xml = await getDeviceInfo(deviceKey);
     if (!xml) return { success: false, status: 'UNKNOWN', message: 'No info received' };
     
-    // Simple regex to find status="READY" or status="NOTREADY"
     const statusMatch = xml.match(/status="([^"]*)"/i);
-    const status = statusMatch ? statusMatch[1].toUpperCase() : 'UNKNOWN';
+    let status = statusMatch ? statusMatch[1].toUpperCase() : 'UNKNOWN';
+    
+    // Fallback: If status attribute not found, check for keywords in the whole XML string
+    if (status === 'UNKNOWN') {
+      if (xml.toUpperCase().includes('READY')) status = 'READY';
+      else if (xml.toUpperCase().includes('CONNECTED')) status = 'READY';
+      else if (xml.toUpperCase().includes('NOTREADY')) status = 'NOTREADY';
+    }
     
     return {
-      success: status === 'READY',
+      success: status === 'READY' || status === 'UNKNOWN',
       status: status,
-      message: status === 'READY' ? 'Device connected' : 'Device not connected or not ready',
+      message: status === 'READY' ? 'Device connected' : (status === 'UNKNOWN' ? 'Device status unknown, attempting capture...' : 'Device not connected or not ready'),
       xml: xml
     };
   } catch (err) {

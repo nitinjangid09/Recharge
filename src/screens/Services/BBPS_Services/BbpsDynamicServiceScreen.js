@@ -628,6 +628,26 @@ const BbpsDynamicServiceScreen = () => {
       showAlert("Invalid Amount", "Please enter a valid amount to pay.");
       return;
     }
+
+    // Check minimum and maximum amount (values from API are in paise)
+    const bData = fetchedBill?.data?.billerResponse || fetchedBill || {};
+    
+    // Check both fetched bill and biller details for limits
+    const minAmtPaise = Number(bData.minBillAmount || bData.minAmount || billerDetail?.minBillAmount || billerDetail?.minAmount || 0);
+    const maxAmtPaise = Number(bData.maxBillAmount || bData.maxAmount || billerDetail?.maxBillAmount || billerDetail?.maxAmount || 0);
+    
+    const minAmt = minAmtPaise / 100;
+    const maxAmt = maxAmtPaise / 100;
+
+    if (minAmt > 0 && payAmtNum < minAmt) {
+      showAlert("Invalid Amount", `amount must be equal or greater then minimum amount ₹${minAmt.toFixed(2)}`);
+      return;
+    }
+    if (maxAmt > 0 && payAmtNum > maxAmt) {
+      showAlert("Invalid Amount", `The maximum allowed amount for this biller is ₹${maxAmt.toFixed(2)}.`);
+      return;
+    }
+
     setDetailsLoading(true);
     try {
       const token = await AsyncStorage.getItem("header_token");

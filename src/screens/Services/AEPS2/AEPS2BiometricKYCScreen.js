@@ -100,7 +100,7 @@ const AEPS2BiometricKYCScreen = ({ navigation, route }) => {
                         ...s,
                         scanning: false,
                         connected: false,
-                        error: "Device not connected or not ready"
+                        error: conn.message || "Device not ready"
                     }));
                 }
             } else {
@@ -221,17 +221,19 @@ const AEPS2BiometricKYCScreen = ({ navigation, route }) => {
                     </View>
 
                     <Text style={[styles.label, { marginTop: rs(24) }]}>RD SERVICE DEVICE</Text>
-                    <View style={styles.deviceGrid}>
-                        {['MANTRA', 'MORPHO', 'STARTEK'].map((d) => (
-                            <TouchableOpacity
-                                key={d}
-                                onPress={() => { setDevice(d); handleScanDevice(d); }}
-                                style={[styles.chip, device === d && styles.chipActive]}
-                            >
-                                <Text style={[styles.chipText, device === d && styles.chipTextActive]}>{d}</Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: rs(10) }}>
+                        <View style={styles.deviceGrid}>
+                            {RD_BRIDGE.DEVICE_LIST.map((d) => (
+                                <TouchableOpacity
+                                    key={d.value}
+                                    onPress={() => { setDevice(d.value); handleScanDevice(d.value); }}
+                                    style={[styles.chip, device === d.value && styles.chipActive]}
+                                >
+                                    <Text style={[styles.chipText, device === d.value && styles.chipTextActive]}>{d.label}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </ScrollView>
 
                     <View style={[styles.statusStrip, rdState.connected ? styles.stripSuccess : styles.stripInfo]}>
                         <Icon name={rdState.connected ? "check-decagram" : "radar"} size={rs(16)} color={rdState.connected ? Colors.green : ACCENT} />
