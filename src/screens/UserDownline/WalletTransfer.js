@@ -41,15 +41,17 @@ const WalletTransfer = ({ navigation }) => {
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertTitle, setAlertTitle] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
+  const [alertType, setAlertType] = useState('info');
   const [alertAction, setAlertAction] = useState(null);
 
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
 
   // ── alert helper ──────────────────────────────────────────────────────────
-  const showAlert = (title, message, action = null) => {
+  const showAlert = (title, message, type = 'info', action = null) => {
     setAlertTitle(title);
     setAlertMessage(message);
+    setAlertType(type);
     setAlertAction(() => action);
     setAlertVisible(true);
   };
@@ -100,35 +102,35 @@ const WalletTransfer = ({ navigation }) => {
   // ── transfer ──────────────────────────────────────────────────────────────
   const handleTransfer = async () => {
     if (!amount) {
-      showAlert('Amount Required', 'Please enter the amount to transfer.');
+      showAlert('Amount Required', 'Please enter the amount to transfer.', 'error');
       return;
     }
     if (isNaN(amount) || Number(amount) <= 0) {
-      showAlert('Invalid Amount', 'Please enter a valid amount greater than 0.');
+      showAlert('Invalid Amount', 'Please enter a valid amount greater than 0.', 'error');
       return;
     }
     if (Number(amount) > Number(aepsBalance)) {
-      showAlert('Insufficient Balance', 'You do not have enough balance in your AEPS wallet to complete this transfer.');
+      showAlert('Insufficient Balance', 'You do not have enough balance in your AEPS wallet to complete this transfer.', 'error');
       return;
     }
     try {
       setIsTransferring(true);
       const token = await AsyncStorage.getItem('header_token');
       if (!token) {
-        showAlert('Error', 'Authentication token missing.');
+        showAlert('Error', 'Authentication token missing.', 'error');
         return;
       }
       const response = await transferAepsToMainWallet({ amount, headerToken: token });
       if (response?.success) {
-        showAlert('Success', response.message || 'AEPS to main wallet transfer successful.');
+        showAlert('Success', response.message || 'AEPS to main wallet transfer successful.', 'success');
         setAmount('');
         await fetchBalance();
         await fetchWalletHistory();
       } else {
-        showAlert('Transfer Failed', response?.message || 'Could not complete the transfer.');
+        showAlert('Transfer Failed', response?.message || 'Could not complete the transfer.', 'error');
       }
     } catch {
-      showAlert('Error', 'A network or server error occurred.');
+      showAlert('Error', 'A network or server error occurred.', 'error');
     } finally {
       setIsTransferring(false);
     }
@@ -389,6 +391,7 @@ const WalletTransfer = ({ navigation }) => {
 
       <CustomAlert
         visible={alertVisible}
+        type={alertType}
         title={alertTitle}
         message={alertMessage}
         onClose={() => {

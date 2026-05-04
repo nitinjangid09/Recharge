@@ -19,11 +19,11 @@ import Fonts from "../../../constants/Fonts";
 import { fadeIn, slideUp, buttonPress } from "../../../utils/ScreenAnimations";
 import CustomAlert from "../../../componets/Alerts/CustomAlert";
 import HeaderBar from "../../../componets/HeaderBar/HeaderBar";
-import { 
-  fetchDmtCustomer, 
-  registerDmtCustomer, 
-  dmtCustomerEkyc, 
-  generateDmtRegOtp 
+import {
+  fetchDmtCustomer,
+  registerDmtCustomer,
+  dmtCustomerEkyc,
+  generateDmtRegOtp
 } from "../../../api/AuthApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ActivityIndicator } from "react-native";
@@ -55,7 +55,7 @@ const DmtLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [otpError, setOtpError] = useState("");
   const [error, setError] = useState("");
-  
+
   // Static context as requested
   const appCtx = {
     latitude: "26.8881633",
@@ -114,7 +114,7 @@ const DmtLogin = () => {
       return;
     }
     setError("");
-    
+
     setIsLoading(true);
     try {
       const token = await AsyncStorage.getItem("header_token");
@@ -409,6 +409,7 @@ const DmtLogin = () => {
                   keyboardType="number-pad"
                   maxLength={6}
                   value={otp}
+                  selection={{ start: otp.length, end: otp.length }}
                   onChangeText={(t) => {
                     setOtp(t.replace(/[^0-9]/g, ""));
                     if (otpError) setOtpError("");
@@ -686,7 +687,7 @@ const styles = StyleSheet.create({
     paddingVertical: vs(14),
     fontSize: 24,
     textAlign: "center",
-    letterSpacing: 10,
+    letterSpacing: scale(8),
     color: Colors.primary,
   },
   otpBtn: {

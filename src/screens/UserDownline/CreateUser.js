@@ -43,6 +43,7 @@ export default function CreateUser({ navigation }) {
     const [alertVisible, setAlertVisible] = useState(false);
     const [alertTitle, setAlertTitle] = useState("");
     const [alertMessage, setAlertMessage] = useState("");
+    const [alertType, setAlertType] = useState("info");
 
     const pageAnim = useRef(new Animated.Value(0)).current;
     const shakeAnim = useRef(new Animated.Value(0)).current;
@@ -122,9 +123,10 @@ export default function CreateUser({ navigation }) {
         ]).start();
     };
 
-    const showAlert = (title, message) => {
+    const showAlert = (title, message, type = "info") => {
         setAlertTitle(title);
         setAlertMessage(message);
+        setAlertType(type);
         setAlertVisible(true);
     };
 
@@ -169,7 +171,7 @@ export default function CreateUser({ navigation }) {
             setLoading(false);
 
             if (result?.success) {
-                showAlert("Success", result?.message || "User created successfully");
+                showAlert("Success", result?.message || "User created successfully", "success");
                 // Clear fields on success
                 setFirstName("");
                 setLastName("");
@@ -183,12 +185,12 @@ export default function CreateUser({ navigation }) {
                 }, 1500);
             } else {
                 triggerShake();
-                showAlert("Failed", result?.message || "User already exists");
+                showAlert("Failed", result?.message || "User already exists", "error");
             }
         } catch (error) {
             setLoading(false);
             triggerShake();
-            showAlert("Error", "An unexpected error occurred");
+            showAlert("Error", "An unexpected error occurred", "error");
         }
     };
 
@@ -352,6 +354,7 @@ export default function CreateUser({ navigation }) {
 
                 <CustomAlert
                     visible={alertVisible}
+                    type={alertType}
                     title={alertTitle}
                     message={alertMessage}
                     onClose={() => setAlertVisible(false)}

@@ -15,7 +15,7 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Colors from "../../../constants/Colors";
 import Fonts from "../../../constants/Fonts";
 import * as NavigationService from "../../../utils/NavigationService";
-import { getWalletBalance, fetchUserProfile, getWalletReport } from "../../../api/AuthApi";
+import { getWalletBalance, fetchUserProfile, getWalletReport, getAepsStats, getAeps1History } from "../../../api/AuthApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import FullScreenLoader from "../../../componets/Loader/FullScreenLoader";
 
@@ -29,7 +29,7 @@ const S = SW / 375;
 
 const AEPS_Services = () => {
     const [aepsBalance, setAepsBalance] = React.useState("0.00");
-    const [stats, setStats] = React.useState({ volume: "0.00", transactions: "0" });
+    const [reportStats, setReportStats] = React.useState(null);
     const [user, setUser] = React.useState({ name: "Loading...", mid: "---" });
     const [recentTxns, setRecentTxns] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
@@ -48,23 +48,24 @@ const AEPS_Services = () => {
         else setRefreshing(true);
         try {
             const headerToken = await AsyncStorage.getItem("header_token");
+            if (!headerToken) {
+                console.log("[AEPS] No headerToken found");
+                return;
+            }
 
-            const [balRes, profRes, reportRes] = await Promise.all([
+            const [balRes, profRes, statsRes, histRes] = await Promise.all([
                 getWalletBalance({ headerToken }),
                 fetchUserProfile({ headerToken }),
-                getWalletReport({
-                    from: new Date().toISOString().split('T')[0],
-                    to: new Date().toISOString().split('T')[0],
-                    headerToken
-                })
+                getAepsStats({ headerToken }),
+                getAeps1History({ headerToken })
             ]);
 
+            console.log("[AEPS] Bal:", balRes?.success ? "OK" : "Err");
+            console.log("[AEPS] Stats:", statsRes?.success ? "OK" : "Err");
+            console.log("[AEPS] Hist:", histRes?.success ? "OK" : "Err");
+
             if (balRes?.success) {
-                setAepsBalance(String(balRes.data?.aepsWallet || "0.00"));
-                setStats({
-                    volume: String(balRes.data?.todayAepsVolume || "0.00"),
-                    transactions: String(balRes.data?.todayAepsCount || "0")
-                });
+                setAepsBalance(String(balRes.data?.aepsWallet || balRes.data?.balance || "0.00"));
             }
 
             if (profRes?.success) {
@@ -75,15 +76,19 @@ const AEPS_Services = () => {
                 });
             }
 
-            if (reportRes?.success && reportRes.data) {
-                setRecentTxns(reportRes.data.slice(0, 3).map(t => ({
+            if (histRes?.success && Array.isArray(histRes.data)) {
+                setRecentTxns(histRes.data.slice(0, 8).map(t => ({
                     id: t._id,
-                    type: t.remark || "AEPS Transaction",
+                    type: t.serviceType || "AEPS Transaction",
                     date: new Date(t.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                    details: t.transactionId?.slice(-8),
-                    amount: `${t.type === 'credit' ? '+' : '-'}₹${t.amount}`,
-                    status: t.type === 'credit' ? 'success' : 'neutral'
+                    details: t.referenceId?.slice(-10) || "---",
+                    amount: t.amount > 0 ? `₹${t.amount}` : (t.accountBalance > 0 ? `Bal: ₹${t.accountBalance}` : null),
+                    status: (t.status || 'FAILED').toLowerCase()
                 })));
+            }
+
+            if (statsRes?.success && statsRes.data) {
+                setReportStats(statsRes.data);
             }
         } catch (error) {
             console.log("Dashboard fetch error:", error);
@@ -150,19 +155,27 @@ const AEPS_Services = () => {
                         </View>
                     </View>
 
-                    <View style={styles.statsRow}>
-                        <View style={{ flex: 1 }}>
-                            <Text style={styles.statAmount}>
-                                ₹{parseFloat(stats.volume).toLocaleString('en-IN')}
-                            </Text>
-                            <Text style={styles.statLabel}>Today's Volume</Text>
+                    {/* Detailed Report Stats inside the same card */}
+                    {reportStats && (
+                        <View style={styles.innerStatsGrid}>
+                            <View style={styles.innerStatBox}>
+                                <Text style={styles.innerStatVal}>{reportStats.total?.count || 0}</Text>
+                                <Text style={styles.innerStatLbl}>TOTAL</Text>
+                            </View>
+                            <View style={styles.innerStatBox}>
+                                <Text style={[styles.innerStatVal, { color: Colors.green }]}>{reportStats.success?.count || 0}</Text>
+                                <Text style={styles.innerStatLbl}>SUCCESS</Text>
+                            </View>
+                            <View style={styles.innerStatBox}>
+                                <Text style={[styles.innerStatVal, { color: Colors.gold }]}>{reportStats.pending?.count || 0}</Text>
+                                <Text style={styles.innerStatLbl}>PENDING</Text>
+                            </View>
+                            <View style={styles.innerStatBox}>
+                                <Text style={[styles.innerStatVal, { color: Colors.red }]}>{reportStats.failed?.count || 0}</Text>
+                                <Text style={styles.innerStatLbl}>FAILED</Text>
+                            </View>
                         </View>
-                        <View style={styles.divider} />
-                        <View style={{ flex: 1, paddingLeft: 16 }}>
-                            <Text style={styles.statAmount}>{stats.transactions}</Text>
-                            <Text style={styles.statLabel}>Transactions</Text>
-                        </View>
-                    </View>
+                    )}
                 </View>
 
                 {/* ── Agent Card ── */}
@@ -206,19 +219,23 @@ const AEPS_Services = () => {
                 <Text style={styles.sectionLabel}>RECENT ACTIVITY</Text>
                 {recentTxns.length > 0 ? recentTxns.map(txn => (
                     <View key={txn.id} style={styles.txnItem}>
-                        <View style={[styles.txnIconBox, { backgroundColor: txn.status === 'success' ? 'rgb(235, 253, 245)' : 'rgb(255, 249, 238)' }]}>
+                        <View style={[styles.txnIconBox, {
+                            backgroundColor: txn.status === 'success' ? 'rgb(235, 253, 245)' : (txn.status === 'pending' ? 'rgb(255, 249, 238)' : 'rgb(254, 242, 242)')
+                        }]}>
                             <Icon
-                                name={txn.status === 'success' ? "arrow-right" : "history"}
+                                name={txn.status === 'success' ? "check-circle-outline" : (txn.status === 'pending' ? "clock-outline" : "close-circle-outline")}
                                 size={16 * S}
-                                color={txn.status === 'success' ? 'rgb(16, 185, 129)' : 'rgb(212, 168, 67)'}
+                                color={txn.status === 'success' ? 'rgb(16, 185, 129)' : (txn.status === 'pending' ? 'rgb(212, 168, 67)' : 'rgb(239, 68, 68)')}
                             />
                         </View>
                         <View style={{ flex: 1 }}>
                             <Text style={styles.txnTitle}>{txn.type}</Text>
                             <Text style={styles.txnSub}>{txn.date} · {txn.details}</Text>
                         </View>
-                        <Text style={[styles.txnAmount, { color: txn.status === 'success' ? 'rgb(16, 185, 129)' : 'rgb(26, 26, 26)' }]}>
-                            {txn.amount}
+                        <Text style={[styles.txnAmount, {
+                            color: txn.status === 'success' ? 'rgb(16, 185, 129)' : (txn.status === 'pending' ? 'rgb(212, 168, 67)' : 'rgb(239, 68, 68)')
+                        }]}>
+                            {txn.amount || (txn.status === 'success' ? 'Completed' : 'Failed')}
                         </Text>
                     </View>
                 )) : (
@@ -289,17 +306,6 @@ const styles = StyleSheet.create({
     currency: { color: Colors.white, fontSize: 16 * S, fontFamily: Fonts.Bold, marginTop: 3, marginRight: 3 },
     balanceText: { color: Colors.white, fontSize: 28 * S, fontFamily: Fonts.Bold },
 
-    statsRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingTop: 12,
-        borderTopWidth: 1,
-        borderTopColor: "rgba(255,255,255,0.1)",
-    },
-    statAmount: { color: Colors.white, fontSize: 20 * S, fontFamily: Fonts.Bold },
-    statLabel: { color: "rgba(255,255,255,0.4)", fontSize: 9, fontFamily: Fonts.Medium, marginTop: 2 },
-    divider: { width: 1, height: 26, backgroundColor: "rgba(255,255,255,0.1)" },
-
     // ── Agent Card ──────────────────────────────────────────
     agentCard: {
         backgroundColor: Colors.white,
@@ -310,6 +316,30 @@ const styles = StyleSheet.create({
         marginBottom: 20 * S,
         borderWidth: 1,
         borderColor: "rgba(201, 168, 76, 0.40)",
+    },
+    innerStatsGrid: {
+        flexDirection: 'row',
+        marginTop: 14 * S,
+        paddingTop: 14 * S,
+        borderTopWidth: 1,
+        borderTopColor: "rgba(255,255,255,0.1)",
+        justifyContent: 'space-between'
+    },
+    innerStatBox: {
+        alignItems: 'center',
+        flex: 1,
+    },
+    innerStatVal: {
+        fontSize: 14 * S,
+        fontFamily: Fonts.Bold,
+        color: Colors.white,
+    },
+    innerStatLbl: {
+        fontSize: 7 * S,
+        fontFamily: Fonts.Bold,
+        color: "rgba(255,255,255,0.4)",
+        marginTop: 2,
+        letterSpacing: 0.5
     },
     agentIconBox: {
         width: 38 * S, height: 38 * S,

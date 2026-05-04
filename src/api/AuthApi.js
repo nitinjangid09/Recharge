@@ -442,6 +442,54 @@ export const getWalletStats = async ({ headerToken }) => {
   }
 };
 
+export const getAepsStats = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/insAepsReport/aeps-stats`, {
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get AEPS Stats API Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch AEPS stats" };
+  }
+};
+
+export const getAeps2Stats = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/aepsReport/aeps-stats`, {
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get AEPS2 Stats API Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch AEPS2 stats" };
+  }
+};
+
+export const getAeps2History = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/aepsReport/my-aeps-history`, {
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get AEPS2 History API Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch AEPS2 history" };
+  }
+};
+
+export const getAeps1History = async ({ headerToken }) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/insAepsReport/my-aeps-history`, {
+      headers: { Authorization: `Bearer ${headerToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("Get AEPS1 History API Error:", error?.response?.data || error);
+    return error?.response?.data || { success: false, message: "Unable to fetch AEPS1 history" };
+  }
+};
+
 export const getProductList = async ({ headerToken, page = 1, limit = 10 }) => {
   try {
     const response = await axios.get(`${BASE_URL}/user/shopping/product-list?page=${page}&limit=${limit}`, {

@@ -1176,7 +1176,8 @@ const st = StyleSheet.create({
     fontSize: S(12),
     fontFamily: Fonts.Bold,
     color: FG,
-    marginBottom: S(7),
+    marginTop: S(12),
+    marginBottom: S(4),
     letterSpacing: 0.2,
     includeFontPadding: false,
     lineHeight: S(16),
@@ -1187,7 +1188,7 @@ const st = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: S(8),
+    marginTop: S(8),
   },
   modeHintTxt: {
     fontSize: S(10),
