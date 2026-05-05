@@ -24,6 +24,8 @@ import { transferDmtFund, generateDmtTotp } from "../../../api/AuthApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AlertService } from "../../../componets/Alerts/CustomAlert";
 import { ActivityIndicator } from "react-native";
+import HeaderBar from "../../../componets/HeaderBar/HeaderBar";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 
 // ─── Responsive Scaling ───────────────────────────────────────────────────────

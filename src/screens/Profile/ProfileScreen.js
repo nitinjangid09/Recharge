@@ -214,6 +214,9 @@ export default function ProfileScreen({ navigation }) {
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertTitle, setAlertTitle] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState("info");
   const [alertAction, setAlertAction] = useState(null);
 

@@ -307,7 +307,7 @@ export default function Login({ navigation }) {
   const getBorderColor = (anim) =>
     anim.interpolate({
       inputRange: [0, 1],
-      outputRange: [Colors.input_border, Colors.primary],
+      outputRange: ["rgba(245,158,11,0.30)", Colors.primary],
     });
 
   const getInputScale = (anim) =>
@@ -316,7 +316,7 @@ export default function Login({ navigation }) {
   const getInputBg = (anim) =>
     anim.interpolate({
       inputRange: [0, 1],
-      outputRange: [Colors.input_bg, Colors.white],
+      outputRange: [Colors.gold, Colors.white],
     });
 
   /* ---------- RENDER ---------- */
@@ -588,6 +588,7 @@ const styles = StyleSheet.create({
   card: {
     marginHorizontal: 16 * scale, backgroundColor: Colors.beige,
     borderRadius: 24 * scale, padding: 16 * scale,
+    borderWidth: 1, borderColor: "rgba(245,158,11,0.30)",
   },
   welcome: {
     fontSize: 22 * scale, fontFamily: Fonts.Bold,

@@ -373,7 +373,7 @@ export default function OTP({ navigation, route }) {
             {otp.map((v, i) => {
               const borderColor = inputAnims[i].interpolate({
                 inputRange: [0, 1],
-                outputRange: [Colors.input_border, Colors.primary],
+                outputRange: ["rgba(245,158,11,0.30)", Colors.primary],
               });
               const scale = inputAnims[i].interpolate({
                 inputRange: [0, 1],
@@ -522,7 +522,7 @@ const styles = StyleSheet.create({
     width: OTP_BOX_SIZE,
     height: OTP_BOX_SIZE * 1.2,
     borderRadius: 12,
-    backgroundColor: Colors.beige,
+    backgroundColor: Colors.gold,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 0.8,
@@ -585,7 +585,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: Colors.kyc_border,
+    borderColor: "rgba(245,158,11,0.30)",
   },
   securityInfo: {
     flexDirection: "row",
@@ -594,14 +594,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: Colors.kyc_border,
+    borderColor: "rgba(245,158,11,0.30)",
     alignItems: "center",
   },
   securityIconBox: {
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: Colors.beige,
+    backgroundColor: Colors.gold,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
