@@ -280,12 +280,12 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.gold,
     paddingHorizontal: 16 * scale,
     borderRadius: 30 * scale,
     height: 50 * scale,
     borderWidth: 1,
-    borderColor: Colors.input_border,
+    borderColor: "rgba(245,158,11,0.30)",
   },
   searchInput: {
     flex: 1,
@@ -301,12 +301,12 @@ const styles = StyleSheet.create({
     paddingBottom: 100 * scale,
   },
   userCard: {
-    backgroundColor: Colors.cardbg,
+    backgroundColor: Colors.beige,
     borderRadius: 20 * scale,
     padding: 16 * scale,
     marginBottom: 16 * scale,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.65)",
+    borderColor: "rgba(245,158,11,0.30)",
   },
   cardHeader: {
     flexDirection: 'row',

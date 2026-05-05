@@ -50,9 +50,9 @@ export default function CreateUser({ navigation }) {
     const btnScale = useRef(new Animated.Value(1)).current;
 
     // Simplified Focus Animations
-    const getBorderColor = (isFocused) => isFocused ? Colors.primary : Colors.input_border;
+    const getBorderColor = (isFocused) => isFocused ? Colors.primary : "rgba(245,158,11,0.30)";
     const getScale = (isFocused) => isFocused ? 1.02 : 1;
-    const getBgColor = (isFocused) => isFocused ? Colors.white : Colors.input_bg;
+    const getBgColor = (isFocused) => isFocused ? Colors.white : Colors.gold;
 
     useEffect(() => {
         Animated.parallel([
@@ -288,8 +288,8 @@ export default function CreateUser({ navigation }) {
                                             height: 50 * scale,
                                             justifyContent: 'space-between',
                                             paddingHorizontal: 16 * scale,
-                                            backgroundColor: roleOpen ? Colors.white : Colors.input_bg,
-                                            borderColor: errors.role ? Colors.red : roleOpen ? Colors.primary : Colors.input_border
+                                            backgroundColor: roleOpen ? Colors.white : Colors.gold,
+                                            borderColor: errors.role ? Colors.red : roleOpen ? Colors.primary : "rgba(245,158,11,0.30)"
                                         }
                                     ]}
                                     onPress={() => { setRoleOpen(!roleOpen); if (errors.role) setErrors(prev => ({ ...prev, role: null })); }}
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
     appName: { fontSize: 24 * scale, fontFamily: Fonts.Bold, color: Colors.primary, letterSpacing: 0.5 },
     card: {
         marginHorizontal: 16 * scale, backgroundColor: Colors.beige, borderRadius: 24 * scale,
-        padding: 16 * scale,
+        padding: 16 * scale, borderWidth: 1, borderColor: "rgba(245,158,11,0.30)",
     },
     welcome: { fontSize: 22 * scale, fontFamily: Fonts.Bold, textAlign: "center", color: Colors.primary },
     subTitle: { fontSize: 13 * scale, fontFamily: Fonts.Medium, color: Colors.text_secondary, textAlign: "center", marginTop: 6 * scale, marginBottom: 20 * scale },

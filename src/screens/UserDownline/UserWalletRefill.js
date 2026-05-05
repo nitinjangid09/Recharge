@@ -24,7 +24,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '../../constants/Colors';
 import Fonts from '../../constants/Fonts';
 import HeaderBar from '../../componets/HeaderBar/HeaderBar';
-import { getDownlineUsers, getUserWalletRefillProfile, refillUserWallet, getUserWalletRefillHistory, fetchUserWallet, getAuthHeaders } from '../../api/AuthApi';
+import { getDownlineUsers, getUserWalletRefillProfile, refillUserWallet, getUserWalletRefillHistory } from '../../api/AuthApi';
 import CustomAlert from '../../componets/Alerts/CustomAlert';
 import FullScreenLoader from '../../componets/Loader/FullScreenLoader';
 import ReceiptModal from '../../componets/ReceiptModal/ReceiptModal';
@@ -50,7 +50,6 @@ function flattenUsers(node) {
     return result;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 function formatDate(isoString) {
     if (!isoString) return '';
     const date = new Date(isoString);
@@ -112,7 +111,6 @@ function WalletScreen({ navigation }) {
     const [loadingHistory, setLoadingHistory] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [errors, setErrors] = useState({});
-    const [senderBalance, setSenderBalance] = useState(0);
     const [searchText, setSearchText] = useState('');
     const [historySearch, setHistorySearch] = useState('');
 
@@ -138,7 +136,6 @@ function WalletScreen({ navigation }) {
                 const children = res.data.children || [];
                 const flat = children.flatMap(child => flattenUsers(child));
                 setUsers(flat);
-                // setSelectedUser(null); // Keep null by default
             } else {
                 showAlert('error', 'Error', res?.message || 'Unable to fetch users.');
             }
@@ -168,31 +165,18 @@ function WalletScreen({ navigation }) {
         }
     };
 
-    const fetchSenderBalance = async () => {
-        try {
-            const auth = await getAuthHeaders();
-            if (!auth) return;
-            const res = await fetchUserWallet(auth);
-            if (res?.success && res?.data) {
-                setSenderBalance(Number(res.data.mainWallet || 0));
-            }
-        } catch (err) {
-            console.log('[UserWalletRefill] fetchSenderBalance error:', err);
-        }
-    };
+
 
     const onRefresh = useCallback(() => {
         setRefreshing(true);
         fetchUsers();
         fetchHistory();
         fetchProfile();
-        fetchSenderBalance();
     }, [selectedUser]);
 
     useEffect(() => {
         fetchUsers();
         fetchHistory();
-        fetchSenderBalance();
     }, []);
 
     // ── Fetch user profile when selectedUser changes or after refill ──────────
@@ -285,7 +269,6 @@ function WalletScreen({ navigation }) {
                 setSelectedQuick(null);
                 // Refresh balances immediately
                 fetchProfile();
-                fetchSenderBalance();
             } else {
                 showAlert('error', 'Refill Failed', res?.message || 'Wallet refill failed.');
             }
@@ -602,13 +585,13 @@ function WalletScreen({ navigation }) {
 // ─── MAIN SCREEN ──────────────────────────────────────────────────────────────
 export default function UserWalletRefillScreen({ navigation }) {
     return (
-        <LinearGradient colors={Colors.background_gradient} style={{ flex: 1 }}>
+        <View style={{ flex: 1, backgroundColor: Colors.beige }}>
             <SafeAreaView style={styles.safeArea}>
                 <View style={styles.screenContainer}>
                     <WalletScreen navigation={navigation} />
                 </View>
             </SafeAreaView>
-        </LinearGradient>
+        </View>
     );
 }
 
@@ -708,22 +691,22 @@ const styles = StyleSheet.create({
 
     // Card
     refillCard: {
-        backgroundColor: Colors.beige,
+        backgroundColor: Colors.cardbg,
         borderRadius: 20,
         padding: 24,
         marginHorizontal: 20,
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: Colors.input_border,
+        borderColor: "rgba(245,158,11,0.30)",
     },
     profileCard: {
-        backgroundColor: Colors.beige,
+        backgroundColor: Colors.cardbg,
         borderRadius: 20,
         padding: 24,
         marginHorizontal: 20,
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: Colors.input_border,
+        borderColor: "rgba(245,158,11,0.30)",
     },
 
     // Select / Input
@@ -745,7 +728,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         borderWidth: 1,
-        borderColor: Colors.input_border,
+        borderColor: "rgba(245,158,11,0.30)",
         marginBottom: 4,
     },
     selectText: {
@@ -770,10 +753,10 @@ const styles = StyleSheet.create({
         top: 60, // height of selectField (56) + small gap
         left: 0,
         right: 0,
-        backgroundColor: Colors.cardbg,
+        backgroundColor: Colors.white,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: Colors.input_border,
+        borderColor: "rgba(245,158,11,0.30)",
         overflow: 'hidden',
         zIndex: 999,
         maxHeight: 280,
@@ -781,18 +764,18 @@ const styles = StyleSheet.create({
     searchWrap: {
         padding: 12,
         borderBottomWidth: 1,
-        borderBottomColor: Colors.input_border,
-        backgroundColor: Colors.beige,
+        borderBottomColor: "rgba(245,158,11,0.15)",
+        backgroundColor: Colors.white,
     },
     searchBoxInner: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: Colors.beige,
+        backgroundColor: Colors.white,
         borderRadius: 10,
         paddingHorizontal: 12,
         height: 42,
         borderWidth: 1,
-        borderColor: Colors.input_border,
+        borderColor: "rgba(245,158,11,0.20)",
     },
     searchInput: {
         flex: 1,
@@ -805,7 +788,7 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         paddingHorizontal: 16,
         borderBottomWidth: 1,
-        borderBottomColor: Colors.input_border,
+        borderBottomColor: "rgba(245,158,11,0.10)",
     },
     dropdownItemActive: {
         backgroundColor: "rgba(0,0,0,0.05)",
@@ -839,7 +822,7 @@ const styles = StyleSheet.create({
         fontFamily: Fonts.Medium,
         color: Colors.black,
         borderWidth: 1,
-        borderColor: Colors.input_border,
+        borderColor: "rgba(245,158,11,0.30)",
     },
     historySearchContainer: {
         marginHorizontal: 20,
@@ -873,12 +856,12 @@ const styles = StyleSheet.create({
     quickBtn: {
         flex: 1,
         height: 44,
-        backgroundColor: Colors.cardbg,
+        backgroundColor: Colors.white,
         borderRadius: 14,
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
-        borderColor: Colors.input_border,
+        borderColor: "rgba(245,158,11,0.30)",
     },
     quickBtnActive: {
         backgroundColor: Colors.primary,
@@ -1009,13 +992,13 @@ const styles = StyleSheet.create({
         marginHorizontal: 20,
         marginBottom: 12,
         borderWidth: 1,
-        borderColor: Colors.input_border,
+        borderColor: "rgba(245,158,11,0.30)",
     },
     txnIcon: {
         width: 48,
         height: 48,
         borderRadius: 14,
-        backgroundColor: Colors.cardbg,
+        backgroundColor: Colors.white,
         alignItems: 'center',
         justifyContent: 'center',
 
