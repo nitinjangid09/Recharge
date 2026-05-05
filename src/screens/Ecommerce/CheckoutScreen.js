@@ -271,12 +271,14 @@ export default function CheckoutScreen({ navigation, route }) {
               <Icon name="basket-outline" size={20} color={Colors.finance_accent} />
               <Text style={s.sectionTitle}>Order Summary</Text>
             </View>
-            <View style={s.productRow}>
-              <View style={s.productInfo}>
-                <Text style={s.productName}>{product.name}</Text>
-                <Text style={s.productQty}>Quantity: {product.quantity}</Text>
+            <View style={s.sectionBody}>
+              <View style={s.productRow}>
+                <View style={s.productInfo}>
+                  <Text style={s.productName}>{product.name}</Text>
+                  <Text style={s.productQty}>Quantity: {product.quantity}</Text>
+                </View>
+                <Text style={s.productPrice}>₹{product.price * product.quantity}</Text>
               </View>
-              <Text style={s.productPrice}>₹{product.price * product.quantity}</Text>
             </View>
           </View>
 
@@ -287,16 +289,18 @@ export default function CheckoutScreen({ navigation, route }) {
               <Text style={s.sectionTitle}>Shipping Details</Text>
             </View>
 
-            {renderInput("Full Name", "name", "Enter your name", "default", handleNameChange)}
-            <View style={s.row}>
-              <View style={{ flex: 1 }}>{renderInput("Pincode", "pincode", "302020", "number-pad", handlePincodeChange)}</View>
-              <View style={{ flex: 1 }}>{renderInput("Country", "country", "India", "default", handleCountryChange)}</View>
+            <View style={s.sectionBody}>
+              {renderInput("Full Name", "name", "Enter your name", "default", handleNameChange)}
+              <View style={s.row}>
+                <View style={{ flex: 1 }}>{renderInput("Pincode", "pincode", "302020", "number-pad", handlePincodeChange)}</View>
+                <View style={{ flex: 1 }}>{renderInput("Country", "country", "India", "default", handleCountryChange)}</View>
+              </View>
+              <View style={s.row}>
+                <View style={{ flex: 1 }}>{renderInput("City", "city", "Jaipur", "default", handleCityChange)}</View>
+                <View style={{ flex: 1 }}>{renderInput("State", "state", "Rajasthan", "default", handleStateChange)}</View>
+              </View>
+              {renderInput("Street Address", "address", "House No, Street, Area", "default", handleAddressChange)}
             </View>
-            <View style={s.row}>
-              <View style={{ flex: 1 }}>{renderInput("City", "city", "Jaipur", "default", handleCityChange)}</View>
-              <View style={{ flex: 1 }}>{renderInput("State", "state", "Rajasthan", "default", handleStateChange)}</View>
-            </View>
-            {renderInput("Street Address", "address", "House No, Street, Area", "default", handleAddressChange)}
           </View>
 
           {/* Price Breakdown */}
@@ -306,22 +310,24 @@ export default function CheckoutScreen({ navigation, route }) {
               <Text style={s.sectionTitle}>Bill Details</Text>
             </View>
 
-            <View style={s.billRow}>
-              <Text style={s.billLabel}>Items Subtotal</Text>
-              <Text style={s.billVal}>₹{subTotal}</Text>
-            </View>
-            <View style={s.billRow}>
-              <Text style={s.billLabel}>Shipping Fee</Text>
-              <Text style={s.billVal}>₹{shippingCharge}</Text>
-            </View>
-            <View style={s.billRow}>
-              <Text style={s.billLabel}>GST ({gstRate}%)</Text>
-              <Text style={s.billVal}>₹{gstAmount.toFixed(2)}</Text>
-            </View>
+            <View style={s.sectionBody}>
+              <View style={s.billRow}>
+                <Text style={s.billLabel}>Items Subtotal</Text>
+                <Text style={s.billVal}>₹{subTotal}</Text>
+              </View>
+              <View style={s.billRow}>
+                <Text style={s.billLabel}>Shipping Fee</Text>
+                <Text style={s.billVal}>₹{shippingCharge}</Text>
+              </View>
+              <View style={s.billRow}>
+                <Text style={s.billLabel}>GST ({gstRate}%)</Text>
+                <Text style={s.billVal}>₹{gstAmount.toFixed(2)}</Text>
+              </View>
 
-            <View style={s.totalRow}>
-              <Text style={s.totalLabel}>Grand Total</Text>
-              <Text style={s.totalVal}>₹{grandTotal.toFixed(2)}</Text>
+              <View style={s.totalRow}>
+                <Text style={s.totalLabel}>Grand Total</Text>
+                <Text style={s.totalVal}>₹{grandTotal.toFixed(2)}</Text>
+              </View>
             </View>
           </View>
 
@@ -362,13 +368,21 @@ const s = StyleSheet.create({
   section: {
     backgroundColor: Colors.cardbg,
     borderRadius: 20,
-    padding: 16,
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: Colors.kyc_accent + "40",
+    overflow: 'hidden',
   },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16, borderBottomWidth: 1, borderBottomColor: Colors.kyc_accent + "30", paddingBottom: 10 },
-  sectionTitle: { fontFamily: Fonts.Bold, fontSize: 14, color: Colors.kyc_text },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgb(46, 46, 46)',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  sectionBody: {
+    padding: 16,
+  },
+  sectionTitle: { fontFamily: Fonts.Bold, fontSize: 11, color: Colors.finance_accent, letterSpacing: 0.5, textTransform: 'uppercase' },
 
   productRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   productInfo: { flex: 1 },

@@ -369,16 +369,16 @@ const styles = StyleSheet.create({
     container: { flex: 1 },
     pageWrapper: { flex: 1 },
     scrollContent: { flexGrow: 1, justifyContent: 'center', paddingVertical: 20 * scale },
-    header: { 
+    header: {
         width: '100%',
         flexDirection: 'row',
-        alignItems: "center", 
+        alignItems: "center",
         justifyContent: 'center',
-        marginBottom: 20 * scale, 
+        marginBottom: 20 * scale,
         marginTop: 10 * scale,
         minHeight: 64 * scale,
     },
-    backBtn: { 
+    backBtn: {
         position: 'absolute',
         left: 10 * scale,
         top: 10 * scale,

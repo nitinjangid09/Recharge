@@ -143,51 +143,61 @@ export default function ProductDetailsScreen({ navigation, route }) {
               </View>
 
               {/* Quantity & Description Group */}
-              <View style={s.mainContentCard}>
-                {/* Quantity Selector */}
-                {/* Quantity Selector */}
-                <View style={s.quantityRow}>
-                  <View>
-                    <Text style={s.sectionHeader}>Quantity</Text>
-                    <Text style={s.qtySub}>Select units for purchase</Text>
-                  </View>
-                  <View style={s.stepperContainer}>
-                    <TouchableOpacity
-                      style={s.qtyBtn}
-                      onPress={() => setQuantity(Math.max(1, quantity - 1))}
-                    >
-                      <Icon name="minus" size={18} color={Colors.finance_accent} />
-                    </TouchableOpacity>
-                    <View style={s.qtyValueContainer}>
-                      <Text style={s.qtyText}>{quantity}</Text>
-                    </View>
-                    <TouchableOpacity
-                      style={s.qtyBtn}
-                      onPress={() => setQuantity(quantity + 1)}
-                    >
-                      <Icon name="plus" size={18} color={Colors.finance_accent} />
-                    </TouchableOpacity>
-                  </View>
+              <View style={s.section}>
+                <View style={s.sectionHeader}>
+                  <Icon name="cart-outline" size={20} color={Colors.finance_accent} />
+                  <Text style={s.sectionTitle}>Purchase Options</Text>
                 </View>
+                <View style={s.sectionBody}>
+                  {/* Quantity Selector */}
+                  <View style={s.quantityRow}>
+                    <View>
+                      <Text style={s.qtyLabel}>Quantity</Text>
+                      <Text style={s.qtySub}>Select units for purchase</Text>
+                    </View>
+                    <View style={s.stepperContainer}>
+                      <TouchableOpacity
+                        style={s.qtyBtn}
+                        onPress={() => setQuantity(Math.max(1, quantity - 1))}
+                      >
+                        <Icon name="minus" size={18} color={Colors.finance_accent} />
+                      </TouchableOpacity>
+                      <View style={s.qtyValueContainer}>
+                        <Text style={s.qtyText}>{quantity}</Text>
+                      </View>
+                      <TouchableOpacity
+                        style={s.qtyBtn}
+                        onPress={() => setQuantity(quantity + 1)}
+                      >
+                        <Icon name="plus" size={18} color={Colors.finance_accent} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
 
-                <View style={s.divider} />
+                  <View style={s.divider} />
 
-                {/* Description Section */}
-                <View style={s.descSection}>
-                  <Text style={s.sectionHeader}>Product Overview</Text>
-                  <Text style={s.descText}>
-                    {product.description || 'This premium hardware component is designed for maximum performance and durability. Precision engineered to meet industry standards.'}
-                  </Text>
+                  {/* Description Section */}
+                  <View style={s.descSection}>
+                    <Text style={s.descLabel}>Product Overview</Text>
+                    <Text style={s.descText}>
+                      {product.description || 'This premium hardware component is designed for maximum performance and durability. Precision engineered to meet industry standards.'}
+                    </Text>
+                  </View>
                 </View>
               </View>
 
               {/* Specifications Section */}
-              <Text style={[s.sectionHeader, { marginLeft: 5, marginBottom: 12 }]}>Specifications</Text>
-              <View style={s.specsCard}>
-                <SpecItem label="Category" value={product.category || 'Hardware'} icon="layers-outline" iconColor="#7C3AED" />
-                <SpecItem label="Availability" value={product.isActive ? 'In Stock' : 'Out of Stock'} icon="check-circle-outline" iconColor={product.isActive ? Colors.green : Colors.red} color={product.isActive ? Colors.green : Colors.red} />
-                <SpecItem label="SKU ID" value={product.sku || 'HW-9920-X'} icon="barcode-scan" iconColor="#4F46E5" />
-                <SpecItem label="Listed On" value={new Date(product.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })} icon="calendar-month-outline" iconColor="#D97706" />
+              <View style={s.section}>
+                <View style={s.sectionHeader}>
+                  <Icon name="format-list-bulleted" size={20} color={Colors.finance_accent} />
+                  <Text style={s.sectionTitle}>Specifications</Text>
+                </View>
+                <View style={s.sectionBody}>
+                  <SpecItem label="Category" value={product.category || 'Hardware'} icon="layers-outline" iconColor="#7C3AED" />
+                  <SpecItem label="Availability" value={product.isActive ? 'In Stock' : 'Out of Stock'} icon="check-circle-outline" iconColor={product.isActive ? Colors.green : Colors.red} color={product.isActive ? Colors.green : Colors.red} />
+                  <SpecItem label="SKU ID" value={product.sku || 'HW-9920-X'} icon="barcode-scan" iconColor="#4F46E5" />
+                  <SpecItem label="Listed On" value={new Date(product.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })} icon="calendar-month-outline" iconColor="#D97706" />
+                </View>
               </View>
             </View>
           </ScrollView>
@@ -271,8 +281,18 @@ const s = StyleSheet.create({
   },
   attrText: { fontFamily: Fonts.Bold, fontSize: 10, color: Colors.kyc_accentDark },
 
-  descSection: { marginBottom: 15 },
-  sectionHeader: { fontFamily: Fonts.Bold, fontSize: 16, color: Colors.kyc_text },
+  descSection: { marginBottom: 0 },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: 'rgb(46, 46, 46)',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  sectionTitle: { fontFamily: Fonts.Bold, fontSize: 11, color: Colors.finance_accent, letterSpacing: 0.5, textTransform: 'uppercase' },
+  qtyLabel: { fontFamily: Fonts.Bold, fontSize: 14, color: Colors.kyc_text },
+  descLabel: { fontFamily: Fonts.Bold, fontSize: 14, color: Colors.kyc_text, marginBottom: 8 },
   descText: { fontFamily: Fonts.Medium, fontSize: 13, color: Colors.kyc_textSub, lineHeight: 20 },
 
   extraInfoGrid: { flexDirection: 'row', gap: 12, marginTop: 5 },
@@ -301,26 +321,19 @@ const s = StyleSheet.create({
   retryBtn: { marginTop: 25, backgroundColor: Colors.finance_accent, paddingHorizontal: 30, paddingVertical: 12, borderRadius: 12 },
   retryTxt: { fontFamily: Fonts.Bold, color: Colors.black, fontSize: 14 },
 
-  // New UI Elements
-  mainContentCard: {
+  section: {
     backgroundColor: Colors.cardbg,
     borderRadius: 20,
-    padding: 20,
     marginBottom: 25,
-    borderWidth: 1,
-    borderColor: 'rgba(212,176,106,0.3)',
+    overflow: 'hidden',
+  },
+  sectionBody: {
+    padding: 20,
   },
   divider: {
     height: 1,
-    backgroundColor: 'rgba(212,176,106,0.1)',
+    backgroundColor: 'rgba(245,158,11,0.1)',
     marginVertical: 20,
-  },
-  specsCard: {
-    backgroundColor: Colors.cardbg,
-    borderRadius: 20,
-    padding: 15,
-    borderWidth: 1.5,
-    borderColor: 'rgba(212,176,106,0.3)',
   },
   specItem: {
     flexDirection: 'row',

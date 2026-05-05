@@ -132,10 +132,7 @@ export default function ShoppingScreen({ navigation }) {
         activeOpacity={0.9}
         onPress={() => navigation.navigate('ProductDetailsScreen', { productId: item._id })}
       >
-        <LinearGradient
-          colors={[Colors.beige, Colors.gold]}
-          style={s.cardGradient}
-        >
+        <View style={s.cardContent}>
           <View style={s.cardImageWrap}>
             {imgUrl ? (
               <Image source={{ uri: imgUrl }} style={s.cardImage} resizeMode="contain" />
@@ -144,7 +141,7 @@ export default function ShoppingScreen({ navigation }) {
             )}
           </View>
 
-          <View style={s.cardContent}>
+          <View style={s.cardInfo}>
             <Text style={s.cardName} numberOfLines={1}>{item.name}</Text>
             <Text style={s.cardCategory}>{item.category || 'Hardware'}</Text>
 
@@ -160,7 +157,7 @@ export default function ShoppingScreen({ navigation }) {
               </TouchableOpacity>
             </View>
           </View>
-        </LinearGradient>
+        </View>
       </TouchableOpacity>
     );
   };
@@ -217,9 +214,9 @@ const s = StyleSheet.create({
   bannerBtnTxt: { fontFamily: Fonts.Bold, fontSize: 12, color: Colors.black },
   brandScroll: { marginBottom: 30 },
   brandContent: { paddingRight: 20 },
-  brandTab: { paddingHorizontal: 18, paddingVertical: 10, marginRight: 10, borderRadius: 14, backgroundColor: Colors.bg_F8 || '#F8FAFC', borderWidth: 1, borderColor: 'rgba(212,176,106,0.1)' },
+  brandTab: { paddingHorizontal: 18, paddingVertical: 10, marginRight: 10, borderRadius: 14, backgroundColor: Colors.gold, borderWidth: 1, borderColor: 'rgba(212,176,106,0.2)' },
   brandTabActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  brandTxt: { fontFamily: Fonts.Bold, fontSize: 11, color: Colors.kyc_textSub },
+  brandTxt: { fontFamily: Fonts.Bold, fontSize: 11, color: Colors.black },
   brandTxtActive: { color: Colors.finance_accent },
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   sectionTitle: { fontFamily: Fonts.Bold, fontSize: 16, color: Colors.kyc_text },
@@ -232,24 +229,27 @@ const s = StyleSheet.create({
     backgroundColor: Colors.cardbg,
     borderRadius: 24,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(212,176,106,0.2)',
   },
-  cardGradient: {
+  cardContent: {
     flex: 1,
     padding: 10,
   },
+  cardInfo: {
+    paddingHorizontal: 8,
+    paddingTop: 12,
+    paddingBottom: 4,
+  },
   cardImageWrap: {
     width: '100%',
-    height: 140,
-    backgroundColor: '#F8FAFC',
+    height: 120,
+    backgroundColor: Colors.beige,
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
+    alignSelf: 'center',
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(212,176,106,0.1)',
+    borderColor: 'rgba(212,176,106,0.15)',
   },
   cardImage: {
     width: '85%',

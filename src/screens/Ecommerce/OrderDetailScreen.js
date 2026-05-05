@@ -90,59 +90,58 @@ export default function OrderDetailScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
-      <HeaderBar 
-        title="Order Details" 
-        onBack={() => navigation.goBack()} 
-        style={{ backgroundColor: Colors.primary }}
-        titleStyle={{ color: Colors.white }}
+      <HeaderBar
+        title="Order Details"
+        onBack={() => navigation.goBack()}
       />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scrollContent}>
         {/* Status Hero Section */}
         <LinearGradient
-          colors={['#1A1A2E', '#2D2D44']}
+          colors={[Colors.primary, '#2A2A2A']}
           style={s.statusCard}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
+          <View style={[s.statusBadge, { backgroundColor: getStatusColor(order.orderStatus) + '30' }]}>
+            <Icon name="check-decagram" size={12} color={getStatusColor(order.orderStatus)} style={{ marginRight: 4 }} />
+            <Text style={[s.statusText, { color: getStatusColor(order.orderStatus) }]}>
+              {order.orderStatus?.toUpperCase()}
+            </Text>
+          </View>
           <View style={s.statusHeader}>
             <View>
               <Text style={s.orderIdLabel}>ORDER TRACKING</Text>
               <Text style={s.orderIdValue}>#{order._id?.toUpperCase()}</Text>
             </View>
-            <View style={[s.statusBadge, { backgroundColor: getStatusColor(order.orderStatus) + '30' }]}>
-              <Icon name="check-decagram" size={12} color={getStatusColor(order.orderStatus)} style={{marginRight: 4}} />
-              <Text style={[s.statusText, { color: getStatusColor(order.orderStatus) }]}>
-                {order.orderStatus?.toUpperCase()}
-              </Text>
-            </View>
+
           </View>
           <View style={s.heroFooter}>
             <Text style={s.orderDate}>{formatDate(order.createdAt)}</Text>
             <View style={s.paymentStatusBox}>
-               <Icon name="shield-check" size={12} color={Colors.finance_accent} />
-               <Text style={s.payStatusTxt}>{order.paymentStatus?.toUpperCase()}</Text>
+              <Icon name="shield-check" size={12} color={Colors.finance_accent} />
+              <Text style={s.payStatusTxt}>{order.paymentStatus?.toUpperCase()}</Text>
             </View>
           </View>
         </LinearGradient>
 
         {/* Order Timeline (Modern SaaS Component) */}
         <View style={s.timelineSection}>
-           <View style={s.timelineItem}>
-              <View style={[s.timelineDot, { backgroundColor: Colors.green }]} />
-              <View style={[s.timelineLine, { backgroundColor: Colors.green }]} />
-              <View style={s.timelineContent}>
-                 <Text style={s.timelineTitle}>Order Placed</Text>
-                 <Text style={s.timelineDate}>{formatDate(order.createdAt)}</Text>
-              </View>
-           </View>
-           <View style={s.timelineItem}>
-              <View style={[s.timelineDot, { backgroundColor: order.orderStatus === 'completed' ? Colors.green : Colors.slate_100, borderColor: Colors.finance_accent, borderWidth: 2 }]} />
-              <View style={s.timelineContent}>
-                 <Text style={s.timelineTitle}>{order.orderStatus === 'completed' ? 'Delivered' : 'In Transit'}</Text>
-                 <Text style={s.timelineSub}>Updates will be shared via SMS</Text>
-              </View>
-           </View>
+          <View style={s.timelineItem}>
+            <View style={[s.timelineDot, { backgroundColor: Colors.green }]} />
+            <View style={[s.timelineLine, { backgroundColor: Colors.green }]} />
+            <View style={s.timelineContent}>
+              <Text style={s.timelineTitle}>Order Placed</Text>
+              <Text style={s.timelineDate}>{formatDate(order.createdAt)}</Text>
+            </View>
+          </View>
+          <View style={s.timelineItem}>
+            <View style={[s.timelineDot, { backgroundColor: order.orderStatus === 'completed' ? Colors.green : Colors.slate_100, borderColor: Colors.finance_accent, borderWidth: 2 }]} />
+            <View style={s.timelineContent}>
+              <Text style={s.timelineTitle}>{order.orderStatus === 'completed' ? 'Delivered' : 'In Transit'}</Text>
+              <Text style={s.timelineSub}>Updates will be shared via SMS</Text>
+            </View>
+          </View>
         </View>
 
         {/* Product Details */}
@@ -186,38 +185,38 @@ export default function OrderDetailScreen({ route, navigation }) {
           </View>
           <View style={s.sectionContent}>
 
-          <View style={s.paymentMethodRow}>
-            <Text style={s.paymentLabel}>Payment Method</Text>
-            <Text style={s.paymentValue}>{order.paymentMethod?.toUpperCase()}</Text>
-          </View>
-          <View style={s.paymentMethodRow}>
-            <Text style={s.paymentLabel}>Payment Status</Text>
-            <Text style={[s.paymentValue, { color: getStatusColor(order.paymentStatus) }]}>
-              {order.paymentStatus?.toUpperCase()}
-            </Text>
-          </View>
+            <View style={s.paymentMethodRow}>
+              <Text style={s.paymentLabel}>Payment Method</Text>
+              <Text style={s.paymentValue}>{order.paymentMethod?.toUpperCase()}</Text>
+            </View>
+            <View style={s.paymentMethodRow}>
+              <Text style={s.paymentLabel}>Payment Status</Text>
+              <Text style={[s.paymentValue, { color: getStatusColor(order.paymentStatus) }]}>
+                {order.paymentStatus?.toUpperCase()}
+              </Text>
+            </View>
 
-          <View style={s.priceDivider} />
+            <View style={s.priceDivider} />
 
-          <View style={s.summaryRow}>
-            <Text style={s.summaryLabel}>Subtotal</Text>
-            <Text style={s.summaryValue}>₹{order.subTotal}</Text>
-          </View>
-          <View style={s.summaryRow}>
-            <Text style={s.summaryLabel}>Shipping Charges</Text>
-            <Text style={s.summaryValue}>₹{order.shippingCharge}</Text>
-          </View>
-          <View style={s.summaryRow}>
-            <Text style={s.summaryLabel}>GST (18%)</Text>
-            <Text style={s.summaryValue}>₹{order.gst}</Text>
-          </View>
+            <View style={s.summaryRow}>
+              <Text style={s.summaryLabel}>Subtotal</Text>
+              <Text style={s.summaryValue}>₹{order.subTotal}</Text>
+            </View>
+            <View style={s.summaryRow}>
+              <Text style={s.summaryLabel}>Shipping Charges</Text>
+              <Text style={s.summaryValue}>₹{order.shippingCharge}</Text>
+            </View>
+            <View style={s.summaryRow}>
+              <Text style={s.summaryLabel}>GST (18%)</Text>
+              <Text style={s.summaryValue}>₹{order.gst}</Text>
+            </View>
 
-          <View style={s.totalRow}>
-            <Text style={s.totalLabel}>Grand Total</Text>
-            <Text style={s.totalValue}>₹{order.grandTotal}</Text>
+            <View style={s.totalRow}>
+              <Text style={s.totalLabel}>Grand Total</Text>
+              <Text style={s.totalValue}>₹{order.grandTotal}</Text>
+            </View>
           </View>
         </View>
-      </View>
 
         <TouchableOpacity style={s.supportBtn}>
           <Icon name="help-circle-outline" size={20} color={Colors.slate_400} />
@@ -237,8 +236,6 @@ const s = StyleSheet.create({
     borderRadius: 24,
     padding: 22,
     marginBottom: 20,
-    borderWidth: 1.5,
-    borderColor: Colors.finance_accent,
   },
   statusHeader: {
     flexDirection: 'row',
@@ -248,15 +245,23 @@ const s = StyleSheet.create({
   },
   orderIdLabel: { color: 'rgba(255,255,255,0.5)', fontSize: 9, fontFamily: Fonts.Bold, letterSpacing: 1, marginBottom: 4 },
   orderIdValue: { color: Colors.white, fontSize: 16, fontFamily: Fonts.Bold },
-  statusBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, flexDirection: 'row', alignItems: 'center' },
-  statusText: { fontSize: 10, fontFamily: Fonts.Bold, letterSpacing: 0.5 },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginBottom: 12,
+  },
+  statusText: { fontSize: 12, fontFamily: Fonts.Bold, letterSpacing: 1 },
   heroFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, paddingTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)' },
   orderDate: { color: 'rgba(255,255,255,0.6)', fontSize: 11, fontFamily: Fonts.Medium },
   paymentStatusBox: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   payStatusTxt: { color: Colors.finance_accent, fontSize: 10, fontFamily: Fonts.Bold },
 
   // Timeline
-  timelineSection: { backgroundColor: Colors.cardbg, borderRadius: 24, padding: 20, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)' },
+  timelineSection: { backgroundColor: Colors.cardbg, borderRadius: 24, padding: 20, marginBottom: 16 },
   timelineItem: { flexDirection: 'row', gap: 15, paddingBottom: 20 },
   timelineDot: { width: 12, height: 12, borderRadius: 6, zIndex: 1, marginTop: 4 },
   timelineLine: { position: 'absolute', left: 5.5, top: 16, bottom: 0, width: 1, backgroundColor: Colors.slate_100 },
@@ -269,24 +274,20 @@ const s = StyleSheet.create({
     backgroundColor: Colors.cardbg,
     borderRadius: 24,
     marginBottom: 16,
-    borderWidth: 1.2,
-    borderColor: 'rgba(212,176,106,0.3)',
     overflow: 'hidden',
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: 'rgba(212,176,106,0.08)',
+    backgroundColor: 'rgb(46, 46, 46)',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(212,176,106,0.15)',
+    paddingVertical: 10,
   },
   sectionContent: {
     padding: 16,
   },
-  sectionTitle: { fontSize: 14, fontFamily: Fonts.Bold, color: Colors.kyc_text },
+  sectionTitle: { fontSize: 11, fontFamily: Fonts.Bold, color: Colors.finance_accent, letterSpacing: 0.5, textTransform: 'uppercase' },
 
   productItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   productInfo: { flex: 1 },
